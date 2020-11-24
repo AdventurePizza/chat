@@ -3,3 +3,7 @@
   top: 20px;
   right: 10px;
 }
+.app,
+body {
+  overflow: hidden;
+}

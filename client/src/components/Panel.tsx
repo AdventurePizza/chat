@@ -8,9 +8,11 @@ import {
   Palette,
 } from "@material-ui/icons/";
 import { Drawer, IconButton, Tooltip } from "@material-ui/core";
+import React, { useRef } from "react";
 
-import React from "react";
 import drum from "../assets/drum.svg";
+//@ts-ignore
+import drumBeat from "../assets/drumbeat.mp3";
 
 const iconStyle: React.CSSProperties = {
   width: 50,
@@ -21,6 +23,7 @@ const iconStyle: React.CSSProperties = {
 interface IPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  onClick: (key: string) => void;
 }
 
 const panelItems: { key: string; icon?: React.ReactNode; img?: string }[] = [
@@ -29,12 +32,12 @@ const panelItems: { key: string; icon?: React.ReactNode; img?: string }[] = [
     img: drum,
   },
   {
-    key: "color",
-    icon: <Palette style={iconStyle} />,
-  },
-  {
     key: "emoji",
     icon: <InsertEmoticon style={iconStyle} />,
+  },
+  {
+    key: "color",
+    icon: <Palette style={iconStyle} />,
   },
   {
     key: "gifs",
@@ -46,17 +49,27 @@ const panelItems: { key: string; icon?: React.ReactNode; img?: string }[] = [
   },
 ];
 
-export const Panel = ({ isOpen, onClose }: IPanelProps) => {
+export const Panel = ({ isOpen, onClose, onClick }: IPanelProps) => {
+  const audio = useRef<HTMLAudioElement>(new Audio(drumBeat));
+
   const onClickItem = (key: string) => {
-    console.log("clicked ", key);
+    switch (key) {
+      case "sound":
+        audio.current.currentTime = 0;
+        audio.current.play();
+        onClick(key);
+        break;
+    }
   };
 
   return (
     <Drawer variant="persistent" anchor="right" open={isOpen}>
       <div className="panel-container">
-        <IconButton style={{ marginTop: 20 }} onClick={onClose}>
-          <ChevronRight />
-        </IconButton>
+        <Tooltip title="close panel">
+          <IconButton style={{ marginTop: 20 }} onClick={onClose}>
+            <ChevronRight />
+          </IconButton>
+        </Tooltip>
         {panelItems.map((item) => (
           <PanelItem
             {...item}
@@ -81,8 +94,12 @@ const PanelItem = ({ title, icon, img, onClick }: IPanelItemProps) => {
   return (
     <Tooltip title={title}>
       <div>
-        {icon && <IconButton onClick={onClick}>{icon}</IconButton>}
-        {img && <img style={iconStyle} src={img} alt={title} />}
+        {
+          <IconButton onClick={onClick}>
+            {icon}
+            {img && <img style={iconStyle} src={img} alt={title} />}
+          </IconButton>
+        }
       </div>
     </Tooltip>
   );

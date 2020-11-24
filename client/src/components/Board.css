@@ -1,0 +1,18 @@
+.board-container {
+  overflow: hidden;
+}
+
+.note-transition-enter {
+  opacity: 0;
+}
+
+.note-transition-enter-active {
+  opacity: 1;
+  transform: translateY(-50px);
+  transition: opacity 1s, transform 1s;
+}
+.note-transition-exit {
+  opacity: 0;
+  transition: opacity 1s;
+  transform: translateY(-50px);
+}
