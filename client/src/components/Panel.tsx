@@ -8,11 +8,9 @@ import {
   Palette,
 } from "@material-ui/icons/";
 import { Drawer, IconButton, Tooltip } from "@material-ui/core";
-import React, { useRef } from "react";
 
+import React from "react";
 import drum from "../assets/drum.svg";
-//@ts-ignore
-import drumBeat from "../assets/drumbeat.mp3";
 
 const iconStyle: React.CSSProperties = {
   width: 50,
@@ -50,18 +48,6 @@ const panelItems: { key: string; icon?: React.ReactNode; img?: string }[] = [
 ];
 
 export const Panel = ({ isOpen, onClose, onClick }: IPanelProps) => {
-  const audio = useRef<HTMLAudioElement>(new Audio(drumBeat));
-
-  const onClickItem = (key: string) => {
-    switch (key) {
-      case "sound":
-        audio.current.currentTime = 0;
-        audio.current.play();
-        onClick(key);
-        break;
-    }
-  };
-
   return (
     <Drawer variant="persistent" anchor="right" open={isOpen}>
       <div className="panel-container">
@@ -75,7 +61,7 @@ export const Panel = ({ isOpen, onClose, onClick }: IPanelProps) => {
             {...item}
             key={item.key}
             title={item.key}
-            onClick={() => onClickItem(item.key)}
+            onClick={() => onClick(item.key)}
           />
         ))}
       </div>

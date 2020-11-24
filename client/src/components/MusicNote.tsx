@@ -10,6 +10,7 @@ export interface IMusicNoteProps {
 export const MusicNote = ({ top, left }: IMusicNoteProps) => {
   return (
     <img
+      alt="musical note"
       style={{ width: 40, height: 40, top, left, position: "absolute" }}
       src={musicNote}
     />

@@ -1,14 +1,20 @@
 import "./App.css";
 
 import { IconButton, Tooltip } from "@material-ui/core";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Board } from "./components/Board";
 import { ChevronLeft } from "@material-ui/icons";
 import { IMusicNoteProps } from "./components/MusicNote";
 import { Panel } from "./components/Panel";
+//@ts-ignore
+import drumBeat from "./assets/drumbeat.mp3";
 import io from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
+
+interface IMessageEvent {
+  key: "sound";
+}
 
 const isDebug = true;
 
@@ -25,14 +31,29 @@ function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 
+  const audio = useRef<HTMLAudioElement>(new Audio(drumBeat));
+
+  const playSound = useCallback(() => {
+    if (!audio || !audio.current) return;
+
+    const randomX = Math.random() * window.innerWidth;
+    const randomY = Math.random() * window.innerHeight;
+
+    setMusicNotes((notes) =>
+      notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+    );
+
+    audio.current.currentTime = 0;
+    audio.current.play();
+  }, [audio]);
+
   const onClickPanelItem = (key: string) => {
     if (key === "sound") {
-      const randomX = Math.random() * window.innerWidth;
-      const randomY = Math.random() * window.innerHeight;
+      playSound();
 
-      setMusicNotes(
-        musicNotes.concat({ top: randomY, left: randomX, key: uuidv4() })
-      );
+      socket.emit("event", {
+        key: "sound",
+      });
     }
   };
 
@@ -43,12 +64,21 @@ function App() {
       console.log("connected to socket");
     }
 
+    const onMessageEvent = (message: IMessageEvent) => {
+      if (message.key === "sound") {
+        playSound();
+      }
+    };
+
     socket.on("connect", onConnect);
+
+    socket.on("event", onMessageEvent);
 
     return () => {
       socket.off("connect", onConnect);
+      socket.off("event", onMessageEvent);
     };
-  }, []);
+  }, [playSound]);
 
   return (
     <div className="app" style={{ minHeight: window.innerHeight - 10 }}>

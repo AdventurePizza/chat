@@ -10,6 +10,10 @@ const app = express();
 const httpServer = http.createServer(app);
 const io = new socketio.Server(httpServer);
 
+interface IMessageEvent {
+  key: "sound";
+}
+
 export class Router {
   constructor() {
     httpServer.listen(port, () => {
@@ -18,31 +22,16 @@ export class Router {
 
     io.on("connect", (socket: Socket) => {
       console.log("connected socket");
-      socket.on("chat-message", (message: string) => {
-        if (isCommand(message)) {
-          this.handleCommand(message, socket);
-        } else {
-          io.emit("chat-message", message);
-        }
-
-        // socket.broadcast.emit("chat-message", message);
+      socket.on("event", (message: IMessageEvent) => {
+        this.handleEvent(message, socket);
       });
     });
   }
 
-  handleCommand = (message: string, socket: Socket) => {
-    const strs = message.split(" ");
-
-    if (strs.length < 2) {
-      return;
-    }
-
-    const command = strs[0].substring(1);
-
-    if (command === "play") {
-      io.emit("command", { command: "play", url: strs[1] });
+  handleEvent = (message: IMessageEvent, socket: Socket) => {
+    if (message.key === "sound") {
+      console.log("got event", message);
+      socket.broadcast.emit("event", message);
     }
   };
 }
-
-const isCommand = (message: string) => message.startsWith("!");
