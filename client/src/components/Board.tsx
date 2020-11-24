@@ -3,16 +3,57 @@ import "./Board.css";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import { IMusicNoteProps, MusicNote } from "./MusicNote";
 
+import { IEmoji } from "../types";
 import React from "react";
 
 interface IBoardProps {
   musicNotes: IMusicNoteProps[];
   updateNotes: (notes: IMusicNoteProps[]) => void;
+  emojis: IEmoji[];
+  updateEmojis: (emojis: IEmoji[]) => void;
 }
 
-export const Board = ({ musicNotes, updateNotes }: IBoardProps) => {
+export const Board = ({
+  musicNotes,
+  updateNotes,
+  emojis,
+  updateEmojis,
+}: IBoardProps) => {
   return (
     <div className="board-container">
+      <TransitionGroup>
+        {emojis.map((emoji) => (
+          <CSSTransition
+            key={emoji.key}
+            timeout={1000}
+            classNames="note-transition"
+            onEntered={() => {
+              const index = emojis.findIndex(
+                (_emoji) => _emoji.key === emoji.key
+              );
+              updateEmojis([
+                ...emojis.slice(0, index),
+                ...emojis.slice(index + 1),
+              ]);
+            }}
+          >
+            {/* <MusicNote {...note} /> */}
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                top: emoji.top,
+                left: emoji.left,
+                position: "absolute",
+                zIndex: 9999999,
+              }}
+            >
+              {emoji.type}
+            </div>
+          </CSSTransition>
+        ))}
+      </TransitionGroup>
+
       <TransitionGroup>
         {musicNotes.map((note) => (
           <CSSTransition
@@ -30,21 +71,9 @@ export const Board = ({ musicNotes, updateNotes }: IBoardProps) => {
             }}
           >
             <MusicNote {...note} />
-            {/* <img
-              alt="music note"
-              src={musicNote}
-              className="music-note"
-              style={{
-                top: noteCoords.top,
-                left: noteCoords.left,
-              }}
-            /> */}
           </CSSTransition>
         ))}
       </TransitionGroup>
-      {/* {musicNotes.map((note) => (
-        <MusicNote {...note} />
-      ))} */}
     </div>
   );
 };

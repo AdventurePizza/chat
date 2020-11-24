@@ -1,6 +1,8 @@
 import "./App.css";
 
+import { IEmoji, IMessageEvent } from "./types";
 import { IconButton, Tooltip } from "@material-ui/core";
+import Picker, { IEmojiData } from "emoji-picker-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Board } from "./components/Board";
@@ -12,11 +14,7 @@ import drumBeat from "./assets/drumbeat.mp3";
 import io from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 
-interface IMessageEvent {
-  key: "sound";
-}
-
-const isDebug = true;
+const isDebug = false;
 
 const socketURL =
   window.location.hostname === "localhost"
@@ -27,11 +25,27 @@ isDebug && console.log("socket url = ", socketURL);
 
 const socket = io(socketURL, { transports: ["websocket"] });
 
+const generateRandomXY = () => {
+  const randomX = Math.random() * window.innerWidth;
+  const randomY = Math.random() * window.innerHeight;
+  return { x: randomX, y: randomY };
+};
+
 function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
+  const [emojis, setEmojis] = useState<IEmoji[]>([]);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const audio = useRef<HTMLAudioElement>(new Audio(drumBeat));
+
+  const playEmoji = useCallback((type: string) => {
+    const { x, y } = generateRandomXY();
+
+    setEmojis((emojis) =>
+      emojis.concat({ top: x, left: y, key: uuidv4(), type })
+    );
+  }, []);
 
   const playSound = useCallback(() => {
     if (!audio || !audio.current) return;
@@ -48,25 +62,36 @@ function App() {
   }, [audio]);
 
   const onClickPanelItem = (key: string) => {
-    if (key === "sound") {
-      playSound();
+    switch (key) {
+      case "sound":
+        playSound();
 
-      socket.emit("event", {
-        key: "sound",
-      });
+        socket.emit("event", {
+          key: "sound",
+        });
+        break;
+
+      case "emoji":
+        setIsEmojiPickerOpen(!isEmojiPickerOpen);
+
+        break;
     }
   };
 
-  console.log(" notes are ", musicNotes);
-
   useEffect(() => {
     function onConnect() {
-      console.log("connected to socket");
+      isDebug && console.log("connected to socket");
     }
 
     const onMessageEvent = (message: IMessageEvent) => {
-      if (message.key === "sound") {
-        playSound();
+      switch (message.key) {
+        case "sound":
+          playSound();
+          break;
+        case "emoji":
+          if (message.value) {
+            playEmoji(message.value);
+          }
       }
     };
 
@@ -78,11 +103,24 @@ function App() {
       socket.off("connect", onConnect);
       socket.off("event", onMessageEvent);
     };
-  }, [playSound]);
+  }, [playEmoji, playSound]);
+
+  const onEmojiClick = (_: MouseEvent, emojiData: IEmojiData) => {
+    playEmoji(emojiData.emoji);
+    socket.emit("event", {
+      key: "emoji",
+      value: emojiData.emoji,
+    });
+  };
 
   return (
     <div className="app" style={{ minHeight: window.innerHeight - 10 }}>
-      <Board musicNotes={musicNotes} updateNotes={setMusicNotes} />
+      <Board
+        musicNotes={musicNotes}
+        updateNotes={setMusicNotes}
+        emojis={emojis}
+        updateEmojis={setEmojis}
+      />
 
       <div className="open-panel-button">
         {!isPanelOpen && (
@@ -104,6 +142,11 @@ function App() {
           setIsPanelOpen(false);
         }}
       />
+      {isEmojiPickerOpen && (
+        <div className="picker-container">
+          <Picker onEmojiClick={onEmojiClick} />
+        </div>
+      )}
     </div>
   );
 }

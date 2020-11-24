@@ -11,7 +11,8 @@ const httpServer = http.createServer(app);
 const io = new socketio.Server(httpServer);
 
 interface IMessageEvent {
-  key: "sound";
+  key: "sound" | "emoji";
+  value?: string;
 }
 
 export class Router {
@@ -21,7 +22,6 @@ export class Router {
     });
 
     io.on("connect", (socket: Socket) => {
-      console.log("connected socket");
       socket.on("event", (message: IMessageEvent) => {
         this.handleEvent(message, socket);
       });
@@ -29,9 +29,14 @@ export class Router {
   }
 
   handleEvent = (message: IMessageEvent, socket: Socket) => {
-    if (message.key === "sound") {
-      console.log("got event", message);
-      socket.broadcast.emit("event", message);
+    switch (message.key) {
+      case "sound":
+        socket.broadcast.emit("event", message);
+        break;
+
+      case "emoji":
+        socket.broadcast.emit("event", message);
+        break;
     }
   };
 }
