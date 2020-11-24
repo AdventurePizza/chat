@@ -19,7 +19,7 @@ const isDebug = false;
 const socketURL =
   window.location.hostname === "localhost"
     ? "ws://localhost:8000"
-    : "wss://yeeplayer.herokuapp.com";
+    : "wss://adventure-chat.herokuapp.com";
 
 isDebug && console.log("socket url = ", socketURL);
 

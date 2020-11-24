@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "cd client && npm install",
+    "build": "PUBLIC_URL=https://adventurepizza.github.io/chat npm run build --prefix client",
+    "deploy:heroku": "git subtree push --prefix server heroku master"
   },
   "keywords": [],
   "author": "",
