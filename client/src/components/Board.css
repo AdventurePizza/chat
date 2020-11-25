@@ -16,3 +16,29 @@
   transition: opacity 1s;
   transform: translateY(-50px);
 }
+
+.board-message {
+  display: -webkit-box;
+  position: absolute;
+  z-index: 9999999;
+  user-select: none;
+  max-width: 180px;
+  word-break: break-word;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
+
+.message-transition-enter {
+  opacity: 0;
+}
+
+.message-transition-enter-active {
+  opacity: 1;
+  transition: opacity 7s, transform 7s;
+}
+.message-transition-exit {
+  opacity: 0;
+  transition: opacity 7s;
+}

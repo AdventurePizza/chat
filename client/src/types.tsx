@@ -1,5 +1,5 @@
 export interface IMessageEvent {
-  key: "sound" | "emoji";
+  key: "sound" | "emoji" | "chat";
   value?: string;
 }
 
@@ -8,6 +8,13 @@ export interface IEmoji {
   left: number;
   key: string;
   type: string;
+}
+
+export interface IChatMessage {
+  top: number;
+  left: number;
+  key: string;
+  value: string;
 }
 
 export enum PanelItemEnum {

@@ -22,6 +22,12 @@
   color: rgba(0, 0, 0, 1);
 }
 
+.chat-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media only screen and (max-width: 500px) {
   .bottom-panel-emoji {
     font-size: 2em;

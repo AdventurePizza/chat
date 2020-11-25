@@ -11,7 +11,7 @@ const httpServer = http.createServer(app);
 const io = new socketio.Server(httpServer);
 
 interface IMessageEvent {
-  key: "sound" | "emoji";
+  key: "sound" | "emoji" | "chat";
   value?: string;
 }
 
@@ -36,6 +36,10 @@ export class Router {
 
       case "emoji":
         socket.broadcast.emit("event", message);
+        break;
+
+      case "chat":
+        io.emit("event", message);
         break;
     }
   };

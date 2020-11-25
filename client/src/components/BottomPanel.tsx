@@ -1,17 +1,18 @@
 import { Drawer, IconButton } from "@material-ui/core";
 
+import { Chat } from "./Chat";
 import { PanelItemEnum } from "../types";
 import React from "react";
 
 interface IPanelProps {
   isOpen: boolean;
-  onClick: (key: string, value: string) => void;
   type?: PanelItemEnum;
+  onAction: (key: string, ...args: any[]) => void;
 }
 
 const emojiList: string[] = ["😍", "😎", "👏", "👀", "✨", "🦃"];
 
-export const BottomPanel = ({ isOpen, onClick, type }: IPanelProps) => {
+export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
   const renderPanelContent = () => {
     switch (type) {
       case "emoji":
@@ -19,12 +20,21 @@ export const BottomPanel = ({ isOpen, onClick, type }: IPanelProps) => {
           <>
             {emojiList.map((emoji) => (
               <div key={emoji} className="bottom-panel-emoji">
-                <IconButton onClick={() => onClick("emoji", emoji)}>
+                <IconButton onClick={() => onAction("emoji", emoji)}>
                   {emoji}
                 </IconButton>
               </div>
             ))}
           </>
+        );
+
+      case "chat":
+        return (
+          <Chat
+            sendMessage={(message) => {
+              onAction("chat", message);
+            }}
+          />
         );
     }
   };

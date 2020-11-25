@@ -1,9 +1,9 @@
 import "./Board.css";
 
 import { CSSTransition, TransitionGroup } from "react-transition-group";
+import { IChatMessage, IEmoji } from "../types";
 import { IMusicNoteProps, MusicNote } from "./MusicNote";
 
-import { IEmoji } from "../types";
 import React from "react";
 
 interface IBoardProps {
@@ -11,6 +11,8 @@ interface IBoardProps {
   updateNotes: (notes: IMusicNoteProps[]) => void;
   emojis: IEmoji[];
   updateEmojis: (emojis: IEmoji[]) => void;
+  chatMessages: IChatMessage[];
+  updateChatMessages: (chatMessages: IChatMessage[]) => void;
 }
 
 export const Board = ({
@@ -18,6 +20,8 @@ export const Board = ({
   updateNotes,
   emojis,
   updateEmojis,
+  chatMessages,
+  updateChatMessages,
 }: IBoardProps) => {
   return (
     <div className="board-container">
@@ -37,7 +41,6 @@ export const Board = ({
               ]);
             }}
           >
-            {/* <MusicNote {...note} /> */}
             <div
               style={{
                 width: 40,
@@ -46,6 +49,7 @@ export const Board = ({
                 left: emoji.left,
                 position: "absolute",
                 zIndex: 9999999,
+                userSelect: "none",
               }}
             >
               {emoji.type}
@@ -71,6 +75,35 @@ export const Board = ({
             }}
           >
             <MusicNote {...note} />
+          </CSSTransition>
+        ))}
+      </TransitionGroup>
+
+      <TransitionGroup>
+        {chatMessages.map((message) => (
+          <CSSTransition
+            key={message.key}
+            timeout={7000}
+            classNames="message-transition"
+            onEntered={() => {
+              const index = chatMessages.findIndex(
+                (msg) => msg.key === message.key
+              );
+              updateChatMessages([
+                ...chatMessages.slice(0, index),
+                ...chatMessages.slice(index + 1),
+              ]);
+            }}
+          >
+            <div
+              className="board-message"
+              style={{
+                top: message.top,
+                left: message.left,
+              }}
+            >
+              {message.value}
+            </div>
           </CSSTransition>
         ))}
       </TransitionGroup>
