@@ -3,3 +3,27 @@
   flex-direction: column;
   align-items: center;
 }
+
+.bottom-panel-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.bottom-panel-container > *:not(:last-child) {
+  margin-right: 5px;
+}
+
+.bottom-panel-emoji {
+  font-size: 3em;
+}
+
+.bottom-panel-emoji .MuiIconButton-root {
+  color: rgba(0, 0, 0, 1);
+}
+
+@media only screen and (max-width: 500px) {
+  .bottom-panel-emoji {
+    font-size: 2em;
+  }
+}

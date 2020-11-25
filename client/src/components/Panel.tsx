@@ -9,6 +9,7 @@ import {
 } from "@material-ui/icons/";
 import { Drawer, IconButton, Tooltip } from "@material-ui/core";
 
+import { PanelItemEnum } from "../types";
 import React from "react";
 import drum from "../assets/drum.svg";
 
@@ -22,32 +23,15 @@ interface IPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onClick: (key: string) => void;
+  selectedItem?: PanelItemEnum;
 }
 
-const panelItems: { key: string; icon?: React.ReactNode; img?: string }[] = [
-  {
-    key: "sound",
-    img: drum,
-  },
-  {
-    key: "emoji",
-    icon: <InsertEmoticon style={iconStyle} />,
-  },
-  {
-    key: "color",
-    icon: <Palette style={iconStyle} />,
-  },
-  {
-    key: "gifs",
-    icon: <Gif style={iconStyle} />,
-  },
-  {
-    key: "chat",
-    icon: <Chat style={iconStyle} />,
-  },
-];
-
-export const Panel = ({ isOpen, onClose, onClick }: IPanelProps) => {
+export const Panel = ({
+  isOpen,
+  onClose,
+  onClick,
+  selectedItem,
+}: IPanelProps) => {
   return (
     <Drawer variant="persistent" anchor="right" open={isOpen}>
       <div className="panel-container">
@@ -56,12 +40,13 @@ export const Panel = ({ isOpen, onClose, onClick }: IPanelProps) => {
             <ChevronRight />
           </IconButton>
         </Tooltip>
-        {panelItems.map((item) => (
+        {Object.keys(PanelItemEnum).map((item) => (
           <PanelItem
             {...item}
-            key={item.key}
-            title={item.key}
-            onClick={() => onClick(item.key)}
+            key={item}
+            title={item}
+            onClick={() => onClick(item)}
+            isSelected={selectedItem === item}
           />
         ))}
       </div>
@@ -70,23 +55,43 @@ export const Panel = ({ isOpen, onClose, onClick }: IPanelProps) => {
 };
 
 interface IPanelItemProps {
-  icon?: React.ReactNode;
-  img?: string;
   onClick: () => void;
   title: string;
+  isSelected: boolean;
 }
 
-const PanelItem = ({ title, icon, img, onClick }: IPanelItemProps) => {
+const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
+  const renderPanelItem = () => {
+    let buttonContent;
+    const style: React.CSSProperties = {
+      ...iconStyle,
+      color: isSelected ? "orange" : undefined,
+    };
+
+    switch (title) {
+      case PanelItemEnum.sound:
+        buttonContent = <img style={iconStyle} src={drum} alt={title} />;
+        break;
+      case PanelItemEnum.emoji:
+        buttonContent = <InsertEmoticon style={style} />;
+        break;
+      case PanelItemEnum.color:
+        buttonContent = <Palette style={style} />;
+        break;
+      case PanelItemEnum.gifs:
+        buttonContent = <Gif style={style} />;
+        break;
+      case PanelItemEnum.chat:
+        buttonContent = <Chat style={style} />;
+        break;
+    }
+
+    return <IconButton onClick={onClick}>{buttonContent}</IconButton>;
+  };
+
   return (
     <Tooltip title={title}>
-      <div>
-        {
-          <IconButton onClick={onClick}>
-            {icon}
-            {img && <img style={iconStyle} src={img} alt={title} />}
-          </IconButton>
-        }
-      </div>
+      <div>{renderPanelItem()}</div>
     </Tooltip>
   );
 };

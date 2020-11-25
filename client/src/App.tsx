@@ -1,11 +1,11 @@
 import "./App.css";
 
-import { IEmoji, IMessageEvent } from "./types";
+import { IEmoji, IMessageEvent, PanelItemEnum } from "./types";
 import { IconButton, Tooltip } from "@material-ui/core";
-import Picker, { IEmojiData } from "emoji-picker-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Board } from "./components/Board";
+import { BottomPanel } from "./components/BottomPanel";
 import { ChevronLeft } from "@material-ui/icons";
 import { IMusicNoteProps } from "./components/MusicNote";
 import { Panel } from "./components/Panel";
@@ -35,7 +35,7 @@ function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
   const [emojis, setEmojis] = useState<IEmoji[]>([]);
-  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [selectedPanelItem, setSelectedPanelItem] = useState<PanelItemEnum>();
 
   const audio = useRef<HTMLAudioElement>(new Audio(drumBeat));
 
@@ -43,7 +43,7 @@ function App() {
     const { x, y } = generateRandomXY();
 
     setEmojis((emojis) =>
-      emojis.concat({ top: x, left: y, key: uuidv4(), type })
+      emojis.concat({ top: y, left: x, key: uuidv4(), type })
     );
   }, []);
 
@@ -72,7 +72,11 @@ function App() {
         break;
 
       case "emoji":
-        setIsEmojiPickerOpen(!isEmojiPickerOpen);
+        setSelectedPanelItem(
+          selectedPanelItem === PanelItemEnum.emoji
+            ? undefined
+            : PanelItemEnum.emoji
+        );
 
         break;
     }
@@ -105,12 +109,15 @@ function App() {
     };
   }, [playEmoji, playSound]);
 
-  const onEmojiClick = (_: MouseEvent, emojiData: IEmojiData) => {
-    playEmoji(emojiData.emoji);
-    socket.emit("event", {
-      key: "emoji",
-      value: emojiData.emoji,
-    });
+  const onClickBottomPanel = (key: string, value: string) => {
+    switch (key) {
+      case "emoji":
+        playEmoji(value);
+        socket.emit("event", {
+          key: "emoji",
+          value,
+        });
+    }
   };
 
   return (
@@ -141,12 +148,14 @@ function App() {
         onClose={() => {
           setIsPanelOpen(false);
         }}
+        selectedItem={selectedPanelItem}
       />
-      {isEmojiPickerOpen && (
-        <div className="picker-container">
-          <Picker onEmojiClick={onEmojiClick} />
-        </div>
-      )}
+
+      <BottomPanel
+        type={selectedPanelItem}
+        onClick={onClickBottomPanel}
+        isOpen={Boolean(selectedPanelItem)}
+      />
     </div>
   );
 }

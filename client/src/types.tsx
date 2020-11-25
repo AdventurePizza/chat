@@ -9,3 +9,11 @@ export interface IEmoji {
   key: string;
   type: string;
 }
+
+export enum PanelItemEnum {
+  "sound" = "sound",
+  "emoji" = "emoji",
+  "color" = "color",
+  "gifs" = "gifs",
+  "chat" = "chat",
+}
