@@ -51,5 +51,5 @@
     "@types/socket.io-client": "^1.4.34",
     "@types/uuid": "^8.3.0"
   },
-  "homepage": "https://adventurepizza.github.io/chat"
+  "homepage": "https://trychats.com"
 }

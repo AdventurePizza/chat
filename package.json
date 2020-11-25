@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "cd client && npm install",
-    "build": "PUBLIC_URL=https://adventurepizza.github.io/chat npm run build --prefix client",
+    "build": "PUBLIC_URL=https://trychats.com npm run build --prefix client",
     "deploy:heroku": "git subtree push --prefix server heroku master"
   },
   "keywords": [],
