@@ -1,46 +1,54 @@
-# Getting Started with Create React App
+# chat
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+a fun interactive chatroom
 
-## Available Scripts
+## setup
 
-In the project directory, you can run:
+Make sure you have nodejs / npm installed. If not I recommend installing it through nvm https://github.com/nvm-sh/nvm#install--update-script
 
-### `yarn start`
+If you are programming on windows I highly recommend installing wsl 2 for a superior development experience https://docs.microsoft.com/en-us/windows/wsl/install-win10
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+We're developing using typescript. I highly recommend trying to define your variables/functions like typescript enforces. As a last resort use `any` or `//@ts-ignore`
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+For more typescript info: https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html
 
-### `yarn test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+the app consists of a client and server
 
-### `yarn build`
+In each directory `client` and `server` run `npm install`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## start
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+In the client directory run `npm start`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+In the server directory run `npm run start:dev` 
 
-### `yarn eject`
+## adding a new panel item
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+add your panel type where panel types are declared in `client/src/types.tsx`
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+panel items are rendered in the `PanelItem` component in  `Panel.tsx`. Add your component to the switch statement
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+determine what happens when someone clicks the panel item through `App.tsx`'s `onClickPanelItem`, once again add to the switch statement.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## rendering items in the bottom panel
 
-## Learn More
+`BottomPanel.tsx` renders its content based off the panel item types previously declared, add to the switch statement `renderPanelContent` like before.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The bottom panel's open state is determined by `App.tsx`, specifically through the state variable `selectedPanelItem`. It should be set in `onClickPanelItem`, mimic the emoji panel. 
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## sending messages between server and client
+
+We're using `socket.io` to communicate between server and clients. Add your message handling to the switch statement in `App.tsx`'s `onMessageEvent`. You can add any properties you need to the type `IMessageEvent`
+
+Send a message to the backend using `socket.emit` like
+```javascript
+socket.emit("event", {
+    key: "sound"
+});
+```
+
+Server-side, add to the switch statement `handleEvent` in `router.ts`. send a message to everyone except the original sender using `socket.broadcast.emit`. 
+
+For more info on socket.io check https://socket.io/docs/v3/emit-cheatsheet/index.html
