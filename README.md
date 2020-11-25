@@ -73,7 +73,7 @@ Add and commit all changes recursively from current directory:
 
 `git commit -m "i made these changes"`
 
-When ready for code review, push to github
+When ready for code review, push to github and make a merge request. Then message Leo for a review
 
 `git push origin my-branch-name`
 
