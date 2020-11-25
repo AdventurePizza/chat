@@ -52,3 +52,31 @@ socket.emit("event", {
 Server-side, add to the switch statement `handleEvent` in `router.ts`. send a message to everyone except the original sender using `socket.broadcast.emit`. 
 
 For more info on socket.io check https://socket.io/docs/v3/emit-cheatsheet/index.html
+
+## how to contribute / git basics
+
+First, get the latest code by pulling while on the `master` branch, `git pull origin master`
+
+Make your commits on a new branch. Checkout your branch with a name related to what changes you are making, like:
+
+`git checkout -b add-vr-panel-item` 
+
+`git checkout -b fix-font-size`
+
+Check your branch / branches with `git branch`
+
+Switch between existing branches with `git checkout branch-name`
+
+Add and commit all changes recursively from current directory:
+
+`git add .`
+
+`git commit -m "i made these changes"`
+
+When ready for code review, push to github
+
+`git push origin my-branch-name`
+
+Make sure to pull to merge the latest code before pushing to avoid merge conflicts
+
+`git pull origin master` while on your branch
