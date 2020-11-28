@@ -1,14 +1,13 @@
-import React, { SyntheticEvent, useContext, useRef, useState } from "react";
 import "./Gifs.css";
+import React, { useContext } from "react";
 import { 
          Carousel, 
-         Gif,
          SearchBar, 
          SearchContext, 
          SearchContextManager, 
          SuggestionBar
         } from '@giphy/react-components'
-import { GiphyFetch} from '@giphy/js-fetch-api'
+import {IGif} from '@giphy/js-types'
 // use @giphy/js-fetch-api to fetch gifs, instantiate with your api key
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4'
 // const gf = new GiphyFetch(API_KEY)
@@ -19,28 +18,25 @@ const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4'
 
 interface IGifsProps {
   //Gif data IGif
-  sendGif: (gif: any) => void;
+  sendGif: (gif: IGif) => void;
 }
 
-const GifComponent = () => {
+const GifComponent = ({sendGif}: IGifsProps) => {
   const { fetchGifs, searchKey } = useContext(SearchContext)
-  const onGifClick = (gif: any, e: SyntheticEvent<HTMLElement, Event>) => {
-
-  }
   return (
     <div className="gif-container">
         <SearchBar />
         <SuggestionBar/>
-        <Carousel key={searchKey} gifHeight={130} gutter={6} fetchGifs={fetchGifs} onGifClick={onGifClick} />
+        <Carousel key={searchKey} gifHeight={130} gutter={6} fetchGifs={fetchGifs} onGifClick={sendGif} noLink={true} />
     </div>
   )
 }
 
-export const Gifs = ({ }: IGifsProps) => {
+export const Gifs = ({sendGif}: IGifsProps) => {
 
   return (
-    <SearchContextManager initialTerm="music" apiKey={API_KEY}>
-      <GifComponent/>
+    <SearchContextManager initialTerm="lets go" apiKey={API_KEY}>
+      <GifComponent sendGif={sendGif}/>
     </SearchContextManager>
   );
 };

@@ -4,6 +4,7 @@ import { Chat } from "./Chat";
 import { PanelItemEnum } from "../types";
 import React from "react";
 import { Gifs } from "./Gifs";
+import {IGif} from '@giphy/js-types'
 
 interface IPanelProps {
   isOpen: boolean;
@@ -40,8 +41,9 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
       case "gifs":
         return(
           <Gifs
-            sendGif={(gif) => {
-              onAction("gif", gif);
+            sendGif={(gif: IGif) => {
+              console.log(gif);
+              onAction("gif", gif.id);
             }}
           />
         );
