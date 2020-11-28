@@ -3,6 +3,8 @@ import { Drawer, IconButton } from "@material-ui/core";
 import { Chat } from "./Chat";
 import { PanelItemEnum } from "../types";
 import React from "react";
+import { Gifs } from "./Gifs";
+import {IGif} from '@giphy/js-types'
 
 interface IPanelProps {
   isOpen: boolean;
@@ -33,6 +35,14 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
           <Chat
             sendMessage={(message) => {
               onAction("chat", message);
+            }}
+          />
+        );
+      case "gifs":
+        return(
+          <Gifs
+            sendGif={(gif: IGif) => {
+              onAction("gif", gif.id);
             }}
           />
         );

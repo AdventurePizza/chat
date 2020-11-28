@@ -1,5 +1,6 @@
+import {IGif} from '@giphy/js-types'
 export interface IMessageEvent {
-  key: "sound" | "emoji" | "chat";
+  key: "sound" | "emoji" | "chat" | "gif";
   value?: string;
 }
 
@@ -15,6 +16,13 @@ export interface IChatMessage {
   left: number;
   key: string;
   value: string;
+}
+
+export interface IGifs {
+  top: number;
+  left: number;
+  key: string;
+  data: IGif;
 }
 
 export enum PanelItemEnum {
