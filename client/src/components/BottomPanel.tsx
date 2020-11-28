@@ -42,7 +42,6 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
         return(
           <Gifs
             sendGif={(gif: IGif) => {
-              console.log(gif);
               onAction("gif", gif.id);
             }}
           />
