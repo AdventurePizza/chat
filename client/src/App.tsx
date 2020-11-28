@@ -92,6 +92,7 @@ function App() {
 
       case "emoji":
       case "chat":
+      case "gifs":
         setSelectedPanelItem(
           selectedPanelItem === key ? undefined : (key as PanelItemEnum)
         );

@@ -39,7 +39,11 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
         );
       case "gifs":
         return(
-          <Gifs/>
+          <Gifs
+            sendGif={(gif) => {
+              onAction("gif", gif);
+            }}
+          />
         );
     }
   };
