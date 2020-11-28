@@ -1,7 +1,7 @@
 import "./Board.css";
-
+import { Gif } from '@giphy/react-components'
 import { CSSTransition, TransitionGroup } from "react-transition-group";
-import { IChatMessage, IEmoji } from "../types";
+import { IChatMessage, IEmoji, IGifs} from "../types";
 import { IMusicNoteProps, MusicNote } from "./MusicNote";
 
 import React from "react";
@@ -11,6 +11,8 @@ interface IBoardProps {
   updateNotes: (notes: IMusicNoteProps[]) => void;
   emojis: IEmoji[];
   updateEmojis: (emojis: IEmoji[]) => void;
+  gifs: IGifs[];
+  updateGifs: (gifs: IGifs[]) => void;
   chatMessages: IChatMessage[];
   updateChatMessages: (chatMessages: IChatMessage[]) => void;
 }
@@ -20,6 +22,8 @@ export const Board = ({
   updateNotes,
   emojis,
   updateEmojis,
+  gifs,
+  updateGifs,
   chatMessages,
   updateChatMessages,
 }: IBoardProps) => {
@@ -103,6 +107,37 @@ export const Board = ({
               }}
             >
               {message.value}
+            </div>
+          </CSSTransition>
+        ))}
+      </TransitionGroup>
+
+      <TransitionGroup>
+        {gifs.map((gif) => (
+          <CSSTransition
+            key={gif.key}
+            timeout={2000}
+            classNames="note-transition"
+            onEntered={() => {
+              const index = gifs.findIndex(
+                (_gif) => _gif.key === gif.key
+              );
+              updateGifs([
+                ...gifs.slice(0, index),
+                ...gifs.slice(index + 1),
+              ]);
+            }}
+          >
+            <div
+              style={{
+                top: gif.top,
+                left: gif.left,
+                position: "absolute",
+                zIndex: 9999999,
+                userSelect: "none",
+              }}
+            >
+              <Gif gif={gif.data} width={180} noLink={true}/>
             </div>
           </CSSTransition>
         ))}

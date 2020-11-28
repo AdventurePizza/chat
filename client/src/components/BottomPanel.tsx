@@ -3,6 +3,8 @@ import { Drawer, IconButton } from "@material-ui/core";
 import { Chat } from "./Chat";
 import { PanelItemEnum } from "../types";
 import React from "react";
+import { Gifs } from "./Gifs";
+import {IGif} from '@giphy/js-types'
 
 import cymballIcon from "../assets/cymbalIcon.svg";
 import drumIcon from "../assets/drum.svg";
@@ -66,6 +68,14 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
             ))}
           </>
         )
+      case "gifs":
+        return(
+          <Gifs
+            sendGif={(gif: IGif) => {
+              onAction("gif", gif.id);
+            }}
+          />
+        );
     }
   };
 
