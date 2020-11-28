@@ -3,6 +3,7 @@ import { Drawer, IconButton } from "@material-ui/core";
 import { Chat } from "./Chat";
 import { PanelItemEnum } from "../types";
 import React from "react";
+import { Gifs } from "./Gifs";
 
 interface IPanelProps {
   isOpen: boolean;
@@ -35,6 +36,10 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
               onAction("chat", message);
             }}
           />
+        );
+      case "gifs":
+        return(
+          <Gifs/>
         );
     }
   };
