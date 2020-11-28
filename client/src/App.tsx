@@ -1,12 +1,19 @@
 import "./App.css";
 
-import { IChatMessage, IEmoji, IMessageEvent, PanelItemEnum } from "./types";
+import {
+  IChatMessage,
+  IEmoji,
+  IGifs,
+  IMessageEvent,
+  PanelItemEnum,
+} from "./types";
 import { IconButton, Tooltip } from "@material-ui/core";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Board } from "./components/Board";
 import { BottomPanel } from "./components/BottomPanel";
 import { ChevronLeft } from "@material-ui/icons";
+import { GiphyFetch } from "@giphy/js-fetch-api";
 import { IMusicNoteProps } from "./components/MusicNote";
 import { Panel } from "./components/Panel";
 //@ts-ignore
@@ -49,10 +56,14 @@ const generateRandomXY = (centered?: boolean) => {
   }
 };
 
+const API_KEY = "A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4";
+const GIF_FETCH = new GiphyFetch(API_KEY);
+
 function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
   const [emojis, setEmojis] = useState<IEmoji[]>([]);
+  const [gifs, setGifs] = useState<IGifs[]>([]);
   const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
   const [selectedPanelItem, setSelectedPanelItem] = useState<PanelItemEnum>();
 
@@ -92,6 +103,7 @@ function App() {
 
       case "emoji":
       case "chat":
+      case "gifs":
         setSelectedPanelItem(
           selectedPanelItem === key ? undefined : (key as PanelItemEnum)
         );
@@ -109,6 +121,19 @@ function App() {
       value: message,
     };
     setChatMessages((chatMessages) => chatMessages.concat(newMessage));
+  }, []);
+
+  const addGif = useCallback((gifId: string) => {
+    const { x, y } = generateRandomXY(true);
+    GIF_FETCH.gif(gifId).then((data) => {
+      const newGif: IGifs = {
+        top: y,
+        left: x,
+        key: uuidv4(),
+        data: data.data,
+      };
+      setGifs((gifs) => gifs.concat(newGif));
+    });
   }, []);
 
   useEffect(() => {
@@ -131,6 +156,11 @@ function App() {
             addChatMessage(message.value);
           }
           break;
+        case "gif":
+          if (message.value) {
+            addGif(message.value);
+          }
+          break;
       }
     };
 
@@ -142,7 +172,7 @@ function App() {
       socket.off("connect", onConnect);
       socket.off("event", onMessageEvent);
     };
-  }, [playEmoji, playSound, addChatMessage]);
+  }, [playEmoji, playSound, addChatMessage, addGif]);
 
   const actionHandler = (key: string, ...args: any[]) => {
     switch (key) {
@@ -160,6 +190,14 @@ function App() {
           key: "emoji",
           value: emoji,
         });
+        break;
+      case "gif":
+        const gif = args[0] as string;
+        socket.emit("event", {
+          key: "gif",
+          value: gif,
+        });
+        break;
     }
   };
 
@@ -170,6 +208,8 @@ function App() {
         updateNotes={setMusicNotes}
         emojis={emojis}
         updateEmojis={setEmojis}
+        gifs={gifs}
+        updateGifs={setGifs}
         chatMessages={chatMessages}
         updateChatMessages={setChatMessages}
       />
