@@ -1,14 +1,19 @@
 import "./App.css";
 
-import { IChatMessage, IEmoji, IGifs, IMessageEvent, PanelItemEnum } from "./types";
-import { GiphyFetch } from '@giphy/js-fetch-api'
-
+import {
+  IChatMessage,
+  IEmoji,
+  IGifs,
+  IMessageEvent,
+  PanelItemEnum,
+} from "./types";
 import { IconButton, Tooltip } from "@material-ui/core";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Board } from "./components/Board";
 import { BottomPanel } from "./components/BottomPanel";
 import { ChevronLeft } from "@material-ui/icons";
+import { GiphyFetch } from "@giphy/js-fetch-api";
 import { IMusicNoteProps } from "./components/MusicNote";
 import { Panel } from "./components/Panel";
 //@ts-ignore
@@ -51,8 +56,8 @@ const generateRandomXY = (centered?: boolean) => {
   }
 };
 
-const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4'
-const GIF_FETCH = GiphyFetch(API_KEY);
+const API_KEY = "A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4";
+const GIF_FETCH = new GiphyFetch(API_KEY);
 
 function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -120,7 +125,7 @@ function App() {
 
   const addGif = useCallback((gifId: string) => {
     const { x, y } = generateRandomXY(true);
-    GIF_FETCH.gif(gifId).then((data)=> {
+    GIF_FETCH.gif(gifId).then((data) => {
       const newGif: IGifs = {
         top: y,
         left: x,
@@ -130,7 +135,6 @@ function App() {
       setGifs((gifs) => gifs.concat(newGif));
     });
   }, []);
-
 
   useEffect(() => {
     function onConnect() {
@@ -153,7 +157,7 @@ function App() {
           }
           break;
         case "gif":
-          if(message.value) {
+          if (message.value) {
             addGif(message.value);
           }
           break;
@@ -205,7 +209,7 @@ function App() {
         emojis={emojis}
         updateEmojis={setEmojis}
         gifs={gifs}
-        updateGifs = {setGifs}
+        updateGifs={setGifs}
         chatMessages={chatMessages}
         updateChatMessages={setChatMessages}
       />
