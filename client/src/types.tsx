@@ -17,6 +17,13 @@ export interface IChatMessage {
   value: string;
 }
 
+export interface ISound {
+  drum: string;
+  cymbal: string,
+  guitar: string;
+  meme: string;
+}
+
 export enum PanelItemEnum {
   "sound" = "sound",
   "emoji" = "emoji",
