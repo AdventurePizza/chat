@@ -51,9 +51,8 @@ const generateRandomXY = (centered?: boolean) => {
   }
 };
 
-
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4'
-const GIF_FETCH = new GiphyFetch(API_KEY);
+const GIF_FETCH = GiphyFetch(API_KEY);
 
 function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
