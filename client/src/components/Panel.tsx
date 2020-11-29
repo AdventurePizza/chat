@@ -6,12 +6,14 @@ import {
   Gif,
   InsertEmoticon,
   Palette,
+  // eslint-disable-next-line
+  MusicNote
 } from "@material-ui/icons/";
 import { Drawer, IconButton, Tooltip } from "@material-ui/core";
 
 import { PanelItemEnum } from "../types";
 import React from "react";
-import drum from "../assets/drum.svg";
+// import drum from "../assets/drum.svg";
 
 const iconStyle: React.CSSProperties = {
   width: 50,
@@ -70,7 +72,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 
     switch (title) {
       case PanelItemEnum.sound:
-        buttonContent = <img style={iconStyle} src={drum} alt={title} />;
+        buttonContent = <MusicNote style={style}/>
         break;
       case PanelItemEnum.emoji:
         buttonContent = <InsertEmoticon style={style} />;

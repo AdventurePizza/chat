@@ -4,6 +4,7 @@ import {
   IChatMessage,
   IEmoji,
   IGifs,
+  ISound,
   IMessageEvent,
   PanelItemEnum,
 } from "./types";
@@ -16,8 +17,17 @@ import { ChevronLeft } from "@material-ui/icons";
 import { GiphyFetch } from "@giphy/js-fetch-api";
 import { IMusicNoteProps } from "./components/MusicNote";
 import { Panel } from "./components/Panel";
+
+// Sound imports
 //@ts-ignore
-import drumBeat from "./assets/drumbeat.mp3";
+import drumBeat from "./assets/sounds/drumbeat.mp3";
+//@ts-ignore
+import cymbalHit from "./assets/sounds/cymbal.mp3";
+//@ts-ignore
+import guitarStrum from "./assets/sounds/electric_guitar.mp3";
+//@ts-ignore
+import gotEm from "./assets/sounds/ha-got-eeem.mp3";
+
 import io from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 
@@ -67,7 +77,14 @@ function App() {
   const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
   const [selectedPanelItem, setSelectedPanelItem] = useState<PanelItemEnum>();
 
-  const audio = useRef<HTMLAudioElement>(new Audio(drumBeat));
+  const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
+
+  const sounds: ISound = {
+    drum: drumBeat,
+    cymbal: cymbalHit,
+    guitar: guitarStrum,
+    meme: gotEm
+  }
 
   const playEmoji = useCallback((type: string) => {
     const { x, y } = generateRandomXY();
@@ -77,7 +94,27 @@ function App() {
     );
   }, []);
 
-  const playSound = useCallback(() => {
+  const playSound = useCallback((soundType) => {
+
+    switch(soundType) {
+
+      case "drum":
+        audio.current = new Audio(sounds.drum)
+        break;
+      case "cymbal":
+        audio.current = new Audio(sounds.cymbal)
+        break;
+      case "guitar":
+        audio.current = new Audio(sounds.guitar);
+        break;
+      case "meme":
+        audio.current = new Audio(sounds.meme);
+        break;
+      default:
+        // This should be impossible
+        break;
+    }
+
     if (!audio || !audio.current) return;
 
     const randomX = Math.random() * window.innerWidth;
@@ -89,18 +126,13 @@ function App() {
 
     audio.current.currentTime = 0;
     audio.current.play();
-  }, [audio]);
+
+  }, [audio, sounds.meme, sounds.guitar, sounds.drum, sounds.cymbal]);
 
   const onClickPanelItem = (key: string) => {
     switch (key) {
+
       case "sound":
-        playSound();
-
-        socket.emit("event", {
-          key: "sound",
-        });
-        break;
-
       case "emoji":
       case "chat":
       case "gifs":
@@ -144,7 +176,7 @@ function App() {
     const onMessageEvent = (message: IMessageEvent) => {
       switch (message.key) {
         case "sound":
-          playSound();
+          playSound(message.value);
           break;
         case "emoji":
           if (message.value) {
@@ -191,12 +223,24 @@ function App() {
           value: emoji,
         });
         break;
+      case "sound":
+        const soundType = args[0] as string;
+
+        playSound(soundType);
+
+        socket.emit("event", {
+          key: "sound",
+          value: soundType
+        });
+        break;
       case "gif":
         const gif = args[0] as string;
         socket.emit("event", {
           key: "gif",
           value: gif,
         });
+        break;
+      default:
         break;
     }
   };
