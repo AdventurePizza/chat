@@ -12,6 +12,8 @@ We're developing using typescript. I highly recommend trying to define your vari
 
 For more typescript info: https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html
 
+Make sure you're using the `.prettierc` to format your code. If you're using VSCode as your IDE you can turn on autoformat on file save through File > Preferences > Settings, search "format". You can also run `npm run prettier` in client to format the files. This makes it obvious which lines were changed instead of focusing on spacing.
+
 ---
 
 the app consists of a client and server
