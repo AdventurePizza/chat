@@ -279,6 +279,13 @@ function App() {
 				selectedItem={selectedPanelItem}
 			/>
 
+			<Tooltip title="production: leo, mike, and krishang">
+				<div className="adventure-logo">
+					<div>adventure</div>
+					<div>corp</div>
+				</div>
+			</Tooltip>
+
 			<BottomPanel
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
