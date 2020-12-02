@@ -1,41 +1,41 @@
-import {IGif} from '@giphy/js-types'
+import { IGif } from '@giphy/js-types';
 export interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif";
-  value?: string;
+	key: 'sound' | 'emoji' | 'chat' | 'gif';
+	value?: string;
 }
 
 export interface IEmoji {
-  top: number;
-  left: number;
-  key: string;
-  type: string;
+	top: number;
+	left: number;
+	key: string;
+	type: string;
 }
 
 export interface IChatMessage {
-  top: number;
-  left: number;
-  key: string;
-  value: string;
+	top: number;
+	left: number;
+	key: string;
+	value: string;
 }
 
 export interface ISound {
-  drum: string;
-  cymbal: string,
-  guitar: string;
-  meme: string;
+	drum: string;
+	cymbal: string;
+	guitar: string;
+	meme: string;
 }
 
 export interface IGifs {
-  top: number;
-  left: number;
-  key: string;
-  data: IGif;
+	top: number;
+	left: number;
+	key: string;
+	data: IGif;
 }
 
 export enum PanelItemEnum {
-  "sound" = "sound",
-  "emoji" = "emoji",
-  "color" = "color",
-  "gifs" = "gifs",
-  "chat" = "chat",
+	'sound' = 'sound',
+	'emoji' = 'emoji',
+	'color' = 'color',
+	'gifs' = 'gifs',
+	'chat' = 'chat'
 }
