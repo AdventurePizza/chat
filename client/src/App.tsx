@@ -279,7 +279,7 @@ function App() {
 				selectedItem={selectedPanelItem}
 			/>
 
-			<Tooltip title="production: leo, mike, and krishang">
+			<Tooltip title="production: leo, mike, yinbai, and krishang">
 				<div className="adventure-logo">
 					<div>adventure</div>
 					<div>corp</div>
