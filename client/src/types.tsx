@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif';
+	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'background';
 	value?: string;
 }
 
@@ -32,10 +32,16 @@ export interface IGifs {
 	data: IGif;
 }
 
+export interface IBackground {
+	image: string;
+	key: string;
+}
+
 export enum PanelItemEnum {
 	'sound' = 'sound',
 	'emoji' = 'emoji',
 	'color' = 'color',
 	'gifs' = 'gifs',
-	'chat' = 'chat'
+	'chat' = 'chat',
+	'background' = 'background'
 }

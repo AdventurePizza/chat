@@ -7,7 +7,8 @@ import {
 	InsertEmoticon,
 	Palette,
 	// eslint-disable-next-line
-	MusicNote
+	MusicNote,
+	CameraRoll
 } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
@@ -86,6 +87,8 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 			case PanelItemEnum.chat:
 				buttonContent = <Chat style={style} />;
 				break;
+			case PanelItemEnum.background:
+				buttonContent = <CameraRoll style={style} />;
 		}
 
 		return <IconButton onClick={onClick}>{buttonContent}</IconButton>;
