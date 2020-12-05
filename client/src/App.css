@@ -1,16 +1,22 @@
 .open-panel-button {
-  position: absolute;
-  top: 20px;
-  right: 10px;
+	position: absolute;
+	top: 20px;
+	right: 10px;
 }
 .app,
 body {
-  overflow: hidden;
+	overflow: hidden;
 }
 
 .picker-container {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  z-index: 999999;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	z-index: 999999;
+}
+
+.adventure-logo {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
 }
