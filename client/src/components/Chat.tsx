@@ -35,7 +35,7 @@ export const Chat = ({ sendMessage }: IChatProps) => {
 	return (
 		<div className="chat-container">
 			<TextField
-				autoFocus
+				autoFocus={window.innerWidth > 500}
 				ref={textfieldRef}
 				placeholder="type a message"
 				variant="outlined"
