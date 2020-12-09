@@ -1,10 +1,18 @@
 import './Board.css';
-import { Gif } from '@giphy/react-components';
+
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { IChatMessage, IEmoji, IGifs } from '../types';
+import {
+	IChatMessage,
+	IEmoji,
+	IGifs,
+	IUserLocations,
+	IUserProfiles
+} from '../types';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
+import { Gif } from '@giphy/react-components';
 import React from 'react';
+import { UserCursors } from './UserCursors';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -15,6 +23,8 @@ interface IBoardProps {
 	updateGifs: (gifs: IGifs[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
+	userLocations: IUserLocations;
+	userProfiles: IUserProfiles;
 }
 
 export const Board = ({
@@ -25,7 +35,9 @@ export const Board = ({
 	gifs,
 	updateGifs,
 	chatMessages,
-	updateChatMessages
+	updateChatMessages,
+	userLocations,
+	userProfiles
 }: IBoardProps) => {
 	return (
 		<div className="board-container">
@@ -137,6 +149,8 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+
+			<UserCursors userLocations={userLocations} userProfiles={userProfiles} />
 		</div>
 	);
 };
