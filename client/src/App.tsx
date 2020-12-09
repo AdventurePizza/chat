@@ -178,8 +178,6 @@ function App() {
 			setGifs((gifs) => gifs.concat(newGif));
 		});
 	}, []);
-	console.log(userLocations);
-	console.log(userProfiles);
 
 	const updateCursorPosition = useMemo(
 		() =>
