@@ -16,6 +16,7 @@ export interface IChatMessage {
 	left: number;
 	key: string;
 	value: string;
+	isCentered?: boolean;
 }
 
 export interface ISound {
