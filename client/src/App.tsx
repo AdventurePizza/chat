@@ -50,30 +50,6 @@ isDebug && console.log('socket url = ', socketURL);
 
 const socket = io(socketURL, { transports: ['websocket'] });
 
-const generateRandomXY = (centered?: boolean) => {
-	if (centered) {
-		// 1/4 to 3/4
-
-		const randomX =
-			(Math.random() * window.innerWidth * 2) / 4 + window.innerWidth / 4;
-		const randomY =
-			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
-
-		//1/3 to 2/3
-
-		// const randomX =
-		//   (Math.random() * window.innerWidth) / 3 + window.innerWidth / 3;
-		// const randomY =
-		//   (Math.random() * window.innerHeight) / 3 + window.innerHeight / 3;
-
-		return { x: randomX, y: randomY };
-	} else {
-		const randomX = Math.random() * window.innerWidth;
-		const randomY = Math.random() * window.innerHeight;
-		return { x: randomX, y: randomY };
-	}
-};
-
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 
@@ -111,6 +87,38 @@ function App() {
 			emojis.concat({ top: y, left: x, key: uuidv4(), type })
 		);
 	}, []);
+
+	const playTutorial = async () => {
+		tutorialGifs.forEach((gif) => {
+			setTimeout(async () => {
+				const data = await GIF_FETCH.gif(gif.id);
+				const { x, y } = generateRandomXY(true);
+
+				const newGif: IGifs = {
+					top: y,
+					left: x,
+					key: uuidv4(),
+					data: data.data
+				};
+
+				setGifs((gifs) => gifs.concat(newGif));
+			}, gif.time);
+		});
+
+		for (let i = 0; i < tutorialMessages.length; i++) {
+			setChatMessages((messages) =>
+				messages.concat({
+					top: window.innerHeight * 0.1 + i * 25,
+					left: window.innerWidth / 2 - tutorialMessages[i].length * 5,
+					key: uuidv4(),
+					value: tutorialMessages[i],
+					isCentered: true
+				})
+			);
+
+			await sleep(1000);
+		}
+	};
 
 	const playSound = useCallback(
 		(soundType) => {
@@ -213,6 +221,10 @@ function App() {
 		},
 		[updateCursorPosition, userCursorRef]
 	);
+
+	useEffect(() => {
+		playTutorial();
+	}, []);
 
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
@@ -411,3 +423,71 @@ function App() {
 }
 
 export default App;
+
+const sleep = async (time: number) =>
+	new Promise((resolve) => setTimeout(resolve, time));
+
+const tutorialMessages = [
+	'built with web sockets',
+	'anyone visiting the url',
+	'can see 👀 & hear 👂',
+	'the various actions',
+	'text',
+	'audio',
+	'emojis 🙌',
+	'gifs',
+	'etc',
+	'try !',
+	'😊send to a friend !😊',
+	'coming soon: ',
+	'ethereum integrations',
+	'chat rooms',
+	'video channels',
+	'games 🎮',
+	'etc',
+	'have fun',
+	'try with friends, share www.trychats.com'
+];
+
+const tutorialGifs = [
+	{
+		id: 'cPZ582I9Mxtk6crJ37',
+		time: 0
+	},
+	{
+		id: 'l4pT6w42S93xNKz2U',
+		time: 3000
+	},
+	{
+		id: '42YlR8u9gV5Cw',
+		time: 10000
+	},
+	{
+		id: '3og0IzoPfRVwyxjDUs',
+		time: 15000
+	}
+];
+
+const generateRandomXY = (centered?: boolean) => {
+	if (centered) {
+		// 1/4 to 3/4
+
+		const randomX =
+			(Math.random() * window.innerWidth * 2) / 4 + window.innerWidth / 4;
+		const randomY =
+			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
+
+		//1/3 to 2/3
+
+		// const randomX =
+		//   (Math.random() * window.innerWidth) / 3 + window.innerWidth / 3;
+		// const randomY =
+		//   (Math.random() * window.innerHeight) / 3 + window.innerHeight / 3;
+
+		return { x: randomX, y: randomY };
+	} else {
+		const randomX = Math.random() * window.innerWidth;
+		const randomY = Math.random() * window.innerHeight;
+		return { x: randomX, y: randomY };
+	}
+};

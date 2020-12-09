@@ -113,10 +113,22 @@ export const Board = ({
 					>
 						<div
 							className="board-message"
-							style={{
-								top: message.top,
-								left: message.left
-							}}
+							style={
+								message.isCentered
+									? {
+											width: window.innerWidth,
+											textAlign: 'center',
+											left: 0,
+											right: 0,
+											top: message.top,
+											maxWidth: 'none',
+											userSelect: 'auto'
+									  }
+									: {
+											top: message.top,
+											left: message.left
+									  }
+							}
 						>
 							{message.value}
 						</div>
@@ -128,8 +140,8 @@ export const Board = ({
 				{gifs.map((gif) => (
 					<CSSTransition
 						key={gif.key}
-						timeout={2000}
-						classNames="note-transition"
+						timeout={5000}
+						classNames="gif-transition"
 						onEntered={() => {
 							const index = gifs.findIndex((_gif) => _gif.key === gif.key);
 							updateGifs([...gifs.slice(0, index), ...gifs.slice(index + 1)]);
@@ -140,7 +152,7 @@ export const Board = ({
 								top: gif.top,
 								left: gif.left,
 								position: 'absolute',
-								zIndex: 9999999,
+								zIndex: 9999998,
 								userSelect: 'none'
 							}}
 						>

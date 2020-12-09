@@ -60,3 +60,18 @@
 	width: 60px;
 	height: 60px;
 }
+
+.gif-transition-enter {
+	opacity: 0;
+}
+
+.gif-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-50px);
+	transition: opacity 5s, transform 1s;
+}
+.gif-transition-exit {
+	opacity: 0;
+	transition: opacity 5s;
+	transform: translateY(-50px);
+}
