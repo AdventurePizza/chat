@@ -39,3 +39,11 @@ export enum PanelItemEnum {
 	'gifs' = 'gifs',
 	'chat' = 'chat'
 }
+
+export interface IUserLocations {
+	[userId: string]: { x: number; y: number };
+}
+
+export interface IUserProfiles {
+	[clientId: string]: { name: string; avatar: string };
+}

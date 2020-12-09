@@ -6,10 +6,18 @@ import {
 	IGifs,
 	IMessageEvent,
 	ISound,
+	IUserLocations,
+	IUserProfiles,
 	PanelItemEnum
 } from './types';
 import { IconButton, Tooltip } from '@material-ui/core';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState
+} from 'react';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -17,6 +25,7 @@ import { ChevronLeft } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
+import _ from 'underscore';
 //@ts-ignore
 import cymbalHit from './assets/sounds/cymbal.mp3';
 // Sound imports
@@ -78,6 +87,9 @@ function App() {
 	>(PanelItemEnum.chat);
 
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
+
+	const [userLocations, setUserLocations] = useState<IUserLocations>({});
+	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
 
 	const sounds: ISound = {
 		drum: drumBeat,
@@ -166,6 +178,69 @@ function App() {
 			setGifs((gifs) => gifs.concat(newGif));
 		});
 	}, []);
+	console.log(userLocations);
+	console.log(userProfiles);
+
+	const updateCursorPosition = useMemo(
+		() =>
+			_.throttle((position: [number, number]) => {
+				socket.emit('cursor move', { x: position[0], y: position[1] });
+			}, 200),
+		[]
+	);
+
+	const onMouseMove = useCallback(
+		(event: MouseEvent) => {
+			const x = event.clientX;
+			const y = event.clientY;
+
+			const width = window.innerWidth;
+			const height = window.innerHeight;
+
+			const relativeX = x / width;
+			const relativeY = y / height;
+
+			updateCursorPosition([relativeX, relativeY]);
+		},
+		[updateCursorPosition]
+	);
+
+	useEffect(() => {
+		window.addEventListener('mousemove', onMouseMove);
+	}, [onMouseMove]);
+
+	const onCursorMove = useCallback(function cursorMove(
+		clientId: string,
+		[x, y]: number[],
+		clientProfile: { name: string; avatar: string }
+	) {
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+		const absoluteX = width * x;
+		const absoluteY = height * y;
+
+		setUserLocations((userLocations) => {
+			const newUserLocations = {
+				...userLocations,
+				[clientId]: {
+					...userLocations[clientId],
+					x: absoluteX,
+					y: absoluteY
+				}
+			};
+
+			return newUserLocations;
+		});
+
+		setUserProfiles((userProfiles) => ({
+			...userProfiles,
+			[clientId]: {
+				...clientProfile
+			}
+		}));
+	},
+	[]);
 
 	useEffect(() => {
 		function onConnect() {
@@ -195,15 +270,42 @@ function App() {
 			}
 		};
 
-		socket.on('connect', onConnect);
+		const onProfileInfo = (
+			clientId: string,
+			clientProfile: { name: string; avatar: string }
+		) => {
+			setUserProfiles((userProfiles) => ({
+				...userProfiles,
+				[clientId]: clientProfile
+			}));
+		};
 
+		const onRoomateDisconnect = (clientId: string) => {
+			setUserLocations((userLocations) => {
+				const newUserLocations = {
+					...userLocations
+				};
+
+				delete newUserLocations[clientId];
+
+				return newUserLocations;
+			});
+		};
+
+		socket.on('roommate disconnect', onRoomateDisconnect);
+		socket.on('profile info', onProfileInfo);
+		socket.on('cursor move', onCursorMove);
+		socket.on('connect', onConnect);
 		socket.on('event', onMessageEvent);
 
 		return () => {
+			socket.off('cursor move', onCursorMove);
 			socket.off('connect', onConnect);
 			socket.off('event', onMessageEvent);
+			socket.off('roomate disconnect', onRoomateDisconnect);
+			socket.off('profile info', onProfileInfo);
 		};
-	}, [playEmoji, playSound, addChatMessage, addGif]);
+	}, [playEmoji, playSound, addChatMessage, addGif, onCursorMove]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
@@ -255,6 +357,8 @@ function App() {
 				updateGifs={setGifs}
 				chatMessages={chatMessages}
 				updateChatMessages={setChatMessages}
+				userLocations={userLocations}
+				userProfiles={userProfiles}
 			/>
 
 			<div className="open-panel-button">
