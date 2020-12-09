@@ -8,7 +8,7 @@ import mario from '../assets/mario.gif';
 import nyancat from '../assets/nyancat_big.gif';
 import yoshi from '../assets/yoshi.gif';
 
-const avatarMap: { [key: string]: string } = {
+export const avatarMap: { [key: string]: string } = {
 	mario: mario,
 	kirby: kirby,
 	link: link,
@@ -33,17 +33,33 @@ export const UserCursors = (props: IUserCursorsProps) => {
 				}
 				const { avatar, name } = props.userProfiles[key];
 
-				return (
-					<div
-						style={{ transform: `translate(${x}px, ${y}px)` }}
-						className="user-connection-cursor"
-						key={key}
-					>
-						<img src={avatarMap[avatar]} alt="avatar" />
-						<div>{name}</div>
-					</div>
-				);
+				return <UserCursor avatar={avatar} name={name} x={x} y={y} />;
 			})}
 		</>
 	);
 };
+
+interface IUserCursorProps {
+	avatar: string;
+	name: string;
+	x?: number;
+	y?: number;
+}
+
+export const UserCursor = React.forwardRef(
+	(
+		{ avatar, name, x, y }: IUserCursorProps,
+		ref: React.Ref<HTMLDivElement>
+	) => {
+		return (
+			<div
+				style={{ transform: `translate(${x}px, ${y}px)` }}
+				className="user-connection-cursor"
+				ref={ref}
+			>
+				<img src={avatarMap[avatar]} alt="avatar" />
+				<div>{name}</div>
+			</div>
+		);
+	}
+);

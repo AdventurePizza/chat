@@ -30,6 +30,8 @@ export class Router {
 
       createProfile(socket);
 
+      socket.emit("profile info", clientProfiles[socket.id]);
+
       socket.on("event", (message: IMessageEvent) => {
         this.handleEvent(message, socket);
       });

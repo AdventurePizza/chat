@@ -25,6 +25,7 @@ import { ChevronLeft } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
+import { UserCursor } from './components/UserCursors';
 import _ from 'underscore';
 //@ts-ignore
 import cymbalHit from './assets/sounds/cymbal.mp3';
@@ -90,6 +91,12 @@ function App() {
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
+	const [userProfile, setUserProfile] = useState<{
+		name: string;
+		avatar: string;
+	}>();
+	// const userCursorRef = useRef<HTMLDivElement>(null);
+	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const sounds: ISound = {
 		drum: drumBeat,
@@ -195,12 +202,17 @@ function App() {
 			const width = window.innerWidth;
 			const height = window.innerHeight;
 
-			const relativeX = x / width;
-			const relativeY = y / height;
+			const relativeX = (x - 60) / width;
+			const relativeY = (y - 60) / height;
 
 			updateCursorPosition([relativeX, relativeY]);
+
+			if (userCursorRef.current) {
+				userCursorRef.current.style.left = x - 30 + 'px';
+				userCursorRef.current.style.top = y - 30 + 'px';
+			}
 		},
-		[updateCursorPosition]
+		[updateCursorPosition, userCursorRef]
 	);
 
 	useEffect(() => {
@@ -268,14 +280,8 @@ function App() {
 			}
 		};
 
-		const onProfileInfo = (
-			clientId: string,
-			clientProfile: { name: string; avatar: string }
-		) => {
-			setUserProfiles((userProfiles) => ({
-				...userProfiles,
-				[clientId]: clientProfile
-			}));
+		const onProfileInfo = (clientProfile: { name: string; avatar: string }) => {
+			setUserProfile(clientProfile);
 		};
 
 		const onRoomateDisconnect = (clientId: string) => {
@@ -297,11 +303,11 @@ function App() {
 		socket.on('event', onMessageEvent);
 
 		return () => {
+			socket.off('roomate disconnect', onRoomateDisconnect);
+			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('connect', onConnect);
 			socket.off('event', onMessageEvent);
-			socket.off('roomate disconnect', onRoomateDisconnect);
-			socket.off('profile info', onProfileInfo);
 		};
 	}, [playEmoji, playSound, addChatMessage, addGif, onCursorMove]);
 
@@ -393,6 +399,14 @@ function App() {
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
 			/>
+
+			{userProfile && (
+				<UserCursor
+					ref={userCursorRef}
+					avatar={userProfile.avatar}
+					name={userProfile.name}
+				/>
+			)}
 		</div>
 	);
 }
