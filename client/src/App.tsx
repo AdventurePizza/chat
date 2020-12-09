@@ -95,7 +95,6 @@ function App() {
 		name: string;
 		avatar: string;
 	}>();
-	// const userCursorRef = useRef<HTMLDivElement>(null);
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const sounds: ISound = {
