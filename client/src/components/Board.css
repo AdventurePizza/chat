@@ -51,6 +51,9 @@
 	top: 0;
 	left: 0;
 	transition: transform 0.2s ease-in-out;
+	z-index: 99999999;
+	user-select: none;
+	pointer-events: none;
 }
 
 .user-connection-cursor img {
