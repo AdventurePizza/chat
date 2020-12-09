@@ -1,44 +1,59 @@
 .board-container {
-  overflow: hidden;
+	overflow: hidden;
 }
 
 .note-transition-enter {
-  opacity: 0;
+	opacity: 0;
 }
 
 .note-transition-enter-active {
-  opacity: 1;
-  transform: translateY(-50px);
-  transition: opacity 1s, transform 1s;
+	opacity: 1;
+	transform: translateY(-50px);
+	transition: opacity 1s, transform 1s;
 }
 .note-transition-exit {
-  opacity: 0;
-  transition: opacity 1s;
-  transform: translateY(-50px);
+	opacity: 0;
+	transition: opacity 1s;
+	transform: translateY(-50px);
 }
 
 .board-message {
-  display: -webkit-box;
-  position: absolute;
-  z-index: 9999999;
-  user-select: none;
-  max-width: 180px;
-  word-break: break-word;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
+	display: -webkit-box;
+	position: absolute;
+	z-index: 9999999;
+	user-select: none;
+	max-width: 180px;
+	word-break: break-word;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	-webkit-line-clamp: 5;
+	-webkit-box-orient: vertical;
 }
 
 .message-transition-enter {
-  opacity: 0;
+	opacity: 0;
 }
 
 .message-transition-enter-active {
-  opacity: 1;
-  transition: opacity 7s, transform 7s;
+	opacity: 1;
+	transition: opacity 7s, transform 7s;
 }
 .message-transition-exit {
-  opacity: 0;
-  transition: opacity 7s;
+	opacity: 0;
+	transition: opacity 7s;
+}
+
+.user-connection-cursor {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	top: 0;
+	left: 0;
+	transition: transform 0.2s ease-in-out;
+}
+
+.user-connection-cursor img {
+	width: 60px;
+	height: 60px;
 }
