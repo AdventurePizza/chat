@@ -20,3 +20,7 @@ body {
 	bottom: 10px;
 	left: 10px;
 }
+
+* {
+	cursor: none;
+}
