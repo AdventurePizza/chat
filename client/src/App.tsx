@@ -27,9 +27,13 @@ import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { UserCursor } from './components/UserCursors';
 import _ from 'underscore';
+// Sound imports
+//@ts-ignore
+import audioEnter from './assets/sounds/zap-enter.mp3';
+//@ts-ignore
+import audioExit from './assets/sounds/zap-exit.mp3';
 //@ts-ignore
 import cymbalHit from './assets/sounds/cymbal.mp3';
-// Sound imports
 //@ts-ignore
 import drumBeat from './assets/sounds/drumbeat.mp3';
 //@ts-ignore
@@ -64,6 +68,7 @@ function App() {
 	>(PanelItemEnum.chat);
 
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
+	const audioNotification = useRef<HTMLAudioElement>();
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
@@ -305,8 +310,19 @@ function App() {
 
 				return newUserLocations;
 			});
+
+			audioNotification.current = new Audio(audioExit);
+			audioNotification.current.currentTime = 0;
+			audioNotification.current.play();
 		};
 
+		const onNewUser = () => {
+			audioNotification.current = new Audio(audioEnter);
+			audioNotification.current.currentTime = 0;
+			audioNotification.current.play();
+		};
+
+		socket.on('new user', onNewUser);
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
@@ -320,7 +336,14 @@ function App() {
 			socket.off('connect', onConnect);
 			socket.off('event', onMessageEvent);
 		};
-	}, [playEmoji, playSound, addChatMessage, addGif, onCursorMove]);
+	}, [
+		playEmoji,
+		playSound,
+		addChatMessage,
+		addGif,
+		onCursorMove,
+		audioNotification
+	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {

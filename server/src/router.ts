@@ -32,6 +32,8 @@ export class Router {
 
       socket.emit("profile info", clientProfiles[socket.id]);
 
+      socket.broadcast.emit("new user", clientProfiles[socket.id]);
+
       socket.on("event", (message: IMessageEvent) => {
         this.handleEvent(message, socket);
       });
