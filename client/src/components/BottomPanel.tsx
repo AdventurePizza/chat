@@ -1,15 +1,14 @@
 import { Drawer, IconButton } from '@material-ui/core';
 
 import { Chat } from './Chat';
-import { PanelItemEnum } from '../types';
-import React from 'react';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
-
+import { PanelItemEnum } from '../types';
+import React from 'react';
 import cymballIcon from '../assets/cymbalIcon.svg';
 import drumIcon from '../assets/drum.svg';
-import guitarIcon from '../assets/guitarIcon.svg';
 import gotemIcon from '../assets/gotemIcon.svg';
+import guitarIcon from '../assets/guitarIcon.svg';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -22,7 +21,7 @@ interface ISoundPairs {
 	type: string;
 }
 
-const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🦃'];
+const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 
 const soundList: ISoundPairs[] = [
 	{ icon: drumIcon, type: 'drum' },
