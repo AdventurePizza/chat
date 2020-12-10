@@ -5,14 +5,14 @@ import {
 	ChevronRight,
 	Gif,
 	InsertEmoticon,
-	Palette,
-	// eslint-disable-next-line
-	MusicNote
+	MusicNote,
+	Palette
 } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { PanelItemEnum } from '../types';
 import React from 'react';
+
 // import drum from "../assets/drum.svg";
 
 const iconStyle: React.CSSProperties = {
@@ -77,9 +77,9 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 			case PanelItemEnum.emoji:
 				buttonContent = <InsertEmoticon style={style} />;
 				break;
-			case PanelItemEnum.color:
-				buttonContent = <Palette style={style} />;
-				break;
+			// case PanelItemEnum.color:
+			// 	buttonContent = <Palette style={style} />;
+			// 	break;
 			case PanelItemEnum.gifs:
 				buttonContent = <Gif style={style} />;
 				break;

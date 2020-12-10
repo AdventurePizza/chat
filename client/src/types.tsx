@@ -36,7 +36,7 @@ export interface IGifs {
 export enum PanelItemEnum {
 	'sound' = 'sound',
 	'emoji' = 'emoji',
-	'color' = 'color',
+	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat'
 }
