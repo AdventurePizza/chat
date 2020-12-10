@@ -4,6 +4,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
 	IChatMessage,
 	IEmoji,
+	IFigure,
 	IGifs,
 	IUserLocations,
 	IUserProfiles
@@ -13,6 +14,8 @@ import { IMusicNoteProps, MusicNote } from './MusicNote';
 import { Gif } from '@giphy/react-components';
 import React from 'react';
 import { UserCursors } from './UserCursors';
+//@ts-ignore
+import gryphon from '../assets/gryphon_walk.gif';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -23,6 +26,8 @@ interface IBoardProps {
 	updateGifs: (gifs: IGifs[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
+	figures: IFigure[];
+	updateFigures: (figures: IFigure[]) => void;
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
 }
@@ -37,7 +42,9 @@ export const Board = ({
 	chatMessages,
 	updateChatMessages,
 	userLocations,
-	userProfiles
+	userProfiles,
+	figures,
+	updateFigures
 }: IBoardProps) => {
 	return (
 		<div className="board-container">
@@ -157,6 +164,37 @@ export const Board = ({
 							}}
 						>
 							<Gif gif={gif.data} width={180} noLink={true} />
+						</div>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
+			<TransitionGroup>
+				{figures.map((figure) => (
+					<CSSTransition
+						key={figure.key}
+						timeout={10000}
+						classNames="figure-transition"
+						onEntered={() => {
+							const index = figures.findIndex(
+								(_figure) => _figure.key === figure.key
+							);
+							updateFigures([
+								...figures.slice(0, index),
+								...figures.slice(index + 1)
+							]);
+						}}
+					>
+						<div
+							style={{
+								top: window.innerHeight / 2 - 30,
+								left: 0,
+								position: 'absolute',
+								zIndex: 9999998,
+								userSelect: 'none'
+							}}
+						>
+							<img src={gryphon} style={{ width: 100 }} alt="gryphon" />
 						</div>
 					</CSSTransition>
 				))}

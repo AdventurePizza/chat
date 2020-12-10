@@ -75,3 +75,19 @@
 	transition: opacity 5s;
 	transform: translateY(-50px);
 }
+
+.figure-transition-enter {
+	/* opacity: 0; */
+}
+
+.figure-transition-enter-active {
+	/* opacity: 1; */
+	transform: translateX(100vw);
+	transition: transform 10s;
+}
+.figure-transition-exit {
+	opacity: 0;
+	/* opacity: 0;
+	transition: opacity 5s;
+	transform: translateY(-50px); */
+}

@@ -3,6 +3,7 @@ import './App.css';
 import {
 	IChatMessage,
 	IEmoji,
+	IFigure,
 	IGifs,
 	IMessageEvent,
 	ISound,
@@ -77,6 +78,8 @@ function App() {
 		avatar: string;
 	}>();
 	const userCursorRef = React.createRef<HTMLDivElement>();
+
+	const [figures, setFigures] = useState<IFigure[]>([]);
 
 	const sounds: ISound = {
 		drum: drumBeat,
@@ -227,13 +230,37 @@ function App() {
 		[updateCursorPosition, userCursorRef]
 	);
 
+	const onKeyPress = useCallback((event: KeyboardEvent) => {
+		if (event.ctrlKey && event.code === 'KeyQ') {
+			setFigures((figures) =>
+				figures.concat({
+					key: uuidv4(),
+					type: 'gryphon'
+				})
+			);
+		}
+	}, []);
+
 	useEffect(() => {
 		playTutorial();
+
+		// spawn gryphon randomly
+		setInterval(() => {
+			if (Math.random() < 0.1) {
+				setFigures((figures) =>
+					figures.concat({
+						key: uuidv4(),
+						type: 'gryphon'
+					})
+				);
+			}
+		}, 10000);
 	}, []);
 
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
-	}, [onMouseMove]);
+		window.addEventListener('keypress', onKeyPress);
+	}, [onMouseMove, onKeyPress]);
 
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
@@ -397,6 +424,8 @@ function App() {
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
 				userProfiles={userProfiles}
+				figures={figures}
+				updateFigures={setFigures}
 			/>
 
 			<div className="open-panel-button">
