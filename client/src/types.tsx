@@ -4,6 +4,11 @@ export interface IMessageEvent {
 	value?: string;
 }
 
+export interface IFigure {
+	key: string;
+	type: 'gryphon';
+}
+
 export interface IEmoji {
 	top: number;
 	left: number;
