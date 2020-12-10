@@ -5,8 +5,7 @@ import {
 	ChevronRight,
 	Gif,
 	InsertEmoticon,
-	MusicNote,
-	Palette
+	MusicNote
 } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
