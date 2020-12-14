@@ -43,7 +43,8 @@ export enum PanelItemEnum {
 	'emoji' = 'emoji',
 	// 'color' = 'color',
 	'gifs' = 'gifs',
-	'chat' = 'chat'
+	'chat' = 'chat',
+	'tower defense' = 'tower defense'
 }
 
 export interface IUserLocations {
@@ -52,4 +53,22 @@ export interface IUserLocations {
 
 export interface IUserProfiles {
 	[clientId: string]: { name: string; avatar: string };
+}
+
+export interface ITowerUnit {
+	key: string;
+	type: 'grunt';
+}
+
+export interface ITowerBuilding {
+	key: string;
+	type: 'basic';
+	top: number;
+	left: number;
+}
+
+export interface ITowerDefenseState {
+	isPlaying: boolean;
+	units: ITowerUnit[];
+	towers: ITowerBuilding[];
 }

@@ -1,41 +1,41 @@
 .panel-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .bottom-panel-container {
-  display: flex;
-  justify-content: center;
-  padding: 10px 0;
+	display: flex;
+	justify-content: center;
+	padding: 10px 0;
 }
 
 .bottom-panel-container > *:not(:last-child) {
-  margin-right: 5px;
+	margin-right: 5px;
 }
 
 .bottom-panel-emoji {
-  font-size: 3em;
+	font-size: 3em;
 }
 
 .bottom-panel-sound img {
-  width: 40px;
-  height: auto;
-  margin: 0 20px;
+	width: 40px;
+	height: auto;
+	margin: 0 20px;
 }
 
 .bottom-panel-emoji .MuiIconButton-root {
-  color: rgba(0, 0, 0, 1);
+	color: rgba(0, 0, 0, 1);
 }
 
 .chat-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 @media only screen and (max-width: 500px) {
-  .bottom-panel-emoji {
-    font-size: 2em;
-  }
+	.bottom-panel-emoji {
+		font-size: 2em;
+	}
 }
