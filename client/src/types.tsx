@@ -33,8 +33,8 @@ export interface IGifs {
 }
 
 export interface IBackground {
-	image: string;
 	key: string;
+	src: string;
 }
 
 export enum PanelItemEnum {

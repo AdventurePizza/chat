@@ -1,10 +1,11 @@
-import { Drawer, IconButton } from '@material-ui/core';
+import { Drawer, IconButton, Avatar, } from '@material-ui/core';
 
 import { Chat } from './Chat';
 import { PanelItemEnum } from '../types';
 import React from 'react';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
+import { images } from './Images';
 
 import cymballIcon from '../assets/cymbalIcon.svg';
 import drumIcon from '../assets/drum.svg';
@@ -23,6 +24,7 @@ interface ISoundPairs {
 }
 
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🦃'];
+
 
 const soundList: ISoundPairs[] = [
 	{ icon: drumIcon, type: 'drum' },
@@ -75,6 +77,21 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 							onAction('gif', gif.id);
 						}}
 					/>
+				);
+			case 'background':
+				return (
+					<>
+						{images.map(({ key, src }) => (
+							<div key={key} className="bottom-panel-background">
+								<IconButton onClick={() => onAction('background', src)}>
+									<Avatar 
+										variant="rounded"
+										src={ src }
+									/>
+								</IconButton>
+							</div>
+						))}
+					</>	
 				);
 		}
 	};

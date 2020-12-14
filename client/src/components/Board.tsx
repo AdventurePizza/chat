@@ -1,12 +1,15 @@
 import './Board.css';
 import { Gif } from '@giphy/react-components';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { IChatMessage, IEmoji, IGifs } from '../types';
+import { IChatMessage, IEmoji, IGifs, IBackground } from '../types';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
+import { images } from './Images';
 
 import React from 'react';
 
 interface IBoardProps {
+	backgrounds: IBackground[];
+	updateBackgrounds: (backgrounds: IBackground[]) => void;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
 	emojis: IEmoji[];
@@ -18,6 +21,8 @@ interface IBoardProps {
 }
 
 export const Board = ({
+	backgrounds,
+	updateBackgrounds,
 	musicNotes,
 	updateNotes,
 	emojis,
@@ -137,6 +142,37 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+
+			<TransitionGroup>
+				{backgrounds.map((image) => (
+					<CSSTransition
+						key={image.key}
+						timeout={1000}
+						classNames="image-transition"
+						onEntered={() => {
+							const imageIndex = backgrounds.findIndex(
+								(_image) => _image.key === image.key
+							);
+							updateBackgrounds([
+								...backgrounds.slice(0, imageIndex),
+								...backgrounds.slice(imageIndex + 1)
+							]);
+						}}
+					>
+						
+						<div
+							className="board-container"
+							style={{
+								backgroundImage: image.src
+							}}
+						>
+							{image.src}
+						</div>
+
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
 		</div>
 	);
 };

@@ -6,6 +6,7 @@ import {
 	IGifs,
 	IMessageEvent,
 	ISound,
+	IBackground,
 	PanelItemEnum
 } from './types';
 import { IconButton, Tooltip } from '@material-ui/core';
@@ -28,6 +29,7 @@ import gotEm from './assets/sounds/ha-got-eeem.mp3';
 import guitarStrum from './assets/sounds/electric_guitar.mp3';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+import { images } from './components/Images';
 
 const isDebug = false;
 
@@ -73,6 +75,7 @@ function App() {
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
+	const [background, setBackground] = useState<IBackground[]>([]);
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
@@ -93,6 +96,11 @@ function App() {
 			emojis.concat({ top: y, left: x, key: uuidv4(), type })
 		);
 	}, []);
+
+	const addBackground = useCallback(
+		(key) => {
+			return images.find(x => x.key == key);
+	},[]);
 
 	const playSound = useCallback(
 		(soundType) => {
@@ -135,6 +143,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'gifs':
+			case 'background':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -192,6 +201,9 @@ function App() {
 						addGif(message.value);
 					}
 					break;
+				case 'background':
+					addBackground(message.value);
+					break;
 			}
 		};
 
@@ -239,6 +251,13 @@ function App() {
 					value: gif
 				});
 				break;
+			case 'background':
+				const background = args[0] as string;
+				socket.emit('event', {
+					key: 'background',
+					value: background
+				});
+				break;
 			default:
 				break;
 		}
@@ -247,6 +266,8 @@ function App() {
 	return (
 		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
 			<Board
+				backgrounds={background}
+				updateBackgrounds={setBackground}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
 				emojis={emojis}
