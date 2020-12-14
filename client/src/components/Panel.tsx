@@ -9,10 +9,11 @@ import {
 } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
+import vMusicNote from '../assets/variant_musicNote.png';
+import vMusicNoteC from '../assets/variant_musicNoteColored.png';
+
 import { PanelItemEnum } from '../types';
 import React from 'react';
-
-// import drum from "../assets/drum.svg";
 
 const iconStyle: React.CSSProperties = {
 	width: 50,
@@ -84,6 +85,12 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 				break;
 			case PanelItemEnum.chat:
 				buttonContent = <Chat style={style} />;
+        break;
+      case PanelItemEnum["sound-variant"]:
+        if (isSelected)
+          buttonContent = <img src={vMusicNoteC} alt="Variant Music Note Colored"/>
+        else
+          buttonContent = <img src={vMusicNote} alt="Variant Music Note"/>
 				break;
 		}
 

@@ -24,6 +24,62 @@
   margin: 0 20px;
 }
 
+.sound-variant-container {
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.sound-variant-icon img {
+  width: 51px;
+  height: auto;
+  margin: 0 3px;
+}
+
+.sound-variant-icon button {
+  background-color: white;
+  border: white 0px;
+  margin-right: 2px;
+}
+
+.sound-variant-active-category button {
+  background: #20AC50;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21px;
+  text-align: center;
+  color: #FFFFFF;
+  border: none;
+  margin-bottom: 7px;
+  margin-right: 10px;
+  padding: 4px 10px;
+}
+
+.sound-variant-unactive-category button {
+  background: #EBEEF0;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21px;
+  text-align: center;
+  color: #5B7083;
+  border: none;
+  margin-bottom: 7px;
+  margin-right: 10px;
+  padding: 4px 10px;
+}
+
+.sound-variant-icon-list {
+  display: flex;
+}
+
+.sound-variant-category-list {
+  display: flex;
+}
+
 .bottom-panel-emoji .MuiIconButton-root {
   color: rgba(0, 0, 0, 1);
 }

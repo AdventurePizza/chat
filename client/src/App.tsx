@@ -40,7 +40,13 @@ import drumBeat from './assets/sounds/drumbeat.mp3';
 //@ts-ignore
 import gotEm from './assets/sounds/ha-got-eeem.mp3';
 //@ts-ignore
+import noice from './assets/sounds/noice.mp3';
+//@ts-ignore
 import guitarStrum from './assets/sounds/electric_guitar.mp3';
+//@ts-ignore
+import trumpet from './assets/sounds/trumpet.mp3';
+//@ts-ignore
+import stop_it_get_some_help from './assets/sounds/stop_it_get_some_help.mp3';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -85,7 +91,10 @@ function App() {
 		drum: drumBeat,
 		cymbal: cymbalHit,
 		guitar: guitarStrum,
-		meme: gotEm
+    meme: gotEm,
+    trumpet: trumpet,
+    noice: noice,
+    stopit: stop_it_get_some_help,
 	};
 
 	const playEmoji = useCallback((type: string) => {
@@ -142,6 +151,15 @@ function App() {
 					break;
 				case 'meme':
 					audio.current = new Audio(sounds.meme);
+          break;
+        case 'trumpet':
+					audio.current = new Audio(sounds.trumpet);
+          break;
+        case 'noice':
+					audio.current = new Audio(sounds.noice);
+          break;
+        case 'stopit':
+					audio.current = new Audio(sounds.stopit);
 					break;
 				default:
 					// This should be impossible
@@ -169,6 +187,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'gifs':
+      case 'sound-variant':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
