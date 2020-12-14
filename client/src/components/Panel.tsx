@@ -11,6 +11,8 @@ import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { PanelItemEnum } from '../types';
 import React from 'react';
+//@ts-ignore
+import towerSVG from '../assets/tower.svg';
 
 // import drum from "../assets/drum.svg";
 
@@ -84,6 +86,18 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 				break;
 			case PanelItemEnum.chat:
 				buttonContent = <Chat style={style} />;
+				break;
+			case PanelItemEnum['tower defense']:
+				if (isSelected) {
+					style.filter =
+						'invert(77%) sepia(62%) saturate(3851%) hue-rotate(358deg) brightness(101%) contrast(105%)';
+				} else {
+					style.filter =
+						'invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg) brightness(101%) contrast(88%)';
+				}
+				buttonContent = (
+					<img className="panel-tower" src={towerSVG} style={style} />
+				);
 				break;
 		}
 

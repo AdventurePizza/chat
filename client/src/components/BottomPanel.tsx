@@ -5,6 +5,7 @@ import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { PanelItemEnum } from '../types';
 import React from 'react';
+import { TowerDefensePanel } from './TowerDefensePanel';
 import cymballIcon from '../assets/cymbalIcon.svg';
 import drumIcon from '../assets/drum.svg';
 import gotemIcon from '../assets/gotemIcon.svg';
@@ -75,6 +76,8 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 						}}
 					/>
 				);
+			case 'tower defense':
+				return <TowerDefensePanel />;
 		}
 	};
 

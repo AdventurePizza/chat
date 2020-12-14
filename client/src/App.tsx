@@ -7,6 +7,7 @@ import {
 	IGifs,
 	IMessageEvent,
 	ISound,
+	ITowerDefenseState,
 	IUserLocations,
 	IUserProfiles,
 	PanelItemEnum
@@ -14,6 +15,7 @@ import {
 import { IconButton, Tooltip } from '@material-ui/core';
 import React, {
 	useCallback,
+	useContext,
 	useEffect,
 	useMemo,
 	useRef,
@@ -70,6 +72,19 @@ function App() {
 
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
+
+	const [
+		towerDefenseState,
+		setTowerDefenseState
+	] = useState<ITowerDefenseState>({
+		isPlaying: false,
+		towers: [],
+		units: []
+	});
+
+	const TowerDefenseContext = React.createContext<ITowerDefenseState>(
+		towerDefenseState
+	);
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
@@ -169,6 +184,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'gifs':
+			case 'tower defense':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -211,6 +227,7 @@ function App() {
 
 	const onMouseMove = useCallback(
 		(event: MouseEvent) => {
+			// console.log(event);
 			const x = event.clientX;
 			const y = event.clientY;
 
@@ -412,6 +429,7 @@ function App() {
 	};
 
 	return (
+		// <TowerDefenseContext.Provider value={towerDefenseState}>
 		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
 			<Board
 				musicNotes={musicNotes}
@@ -471,6 +489,7 @@ function App() {
 				/>
 			)}
 		</div>
+		// </TowerDefenseContext.Provider>
 	);
 }
 
