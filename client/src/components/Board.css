@@ -77,17 +77,27 @@
 }
 
 .figure-transition-enter {
-	/* opacity: 0; */
 }
 
 .figure-transition-enter-active {
-	/* opacity: 1; */
 	transform: translateX(100vw);
 	transition: transform 10s;
 }
 .figure-transition-exit {
 	opacity: 0;
-	/* opacity: 0;
-	transition: opacity 5s;
-	transform: translateY(-50px); */
+}
+
+.animation-transition-enter {
+	opacity: 0;
+}
+
+.animation-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-50px);
+	transition: opacity 1s, transform 1s;
+}
+.animation-transition-exit {
+	opacity: 0;
+	transition: opacity 1s;
+	transform: translateY(-50px);
 }

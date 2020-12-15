@@ -1,6 +1,7 @@
-import { IUserLocations, IUserProfiles } from '../types';
+import { ITowerBuilding, IUserLocations, IUserProfiles } from '../types';
 
 import React from 'react';
+import { Tower } from './TowerDefense';
 import ghost from '../assets/red_ghost.gif';
 import kirby from '../assets/kirby.gif';
 import link from '../assets/link-run.gif';
@@ -20,6 +21,7 @@ export const avatarMap: { [key: string]: string } = {
 interface IUserCursorsProps {
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
+	isSelectingTower?: ITowerBuilding;
 }
 
 export const UserCursors = (props: IUserCursorsProps) => {
@@ -44,11 +46,12 @@ interface IUserCursorProps {
 	name: string;
 	x?: number;
 	y?: number;
+	isSelectingTower?: ITowerBuilding;
 }
 
 export const UserCursor = React.forwardRef(
 	(
-		{ avatar, name, x, y }: IUserCursorProps,
+		{ avatar, name, x, y, isSelectingTower }: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
 		return (
@@ -57,8 +60,19 @@ export const UserCursor = React.forwardRef(
 				className="user-connection-cursor"
 				ref={ref}
 			>
-				<img src={avatarMap[avatar]} alt="avatar" />
-				<div>{name}</div>
+				{isSelectingTower ? (
+					<Tower
+						top={y || 0}
+						left={x || 0}
+						key={isSelectingTower.key}
+						type="basic"
+					/>
+				) : (
+					<>
+						<img src={avatarMap[avatar]} alt="avatar" />
+						<div>{name}</div>
+					</>
+				)}
 			</div>
 		);
 	}

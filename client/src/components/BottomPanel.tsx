@@ -1,9 +1,9 @@
 import { Drawer, IconButton } from '@material-ui/core';
+import { ITowerDefenseState, PanelItemEnum } from '../types';
 
 import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
-import { PanelItemEnum } from '../types';
 import React from 'react';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import cymballIcon from '../assets/cymbalIcon.svg';
@@ -15,6 +15,7 @@ interface IPanelProps {
 	isOpen: boolean;
 	type?: PanelItemEnum;
 	onAction: (key: string, ...args: any[]) => void;
+	towerDefenseState: ITowerDefenseState;
 }
 
 interface ISoundPairs {
@@ -31,7 +32,12 @@ const soundList: ISoundPairs[] = [
 	{ icon: gotemIcon, type: 'meme' }
 ];
 
-export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
+export const BottomPanel = ({
+	isOpen,
+	type,
+	onAction,
+	towerDefenseState
+}: IPanelProps) => {
 	const renderPanelContent = () => {
 		switch (type) {
 			case 'emoji':
@@ -77,7 +83,24 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 					/>
 				);
 			case 'tower defense':
-				return <TowerDefensePanel />;
+				return (
+					<TowerDefensePanel
+						isStarted={towerDefenseState.isPlaying}
+						onStart={() =>
+							onAction('tower defense', {
+								key: 'tower defense',
+								value: 'start'
+							})
+						}
+						onSelectTower={(towerValue: string) =>
+							onAction('tower defense', {
+								key: 'tower defense',
+								value: 'select tower',
+								tower: towerValue
+							})
+						}
+					/>
+				);
 		}
 	};
 

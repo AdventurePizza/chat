@@ -1,7 +1,15 @@
 import { IGif } from '@giphy/js-types';
+
+export type AnimationTypes = 'start game' | 'info';
+export interface IAnimation {
+	type: AnimationTypes;
+	text?: string;
+}
+
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif';
+	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense';
 	value?: string;
+	[key: string]: any;
 }
 
 export interface IFigure {
@@ -58,6 +66,9 @@ export interface IUserProfiles {
 export interface ITowerUnit {
 	key: string;
 	type: 'grunt';
+	top: number;
+	left: number;
+	ref: React.RefObject<HTMLImageElement>;
 }
 
 export interface ITowerBuilding {
@@ -67,8 +78,17 @@ export interface ITowerBuilding {
 	left: number;
 }
 
+export interface ITowerProjectile {
+	key: string;
+	towerKey: string;
+	unitKey: string;
+	startPos: { x: number; y: number };
+	endPos: { x: number; y: number };
+}
 export interface ITowerDefenseState {
 	isPlaying: boolean;
 	units: ITowerUnit[];
 	towers: ITowerBuilding[];
+	selectedPlacementTower?: ITowerBuilding;
+	projectiles: ITowerProjectile[];
 }

@@ -1,7 +1,8 @@
 import './Board.css';
 
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
+	AnimationTypes,
+	IAnimation,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -9,6 +10,7 @@ import {
 	IUserLocations,
 	IUserProfiles
 } from '../types';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
 import { Gif } from '@giphy/react-components';
@@ -30,6 +32,8 @@ interface IBoardProps {
 	updateFigures: (figures: IFigure[]) => void;
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
+	animations: IAnimation[];
+	updateAnimations: (animations: IAnimation[]) => void;
 }
 
 export const Board = ({
@@ -44,7 +48,9 @@ export const Board = ({
 	userLocations,
 	userProfiles,
 	figures,
-	updateFigures
+	updateFigures,
+	animations,
+	updateAnimations
 }: IBoardProps) => {
 	return (
 		<div className="board-container">
@@ -200,7 +206,74 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
+			<TransitionGroup>
+				{animations.map((animation) => (
+					<CSSTransition
+						key={animation.type}
+						timeout={5000}
+						classNames="animation-transition"
+						onEntered={() => {
+							const index = animations.findIndex(
+								(_animation) => _animation.type === animation.type
+							);
+							updateAnimations([
+								...animations.slice(0, index),
+								...animations.slice(index + 1)
+							]);
+						}}
+					>
+						<Animation {...animation} />
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
 			<UserCursors userLocations={userLocations} userProfiles={userProfiles} />
 		</div>
 	);
+};
+
+interface IAnimationProps {
+	type: AnimationTypes;
+}
+
+const Animation = ({ type }: IAnimationProps) => {
+	if (type === 'start game') {
+		return (
+			<div
+				style={{
+					width: window.innerWidth,
+					textAlign: 'center',
+					left: 0,
+					right: 0,
+					top: '20vh',
+					userSelect: 'none',
+					position: 'absolute',
+					fontSize: '2em'
+				}}
+			>
+				starting tower defense!
+			</div>
+		);
+	}
+
+	if (type === 'info') {
+		return (
+			<div
+				style={{
+					width: window.innerWidth,
+					textAlign: 'center',
+					left: 0,
+					right: 0,
+					top: '30vh',
+					userSelect: 'none',
+					position: 'absolute',
+					fontSize: '1.8em'
+				}}
+			>
+				place your tower to defend yourself
+			</div>
+		);
+	}
+
+	return null;
 };

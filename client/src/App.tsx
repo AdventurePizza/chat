@@ -1,13 +1,16 @@
 import './App.css';
 
 import {
+	IAnimation,
 	IChatMessage,
 	IEmoji,
 	IFigure,
 	IGifs,
 	IMessageEvent,
 	ISound,
+	ITowerBuilding,
 	ITowerDefenseState,
+	ITowerUnit,
 	IUserLocations,
 	IUserProfiles,
 	PanelItemEnum
@@ -15,12 +18,15 @@ import {
 import { IconButton, Tooltip } from '@material-ui/core';
 import React, {
 	useCallback,
-	useContext,
 	useEffect,
 	useMemo,
 	useRef,
 	useState
 } from 'react';
+import {
+	TowerDefense,
+	Actions as TowerDefenseActions
+} from './components/TowerDefense';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -70,6 +76,11 @@ function App() {
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
 
+	// const [lastClickedTower, setLastClickedTower] = useState(Date.now())
+	const lastClickedTower = useRef(Date.now());
+
+	const [animations, setAnimations] = useState<IAnimation[]>([]);
+
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
 
@@ -79,12 +90,13 @@ function App() {
 	] = useState<ITowerDefenseState>({
 		isPlaying: false,
 		towers: [],
-		units: []
+		units: [],
+		projectiles: []
 	});
 
-	const TowerDefenseContext = React.createContext<ITowerDefenseState>(
-		towerDefenseState
-	);
+	// const TowerDefenseContext = React.createContext<ITowerDefenseState>(
+	// 	towerDefenseState
+	// );
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
@@ -259,7 +271,7 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		playTutorial();
+		// playTutorial();
 
 		// spawn gryphon randomly
 		setInterval(() => {
@@ -274,10 +286,54 @@ function App() {
 		}, 10000);
 	}, []);
 
+	const onMouseClick = useCallback(
+		(event: MouseEvent) => {
+			console.log('clicked mouse', event);
+			//@ts-ignore
+			const className = event.path[0].className as string;
+
+			console.log('classname is ', className);
+
+			setTowerDefenseState((state) => {
+				console.log(lastClickedTower);
+				if (state.selectedPlacementTower && className === 'app') {
+					const { x, y } = getRelativePos(event.clientX, event.clientY);
+
+					socket.emit('event', {
+						key: 'tower defense',
+						value: 'add tower',
+						x,
+						y
+					});
+
+					return { ...state, selectedPlacementTower: undefined };
+				} else if (
+					state.selectedPlacementTower &&
+					className === 'tower-building' &&
+					Date.now() - lastClickedTower.current > 2000
+				) {
+					console.log('undefining selected tower');
+					return { ...state, selectedPlacementTower: undefined };
+				}
+				// else if (
+				// 	state.selectedPlacementTower &&
+				// 	className === 'tower-building'
+				// ) {
+				// }
+				// setLastClickedTower(Date.now())
+				lastClickedTower.current = Date.now();
+
+				return state;
+			});
+		},
+		[lastClickedTower]
+	);
+
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
 		window.addEventListener('keypress', onKeyPress);
-	}, [onMouseMove, onKeyPress]);
+		window.addEventListener('click', onMouseClick);
+	}, [onMouseMove, onKeyPress, onMouseClick]);
 
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
@@ -312,6 +368,49 @@ function App() {
 	},
 	[]);
 
+	const playAnimation = useCallback((animationType: string) => {
+		if (animationType === 'start game') {
+			console.log('playing animation!!');
+			setAnimations((animations) => animations.concat({ type: 'start game' }));
+			setTimeout(() => {
+				setAnimations((animations) => animations.concat({ type: 'info' }));
+			}, 2000);
+		}
+	}, []);
+
+	const fireTowers = useCallback(() => {
+		console.log('firing towers');
+		console.log(towerDefenseState.units);
+		towerDefenseState.towers.forEach((tower) => {
+			const { top, left } = tower;
+			towerDefenseState.units.forEach((unit) => {
+				const { ref } = unit;
+				if (ref && ref.current) {
+					const rect = ref.current.getBoundingClientRect();
+					const distance = getDistanceBetweenPoints(
+						tower.left,
+						tower.top,
+						rect.left,
+						rect.top
+					);
+					const relativeDistance = distance / window.innerWidth;
+
+					console.log('relative distance = ', relativeDistance);
+
+					if (relativeDistance < 0.4) {
+						console.log('================ emitting fire tower!!!');
+						socket.emit('event', {
+							key: 'tower defense',
+							value: 'fire tower',
+							towerKey: tower.key,
+							unitKey: unit.key
+						});
+					}
+				}
+			});
+		});
+	}, [towerDefenseState]);
+
 	useEffect(() => {
 		function onConnect() {
 			isDebug && console.log('connected to socket');
@@ -336,6 +435,82 @@ function App() {
 					if (message.value) {
 						addGif(message.value);
 					}
+					break;
+				case 'tower defense':
+					if (message.value === 'start') {
+						playAnimation('start game');
+						setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+					}
+					if (message.value === 'spawn enemy') {
+						const enemy = message.enemy as ITowerUnit;
+
+						enemy.top = window.innerHeight / 2;
+						enemy.left = 0;
+						enemy.ref = React.createRef();
+
+						setTowerDefenseState((state) => ({
+							...state,
+							units: state.units.concat(enemy)
+						}));
+					}
+
+					if (message.value === 'add tower') {
+						const { x, y, towerKey } = message;
+
+						setTowerDefenseState((state) => ({
+							...state,
+							towers: state.towers.concat({
+								key: towerKey,
+								type: 'basic',
+								top: y * window.innerHeight,
+								left: x * window.innerWidth
+							})
+						}));
+					}
+
+					if (message.value === 'fire towers') {
+						fireTowers();
+					}
+
+					if (message.value === 'hit unit') {
+						console.log('got message ', message);
+						const { towerKey, unitKey } = message;
+						// TODO spawn projectile from tower to unit, remove unit
+						// get tower rect, get unit rect which is start and end pos
+
+						setTowerDefenseState((state) => {
+							let startPos = { x: 0, y: 0 };
+							let endPos = { x: 0, y: 0 };
+
+							const tower = state.towers.find(
+								(tower) => tower.key === towerKey
+							);
+							const unit = state.units.find((unit) => unit.key === unitKey);
+
+							if (tower && unit) {
+								startPos.x = tower.left;
+								startPos.y = tower.top;
+
+								const unitRect = unit.ref.current?.getBoundingClientRect();
+								if (unitRect) {
+									endPos.x = unitRect.left + 30;
+									endPos.y = unitRect.top;
+								}
+							}
+
+							return {
+								...state,
+								projectiles: state.projectiles.concat({
+									towerKey,
+									unitKey,
+									key: uuidv4(),
+									startPos,
+									endPos
+								})
+							};
+						});
+					}
+
 					break;
 			}
 		};
@@ -381,6 +556,8 @@ function App() {
 			socket.off('event', onMessageEvent);
 		};
 	}, [
+		fireTowers,
+		playAnimation,
 		playEmoji,
 		playSound,
 		addChatMessage,
@@ -390,6 +567,7 @@ function App() {
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
+		console.log(key, args);
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
@@ -423,13 +601,46 @@ function App() {
 					value: gif
 				});
 				break;
+
+			case 'tower defense':
+				const { key, value, tower } = args[0] as {
+					key: string;
+					value: string;
+					tower?: string;
+				};
+
+				if (value === 'select tower' && tower) {
+					const towerObj: ITowerBuilding = {
+						key: tower,
+						type: 'basic',
+						top: 0,
+						left: 0
+					};
+
+					setTowerDefenseState((state) => {
+						if (state.selectedPlacementTower) {
+							return {
+								...state,
+								selectedPlacementTower: undefined
+							};
+						}
+						return {
+							...state,
+							selectedPlacementTower: towerObj
+						};
+					});
+				} else {
+					socket.emit('event', args[0]);
+				}
+
+				break;
+
 			default:
 				break;
 		}
 	};
 
 	return (
-		// <TowerDefenseContext.Provider value={towerDefenseState}>
 		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
 			<Board
 				musicNotes={musicNotes}
@@ -444,7 +655,26 @@ function App() {
 				userProfiles={userProfiles}
 				figures={figures}
 				updateFigures={setFigures}
+				animations={animations}
+				updateAnimations={setAnimations}
 			/>
+
+			<TowerDefense
+				state={towerDefenseState}
+				onAction={(action: TowerDefenseActions) => {
+					console.log('tower defense action', action);
+				}}
+				updateUnits={(units) =>
+					setTowerDefenseState((state) => ({ ...state, units }))
+				}
+				updateProjectiles={(projectiles) =>
+					setTowerDefenseState((state) => ({ ...state, projectiles }))
+				}
+			/>
+
+			{/* <TowerDefenseContext.Provider value={towerDefenseState}>
+
+			</TowerDefenseContext.Provider> */}
 
 			<div className="open-panel-button">
 				{!isPanelOpen && (
@@ -476,6 +706,7 @@ function App() {
 			</Tooltip>
 
 			<BottomPanel
+				towerDefenseState={towerDefenseState}
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
@@ -486,10 +717,10 @@ function App() {
 					ref={userCursorRef}
 					avatar={userProfile.avatar}
 					name={userProfile.name}
+					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}
 		</div>
-		// </TowerDefenseContext.Provider>
 	);
 }
 
@@ -561,4 +792,26 @@ const generateRandomXY = (centered?: boolean) => {
 		const randomY = Math.random() * window.innerHeight;
 		return { x: randomX, y: randomY };
 	}
+};
+
+const getRelativePos = (clientX: number, clientY: number) => {
+	const x = clientX;
+	const y = clientY;
+
+	const width = window.innerWidth;
+	const height = window.innerHeight;
+
+	const relativeX = (x - 60) / width;
+	const relativeY = (y - 60) / height;
+
+	return { x: relativeX, y: relativeY };
+};
+
+const getDistanceBetweenPoints = (
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number
+) => {
+	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
