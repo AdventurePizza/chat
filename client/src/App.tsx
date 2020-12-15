@@ -27,9 +27,28 @@ import drumBeat from './assets/sounds/drumbeat.mp3';
 import gotEm from './assets/sounds/ha-got-eeem.mp3';
 //@ts-ignore
 import guitarStrum from './assets/sounds/electric_guitar.mp3';
+//@ts-ignore
+import brickImage from './assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash (1).jpg';
+//@ts-ignore
+import catImage from './assets/backgrounds/bantersnaps-zGiST_eUAXo-unsplash.jpg';
+//@ts-ignore
+import fishImage from './assets/backgrounds/brooke-lark-iXhfpWEnsN0-unsplash.jpg';
+//@ts-ignore
+import shipImage from './assets/backgrounds/bryan-goff-x02dRo6PEIY-unsplash.jpg';
+//@ts-ignore
+import treeImage from './assets/backgrounds/david-hofmann--Ae2HFODn2Q-unsplash.jpg';
+//@ts-ignore
+import busImage from './assets/backgrounds/eggbank-8qb4dBHkA7g-unsplash.jpg';
+//@ts-ignore
+import astronautImage from './assets/backgrounds/jordan-mcgee-Ev4U6ieA4zA-unsplash.jpg';
+//@ts-ignore
+import architectureImage from './assets/backgrounds/logan-weaver-e_galhGvUJ8-unsplash.jpg';
+//@ts-ignore
+import plantImage from './assets/backgrounds/scott-webb-BLBCj6dxaSE-unsplash.jpg';
+//@ts-ignore
+import galaxyImage from './assets/backgrounds/solen-feyissa-KziPJwmo91A-unsplash.jpg';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import { images } from './components/Images';
 
 const isDebug = false;
 
@@ -75,7 +94,7 @@ function App() {
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
-	const [background, setBackground] = useState<IBackground[]>([]);
+	const [background, setBackground] = useState<IBackground>();
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
@@ -89,6 +108,19 @@ function App() {
 		meme: gotEm
 	};
 
+	const backgroundMap: {[key: string]: string} = {
+		brick: brickImage,
+		cat: catImage,
+		fish: fishImage,
+		ship: shipImage,
+		tree: treeImage,
+		bus: busImage,
+		astronaut: astronautImage,
+		architecture: architectureImage,
+		plant: plantImage,
+		galaxy: galaxyImage
+	}
+
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
 
@@ -96,11 +128,6 @@ function App() {
 			emojis.concat({ top: y, left: x, key: uuidv4(), type })
 		);
 	}, []);
-
-	const addBackground = useCallback(
-		(key) => {
-			return images.find(x => x.key == key);
-	},[]);
 
 	const playSound = useCallback(
 		(soundType) => {
@@ -202,7 +229,12 @@ function App() {
 					}
 					break;
 				case 'background':
-					addBackground(message.value);
+					if (message.value) {
+						setBackground({
+							key: message.value,
+							src: backgroundMap[message.value]
+						});
+					}
 					break;
 			}
 		};
@@ -266,8 +298,8 @@ function App() {
 	return (
 		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
 			<Board
-				backgrounds={background}
-				updateBackgrounds={setBackground}
+				background={background!}
+				updateBackground={setBackground}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
 				emojis={emojis}

@@ -83,7 +83,7 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 					<>
 						{images.map(({ key, src }) => (
 							<div key={key} className="bottom-panel-background">
-								<IconButton onClick={() => onAction('background', src)}>
+								<IconButton onClick={() => onAction('background', key)}>
 									<Avatar 
 										variant="rounded"
 										src={ src }
