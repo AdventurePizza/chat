@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'sound-variant';
+	key: 'sound' | 'emoji' | 'chat' | 'gif';
 	value?: string;
 }
 
@@ -25,13 +25,32 @@ export interface IChatMessage {
 }
 
 export interface ISound {
-	drum: string;
-	cymbal: string;
-	guitar: string;
-  meme: string;
-  trumpet: string;
-  noice: string;
-  stopit: string;
+    // Instrument
+    drum: string;
+    cymbal: string;
+    guitar: string;
+    trumpet: string;
+    gong: string;
+    harp: string;
+    // Funny
+    meme: string;
+    noice: string;
+    stop_it: string;
+    ahh: string;
+    air: string;
+    applause: string;
+    groan: string;
+    clang: string;
+    horn: string;
+    laugh: string;
+    // Nature
+    bee: string;
+    dog: string;
+    flying_fox: string;
+    lightning: string;
+    nature: string;
+    sealion: string;
+    water: string;
 }
 
 export interface IGifs {
@@ -47,7 +66,6 @@ export enum PanelItemEnum {
 	// 'color' = 'color',
 	'gifs' = 'gifs',
   'chat' = 'chat',
-  'sound-variant' = 'sound-variant'
 }
 
 export interface IUserLocations {

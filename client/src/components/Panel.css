@@ -1,3 +1,7 @@
+.sound-container button {
+  cursor: pointer;
+}
+
 .panel-container {
   display: flex;
   flex-direction: column;
@@ -8,6 +12,7 @@
   display: flex;
   justify-content: center;
   padding: 10px 0;
+  overflow-y: hidden;
 }
 
 .bottom-panel-container > *:not(:last-child) {
@@ -18,33 +23,30 @@
   font-size: 3em;
 }
 
-.bottom-panel-sound img {
-  width: 40px;
-  height: auto;
-  margin: 0 20px;
-}
-
-.sound-variant-container {
+.sound-container {
   width: 100vw;
-  align-items: center;
-  justify-content: center;
   padding-left: 10px;
   padding-right: 10px;
 }
 
-.sound-variant-icon img {
+.sound-icon img {
   width: 51px;
   height: auto;
   margin: 0 3px;
 }
 
-.sound-variant-icon button {
+.sound-icon button {
   background-color: white;
   border: white 0px;
   margin-right: 2px;
 }
 
-.sound-variant-active-category button {
+.sound-icon button:hover {
+  transform: rotate(10deg);
+  transition: 0.1s;
+}
+
+.sound-active-category button {
   background: #20AC50;
   border-radius: 20px;
   font-weight: 500;
@@ -58,7 +60,7 @@
   padding: 4px 10px;
 }
 
-.sound-variant-unactive-category button {
+.sound-unactive-category button {
   background: #EBEEF0;
   border-radius: 20px;
   font-weight: 500;
@@ -72,12 +74,20 @@
   padding: 4px 10px;
 }
 
-.sound-variant-icon-list {
-  display: flex;
+.sound-unactive-category button:hover {
+  background: #20ac99;
+  color: white;
+  transition: 0.4s;
 }
 
-.sound-variant-category-list {
+.sound-icon-list {
   display: flex;
+  justify-content: center;
+}
+
+.sound-category-list {
+  display: flex;
+  justify-content: center;
 }
 
 .bottom-panel-emoji .MuiIconButton-root {
