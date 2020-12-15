@@ -25,6 +25,9 @@ interface ISoundPairs {
 
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🦃'];
 
+let timers: number[] = [0];
+let currentTimer: number;
+
 
 const soundList: ISoundPairs[] = [
 	{ icon: drumIcon, type: 'drum' },
@@ -83,7 +86,15 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 					<>
 						{images.map(({ key, src }) => (
 							<div key={key} className="bottom-panel-background">
-								<IconButton onClick={() => onAction('background', key)}>
+								<IconButton onClick={() => {
+									clearTimeout(timers[0]); // clear any existing timers
+									onAction('background', key); //send background image to app.tsx
+									currentTimer = window.setTimeout(() => { // get current timer id
+										console.log('in setTimeout');
+										onAction('background', 'undefined'); // send undefined image to app.tsx after 1 minute
+									}, 60000);
+									timers[0] = currentTimer; // store current timer id for clearing if new image is selected
+								}}>
 									<Avatar 
 										variant="rounded"
 										src={ src }

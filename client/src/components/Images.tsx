@@ -1,7 +1,5 @@
-import React from 'react';
-
 //@ts-ignore
-import brick from '../assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash (1).jpg';
+import brick from '../assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash.jpg';
 //@ts-ignore
 import cat from '../assets/backgrounds/bantersnaps-zGiST_eUAXo-unsplash.jpg';
 //@ts-ignore

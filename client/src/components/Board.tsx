@@ -1,7 +1,7 @@
 import './Board.css';
 
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { IBackground, IChatMessage, IEmoji, IGifs } from '../types';
+import { IChatMessage, IEmoji, IGifs } from '../types';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
 import { Gif } from '@giphy/react-components';

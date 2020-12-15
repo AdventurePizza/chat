@@ -23,7 +23,7 @@ import architectureImage from './assets/backgrounds/logan-weaver-e_galhGvUJ8-uns
 //@ts-ignore
 import astronautImage from './assets/backgrounds/jordan-mcgee-Ev4U6ieA4zA-unsplash.jpg';
 //@ts-ignore
-import brickImage from './assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash (1).jpg';
+import brickImage from './assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash.jpg';
 //@ts-ignore
 import busImage from './assets/backgrounds/eggbank-8qb4dBHkA7g-unsplash.jpg';
 //@ts-ignore
@@ -302,6 +302,9 @@ function App() {
 			className="app"
 			style={{
 				minHeight: window.innerHeight - 10,
+				backgroundSize: 'auto 100%',
+				backgroundRepeat: 'no-repeat',
+				backgroundPosition: 'center',
 				backgroundImage: `url(${background?.src})`
 			}}
 		>
