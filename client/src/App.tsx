@@ -1,12 +1,12 @@
 import './App.css';
 
 import {
+	IBackground,
 	IChatMessage,
 	IEmoji,
 	IGifs,
 	IMessageEvent,
 	ISound,
-	IBackground,
 	PanelItemEnum
 } from './types';
 import { IconButton, Tooltip } from '@material-ui/core';
@@ -19,35 +19,35 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 //@ts-ignore
+import architectureImage from './assets/backgrounds/logan-weaver-e_galhGvUJ8-unsplash.jpg';
+//@ts-ignore
+import astronautImage from './assets/backgrounds/jordan-mcgee-Ev4U6ieA4zA-unsplash.jpg';
+//@ts-ignore
+import brickImage from './assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash (1).jpg';
+//@ts-ignore
+import busImage from './assets/backgrounds/eggbank-8qb4dBHkA7g-unsplash.jpg';
+//@ts-ignore
+import catImage from './assets/backgrounds/bantersnaps-zGiST_eUAXo-unsplash.jpg';
+//@ts-ignore
 import cymbalHit from './assets/sounds/cymbal.mp3';
 // Sound imports
 //@ts-ignore
 import drumBeat from './assets/sounds/drumbeat.mp3';
 //@ts-ignore
+import fishImage from './assets/backgrounds/brooke-lark-iXhfpWEnsN0-unsplash.jpg';
+//@ts-ignore
+import galaxyImage from './assets/backgrounds/solen-feyissa-KziPJwmo91A-unsplash.jpg';
+//@ts-ignore
 import gotEm from './assets/sounds/ha-got-eeem.mp3';
 //@ts-ignore
 import guitarStrum from './assets/sounds/electric_guitar.mp3';
+import io from 'socket.io-client';
 //@ts-ignore
-import brickImage from './assets/backgrounds/amanda-jones-dNyvA2i97uQ-unsplash (1).jpg';
-//@ts-ignore
-import catImage from './assets/backgrounds/bantersnaps-zGiST_eUAXo-unsplash.jpg';
-//@ts-ignore
-import fishImage from './assets/backgrounds/brooke-lark-iXhfpWEnsN0-unsplash.jpg';
+import plantImage from './assets/backgrounds/scott-webb-BLBCj6dxaSE-unsplash.jpg';
 //@ts-ignore
 import shipImage from './assets/backgrounds/bryan-goff-x02dRo6PEIY-unsplash.jpg';
 //@ts-ignore
 import treeImage from './assets/backgrounds/david-hofmann--Ae2HFODn2Q-unsplash.jpg';
-//@ts-ignore
-import busImage from './assets/backgrounds/eggbank-8qb4dBHkA7g-unsplash.jpg';
-//@ts-ignore
-import astronautImage from './assets/backgrounds/jordan-mcgee-Ev4U6ieA4zA-unsplash.jpg';
-//@ts-ignore
-import architectureImage from './assets/backgrounds/logan-weaver-e_galhGvUJ8-unsplash.jpg';
-//@ts-ignore
-import plantImage from './assets/backgrounds/scott-webb-BLBCj6dxaSE-unsplash.jpg';
-//@ts-ignore
-import galaxyImage from './assets/backgrounds/solen-feyissa-KziPJwmo91A-unsplash.jpg';
-import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
 const isDebug = false;
@@ -88,6 +88,19 @@ const generateRandomXY = (centered?: boolean) => {
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 
+const backgroundMap: { [key: string]: string } = {
+	brick: brickImage,
+	cat: catImage,
+	fish: fishImage,
+	ship: shipImage,
+	tree: treeImage,
+	bus: busImage,
+	astronaut: astronautImage,
+	architecture: architectureImage,
+	plant: plantImage,
+	galaxy: galaxyImage
+};
+
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
@@ -107,19 +120,6 @@ function App() {
 		guitar: guitarStrum,
 		meme: gotEm
 	};
-
-	const backgroundMap: {[key: string]: string} = {
-		brick: brickImage,
-		cat: catImage,
-		fish: fishImage,
-		ship: shipImage,
-		tree: treeImage,
-		bus: busImage,
-		astronaut: astronautImage,
-		architecture: architectureImage,
-		plant: plantImage,
-		galaxy: galaxyImage
-	}
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -249,6 +249,8 @@ function App() {
 		};
 	}, [playEmoji, playSound, addChatMessage, addGif]);
 
+	console.log('background is ', background);
+
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
@@ -296,10 +298,14 @@ function App() {
 	};
 
 	return (
-		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
+		<div
+			className="app"
+			style={{
+				minHeight: window.innerHeight - 10,
+				backgroundImage: `url(${background?.src})`
+			}}
+		>
 			<Board
-				background={background!}
-				updateBackground={setBackground}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
 				emojis={emojis}

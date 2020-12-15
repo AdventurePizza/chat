@@ -1,13 +1,13 @@
 import './Board.css';
-import { Gif } from '@giphy/react-components';
+
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import { IChatMessage, IEmoji, IGifs, IBackground } from '../types';
+import { IBackground, IChatMessage, IEmoji, IGifs } from '../types';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
+
+import { Gif } from '@giphy/react-components';
 import React from 'react';
 
 interface IBoardProps {
-	background: IBackground;
-	updateBackground: (background: IBackground) => void;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
 	emojis: IEmoji[];
@@ -19,8 +19,6 @@ interface IBoardProps {
 }
 
 export const Board = ({
-	background,
-	updateBackground,
 	musicNotes,
 	updateNotes,
 	emojis,
@@ -31,7 +29,7 @@ export const Board = ({
 	updateChatMessages
 }: IBoardProps) => {
 	return (
-		<div className="board-container" style={{backgroundImage: background ? background.src : undefined}}>
+		<div className="board-container">
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -140,7 +138,7 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
-			
+
 			{/* <div className="board-container" style={{backgroundImage: background ? background.src : undefined}}></div> */}
 		</div>
 	);
