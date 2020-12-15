@@ -47,7 +47,7 @@ const soundList: ISoundPairs[] = [
 	{ icon: gotemIcon, type: 'meme', category: 'Funny' },
 	{ icon: stop_itIcon, type: 'stop_it', category: 'Funny' },
 	{ icon: noiceIcon, type: 'noice', category: 'Funny' },
-	{ icon: ahhhIcon, type: 'ahhh', category: 'Funny' },
+	{ icon: ahhhIcon, type: 'ahh', category: 'Funny' },
 	{ icon: airIcon, type: 'air', category: 'Funny' },
 	{ icon: applauseIcon, type: 'applause', category: 'Funny' },
 	{ icon: clangIcon, type: 'clang', category: 'Funny' },
