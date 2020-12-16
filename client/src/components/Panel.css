@@ -74,12 +74,6 @@
   padding: 4px 10px;
 }
 
-.sound-unactive-category button:hover {
-  background: #20ac99;
-  color: white;
-  transition: 0.4s;
-}
-
 .sound-icon-list {
   display: flex;
   justify-content: center;
