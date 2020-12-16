@@ -1,11 +1,6 @@
 import './Panel.css';
 
-import {
-	Chat,
-	ChevronRight,
-	Gif,
-	InsertEmoticon,
-} from '@material-ui/icons/';
+import { Chat, ChevronRight, Gif, InsertEmoticon } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import musicNote from '../assets/musicNote.png';
@@ -62,18 +57,20 @@ interface IPanelItemProps {
 
 const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 	const renderPanelItem = () => {
-    let buttonContent;
+		let buttonContent;
 		const style: React.CSSProperties = {
 			...iconStyle,
-      color: isSelected ? 'orange' : undefined
-    };
-    const musicNoteToShow = (isSelected) ? 
-      <img src={musicNoteColored} alt="Music Note"/> : 
-      <img src={musicNote} alt="Music Note"/>
+			color: isSelected ? 'orange' : undefined
+		};
+		const musicNoteToShow = isSelected ? (
+			<img src={musicNoteColored} alt="Music Note" />
+		) : (
+			<img src={musicNote} alt="Music Note" />
+		);
 
 		switch (title) {
 			case PanelItemEnum.sound:
-        buttonContent = musicNoteToShow;
+				buttonContent = musicNoteToShow;
 				break;
 			case PanelItemEnum.emoji:
 				buttonContent = <InsertEmoticon style={style} />;
@@ -83,7 +80,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 				break;
 			case PanelItemEnum.chat:
 				buttonContent = <Chat style={style} />;
-        break;
+				break;
 		}
 
 		return <IconButton onClick={onClick}>{buttonContent}</IconButton>;

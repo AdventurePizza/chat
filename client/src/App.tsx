@@ -28,39 +28,43 @@ import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { UserCursor } from './components/UserCursors';
 import _ from 'underscore';
+//@ts-ignore
+import ahh from './assets/sounds/funny/ahh.mp3';
+//@ts-ignore
+import air from './assets/sounds/funny/air.mp3';
+//@ts-ignore
+import applause from './assets/sounds/funny/applause.mp3';
 // Sound imports
 //@ts-ignore
 import audioEnter from './assets/sounds/zap-enter.mp3'; //@ts-ignore
 import audioExit from './assets/sounds/zap-exit.mp3'; //@ts-ignore
-
-// Instruments
-import cymbalHit from './assets/sounds/instruments/cymbal.mp3'; //@ts-ignore
-import drumBeat from './assets/sounds/instruments/drumbeat.mp3'; //@ts-ignore
-import trumpet from './assets/sounds/instruments/trumpet.mp3'; //@ts-ignore
-import guitarStrum from './assets/sounds/instruments/electric_guitar.mp3'; //@ts-ignore
-import gong from './assets/sounds/instruments/chinese-gong.wav'; //@ts-ignore
-import harp from './assets/sounds/instruments/harp.wav'; //@ts-ignore
-// Funny
-import gotEm from './assets/sounds/funny/ha-got-eeem.mp3'; //@ts-ignore
-import noice from './assets/sounds/funny/noice.mp3'; //@ts-ignore
-import stop_it_get_some_help from './assets/sounds/funny/stop_it_get_some_help.mp3'; //@ts-ignore
-import ahh from './assets/sounds/funny/ahh.mp3'; //@ts-ignore
-import air from './assets/sounds/funny/air.mp3'; //@ts-ignore
-import applause from './assets/sounds/funny/applause.mp3'; //@ts-ignore
-import clang from './assets/sounds/funny/clang.mp3'; //@ts-ignore
-import groan from './assets/sounds/funny/groan.mp3'; //@ts-ignore
-import horn from './assets/sounds/funny/horn.mp3'; //@ts-ignore
-import laugh from './assets/sounds/funny/laugh.mp3'; //@ts-ignore
 // Nature
 import bee from './assets/sounds/nature/bee.mp3'; //@ts-ignore
+import clang from './assets/sounds/funny/clang.mp3'; //@ts-ignore
+// Instruments
+import cymbalHit from './assets/sounds/instruments/cymbal.mp3'; //@ts-ignore
 import dog from './assets/sounds/nature/dog.mp3'; //@ts-ignore
+import drumBeat from './assets/sounds/instruments/drumbeat.mp3'; //@ts-ignore
 import flying_fox from './assets/sounds/nature/flying-fox.mp3'; //@ts-ignore
+import gong from './assets/sounds/instruments/chinese-gong.wav'; //@ts-ignore
+// Funny
+import gotEm from './assets/sounds/funny/ha-got-eeem.mp3'; //@ts-ignore
+import groan from './assets/sounds/funny/groan.mp3'; //@ts-ignore
+import guitarStrum from './assets/sounds/instruments/electric_guitar.mp3'; //@ts-ignore
+import harp from './assets/sounds/instruments/harp.wav'; //@ts-ignore
+import horn from './assets/sounds/funny/horn.mp3'; //@ts-ignore
+import io from 'socket.io-client';
+//@ts-ignore
+import laugh from './assets/sounds/funny/laugh.mp3'; //@ts-ignore
 import lightning from './assets/sounds/nature/lightning.mp3'; //@ts-ignore
 import nature from './assets/sounds/nature/nature.mp3'; //@ts-ignore
+import noice from './assets/sounds/funny/noice.mp3'; //@ts-ignore
 import sealion from './assets/sounds/nature/sealion.mp3'; //@ts-ignore
-import water from './assets/sounds/nature/water.mp3';
-import io from 'socket.io-client';
+import stop_it_get_some_help from './assets/sounds/funny/stop_it_get_some_help.mp3'; //@ts-ignore
+import trumpet from './assets/sounds/instruments/trumpet.mp3'; //@ts-ignore
 import { v4 as uuidv4 } from 'uuid';
+//@ts-ignore
+import water from './assets/sounds/nature/water.mp3';
 
 const isDebug = false;
 
@@ -75,6 +79,35 @@ const socket = io(socketURL, { transports: ['websocket'] });
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
+
+const sounds: ISound = {
+	// Instrument
+	drum: drumBeat,
+	cymbal: cymbalHit,
+	guitar: guitarStrum,
+	trumpet: trumpet,
+	gong: gong,
+	harp: harp,
+	// Funny
+	meme: gotEm,
+	noice: noice,
+	stop_it: stop_it_get_some_help,
+	ahh: ahh,
+	air: air,
+	applause: applause,
+	groan: groan,
+	clang: clang,
+	horn: horn,
+	laugh: laugh,
+	// Nature
+	bee: bee,
+	dog: dog,
+	flying_fox: flying_fox,
+	lightning: lightning,
+	nature: nature,
+	sealion: sealion,
+	water: water
+};
 
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -99,45 +132,16 @@ function App() {
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
 
-	const sounds: ISound = {
-		// Instrument
-		drum: drumBeat,
-		cymbal: cymbalHit,
-		guitar: guitarStrum,
-		trumpet: trumpet,
-		gong: gong,
-		harp: harp,
-		// Funny
-		meme: gotEm,
-		noice: noice,
-		stop_it: stop_it_get_some_help,
-		ahh: ahh,
-		air: air,
-		applause: applause,
-		groan: groan,
-		clang: clang,
-		horn: horn,
-		laugh: laugh,
-		// Nature
-		bee: bee,
-		dog: dog,
-		flying_fox: flying_fox,
-		lightning: lightning,
-		nature: nature,
-		sealion: sealion,
-		water: water
-	};
-
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
 
-		setEmojis(emojis =>
+		setEmojis((emojis) =>
 			emojis.concat({ top: y, left: x, key: uuidv4(), type })
 		);
 	}, []);
 
 	const playTutorial = async () => {
-		tutorialGifs.forEach(gif => {
+		tutorialGifs.forEach((gif) => {
 			setTimeout(async () => {
 				const data = await GIF_FETCH.gif(gif.id);
 				const { x, y } = generateRandomXY(true);
@@ -149,12 +153,12 @@ function App() {
 					data: data.data
 				};
 
-				setGifs(gifs => gifs.concat(newGif));
+				setGifs((gifs) => gifs.concat(newGif));
 			}, gif.time);
 		});
 
 		for (let i = 0; i < tutorialMessages.length; i++) {
-			setChatMessages(messages =>
+			setChatMessages((messages) =>
 				messages.concat({
 					top: window.innerHeight * 0.1 + i * 25,
 					left: window.innerWidth / 2 - tutorialMessages[i].length * 5,
@@ -169,7 +173,7 @@ function App() {
 	};
 
 	const playSound = useCallback(
-		soundType => {
+		(soundType) => {
 			switch (soundType) {
 				// Instrument
 				case 'drum':
@@ -253,18 +257,39 @@ function App() {
 			const randomX = Math.random() * window.innerWidth;
 			const randomY = Math.random() * window.innerHeight;
 
-			setMusicNotes(notes =>
+			setMusicNotes((notes) =>
 				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
 			);
 
 			audio.current.currentTime = 0;
 			audio.current.play();
 		},
-    [audio, sounds.drum, sounds.cymbal, sounds.guitar, sounds.trumpet,
-      sounds.gong, sounds.harp, sounds.meme, sounds.noice, sounds.stop_it,
-      sounds.ahh, sounds.air, sounds.applause, sounds.groan, sounds.clang,
-      sounds.horn, sounds.laugh, sounds.bee, sounds.dog, sounds.flying_fox,
-      sounds.lightning, sounds.nature, sounds.sealion, sounds.water]
+		[
+			audio,
+			sounds.drum,
+			sounds.cymbal,
+			sounds.guitar,
+			sounds.trumpet,
+			sounds.gong,
+			sounds.harp,
+			sounds.meme,
+			sounds.noice,
+			sounds.stop_it,
+			sounds.ahh,
+			sounds.air,
+			sounds.applause,
+			sounds.groan,
+			sounds.clang,
+			sounds.horn,
+			sounds.laugh,
+			sounds.bee,
+			sounds.dog,
+			sounds.flying_fox,
+			sounds.lightning,
+			sounds.nature,
+			sounds.sealion,
+			sounds.water
+		]
 	);
 
 	const onClickPanelItem = (key: string) => {
@@ -289,19 +314,19 @@ function App() {
 			key: uuidv4(),
 			value: message
 		};
-		setChatMessages(chatMessages => chatMessages.concat(newMessage));
+		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
 
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true);
-		GIF_FETCH.gif(gifId).then(data => {
+		GIF_FETCH.gif(gifId).then((data) => {
 			const newGif: IGifs = {
 				top: y,
 				left: x,
 				key: uuidv4(),
 				data: data.data
 			};
-			setGifs(gifs => gifs.concat(newGif));
+			setGifs((gifs) => gifs.concat(newGif));
 		});
 	}, []);
 
@@ -336,7 +361,7 @@ function App() {
 
 	const onKeyPress = useCallback((event: KeyboardEvent) => {
 		if (event.ctrlKey && event.code === 'KeyQ') {
-			setFigures(figures =>
+			setFigures((figures) =>
 				figures.concat({
 					key: uuidv4(),
 					type: 'gryphon'
@@ -351,7 +376,7 @@ function App() {
 		// spawn gryphon randomly
 		setInterval(() => {
 			if (Math.random() < 0.1) {
-				setFigures(figures =>
+				setFigures((figures) =>
 					figures.concat({
 						key: uuidv4(),
 						type: 'gryphon'
@@ -377,7 +402,7 @@ function App() {
 		const absoluteX = width * x;
 		const absoluteY = height * y;
 
-		setUserLocations(userLocations => {
+		setUserLocations((userLocations) => {
 			const newUserLocations = {
 				...userLocations,
 				[clientId]: {
@@ -390,7 +415,7 @@ function App() {
 			return newUserLocations;
 		});
 
-		setUserProfiles(userProfiles => ({
+		setUserProfiles((userProfiles) => ({
 			...userProfiles,
 			[clientId]: {
 				...clientProfile
@@ -432,7 +457,7 @@ function App() {
 		};
 
 		const onRoomateDisconnect = (clientId: string) => {
-			setUserLocations(userLocations => {
+			setUserLocations((userLocations) => {
 				const newUserLocations = {
 					...userLocations
 				};
@@ -581,7 +606,7 @@ function App() {
 export default App;
 
 const sleep = async (time: number) =>
-	new Promise(resolve => setTimeout(resolve, time));
+	new Promise((resolve) => setTimeout(resolve, time));
 
 const tutorialMessages = [
 	'built with web sockets',
