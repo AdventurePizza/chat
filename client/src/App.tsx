@@ -112,24 +112,21 @@ function App() {
 		}
 	};
 
-	const playSound = useCallback(
-		(soundType) => {
-      audio.current = new Audio(sounds[soundType])
+	const playSound = useCallback((soundType) => {
+		audio.current = new Audio(sounds[soundType]);
 
-			if (!audio || !audio.current) return;
+		if (!audio || !audio.current) return;
 
-			const randomX = Math.random() * window.innerWidth;
-			const randomY = Math.random() * window.innerHeight;
+		const randomX = Math.random() * window.innerWidth;
+		const randomY = Math.random() * window.innerHeight;
 
-			setMusicNotes((notes) =>
-				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-			);
+		setMusicNotes((notes) =>
+			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+		);
 
-			audio.current.currentTime = 0;
-			audio.current.play();
-		},
-		[]
-	);
+		audio.current.currentTime = 0;
+		audio.current.play();
+	}, []);
 
 	const onClickPanelItem = (key: string) => {
 		switch (key) {
