@@ -33,12 +33,15 @@
   width: 51px;
   height: auto;
   margin: 0 3px;
+  display: flex;
 }
 
 .sound-icon button {
   background-color: white;
-  border: white 0px;
-  margin-right: 2px;
+  border: rgb(0, 0, 0) 0px;
+  height: auto;
+  width: auto;
+  margin-right: 2px
 }
 
 .sound-icon button:hover {
