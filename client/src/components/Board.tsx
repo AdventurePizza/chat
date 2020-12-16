@@ -275,5 +275,24 @@ const Animation = ({ type }: IAnimationProps) => {
 		);
 	}
 
+	if (type === 'end game') {
+		return (
+			<div
+				style={{
+					width: window.innerWidth,
+					textAlign: 'center',
+					left: 0,
+					right: 0,
+					top: '20vh',
+					userSelect: 'none',
+					position: 'absolute',
+					fontSize: '2em'
+				}}
+			>
+				finished tower defense
+			</div>
+		);
+	}
+
 	return null;
 };

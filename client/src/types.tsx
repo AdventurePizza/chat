@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type AnimationTypes = 'start game' | 'info';
+export type AnimationTypes = 'start game' | 'info' | 'end game';
 export interface IAnimation {
 	type: AnimationTypes;
 	text?: string;
