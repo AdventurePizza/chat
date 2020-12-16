@@ -25,10 +25,33 @@ export interface IChatMessage {
 }
 
 export interface ISound {
+	[key: string]: string;
+	// Instrument
 	drum: string;
 	cymbal: string;
 	guitar: string;
+	trumpet: string;
+	gong: string;
+	harp: string;
+	// Funny
 	meme: string;
+	noice: string;
+	stop_it: string;
+	ahh: string;
+	air: string;
+	applause: string;
+	groan: string;
+	clang: string;
+	horn: string;
+	laugh: string;
+	// Nature
+	bee: string;
+	dog: string;
+	flying_fox: string;
+	lightning: string;
+	nature: string;
+	sealion: string;
+	water: string;
 }
 
 export interface IGifs {

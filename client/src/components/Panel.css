@@ -1,3 +1,7 @@
+.sound-container button {
+  cursor: pointer;
+}
+
 .panel-container {
   display: flex;
   flex-direction: column;
@@ -8,6 +12,7 @@
   display: flex;
   justify-content: center;
   padding: 10px 0;
+  overflow-y: hidden;
 }
 
 .bottom-panel-container > *:not(:last-child) {
@@ -18,10 +23,68 @@
   font-size: 3em;
 }
 
-.bottom-panel-sound img {
-  width: 40px;
+.sound-container {
+  width: 100vw;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.sound-icon img {
+  width: 51px;
   height: auto;
-  margin: 0 20px;
+  margin: 0 3px;
+  display: flex;
+}
+
+.sound-icon button {
+  background-color: white;
+  border: rgb(0, 0, 0) 0px;
+  height: auto;
+  width: auto;
+  margin-right: 2px
+}
+
+.sound-icon button:hover {
+  transform: rotate(10deg);
+  transition: 0.1s;
+}
+
+.sound-active-category button {
+  background: #20AC50;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21px;
+  text-align: center;
+  color: #FFFFFF;
+  border: none;
+  margin-bottom: 7px;
+  margin-right: 10px;
+  padding: 4px 10px;
+}
+
+.sound-unactive-category button {
+  background: #EBEEF0;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21px;
+  text-align: center;
+  color: #5B7083;
+  border: none;
+  margin-bottom: 7px;
+  margin-right: 10px;
+  padding: 4px 10px;
+}
+
+.sound-icon-list {
+  display: flex;
+  justify-content: center;
+}
+
+.sound-category-list {
+  display: flex;
+  justify-content: center;
 }
 
 .bottom-panel-emoji .MuiIconButton-root {
