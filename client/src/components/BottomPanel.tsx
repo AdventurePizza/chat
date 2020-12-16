@@ -1,4 +1,5 @@
 import { Drawer, IconButton } from '@material-ui/core';
+
 import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
@@ -18,18 +19,6 @@ export interface ISoundPairs {
 	category: string;
 }
 
-export interface ISoundCategories {
-	category: string;
-	isActive: boolean;
-	id: string;
-}
-
-export interface ICategory {
-	category: string;
-	isActive: boolean;
-	id: string;
-}
-
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 
 export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
@@ -38,7 +27,7 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 			case 'emoji':
 				return (
 					<>
-						{emojiList.map(emoji => (
+						{emojiList.map((emoji) => (
 							<div key={emoji} className="bottom-panel-emoji">
 								<IconButton onClick={() => onAction('emoji', emoji)}>
 									{emoji}
@@ -51,15 +40,13 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 			case 'chat':
 				return (
 					<Chat
-						sendMessage={message => {
+						sendMessage={(message) => {
 							onAction('chat', message);
 						}}
 					/>
 				);
 			case 'sound':
-        return <SoundPanel
-          sendSound={onAction}
-          />;
+				return <SoundPanel sendSound={onAction} />;
 
 			case 'gifs':
 				return (
