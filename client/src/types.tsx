@@ -25,7 +25,7 @@ export interface IChatMessage {
 }
 
 export interface ISound {
-  [key: string]: string;
+	[key: string]: string;
 	// Instrument
 	drum: string;
 	cymbal: string;
