@@ -110,36 +110,8 @@ export class Router {
         break;
 
       case "tower defense":
-        // console.log("got message ", message);
-        if (message.value === "start") {
-          if (!towerDefenseState.isPlaying) {
-            io.emit("event", { key: "tower defense", value: "start" });
-            towerDefenseState.isPlaying = true;
-
-            if (towerDefenseState.towerDefenseGameInterval) {
-              clearInterval(towerDefenseState.towerDefenseGameInterval);
-              towerDefenseState.loopCounter = 0;
-            }
-
-            towerDefenseState.towerDefenseGameInterval = setInterval(() => {
-              const { loopCounter } = towerDefenseState;
-
-              //   if (loopCounter % 8 === 0) {
-              //     spawnEnemy();
-              //   }
-
-              const spawn = enemySpawnTimes[loopCounter * 1000];
-
-              if (spawn) {
-                spawnEnemy();
-              }
-              if (loopCounter % 5 === 0) {
-                fireTowers();
-              }
-
-              towerDefenseState.loopCounter++;
-            }, 1000);
-          }
+        if (message.value === "start" && !towerDefenseState.isPlaying) {
+          startGame();
         }
         if (message.value === "add tower") {
           io.emit("event", {
@@ -241,85 +213,71 @@ const spawnEnemy = () => {
 };
 
 const fireTowers = () => {
-  //   const enemy: ITowerUnit = {
-  //     key: uuidv4(),
-  //     type: "grunt",
-  //   };
-
-  //   towerDefenseState.units.push(enemy);
-
   io.emit("event", { key: "tower defense", value: "fire towers" });
 };
 
-const enemySpawnTimes: { [key: number]: { type: string }[] } = {
-  5000: [
-    {
-      type: "grunt",
-    },
-  ],
-  10000: [
-    {
-      type: "grunt",
-    },
-  ],
-  14000: [
-    {
-      type: "grunt",
-    },
-  ],
-  15000: [
-    {
-      type: "grunt",
-    },
-  ],
-  20000: [
-    {
-      type: "grunt",
-    },
-  ],
-  21000: [
-    {
-      type: "grunt",
-    },
-  ],
-  22000: [
-    {
-      type: "grunt",
-    },
-  ],
-  27000: [
-    {
-      type: "grunt",
-    },
-  ],
-  28000: [
-    {
-      type: "grunt",
-    },
-  ],
-  29000: [
-    {
-      type: "grunt",
-    },
-  ],
-  35000: [
-    {
-      type: "grunt",
-    },
-  ],
-  36000: [
-    {
-      type: "grunt",
-    },
-  ],
-  37000: [
-    {
-      type: "grunt",
-    },
-  ],
-  38000: [
-    {
-      type: "grunt",
-    },
-  ],
+const GAME_LENGTH_SECONDS = 120;
+
+const startGame = () => {
+  io.emit("event", { key: "tower defense", value: "start" });
+
+  towerDefenseState.isPlaying = true;
+
+  if (towerDefenseState.towerDefenseGameInterval) {
+    clearInterval(towerDefenseState.towerDefenseGameInterval);
+    towerDefenseState.loopCounter = 0;
+  }
+
+  towerDefenseState.towerDefenseGameInterval = setInterval(() => {
+    const { loopCounter } = towerDefenseState;
+
+    let spawnRate = 0;
+
+    if (loopCounter < 10) {
+      spawnRate = spawnRates[10];
+    } else if (loopCounter < 25) {
+      spawnRate = spawnRates[25];
+    } else if (loopCounter < 45) {
+      spawnRate = spawnRates[45];
+    } else if (loopCounter < 60) {
+      spawnRate = spawnRates[60];
+    } else if (loopCounter < 80) {
+      spawnRate = spawnRates[80];
+    } else if (loopCounter < 100) {
+      spawnRate = spawnRates[100];
+    }
+
+    if (Math.random() < spawnRate) {
+      spawnEnemy();
+    }
+
+    // fire every 4 seconds
+    if (loopCounter % 4 === 0) {
+      fireTowers();
+    }
+
+    towerDefenseState.loopCounter++;
+    console.log(towerDefenseState.loopCounter);
+
+    if (towerDefenseState.loopCounter === GAME_LENGTH_SECONDS) {
+      endGame();
+    }
+  }, 1000);
+};
+
+const endGame = () => {
+  if (towerDefenseState.towerDefenseGameInterval) {
+    clearInterval(towerDefenseState.towerDefenseGameInterval);
+  }
+  towerDefenseState.isPlaying = false;
+  io.emit("event", { key: "tower defense", value: "end" });
+};
+
+const spawnRates: { [timeSeconds: number]: number } = {
+  10: 0.2,
+  25: 0.3,
+  45: 0.4,
+  60: 0.5,
+  80: 0.6,
+  100: 0.7,
 };

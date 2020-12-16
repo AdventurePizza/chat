@@ -370,11 +370,16 @@ function App() {
 
 	const playAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {
-			console.log('playing animation!!');
 			setAnimations((animations) => animations.concat({ type: 'start game' }));
 			setTimeout(() => {
 				setAnimations((animations) => animations.concat({ type: 'info' }));
 			}, 2000);
+		}
+		if (animationType === 'end game') {
+			setAnimations((animations) => animations.concat({ type: 'end game' }));
+			// setTimeout(() => {
+			// 	setAnimations((animations) => animations.concat({ type: 'info' }));
+			// }, 2000);
 		}
 	}, []);
 
@@ -383,7 +388,11 @@ function App() {
 		console.log(towerDefenseState.units);
 		towerDefenseState.towers.forEach((tower) => {
 			const { top, left } = tower;
-			towerDefenseState.units.forEach((unit) => {
+
+			// only hit first enemy
+			for (let i = 0; i < towerDefenseState.units.length; i++) {
+				const unit = towerDefenseState.units[i];
+
 				const { ref } = unit;
 				if (ref && ref.current) {
 					const rect = ref.current.getBoundingClientRect();
@@ -395,19 +404,17 @@ function App() {
 					);
 					const relativeDistance = distance / window.innerWidth;
 
-					console.log('relative distance = ', relativeDistance);
-
 					if (relativeDistance < 0.4) {
-						console.log('================ emitting fire tower!!!');
 						socket.emit('event', {
 							key: 'tower defense',
 							value: 'fire tower',
 							towerKey: tower.key,
 							unitKey: unit.key
 						});
+						break;
 					}
 				}
-			});
+			}
 		});
 	}, [towerDefenseState]);
 
@@ -440,6 +447,16 @@ function App() {
 					if (message.value === 'start') {
 						playAnimation('start game');
 						setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+					}
+					if (message.value === 'end') {
+						playAnimation('end game');
+						setTowerDefenseState((state) => ({
+							...state,
+							isPlaying: false,
+							towers: [],
+							units: [],
+							projectiles: []
+						}));
 					}
 					if (message.value === 'spawn enemy') {
 						const enemy = message.enemy as ITowerUnit;
