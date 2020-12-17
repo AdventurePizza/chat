@@ -37,29 +37,19 @@ import { Panel } from './components/Panel';
 import { UserCursor } from './components/UserCursors';
 import _ from 'underscore';
 // Sound imports
-//@ts-ignore
 import audioEnter from './assets/sounds/zap-enter.mp3';
-//@ts-ignore
 import audioExit from './assets/sounds/zap-exit.mp3';
-//@ts-ignore
 import cymbalHit from './assets/sounds/cymbal.mp3';
-//@ts-ignore
 import drumBeat from './assets/sounds/drumbeat.mp3';
-//@ts-ignore
 import gotEm from './assets/sounds/ha-got-eeem.mp3';
-//@ts-ignore
 import guitarStrum from './assets/sounds/electric_guitar.mp3';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-
-const isDebug = false;
 
 const socketURL =
 	window.location.hostname === 'localhost'
 		? 'ws://localhost:8000'
 		: 'wss://adventure-chat.herokuapp.com';
-
-isDebug && console.log('socket url = ', socketURL);
 
 const socket = io(socketURL, { transports: ['websocket'] });
 
@@ -76,7 +66,6 @@ function App() {
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
 
-	// const [lastClickedTower, setLastClickedTower] = useState(Date.now())
 	const lastClickedTower = useRef(Date.now());
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
@@ -93,10 +82,6 @@ function App() {
 		units: [],
 		projectiles: []
 	});
-
-	// const TowerDefenseContext = React.createContext<ITowerDefenseState>(
-	// 	towerDefenseState
-	// );
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
@@ -239,7 +224,6 @@ function App() {
 
 	const onMouseMove = useCallback(
 		(event: MouseEvent) => {
-			// console.log(event);
 			const x = event.clientX;
 			const y = event.clientY;
 
@@ -271,7 +255,7 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		// playTutorial();
+		playTutorial();
 
 		// spawn gryphon randomly
 		setInterval(() => {
@@ -288,14 +272,10 @@ function App() {
 
 	const onMouseClick = useCallback(
 		(event: MouseEvent) => {
-			console.log('clicked mouse', event);
 			//@ts-ignore
 			const className = event.path[0].className as string;
 
-			console.log('classname is ', className);
-
 			setTowerDefenseState((state) => {
-				console.log(lastClickedTower);
 				if (state.selectedPlacementTower && className === 'app') {
 					const { x, y } = getRelativePos(event.clientX, event.clientY);
 
@@ -312,15 +292,9 @@ function App() {
 					className === 'tower-building' &&
 					Date.now() - lastClickedTower.current > 2000
 				) {
-					console.log('undefining selected tower');
 					return { ...state, selectedPlacementTower: undefined };
 				}
-				// else if (
-				// 	state.selectedPlacementTower &&
-				// 	className === 'tower-building'
-				// ) {
-				// }
-				// setLastClickedTower(Date.now())
+
 				lastClickedTower.current = Date.now();
 
 				return state;
@@ -377,18 +351,11 @@ function App() {
 		}
 		if (animationType === 'end game') {
 			setAnimations((animations) => animations.concat({ type: 'end game' }));
-			// setTimeout(() => {
-			// 	setAnimations((animations) => animations.concat({ type: 'info' }));
-			// }, 2000);
 		}
 	}, []);
 
 	const fireTowers = useCallback(() => {
-		console.log('firing towers');
-		console.log(towerDefenseState.units);
 		towerDefenseState.towers.forEach((tower) => {
-			const { top, left } = tower;
-
 			// only hit first enemy
 			for (let i = 0; i < towerDefenseState.units.length; i++) {
 				const unit = towerDefenseState.units[i];
@@ -396,12 +363,14 @@ function App() {
 				const { ref } = unit;
 				if (ref && ref.current) {
 					const rect = ref.current.getBoundingClientRect();
+
 					const distance = getDistanceBetweenPoints(
 						tower.left,
 						tower.top,
 						rect.left,
 						rect.top
 					);
+
 					const relativeDistance = distance / window.innerWidth;
 
 					if (relativeDistance < 0.4) {
@@ -418,11 +387,104 @@ function App() {
 		});
 	}, [towerDefenseState]);
 
-	useEffect(() => {
-		function onConnect() {
-			isDebug && console.log('connected to socket');
-		}
+	const handleTowerDefenseEvents = useCallback(
+		(message: IMessageEvent) => {
+			if (message.value === 'start') {
+				playAnimation('start game');
+				setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+			}
+			if (message.value === 'end') {
+				playAnimation('end game');
+				setTowerDefenseState((state) => ({
+					...state,
+					isPlaying: false,
+					towers: [],
+					units: [],
+					projectiles: [],
+					selectedPlacementTower: undefined
+				}));
+			}
+			if (message.value === 'spawn enemy') {
+				const enemy = message.enemy as ITowerUnit;
 
+				enemy.top = window.innerHeight / 2;
+				enemy.left = 0;
+				enemy.ref = React.createRef();
+
+				setTowerDefenseState((state) => ({
+					...state,
+					units: state.units.concat(enemy)
+				}));
+			}
+
+			if (message.value === 'add tower') {
+				const { x, y, towerKey } = message;
+
+				setTowerDefenseState((state) => ({
+					...state,
+					towers: state.towers.concat({
+						key: towerKey,
+						type: 'basic',
+						top: y * window.innerHeight,
+						left: x * window.innerWidth
+					})
+				}));
+			}
+
+			if (message.value === 'fire towers') {
+				fireTowers();
+			}
+
+			if (message.value === 'hit unit') {
+				const { towerKey, unitKey } = message;
+
+				setTowerDefenseState((state) => {
+					let startPos = { x: 0, y: 0 };
+					let endPos = { x: 0, y: 0 };
+
+					const tower = state.towers.find((tower) => tower.key === towerKey);
+					const unit = state.units.find((unit) => unit.key === unitKey);
+
+					if (tower && unit) {
+						startPos.x = tower.left;
+						startPos.y = tower.top;
+
+						const unitRect = unit.ref.current?.getBoundingClientRect();
+						if (unitRect) {
+							endPos.x = unitRect.left + 30;
+							endPos.y = unitRect.top;
+						}
+					}
+
+					return {
+						...state,
+						projectiles: state.projectiles.concat({
+							towerKey,
+							unitKey,
+							key: uuidv4(),
+							startPos,
+							endPos
+						})
+					};
+				});
+			}
+
+			if (message.value === 'towers') {
+				const { towers } = message;
+				setTowerDefenseState((state) => ({
+					...state,
+					towers: towers.map((tower: ITowerBuilding) => ({
+						...tower,
+						top: tower.top * window.innerHeight,
+						left: tower.left * window.innerWidth
+					}))
+				}));
+			}
+		},
+		[fireTowers, playAnimation]
+	);
+
+	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
@@ -444,89 +506,7 @@ function App() {
 					}
 					break;
 				case 'tower defense':
-					if (message.value === 'start') {
-						playAnimation('start game');
-						setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
-					}
-					if (message.value === 'end') {
-						playAnimation('end game');
-						setTowerDefenseState((state) => ({
-							...state,
-							isPlaying: false,
-							towers: [],
-							units: [],
-							projectiles: []
-						}));
-					}
-					if (message.value === 'spawn enemy') {
-						const enemy = message.enemy as ITowerUnit;
-
-						enemy.top = window.innerHeight / 2;
-						enemy.left = 0;
-						enemy.ref = React.createRef();
-
-						setTowerDefenseState((state) => ({
-							...state,
-							units: state.units.concat(enemy)
-						}));
-					}
-
-					if (message.value === 'add tower') {
-						const { x, y, towerKey } = message;
-
-						setTowerDefenseState((state) => ({
-							...state,
-							towers: state.towers.concat({
-								key: towerKey,
-								type: 'basic',
-								top: y * window.innerHeight,
-								left: x * window.innerWidth
-							})
-						}));
-					}
-
-					if (message.value === 'fire towers') {
-						fireTowers();
-					}
-
-					if (message.value === 'hit unit') {
-						console.log('got message ', message);
-						const { towerKey, unitKey } = message;
-						// TODO spawn projectile from tower to unit, remove unit
-						// get tower rect, get unit rect which is start and end pos
-
-						setTowerDefenseState((state) => {
-							let startPos = { x: 0, y: 0 };
-							let endPos = { x: 0, y: 0 };
-
-							const tower = state.towers.find(
-								(tower) => tower.key === towerKey
-							);
-							const unit = state.units.find((unit) => unit.key === unitKey);
-
-							if (tower && unit) {
-								startPos.x = tower.left;
-								startPos.y = tower.top;
-
-								const unitRect = unit.ref.current?.getBoundingClientRect();
-								if (unitRect) {
-									endPos.x = unitRect.left + 30;
-									endPos.y = unitRect.top;
-								}
-							}
-
-							return {
-								...state,
-								projectiles: state.projectiles.concat({
-									towerKey,
-									unitKey,
-									key: uuidv4(),
-									startPos,
-									endPos
-								})
-							};
-						});
-					}
+					handleTowerDefenseEvents(message);
 
 					break;
 			}
@@ -562,19 +542,16 @@ function App() {
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
-		socket.on('connect', onConnect);
 		socket.on('event', onMessageEvent);
 
 		return () => {
 			socket.off('roomate disconnect', onRoomateDisconnect);
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
-			socket.off('connect', onConnect);
 			socket.off('event', onMessageEvent);
 		};
 	}, [
-		fireTowers,
-		playAnimation,
+		handleTowerDefenseEvents,
 		playEmoji,
 		playSound,
 		addChatMessage,
@@ -584,7 +561,6 @@ function App() {
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
-		console.log(key, args);
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
@@ -620,7 +596,7 @@ function App() {
 				break;
 
 			case 'tower defense':
-				const { key, value, tower } = args[0] as {
+				const { value, tower } = args[0] as {
 					key: string;
 					value: string;
 					tower?: string;
@@ -688,10 +664,6 @@ function App() {
 					setTowerDefenseState((state) => ({ ...state, projectiles }))
 				}
 			/>
-
-			{/* <TowerDefenseContext.Provider value={towerDefenseState}>
-
-			</TowerDefenseContext.Provider> */}
 
 			<div className="open-panel-button">
 				{!isPanelOpen && (
@@ -795,13 +767,6 @@ const generateRandomXY = (centered?: boolean) => {
 			(Math.random() * window.innerWidth * 2) / 4 + window.innerWidth / 4;
 		const randomY =
 			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
-
-		//1/3 to 2/3
-
-		// const randomX =
-		//   (Math.random() * window.innerWidth) / 3 + window.innerWidth / 3;
-		// const randomY =
-		//   (Math.random() * window.innerHeight) / 3 + window.innerHeight / 3;
 
 		return { x: randomX, y: randomY };
 	} else {

@@ -35,7 +35,7 @@ export interface ITowerDefenseState {
   loopCounter: number;
 }
 
-const towerDefenseState: ITowerDefenseState = {
+let towerDefenseState: ITowerDefenseState = {
   isPlaying: false,
   units: [],
   towers: [],
@@ -61,6 +61,11 @@ export class Router {
 
       if (towerDefenseState.isPlaying) {
         socket.emit("event", { key: "tower defense", value: "start" });
+        socket.emit("event", {
+          key: "tower defense",
+          value: "towers",
+          towers: towerDefenseState.towers,
+        });
       }
 
       socket.emit("profile info", clientProfiles[socket.id]);
@@ -120,6 +125,13 @@ export class Router {
             x: message.x,
             y: message.y,
             towerKey: uuidv4(),
+          });
+
+          towerDefenseState.towers.push({
+            key: uuidv4(),
+            type: "basic",
+            top: message.y,
+            left: message.x,
           });
         }
 
@@ -243,7 +255,7 @@ const startGame = () => {
       spawnRate = spawnRates[60];
     } else if (loopCounter < 80) {
       spawnRate = spawnRates[80];
-    } else if (loopCounter < 100) {
+    } else if (loopCounter < 120) {
       spawnRate = spawnRates[100];
     }
 
@@ -257,7 +269,6 @@ const startGame = () => {
     }
 
     towerDefenseState.loopCounter++;
-    console.log(towerDefenseState.loopCounter);
 
     if (towerDefenseState.loopCounter === GAME_LENGTH_SECONDS) {
       endGame();
@@ -269,7 +280,14 @@ const endGame = () => {
   if (towerDefenseState.towerDefenseGameInterval) {
     clearInterval(towerDefenseState.towerDefenseGameInterval);
   }
-  towerDefenseState.isPlaying = false;
+
+  towerDefenseState = {
+    isPlaying: false,
+    units: [],
+    towers: [],
+    loopCounter: 0,
+  };
+
   io.emit("event", { key: "tower defense", value: "end" });
 };
 
