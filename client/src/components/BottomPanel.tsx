@@ -1,15 +1,18 @@
 import { Drawer, IconButton } from '@material-ui/core';
+import { ITowerDefenseState, PanelItemEnum } from '../types';
+
 import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
-import { PanelItemEnum } from '../types';
 import React from 'react';
 import SoundPanel from './SoundPanel';
+import { TowerDefensePanel } from './TowerDefensePanel';
 
 export interface IPanelProps {
 	isOpen: boolean;
 	type?: PanelItemEnum;
 	onAction: (key: string, ...args: any[]) => void;
+	towerDefenseState: ITowerDefenseState;
 }
 
 export interface ISoundPairs {
@@ -18,27 +21,20 @@ export interface ISoundPairs {
 	category: string;
 }
 
-export interface ISoundCategories {
-	category: string;
-	isActive: boolean;
-	id: string;
-}
-
-export interface ICategory {
-	category: string;
-	isActive: boolean;
-	id: string;
-}
-
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 
-export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
+export const BottomPanel = ({
+	isOpen,
+	type,
+	onAction,
+	towerDefenseState
+}: IPanelProps) => {
 	const RenderPanelContent = () => {
 		switch (type) {
 			case 'emoji':
 				return (
 					<>
-						{emojiList.map(emoji => (
+						{emojiList.map((emoji) => (
 							<div key={emoji} className="bottom-panel-emoji">
 								<IconButton onClick={() => onAction('emoji', emoji)}>
 									{emoji}
@@ -51,15 +47,13 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 			case 'chat':
 				return (
 					<Chat
-						sendMessage={message => {
+						sendMessage={(message) => {
 							onAction('chat', message);
 						}}
 					/>
 				);
 			case 'sound':
-        return <SoundPanel
-          sendSound={onAction}
-          />;
+				return <SoundPanel sendSound={onAction} />;
 
 			case 'gifs':
 				return (
@@ -67,6 +61,25 @@ export const BottomPanel = ({ isOpen, type, onAction }: IPanelProps) => {
 						sendGif={(gif: IGif) => {
 							onAction('gif', gif.id);
 						}}
+					/>
+				);
+			case 'tower defense':
+				return (
+					<TowerDefensePanel
+						isStarted={towerDefenseState.isPlaying}
+						onStart={() =>
+							onAction('tower defense', {
+								key: 'tower defense',
+								value: 'start'
+							})
+						}
+						onSelectTower={(towerValue: string) =>
+							onAction('tower defense', {
+								key: 'tower defense',
+								value: 'select tower',
+								tower: towerValue
+							})
+						}
 					/>
 				);
 		}

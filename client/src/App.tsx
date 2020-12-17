@@ -1,12 +1,15 @@
 import './App.css';
 
 import {
+	IAnimation,
 	IChatMessage,
 	IEmoji,
 	IFigure,
 	IGifs,
 	IMessageEvent,
-	ISound,
+	ITowerBuilding,
+	ITowerDefenseState,
+	ITowerUnit,
 	IUserLocations,
 	IUserProfiles,
 	PanelItemEnum
@@ -19,6 +22,11 @@ import React, {
 	useRef,
 	useState
 } from 'react';
+import {
+	TowerDefense,
+	Actions as TowerDefenseActions
+} from './components/TowerDefense';
+import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -29,47 +37,15 @@ import { Panel } from './components/Panel';
 import { UserCursor } from './components/UserCursors';
 import _ from 'underscore';
 // Sound imports
-//@ts-ignore
-import audioEnter from './assets/sounds/zap-enter.mp3'; //@ts-ignore
-import audioExit from './assets/sounds/zap-exit.mp3'; //@ts-ignore
-
-// Instruments
-import cymbalHit from './assets/sounds/instruments/cymbal.mp3'; //@ts-ignore
-import drumBeat from './assets/sounds/instruments/drumbeat.mp3'; //@ts-ignore
-import trumpet from './assets/sounds/instruments/trumpet.mp3'; //@ts-ignore
-import guitarStrum from './assets/sounds/instruments/electric_guitar.mp3'; //@ts-ignore
-import gong from './assets/sounds/instruments/chinese-gong.wav'; //@ts-ignore
-import harp from './assets/sounds/instruments/harp.wav'; //@ts-ignore
-// Funny
-import gotEm from './assets/sounds/funny/ha-got-eeem.mp3'; //@ts-ignore
-import noice from './assets/sounds/funny/noice.mp3'; //@ts-ignore
-import stop_it_get_some_help from './assets/sounds/funny/stop_it_get_some_help.mp3'; //@ts-ignore
-import ahh from './assets/sounds/funny/ahh.mp3'; //@ts-ignore
-import air from './assets/sounds/funny/air.mp3'; //@ts-ignore
-import applause from './assets/sounds/funny/applause.mp3'; //@ts-ignore
-import clang from './assets/sounds/funny/clang.mp3'; //@ts-ignore
-import groan from './assets/sounds/funny/groan.mp3'; //@ts-ignore
-import horn from './assets/sounds/funny/horn.mp3'; //@ts-ignore
-import laugh from './assets/sounds/funny/laugh.mp3'; //@ts-ignore
-// Nature
-import bee from './assets/sounds/nature/bee.mp3'; //@ts-ignore
-import dog from './assets/sounds/nature/dog.mp3'; //@ts-ignore
-import flying_fox from './assets/sounds/nature/flying-fox.mp3'; //@ts-ignore
-import lightning from './assets/sounds/nature/lightning.mp3'; //@ts-ignore
-import nature from './assets/sounds/nature/nature.mp3'; //@ts-ignore
-import sealion from './assets/sounds/nature/sealion.mp3'; //@ts-ignore
-import water from './assets/sounds/nature/water.mp3';
+import audioEnter from './assets/sounds/zap-enter.mp3';
+import audioExit from './assets/sounds/zap-exit.mp3';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-
-const isDebug = false;
 
 const socketURL =
 	window.location.hostname === 'localhost'
 		? 'ws://localhost:8000'
 		: 'wss://adventure-chat.herokuapp.com';
-
-isDebug && console.log('socket url = ', socketURL);
 
 const socket = io(socketURL, { transports: ['websocket'] });
 
@@ -86,8 +62,20 @@ function App() {
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
 
+	const [animations, setAnimations] = useState<IAnimation[]>([]);
+
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
+
+	const [
+		towerDefenseState,
+		setTowerDefenseState
+	] = useState<ITowerDefenseState>({
+		isPlaying: false,
+		towers: [],
+		units: [],
+		projectiles: []
+	});
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
@@ -99,45 +87,16 @@ function App() {
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
 
-	const sounds: ISound = {
-		// Instrument
-		drum: drumBeat,
-		cymbal: cymbalHit,
-		guitar: guitarStrum,
-		trumpet: trumpet,
-		gong: gong,
-		harp: harp,
-		// Funny
-		meme: gotEm,
-		noice: noice,
-		stop_it: stop_it_get_some_help,
-		ahh: ahh,
-		air: air,
-		applause: applause,
-		groan: groan,
-		clang: clang,
-		horn: horn,
-		laugh: laugh,
-		// Nature
-		bee: bee,
-		dog: dog,
-		flying_fox: flying_fox,
-		lightning: lightning,
-		nature: nature,
-		sealion: sealion,
-		water: water
-	};
-
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
 
-		setEmojis(emojis =>
+		setEmojis((emojis) =>
 			emojis.concat({ top: y, left: x, key: uuidv4(), type })
 		);
 	}, []);
 
 	const playTutorial = async () => {
-		tutorialGifs.forEach(gif => {
+		tutorialGifs.forEach((gif) => {
 			setTimeout(async () => {
 				const data = await GIF_FETCH.gif(gif.id);
 				const { x, y } = generateRandomXY(true);
@@ -149,12 +108,12 @@ function App() {
 					data: data.data
 				};
 
-				setGifs(gifs => gifs.concat(newGif));
+				setGifs((gifs) => gifs.concat(newGif));
 			}, gif.time);
 		});
 
 		for (let i = 0; i < tutorialMessages.length; i++) {
-			setChatMessages(messages =>
+			setChatMessages((messages) =>
 				messages.concat({
 					top: window.innerHeight * 0.1 + i * 25,
 					left: window.innerWidth / 2 - tutorialMessages[i].length * 5,
@@ -168,104 +127,21 @@ function App() {
 		}
 	};
 
-	const playSound = useCallback(
-		soundType => {
-			switch (soundType) {
-				// Instrument
-				case 'drum':
-					audio.current = new Audio(sounds.drum);
-					break;
-				case 'cymbal':
-					audio.current = new Audio(sounds.cymbal);
-					break;
-				case 'guitar':
-					audio.current = new Audio(sounds.guitar);
-					break;
-				case 'trumpet':
-					audio.current = new Audio(sounds.trumpet);
-					break;
-				case 'gong':
-					audio.current = new Audio(sounds.gong);
-					break;
-				case 'harp':
-					audio.current = new Audio(sounds.harp);
-					break;
-				// Funny
-				case 'meme':
-					audio.current = new Audio(sounds.meme);
-					break;
-				case 'noice':
-					audio.current = new Audio(sounds.noice);
-					break;
-				case 'stop_it':
-					audio.current = new Audio(sounds.stop_it);
-					break;
-				case 'ahh':
-					audio.current = new Audio(sounds.ahh);
-					break;
-				case 'air':
-					audio.current = new Audio(sounds.air);
-					break;
-				case 'applause':
-					audio.current = new Audio(sounds.applause);
-					break;
-				case 'groan':
-					audio.current = new Audio(sounds.groan);
-					break;
-				case 'clang':
-					audio.current = new Audio(sounds.clang);
-					break;
-				case 'horn':
-					audio.current = new Audio(sounds.horn);
-					break;
-				case 'laugh':
-					audio.current = new Audio(sounds.laugh);
-					break;
-				// Nature
-				case 'bee':
-					audio.current = new Audio(sounds.bee);
-					break;
-				case 'dog':
-					audio.current = new Audio(sounds.dog);
-					break;
-				case 'flying_fox':
-					audio.current = new Audio(sounds.flying_fox);
-					break;
-				case 'lightning':
-					audio.current = new Audio(sounds.lightning);
-					break;
-				case 'nature':
-					audio.current = new Audio(sounds.nature);
-					break;
-				case 'sealion':
-					audio.current = new Audio(sounds.sealion);
-					break;
-				case 'water':
-					audio.current = new Audio(sounds.water);
-					break;
-				default:
-					// This should be impossible
-					break;
-			}
+	const playSound = useCallback((soundType) => {
+		audio.current = new Audio(sounds[soundType]);
 
-			if (!audio || !audio.current) return;
+		if (!audio || !audio.current) return;
 
-			const randomX = Math.random() * window.innerWidth;
-			const randomY = Math.random() * window.innerHeight;
+		const randomX = Math.random() * window.innerWidth;
+		const randomY = Math.random() * window.innerHeight;
 
-			setMusicNotes(notes =>
-				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-			);
+		setMusicNotes((notes) =>
+			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+		);
 
-			audio.current.currentTime = 0;
-			audio.current.play();
-		},
-    [audio, sounds.drum, sounds.cymbal, sounds.guitar, sounds.trumpet,
-      sounds.gong, sounds.harp, sounds.meme, sounds.noice, sounds.stop_it,
-      sounds.ahh, sounds.air, sounds.applause, sounds.groan, sounds.clang,
-      sounds.horn, sounds.laugh, sounds.bee, sounds.dog, sounds.flying_fox,
-      sounds.lightning, sounds.nature, sounds.sealion, sounds.water]
-	);
+		audio.current.currentTime = 0;
+		audio.current.play();
+	}, []);
 
 	const onClickPanelItem = (key: string) => {
 		switch (key) {
@@ -273,6 +149,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'gifs':
+			case 'tower defense':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -289,19 +166,19 @@ function App() {
 			key: uuidv4(),
 			value: message
 		};
-		setChatMessages(chatMessages => chatMessages.concat(newMessage));
+		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
 
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true);
-		GIF_FETCH.gif(gifId).then(data => {
+		GIF_FETCH.gif(gifId).then((data) => {
 			const newGif: IGifs = {
 				top: y,
 				left: x,
 				key: uuidv4(),
 				data: data.data
 			};
-			setGifs(gifs => gifs.concat(newGif));
+			setGifs((gifs) => gifs.concat(newGif));
 		});
 	}, []);
 
@@ -336,7 +213,7 @@ function App() {
 
 	const onKeyPress = useCallback((event: KeyboardEvent) => {
 		if (event.ctrlKey && event.code === 'KeyQ') {
-			setFigures(figures =>
+			setFigures((figures) =>
 				figures.concat({
 					key: uuidv4(),
 					type: 'gryphon'
@@ -351,7 +228,7 @@ function App() {
 		// spawn gryphon randomly
 		setInterval(() => {
 			if (Math.random() < 0.1) {
-				setFigures(figures =>
+				setFigures((figures) =>
 					figures.concat({
 						key: uuidv4(),
 						type: 'gryphon'
@@ -377,7 +254,7 @@ function App() {
 		const absoluteX = width * x;
 		const absoluteY = height * y;
 
-		setUserLocations(userLocations => {
+		setUserLocations((userLocations) => {
 			const newUserLocations = {
 				...userLocations,
 				[clientId]: {
@@ -390,7 +267,7 @@ function App() {
 			return newUserLocations;
 		});
 
-		setUserProfiles(userProfiles => ({
+		setUserProfiles((userProfiles) => ({
 			...userProfiles,
 			[clientId]: {
 				...clientProfile
@@ -399,11 +276,149 @@ function App() {
 	},
 	[]);
 
-	useEffect(() => {
-		function onConnect() {
-			isDebug && console.log('connected to socket');
+	const playAnimation = useCallback((animationType: string) => {
+		if (animationType === 'start game') {
+			setAnimations((animations) => animations.concat({ type: 'start game' }));
+			setTimeout(() => {
+				setAnimations((animations) => animations.concat({ type: 'info' }));
+			}, 2000);
 		}
+		if (animationType === 'end game') {
+			setAnimations((animations) => animations.concat({ type: 'end game' }));
+		}
+	}, []);
 
+	const fireTowers = useCallback(() => {
+		towerDefenseState.towers.forEach((tower) => {
+			// only hit first enemy
+			for (let i = 0; i < towerDefenseState.units.length; i++) {
+				const unit = towerDefenseState.units[i];
+
+				const { ref } = unit;
+				if (ref && ref.current) {
+					const rect = ref.current.getBoundingClientRect();
+
+					const distance = getDistanceBetweenPoints(
+						tower.left,
+						tower.top,
+						rect.left,
+						rect.top
+					);
+
+					const relativeDistance = distance / window.innerWidth;
+
+					if (relativeDistance < 0.4) {
+						socket.emit('event', {
+							key: 'tower defense',
+							value: 'fire tower',
+							towerKey: tower.key,
+							unitKey: unit.key
+						});
+						break;
+					}
+				}
+			}
+		});
+	}, [towerDefenseState]);
+
+	const handleTowerDefenseEvents = useCallback(
+		(message: IMessageEvent) => {
+			if (message.value === 'start') {
+				playAnimation('start game');
+				setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+			}
+			if (message.value === 'end') {
+				playAnimation('end game');
+				setTowerDefenseState((state) => ({
+					...state,
+					isPlaying: false,
+					towers: [],
+					units: [],
+					projectiles: [],
+					selectedPlacementTower: undefined
+				}));
+			}
+			if (message.value === 'spawn enemy') {
+				const enemy = message.enemy as ITowerUnit;
+
+				enemy.top = window.innerHeight / 2;
+				enemy.left = 0;
+				enemy.ref = React.createRef();
+
+				setTowerDefenseState((state) => ({
+					...state,
+					units: state.units.concat(enemy)
+				}));
+			}
+
+			if (message.value === 'add tower') {
+				const { x, y, towerKey } = message;
+
+				setTowerDefenseState((state) => ({
+					...state,
+					towers: state.towers.concat({
+						key: towerKey,
+						type: 'basic',
+						top: y * window.innerHeight,
+						left: x * window.innerWidth
+					})
+				}));
+			}
+
+			if (message.value === 'fire towers') {
+				fireTowers();
+			}
+
+			if (message.value === 'hit unit') {
+				const { towerKey, unitKey } = message;
+
+				setTowerDefenseState((state) => {
+					let startPos = { x: 0, y: 0 };
+					let endPos = { x: 0, y: 0 };
+
+					const tower = state.towers.find((tower) => tower.key === towerKey);
+					const unit = state.units.find((unit) => unit.key === unitKey);
+
+					if (tower && unit) {
+						startPos.x = tower.left;
+						startPos.y = tower.top;
+
+						const unitRect = unit.ref.current?.getBoundingClientRect();
+						if (unitRect) {
+							endPos.x = unitRect.left + 30;
+							endPos.y = unitRect.top;
+						}
+					}
+
+					return {
+						...state,
+						projectiles: state.projectiles.concat({
+							towerKey,
+							unitKey,
+							key: uuidv4(),
+							startPos,
+							endPos
+						})
+					};
+				});
+			}
+
+			if (message.value === 'towers') {
+				const { towers } = message;
+				setTowerDefenseState((state) => ({
+					...state,
+					towers: towers.map((tower: ITowerBuilding) => ({
+						...tower,
+						top: tower.top * window.innerHeight,
+						left: tower.left * window.innerWidth
+					}))
+				}));
+			}
+		},
+		[fireTowers, playAnimation]
+	);
+
+	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
@@ -424,6 +439,10 @@ function App() {
 						addGif(message.value);
 					}
 					break;
+				case 'tower defense':
+					handleTowerDefenseEvents(message);
+
+					break;
 			}
 		};
 
@@ -432,7 +451,7 @@ function App() {
 		};
 
 		const onRoomateDisconnect = (clientId: string) => {
-			setUserLocations(userLocations => {
+			setUserLocations((userLocations) => {
 				const newUserLocations = {
 					...userLocations
 				};
@@ -457,17 +476,16 @@ function App() {
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
-		socket.on('connect', onConnect);
 		socket.on('event', onMessageEvent);
 
 		return () => {
 			socket.off('roomate disconnect', onRoomateDisconnect);
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
-			socket.off('connect', onConnect);
 			socket.off('event', onMessageEvent);
 		};
 	}, [
+		handleTowerDefenseEvents,
 		playEmoji,
 		playSound,
 		addChatMessage,
@@ -510,13 +528,69 @@ function App() {
 					value: gif
 				});
 				break;
+
+			case 'tower defense':
+				const { value, tower } = args[0] as {
+					key: string;
+					value: string;
+					tower?: string;
+				};
+
+				if (value === 'select tower' && tower) {
+					const towerObj: ITowerBuilding = {
+						key: tower,
+						type: 'basic',
+						top: 0,
+						left: 0
+					};
+
+					setTowerDefenseState((state) => {
+						if (state.selectedPlacementTower) {
+							return {
+								...state,
+								selectedPlacementTower: undefined
+							};
+						}
+						return {
+							...state,
+							selectedPlacementTower: towerObj
+						};
+					});
+				} else {
+					socket.emit('event', args[0]);
+				}
+
+				break;
+
 			default:
 				break;
 		}
 	};
 
+	const onClickApp = useCallback((event: React.MouseEvent) => {
+		setTowerDefenseState((state) => {
+			if (state.selectedPlacementTower) {
+				const { x, y } = getRelativePos(event.clientX, event.clientY);
+
+				socket.emit('event', {
+					key: 'tower defense',
+					value: 'add tower',
+					x,
+					y
+				});
+
+				return { ...state, selectedPlacementTower: undefined };
+			}
+			return state;
+		});
+	}, []);
+
 	return (
-		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
+		<div
+			className="app"
+			style={{ minHeight: window.innerHeight - 10 }}
+			onClick={onClickApp}
+		>
 			<Board
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -530,6 +604,21 @@ function App() {
 				userProfiles={userProfiles}
 				figures={figures}
 				updateFigures={setFigures}
+				animations={animations}
+				updateAnimations={setAnimations}
+			/>
+
+			<TowerDefense
+				state={towerDefenseState}
+				onAction={(action: TowerDefenseActions) => {
+					console.log('tower defense action', action);
+				}}
+				updateUnits={(units) =>
+					setTowerDefenseState((state) => ({ ...state, units }))
+				}
+				updateProjectiles={(projectiles) =>
+					setTowerDefenseState((state) => ({ ...state, projectiles }))
+				}
 			/>
 
 			<div className="open-panel-button">
@@ -562,6 +651,7 @@ function App() {
 			</Tooltip>
 
 			<BottomPanel
+				towerDefenseState={towerDefenseState}
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
@@ -572,6 +662,7 @@ function App() {
 					ref={userCursorRef}
 					avatar={userProfile.avatar}
 					name={userProfile.name}
+					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}
 		</div>
@@ -581,7 +672,7 @@ function App() {
 export default App;
 
 const sleep = async (time: number) =>
-	new Promise(resolve => setTimeout(resolve, time));
+	new Promise((resolve) => setTimeout(resolve, time));
 
 const tutorialMessages = [
 	'built with web sockets',
@@ -633,17 +724,32 @@ const generateRandomXY = (centered?: boolean) => {
 		const randomY =
 			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
 
-		//1/3 to 2/3
-
-		// const randomX =
-		//   (Math.random() * window.innerWidth) / 3 + window.innerWidth / 3;
-		// const randomY =
-		//   (Math.random() * window.innerHeight) / 3 + window.innerHeight / 3;
-
 		return { x: randomX, y: randomY };
 	} else {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 		return { x: randomX, y: randomY };
 	}
+};
+
+const getRelativePos = (clientX: number, clientY: number) => {
+	const x = clientX;
+	const y = clientY;
+
+	const width = window.innerWidth;
+	const height = window.innerHeight;
+
+	const relativeX = (x - 60) / width;
+	const relativeY = (y - 60) / height;
+
+	return { x: relativeX, y: relativeY };
+};
+
+const getDistanceBetweenPoints = (
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number
+) => {
+	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };

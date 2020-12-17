@@ -1,17 +1,13 @@
 import './Panel.css';
 
-import {
-	Chat,
-	ChevronRight,
-	Gif,
-	InsertEmoticon,
-} from '@material-ui/icons/';
+import { Chat, ChevronRight, Gif, InsertEmoticon } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
-import musicNote from '../assets/musicNote.png';
-import musicNoteColored from '../assets/musicNoteColored.png';
 import { PanelItemEnum } from '../types';
 import React from 'react';
+import musicNote from '../assets/musicNote.png';
+import musicNoteColored from '../assets/musicNoteColored.png';
+import towerSVG from '../assets/tower.svg';
 
 const iconStyle: React.CSSProperties = {
 	width: 50,
@@ -62,18 +58,20 @@ interface IPanelItemProps {
 
 const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 	const renderPanelItem = () => {
-    let buttonContent;
+		let buttonContent;
 		const style: React.CSSProperties = {
 			...iconStyle,
-      color: isSelected ? 'orange' : undefined
-    };
-    const musicNoteToShow = (isSelected) ? 
-      <img src={musicNoteColored} alt="Music Note"/> : 
-      <img src={musicNote} alt="Music Note"/>
+			color: isSelected ? 'orange' : undefined
+		};
+		const musicNoteToShow = isSelected ? (
+			<img src={musicNoteColored} alt="Music Note" />
+		) : (
+			<img src={musicNote} alt="Music Note" />
+		);
 
 		switch (title) {
 			case PanelItemEnum.sound:
-        buttonContent = musicNoteToShow;
+				buttonContent = musicNoteToShow;
 				break;
 			case PanelItemEnum.emoji:
 				buttonContent = <InsertEmoticon style={style} />;
@@ -83,7 +81,24 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 				break;
 			case PanelItemEnum.chat:
 				buttonContent = <Chat style={style} />;
-        break;
+				break;
+			case PanelItemEnum['tower defense']:
+				if (isSelected) {
+					style.filter =
+						'invert(77%) sepia(62%) saturate(3851%) hue-rotate(358deg) brightness(101%) contrast(105%)';
+				} else {
+					style.filter =
+						'invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg) brightness(101%) contrast(88%)';
+				}
+				buttonContent = (
+					<img
+						className="panel-tower"
+						src={towerSVG}
+						style={style}
+						alt="tower"
+					/>
+				);
+				break;
 		}
 
 		return <IconButton onClick={onClick}>{buttonContent}</IconButton>;

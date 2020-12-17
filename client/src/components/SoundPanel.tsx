@@ -1,39 +1,32 @@
 import React, { useState } from 'react';
-import { ISoundCategories, ICategory, ISoundPairs } from './BottomPanel';
-import { v4 as uuidv4 } from 'uuid';
 
-// Instruments
-import cymballIcon from '../assets/instruments/cymbalIcon.svg';
-import drumIcon from '../assets/instruments/drum.svg';
-import trumpet from '../assets/instruments/trumpet.png';
-import guitarIcon from '../assets/instruments/guitarIcon.svg';
-import gongIcon from '../assets/instruments/gong.png';
-import harpIcon from '../assets/instruments/harp.png';
-// Funny
-import gotemIcon from '../assets/funny/gottem.png';
-import noiceIcon from '../assets/funny/noice.png';
-import stop_itIcon from '../assets/funny/stop_it.png';
+import { ISoundPairs } from './BottomPanel';
 import ahhhIcon from '../assets/funny/ahhh.png';
 import airIcon from '../assets/funny/air.png';
 import applauseIcon from '../assets/funny/applause.png';
-import clangIcon from '../assets/funny/clang.png';
-import groanIcon from '../assets/funny/groan.png';
-import hornIcon from '../assets/funny/horn.png';
-import laughIcon from '../assets/funny/laugh.png';
 // Nature
 import beeIcon from '../assets/nature/bee.png';
+import clangIcon from '../assets/funny/clang.png';
+// Instruments
+import cymballIcon from '../assets/instruments/cymbalIcon.svg';
 import dogIcon from '../assets/nature/dog.png';
+import drumIcon from '../assets/instruments/drum.svg';
 import flying_foxIcon from '../assets/nature/flying_fox.png';
+import gongIcon from '../assets/instruments/gong.png';
+// Funny
+import gotemIcon from '../assets/funny/gottem.png';
+import groanIcon from '../assets/funny/groan.png';
+import guitarIcon from '../assets/instruments/guitarIcon.svg';
+import harpIcon from '../assets/instruments/harp.png';
+import hornIcon from '../assets/funny/horn.png';
+import laughIcon from '../assets/funny/laugh.png';
 import lightningIcon from '../assets/nature/lightning.png';
 import natureIcon from '../assets/nature/nature.png';
+import noiceIcon from '../assets/funny/noice.png';
 import sealionIcon from '../assets/nature/sealion.png';
+import stop_itIcon from '../assets/funny/stop_it.png';
+import trumpet from '../assets/instruments/trumpet.png';
 import waterIcon from '../assets/nature/water.png';
-
-const soundCategories: ISoundCategories[] = [
-	{ category: 'Instruments', isActive: true, id: uuidv4() },
-	{ category: 'Funny', isActive: false, id: uuidv4() },
-	{ category: 'Nature', isActive: false, id: uuidv4() }
-];
 
 const soundList: ISoundPairs[] = [
 	// Instruments
@@ -64,49 +57,48 @@ const soundList: ISoundPairs[] = [
 	{ icon: waterIcon, type: 'water', category: 'Nature' }
 ];
 
+enum SoundCategories {
+	'Instruments' = 'Instruments',
+	'Funny' = 'Funny',
+	'Nature' = 'Nature'
+}
+
 interface ISoundPanelProps {
 	sendSound: (soundText: string, soundType: string) => void;
 }
 
 function SoundPanel({ sendSound }: ISoundPanelProps) {
-	const [activeCategories, setActiveCategories] = useState(soundCategories);
+	// we only need to track activeCategory
+	const [activeCategory, setActiveCategory] = useState<SoundCategories>(
+		SoundCategories.Instruments
+	);
 
-	const toggleCategory = (id: string) => {
-		const newActiveCategories = activeCategories.map(
-			(category: ISoundCategories) => {
-				if (category.id === id) return { ...category, isActive: true };
-				else return { ...category, isActive: false };
-			}
-		);
-		setActiveCategories(newActiveCategories);
+	const toggleCategory = (category: SoundCategories) => {
+		setActiveCategory(category);
 	};
 
-	const Category = ({ category, isActive, id }: ICategory) => {
-		const classToUse = isActive
-			? 'sound-active-category'
-			: 'sound-unactive-category';
+	const Category = ({ category }: { category: SoundCategories }) => {
+		const classToUse =
+			category === activeCategory
+				? 'sound-active-category'
+				: 'sound-unactive-category';
 
 		return (
 			<div className={classToUse}>
-				<button onClick={() => toggleCategory(id)}>{category}</button>
+				<button onClick={() => toggleCategory(category)}>{category}</button>
 			</div>
 		);
 	};
 
-	const DisplayCategories = activeCategories.map(
-		({ category, isActive, id }) => {
-			return (
-				<div key={id} className="sound-category">
-					<Category category={category} isActive={isActive} id={id} />
-				</div>
-			);
-		}
-	);
+	const DisplayCategories = Object.values(SoundCategories).map((category) => {
+		return (
+			<div key={category} className="sound-category">
+				<Category category={category} />
+			</div>
+		);
+	});
 
 	const DisplayIcons = soundList.map(({ icon, type, category }) => {
-		const activeCategory = activeCategories.find(
-			({ isActive }) => isActive === true
-		)?.category;
 		const iconsCategoryIsActive = category === activeCategory;
 
 		return (
