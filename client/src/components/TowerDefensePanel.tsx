@@ -32,7 +32,10 @@ const TowerList = ({ onClick }: ITowerListProps) => {
 	return (
 		<div className="tower-defense-panel-list">
 			<img
-				onClick={() => onClick('basic')}
+				onClick={(event) => {
+					event.stopPropagation();
+					onClick('basic');
+				}}
 				src={towerSVG}
 				style={{ cursor: 'pointer' }}
 				className="tower-building"
