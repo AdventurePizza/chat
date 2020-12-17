@@ -36,6 +36,7 @@ const TowerList = ({ onClick }: ITowerListProps) => {
 				src={towerSVG}
 				style={{ cursor: 'pointer' }}
 				className="tower-building"
+				alt="tower"
 			/>
 		</div>
 	);

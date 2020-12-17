@@ -22,3 +22,15 @@
 .projectile-transition-exit {
 	opacity: 0;
 }
+
+.tower-unit-transition-enter {
+}
+
+.tower-unit-transition-enter-active {
+	transform: translateX(100vw);
+	transition: transform 10s;
+	transition-timing-function: linear;
+}
+.tower-unit-transition-exit {
+	opacity: 0;
+}

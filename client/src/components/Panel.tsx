@@ -96,7 +96,12 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 						'invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg) brightness(101%) contrast(88%)';
 				}
 				buttonContent = (
-					<img className="panel-tower" src={towerSVG} style={style} />
+					<img
+						className="panel-tower"
+						src={towerSVG}
+						style={style}
+						alt="tower"
+					/>
 				);
 				break;
 		}

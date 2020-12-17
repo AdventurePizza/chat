@@ -25,7 +25,6 @@ interface ITowerDefenseProps {
 export const TowerDefense = (props: ITowerDefenseProps) => {
 	const {
 		state: { towers, units, projectiles },
-		onAction,
 		updateUnits,
 		updateProjectiles
 	} = props;
@@ -41,7 +40,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 					<CSSTransition
 						key={unit.key}
 						timeout={10000}
-						classNames="figure-transition"
+						classNames="tower-unit-transition"
 						onEntered={() => {
 							const index = units.findIndex((_unit) => _unit.key === unit.key);
 							updateUnits([
@@ -64,18 +63,11 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 						onEntering={(node: HTMLElement) => {
 							const { startPos, endPos } = projectile;
 
-							console.log('entering!', node);
 							node.style.top = startPos.y + 'px';
 							node.style.left = startPos.x + 'px';
 							node.style.transform = `translate(${endPos.x - startPos.x}px, ${
 								endPos.y - startPos.y
 							}px)`;
-							console.log(
-								'translate is ',
-								`translate(${endPos.x - startPos.x}px, ${
-									endPos.y - startPos.y
-								}px)`
-							);
 						}}
 						onEntered={() => {
 							const index = projectiles.findIndex(
@@ -98,16 +90,14 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							}
 						}}
 					>
-						{/* <Projectile {...projectile} /> */}
 						<img
 							style={{
 								width: 30,
 								height: 30,
 								position: 'absolute'
-								// transform: 'translate(50px, 100px)'
-								// transition: 'transform 5s'
 							}}
 							src={projectileSVG}
+							alt="projectile"
 						/>
 					</CSSTransition>
 				))}
@@ -125,6 +115,7 @@ export const Tower = ({ top, left }: ITowerBuilding) => {
 				left
 			}}
 			className="tower-building"
+			alt="tower"
 		/>
 	);
 };
@@ -141,6 +132,7 @@ const Unit = React.forwardRef(
 					left
 				}}
 				className="tower-building"
+				alt="zombie"
 			/>
 		);
 	}
