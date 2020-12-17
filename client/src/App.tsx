@@ -483,6 +483,7 @@ function App() {
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('event', onMessageEvent);
+			socket.off('new user', onNewUser);
 		};
 	}, [
 		handleTowerDefenseEvents,
