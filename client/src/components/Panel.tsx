@@ -3,11 +3,10 @@ import './Panel.css';
 import { Chat, ChevronRight, Gif, InsertEmoticon } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
-import musicNote from '../assets/musicNote.png';
-import musicNoteColored from '../assets/musicNoteColored.png';
 import { PanelItemEnum } from '../types';
 import React from 'react';
-//@ts-ignore
+import musicNote from '../assets/musicNote.png';
+import musicNoteColored from '../assets/musicNoteColored.png';
 import towerSVG from '../assets/tower.svg';
 
 const iconStyle: React.CSSProperties = {
