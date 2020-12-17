@@ -7,7 +7,6 @@ import {
 	IFigure,
 	IGifs,
 	IMessageEvent,
-	ISound,
 	ITowerBuilding,
 	ITowerDefenseState,
 	ITowerUnit,
@@ -27,6 +26,7 @@ import {
 	TowerDefense,
 	Actions as TowerDefenseActions
 } from './components/TowerDefense';
+import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -39,10 +39,6 @@ import _ from 'underscore';
 // Sound imports
 import audioEnter from './assets/sounds/zap-enter.mp3';
 import audioExit from './assets/sounds/zap-exit.mp3';
-import cymbalHit from './assets/sounds/cymbal.mp3';
-import drumBeat from './assets/sounds/drumbeat.mp3';
-import gotEm from './assets/sounds/ha-got-eeem.mp3';
-import guitarStrum from './assets/sounds/electric_guitar.mp3';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -93,13 +89,6 @@ function App() {
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
 
-	const sounds: ISound = {
-		drum: drumBeat,
-		cymbal: cymbalHit,
-		guitar: guitarStrum,
-		meme: gotEm
-	};
-
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
 
@@ -140,40 +129,21 @@ function App() {
 		}
 	};
 
-	const playSound = useCallback(
-		(soundType) => {
-			switch (soundType) {
-				case 'drum':
-					audio.current = new Audio(sounds.drum);
-					break;
-				case 'cymbal':
-					audio.current = new Audio(sounds.cymbal);
-					break;
-				case 'guitar':
-					audio.current = new Audio(sounds.guitar);
-					break;
-				case 'meme':
-					audio.current = new Audio(sounds.meme);
-					break;
-				default:
-					// This should be impossible
-					break;
-			}
+	const playSound = useCallback((soundType) => {
+		audio.current = new Audio(sounds[soundType]);
 
-			if (!audio || !audio.current) return;
+		if (!audio || !audio.current) return;
 
-			const randomX = Math.random() * window.innerWidth;
-			const randomY = Math.random() * window.innerHeight;
+		const randomX = Math.random() * window.innerWidth;
+		const randomY = Math.random() * window.innerHeight;
 
-			setMusicNotes((notes) =>
-				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-			);
+		setMusicNotes((notes) =>
+			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+		);
 
-			audio.current.currentTime = 0;
-			audio.current.play();
-		},
-		[audio, sounds.meme, sounds.guitar, sounds.drum, sounds.cymbal]
-	);
+		audio.current.currentTime = 0;
+		audio.current.play();
+	}, []);
 
 	const onClickPanelItem = (key: string) => {
 		switch (key) {

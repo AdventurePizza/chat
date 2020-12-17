@@ -5,32 +5,23 @@ import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import React from 'react';
+import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
-import cymballIcon from '../assets/cymbalIcon.svg';
-import drumIcon from '../assets/drum.svg';
-import gotemIcon from '../assets/gotemIcon.svg';
-import guitarIcon from '../assets/guitarIcon.svg';
 
-interface IPanelProps {
+export interface IPanelProps {
 	isOpen: boolean;
 	type?: PanelItemEnum;
 	onAction: (key: string, ...args: any[]) => void;
 	towerDefenseState: ITowerDefenseState;
 }
 
-interface ISoundPairs {
+export interface ISoundPairs {
 	icon: string;
 	type: string;
+	category: string;
 }
 
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
-
-const soundList: ISoundPairs[] = [
-	{ icon: drumIcon, type: 'drum' },
-	{ icon: cymballIcon, type: 'cymbal' },
-	{ icon: guitarIcon, type: 'guitar' },
-	{ icon: gotemIcon, type: 'meme' }
-];
 
 export const BottomPanel = ({
 	isOpen,
@@ -38,7 +29,7 @@ export const BottomPanel = ({
 	onAction,
 	towerDefenseState
 }: IPanelProps) => {
-	const renderPanelContent = () => {
+	const RenderPanelContent = () => {
 		switch (type) {
 			case 'emoji':
 				return (
@@ -61,19 +52,9 @@ export const BottomPanel = ({
 						}}
 					/>
 				);
-
 			case 'sound':
-				return (
-					<>
-						{soundList.map(({ icon, type }) => (
-							<div key={icon} className="bottom-panel-sound">
-								<IconButton onClick={() => onAction('sound', type)}>
-									<img src={icon} alt="sound" />
-								</IconButton>
-							</div>
-						))}
-					</>
-				);
+				return <SoundPanel sendSound={onAction} />;
+
 			case 'gifs':
 				return (
 					<Gifs
@@ -106,7 +87,7 @@ export const BottomPanel = ({
 
 	return (
 		<Drawer variant="persistent" anchor="bottom" open={isOpen}>
-			<div className="bottom-panel-container">{renderPanelContent()}</div>
+			<div className="bottom-panel-container">{RenderPanelContent()}</div>
 		</Drawer>
 	);
 };
