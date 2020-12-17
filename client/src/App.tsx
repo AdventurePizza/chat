@@ -69,10 +69,9 @@ function App() {
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
 
-	const [
-		towerDefenseState,
-		setTowerDefenseState
-	] = useState<ITowerDefenseState>({
+	const [towerDefenseState, setTowerDefenseState] = useState<
+		ITowerDefenseState
+	>({
 		isPlaying: false,
 		towers: [],
 		units: [],

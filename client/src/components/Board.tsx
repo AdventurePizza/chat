@@ -16,7 +16,6 @@ import { IMusicNoteProps, MusicNote } from './MusicNote';
 import { Gif } from '@giphy/react-components';
 import React from 'react';
 import { UserCursors } from './UserCursors';
-//@ts-ignore
 import gryphon from '../assets/gryphon_walk.gif';
 
 interface IBoardProps {
