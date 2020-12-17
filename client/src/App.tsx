@@ -62,16 +62,15 @@ function App() {
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
 
-	const lastClickedTower = useRef(Date.now());
-
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
 
-	const [towerDefenseState, setTowerDefenseState] = useState<
-		ITowerDefenseState
-	>({
+	const [
+		towerDefenseState,
+		setTowerDefenseState
+	] = useState<ITowerDefenseState>({
 		isPlaying: false,
 		towers: [],
 		units: [],
@@ -239,44 +238,10 @@ function App() {
 		}, 10000);
 	}, []);
 
-	const onMouseClick = useCallback(
-		(event: MouseEvent) => {
-			//@ts-ignore
-			const className = event.path[0].className as string;
-
-			setTowerDefenseState((state) => {
-				if (state.selectedPlacementTower && className === 'app') {
-					const { x, y } = getRelativePos(event.clientX, event.clientY);
-
-					socket.emit('event', {
-						key: 'tower defense',
-						value: 'add tower',
-						x,
-						y
-					});
-
-					return { ...state, selectedPlacementTower: undefined };
-				} else if (
-					state.selectedPlacementTower &&
-					className === 'tower-building' &&
-					Date.now() - lastClickedTower.current > 2000
-				) {
-					return { ...state, selectedPlacementTower: undefined };
-				}
-
-				lastClickedTower.current = Date.now();
-
-				return state;
-			});
-		},
-		[lastClickedTower]
-	);
-
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
 		window.addEventListener('keypress', onKeyPress);
-		window.addEventListener('click', onMouseClick);
-	}, [onMouseMove, onKeyPress, onMouseClick]);
+	}, [onMouseMove, onKeyPress]);
 
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
@@ -602,8 +567,30 @@ function App() {
 		}
 	};
 
+	const onClickApp = useCallback((event: React.MouseEvent) => {
+		setTowerDefenseState((state) => {
+			if (state.selectedPlacementTower) {
+				const { x, y } = getRelativePos(event.clientX, event.clientY);
+
+				socket.emit('event', {
+					key: 'tower defense',
+					value: 'add tower',
+					x,
+					y
+				});
+
+				return { ...state, selectedPlacementTower: undefined };
+			}
+			return state;
+		});
+	}, []);
+
 	return (
-		<div className="app" style={{ minHeight: window.innerHeight - 10 }}>
+		<div
+			className="app"
+			style={{ minHeight: window.innerHeight - 10 }}
+			onClick={onClickApp}
+		>
 			<Board
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
