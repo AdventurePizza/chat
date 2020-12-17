@@ -2,6 +2,7 @@ import socketio, { Socket } from "socket.io";
 
 import express from "express";
 import http from "http";
+import { v4 as uuidv4 } from "uuid";
 
 const IS_DEBUG = false;
 
@@ -14,9 +15,37 @@ const io = new socketio.Server(httpServer);
 
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
 
+export interface ITowerUnit {
+  key: string;
+  type: "grunt";
+}
+
+export interface ITowerBuilding {
+  key: string;
+  type: "basic";
+  top: number;
+  left: number;
+}
+
+export interface ITowerDefenseState {
+  isPlaying: boolean;
+  units: ITowerUnit[];
+  towers: ITowerBuilding[];
+  towerDefenseGameInterval?: NodeJS.Timeout;
+  loopCounter: number;
+}
+
+let towerDefenseState: ITowerDefenseState = {
+  isPlaying: false,
+  units: [],
+  towers: [],
+  loopCounter: 0,
+};
+
 interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif";
+  key: "sound" | "emoji" | "chat" | "gif" | "tower defense";
   value?: string;
+  [key: string]: any;
 }
 
 export class Router {
@@ -29,6 +58,15 @@ export class Router {
       IS_DEBUG && console.log("connected user");
 
       createProfile(socket);
+
+      if (towerDefenseState.isPlaying) {
+        socket.emit("event", { key: "tower defense", value: "start" });
+        socket.emit("event", {
+          key: "tower defense",
+          value: "towers",
+          towers: towerDefenseState.towers,
+        });
+      }
 
       socket.emit("profile info", clientProfiles[socket.id]);
 
@@ -74,6 +112,38 @@ export class Router {
 
       case "gif":
         io.emit("event", message);
+        break;
+
+      case "tower defense":
+        if (message.value === "start" && !towerDefenseState.isPlaying) {
+          startGame();
+        }
+        if (message.value === "add tower") {
+          io.emit("event", {
+            key: "tower defense",
+            value: "add tower",
+            x: message.x,
+            y: message.y,
+            towerKey: uuidv4(),
+          });
+
+          towerDefenseState.towers.push({
+            key: uuidv4(),
+            type: "basic",
+            top: message.y,
+            left: message.x,
+          });
+        }
+
+        if (message.value === "fire tower") {
+          io.emit("event", {
+            key: "tower defense",
+            value: "hit unit",
+            towerKey: message.towerKey,
+            unitKey: message.unitKey,
+          });
+        }
+
         break;
     }
   };
@@ -141,4 +211,91 @@ const createProfile = (client: Socket) => {
     name: username,
     avatar: newAvatar,
   };
+};
+
+const spawnEnemy = () => {
+  const enemy: ITowerUnit = {
+    key: uuidv4(),
+    type: "grunt",
+  };
+
+  towerDefenseState.units.push(enemy);
+
+  io.emit("event", { key: "tower defense", value: "spawn enemy", enemy });
+};
+
+const fireTowers = () => {
+  io.emit("event", { key: "tower defense", value: "fire towers" });
+};
+
+const GAME_LENGTH_SECONDS = 120;
+
+const startGame = () => {
+  io.emit("event", { key: "tower defense", value: "start" });
+
+  towerDefenseState.isPlaying = true;
+
+  if (towerDefenseState.towerDefenseGameInterval) {
+    clearInterval(towerDefenseState.towerDefenseGameInterval);
+    towerDefenseState.loopCounter = 0;
+  }
+
+  towerDefenseState.towerDefenseGameInterval = setInterval(() => {
+    const { loopCounter } = towerDefenseState;
+
+    let spawnRate = 0;
+
+    if (loopCounter < 10) {
+      spawnRate = spawnRates[10];
+    } else if (loopCounter < 25) {
+      spawnRate = spawnRates[25];
+    } else if (loopCounter < 45) {
+      spawnRate = spawnRates[45];
+    } else if (loopCounter < 60) {
+      spawnRate = spawnRates[60];
+    } else if (loopCounter < 80) {
+      spawnRate = spawnRates[80];
+    } else if (loopCounter < 120) {
+      spawnRate = spawnRates[100];
+    }
+
+    if (Math.random() < spawnRate) {
+      spawnEnemy();
+    }
+
+    // fire every 4 seconds
+    if (loopCounter % 4 === 0) {
+      fireTowers();
+    }
+
+    towerDefenseState.loopCounter++;
+
+    if (towerDefenseState.loopCounter === GAME_LENGTH_SECONDS) {
+      endGame();
+    }
+  }, 1000);
+};
+
+const endGame = () => {
+  if (towerDefenseState.towerDefenseGameInterval) {
+    clearInterval(towerDefenseState.towerDefenseGameInterval);
+  }
+
+  towerDefenseState = {
+    isPlaying: false,
+    units: [],
+    towers: [],
+    loopCounter: 0,
+  };
+
+  io.emit("event", { key: "tower defense", value: "end" });
+};
+
+const spawnRates: { [timeSeconds: number]: number } = {
+  10: 0.2,
+  25: 0.3,
+  45: 0.4,
+  60: 0.5,
+  80: 0.6,
+  100: 0.7,
 };
