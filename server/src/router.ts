@@ -159,6 +159,7 @@ const profileOptions = {
     "defiant",
     "spotted",
     "rare",
+    "sassy",
   ],
   suffixes: [
     "woodpecker",
@@ -170,8 +171,23 @@ const profileOptions = {
     "meerkat",
     "narwhal",
     "scorpion",
+    "walrus",
   ],
-  avatars: ["kirby", "link", "mario", "nyancat", "ghost", "yoshi"],
+  avatars: [
+    "kirby",
+    "link",
+    "mario",
+    "nyancat",
+    "ghost",
+    "yoshi",
+    "character1",
+    "character2",
+    "character3",
+    "character4",
+    "character5",
+    "character6",
+    "character7",
+  ],
 };
 
 const selectedAvatars: { [avatar: string]: string } = {};

@@ -2,6 +2,13 @@ import { ITowerBuilding, IUserLocations, IUserProfiles } from '../types';
 
 import React from 'react';
 import { Tower } from './TowerDefense';
+import character1 from '../assets/character1.png';
+import character2 from '../assets/character2.png';
+import character3 from '../assets/character3.png';
+import character4 from '../assets/character4.png';
+import character5 from '../assets/character5.png';
+import character6 from '../assets/character6.png';
+import character7 from '../assets/character7.png';
 import ghost from '../assets/red_ghost.gif';
 import kirby from '../assets/kirby.gif';
 import link from '../assets/link-run.gif';
@@ -15,7 +22,14 @@ export const avatarMap: { [key: string]: string } = {
 	link: link,
 	nyancat: nyancat,
 	ghost: ghost,
-	yoshi: yoshi
+	yoshi: yoshi,
+	character1,
+	character2,
+	character3,
+	character4,
+	character5,
+	character6,
+	character7
 };
 
 interface IUserCursorsProps {

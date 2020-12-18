@@ -483,6 +483,7 @@ function App() {
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('event', onMessageEvent);
+			socket.off('new user', onNewUser);
 		};
 	}, [
 		handleTowerDefenseEvents,
@@ -643,7 +644,9 @@ function App() {
 				selectedItem={selectedPanelItem}
 			/>
 
-			<Tooltip title="production: leo, mike, yinbai, and krishang">
+			<Tooltip
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, and grant`}
+			>
 				<div className="adventure-logo">
 					<div>adventure</div>
 					<div>corp</div>
