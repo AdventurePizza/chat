@@ -5,7 +5,9 @@
 }
 .app,
 body {
-	overflow: hidden;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .picker-container {

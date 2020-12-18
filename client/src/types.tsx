@@ -7,7 +7,7 @@ export interface IAnimation {
 }
 
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense';
+	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense' | 'background';
 	value?: string;
 	[key: string]: any;
 }
@@ -62,6 +62,21 @@ export interface ISound {
 	water: string;
 }
 
+export interface IBackgrounds {
+	[key: string]: string | undefined;
+	butterflys: string;
+	grey_board: string;
+	ice: string;
+	mountain: string;
+	nature: string;
+	night_sky: string;
+  stones: string;
+  tree: string;
+	tiles: string;
+	triangles: string;
+  blank?: string;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -75,7 +90,8 @@ export enum PanelItemEnum {
 	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
-	'tower defense' = 'tower defense'
+  'tower defense' = 'tower defense',
+  'background' = 'background'
 }
 
 export interface IUserLocations {

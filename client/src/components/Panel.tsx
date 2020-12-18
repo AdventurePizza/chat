@@ -1,6 +1,6 @@
 import './Panel.css';
 
-import { Chat, ChevronRight, Gif, InsertEmoticon } from '@material-ui/icons/';
+import { Chat, ChevronRight, Gif, InsertEmoticon, CameraRoll } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { PanelItemEnum } from '../types';
@@ -98,6 +98,9 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 						alt="tower"
 					/>
 				);
+        break;
+			case PanelItemEnum.background:
+				buttonContent = <CameraRoll style={style} />;
 				break;
 		}
 

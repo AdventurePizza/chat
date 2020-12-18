@@ -27,6 +27,7 @@ import {
 	Actions as TowerDefenseActions
 } from './components/TowerDefense';
 import { cymbalHit, sounds } from './components/Sounds';
+import { backgrounds } from './components/BackgroundImages';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -150,6 +151,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower defense':
+      case 'background':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -180,7 +182,12 @@ function App() {
 			};
 			setGifs((gifs) => gifs.concat(newGif));
 		});
-	}, []);
+  }, []);
+  
+  const changeBackground = useCallback((backgroundName: string) => {
+    let backgroundImg = backgrounds[backgroundName];
+    document.body.style.backgroundImage = `url(${backgroundImg})`;
+  }, []);
 
 	const updateCursorPosition = useMemo(
 		() =>
@@ -441,8 +448,12 @@ function App() {
 					break;
 				case 'tower defense':
 					handleTowerDefenseEvents(message);
-
-					break;
+          break;
+        case 'background':
+					if (message.value) {
+						changeBackground(message.value);
+          }
+          break;
 			}
 		};
 
@@ -490,9 +501,10 @@ function App() {
 		playEmoji,
 		playSound,
 		addChatMessage,
-		addGif,
+    addGif,
+    changeBackground,
 		onCursorMove,
-		audioNotification
+		audioNotification,
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -562,7 +574,14 @@ function App() {
 				}
 
 				break;
-
+			case 'background':
+				const backgroundName = args[0] as string;
+				socket.emit('event', {
+					key: 'background',
+					value: backgroundName
+				});
+        break;
+        
 			default:
 				break;
 		}

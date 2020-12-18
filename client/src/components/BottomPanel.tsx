@@ -7,6 +7,7 @@ import { IGif } from '@giphy/js-types';
 import React from 'react';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
+import BackgroundPanel from './BackgroundPanel';
 
 export interface IPanelProps {
 	isOpen: boolean;
@@ -81,7 +82,9 @@ export const BottomPanel = ({
 							})
 						}
 					/>
-				);
+        );
+      case 'background':
+				return <BackgroundPanel sendBackground={onAction} />;
 		}
 	};
 

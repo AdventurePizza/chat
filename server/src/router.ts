@@ -12,8 +12,16 @@ const app = express();
 
 const httpServer = http.createServer(app);
 const io = new socketio.Server(httpServer);
+const IMAGE_SHOWN_SECONDS = 60
 
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
+
+export interface IBackgroundState {
+  isShowingImage: boolean;
+  imageInterval?: NodeJS.Timeout;
+  loopCounter: number;
+  currentBackground: string | undefined;
+}
 
 export interface ITowerUnit {
   key: string;
@@ -42,8 +50,14 @@ let towerDefenseState: ITowerDefenseState = {
   loopCounter: 0,
 };
 
+let backgroundState: IBackgroundState = {
+  isShowingImage: false,
+  loopCounter: 0,
+  currentBackground: "blank"
+}
+
 interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif" | "tower defense";
+  key: "sound" | "emoji" | "chat" | "gif" | "tower defense" | "background";
   value?: string;
   [key: string]: any;
 }
@@ -65,6 +79,13 @@ export class Router {
           key: "tower defense",
           value: "towers",
           towers: towerDefenseState.towers,
+        });
+      }
+
+      if (backgroundState.isShowingImage) {
+        socket.emit("event", {
+          key: "background",
+          value: backgroundState.currentBackground,
         });
       }
 
@@ -144,6 +165,12 @@ export class Router {
           });
         }
 
+        break;
+      case "background":
+        let backgroundName = message.value;
+        backgroundState.currentBackground = backgroundName;
+        io.emit("event", message);
+        removeImageAfterSecs(IMAGE_SHOWN_SECONDS)
         break;
     }
   };
@@ -314,4 +341,35 @@ const spawnRates: { [timeSeconds: number]: number } = {
   60: 0.5,
   80: 0.6,
   100: 0.7,
+};
+
+const removeImageAfterSecs = (secondsImageShown: Number) => {
+  backgroundState.isShowingImage = true;
+
+  if (backgroundState.imageInterval) {
+    clearInterval(backgroundState.imageInterval);
+    backgroundState.loopCounter = 0;
+  }
+
+  backgroundState.imageInterval = setInterval(() => {
+    backgroundState.loopCounter++;
+
+    if (backgroundState.loopCounter === secondsImageShown) {
+      removeImage();
+    }
+  }, 1000);
+};
+
+const removeImage = () => {
+  if (backgroundState.imageInterval) {
+    clearInterval(backgroundState.imageInterval);
+  }
+
+  backgroundState = {
+    loopCounter: 0,
+    isShowingImage: false,
+    currentBackground: "blank"
+  };
+
+  io.emit("event", { key: "background", value: "blank" });
 };
