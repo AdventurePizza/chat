@@ -1,11 +1,39 @@
+.panel-avatar {
+	width: 42px;
+	height: auto;
+}
+.panel-back-arrow {
+	width: 18px;
+	height: 18px;
+}
+
 .sound-container button {
 	cursor: pointer;
+}
+.panel-you-text {
+	font-size: 1.2em;
+	margin-bottom: 20px;
 }
 
 .panel-container {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	background-color: #212121;
+	height: 100%;
+}
+
+.panel-container * {
+	font-family: 'Blinker', sans-serif;
+	color: white;
+}
+
+.panel-icon-container {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 50px;
 }
 
 .bottom-panel-container {
@@ -105,6 +133,35 @@
 	align-items: center;
 	justify-content: center;
 }
+
+.panel-icon-sound {
+	width: 20px;
+	height: 28px;
+}
+
+.panel-icon-emoji {
+	width: 33px;
+	height: 33px;
+}
+
+.panel-icon-gifs {
+	width: 30px;
+	height: 13px;
+}
+.panel-icon-chat {
+	width: 26px;
+	height: 26px;
+}
+.panel-icon-background {
+	width: 26px;
+	height: 26px;
+}
+.panel-icon-tower {
+	width: 18px;
+	height: 35px;
+}
+/* filter: invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg)
+		brightness(101%) contrast(88%); */
 
 @media only screen and (max-width: 500px) {
 	.bottom-panel-emoji {

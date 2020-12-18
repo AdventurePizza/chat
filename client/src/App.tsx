@@ -26,15 +26,15 @@ import {
 	TowerDefense,
 	Actions as TowerDefenseActions
 } from './components/TowerDefense';
+import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
-import { ChevronLeft } from '@material-ui/icons';
+import { ChevronRight } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
-import { UserCursor } from './components/UserCursors';
 import _ from 'underscore';
 // Sound imports
 import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -149,7 +149,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'gifs':
-			case 'tower defense':
+			case 'tower':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -630,7 +630,7 @@ function App() {
 								setIsPanelOpen(true);
 							}}
 						>
-							<ChevronLeft />
+							<ChevronRight />
 						</IconButton>
 					</Tooltip>
 				)}
@@ -642,6 +642,11 @@ function App() {
 					setIsPanelOpen(false);
 				}}
 				selectedItem={selectedPanelItem}
+				avatar={
+					userProfile && userProfile.avatar
+						? avatarMap[userProfile.avatar]
+						: undefined
+				}
 			/>
 
 			<Tooltip

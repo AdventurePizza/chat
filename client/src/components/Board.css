@@ -55,6 +55,10 @@
 	user-select: none;
 	pointer-events: none;
 }
+.user-connection-cursor * {
+	user-select: none;
+	pointer-events: none;
+}
 
 .user-connection-cursor img {
 	width: 50px;

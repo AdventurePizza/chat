@@ -1,41 +1,48 @@
 import './Panel.css';
 
-import { Chat, ChevronRight, Gif, InsertEmoticon } from '@material-ui/icons/';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { PanelItemEnum } from '../types';
 import React from 'react';
-import musicNote from '../assets/musicNote.png';
-import musicNoteColored from '../assets/musicNoteColored.png';
-import towerSVG from '../assets/tower.svg';
-
-const iconStyle: React.CSSProperties = {
-	width: 50,
-	height: 50,
-	marginTop: 10
-};
+import backArrowIcon from '../assets/navbar/backArrowIcon.png';
+import chatIcon from '../assets/navbar/chatIcon.png';
+import emojiIcon from '../assets/navbar/emojiIcon.png';
+import gifIcon from '../assets/navbar/gifIcon.png';
+import soundIcon from '../assets/navbar/soundIcon.png';
+import towerIcon from '../assets/navbar/towerIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onClick: (key: string) => void;
 	selectedItem?: PanelItemEnum;
+	avatar?: string;
 }
 
 export const Panel = ({
 	isOpen,
 	onClose,
 	onClick,
-	selectedItem
+	selectedItem,
+	avatar
 }: IPanelProps) => {
 	return (
-		<Drawer variant="persistent" anchor="right" open={isOpen}>
+		<Drawer variant="persistent" anchor="left" open={isOpen}>
 			<div className="panel-container">
 				<Tooltip title="close panel">
 					<IconButton style={{ marginTop: 20 }} onClick={onClose}>
-						<ChevronRight />
+						<img
+							className="panel-back-arrow"
+							src={backArrowIcon}
+							alt="back arrow icon"
+						/>
 					</IconButton>
 				</Tooltip>
+
+				<img src={avatar} alt="user avatar" className="panel-avatar" />
+
+				<div className="panel-you-text">you</div>
+
 				{Object.keys(PanelItemEnum).map((item) => (
 					<PanelItem
 						{...item}
@@ -50,6 +57,16 @@ export const Panel = ({
 	);
 };
 
+const panelIconSrcMap: {
+	[key: string]: string;
+} = {
+	sound: soundIcon,
+	emoji: emojiIcon,
+	gifs: gifIcon,
+	chat: chatIcon,
+	tower: towerIcon
+};
+
 interface IPanelItemProps {
 	onClick: () => void;
 	title: string;
@@ -58,55 +75,27 @@ interface IPanelItemProps {
 
 const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 	const renderPanelItem = () => {
-		let buttonContent;
-		const style: React.CSSProperties = {
-			...iconStyle,
-			color: isSelected ? 'orange' : undefined
-		};
-		const musicNoteToShow = isSelected ? (
-			<img src={musicNoteColored} alt="Music Note" />
-		) : (
-			<img src={musicNote} alt="Music Note" />
+		return (
+			<div
+				className="panel-icon-container"
+				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
+			>
+				<IconButton onClick={onClick}>
+					{
+						<img
+							src={panelIconSrcMap[title]}
+							className={`panel-icon-${title}`}
+							alt={`${title} icon`}
+						/>
+					}
+				</IconButton>
+			</div>
 		);
-
-		switch (title) {
-			case PanelItemEnum.sound:
-				buttonContent = musicNoteToShow;
-				break;
-			case PanelItemEnum.emoji:
-				buttonContent = <InsertEmoticon style={style} />;
-				break;
-			case PanelItemEnum.gifs:
-				buttonContent = <Gif style={style} />;
-				break;
-			case PanelItemEnum.chat:
-				buttonContent = <Chat style={style} />;
-				break;
-			case PanelItemEnum['tower defense']:
-				if (isSelected) {
-					style.filter =
-						'invert(77%) sepia(62%) saturate(3851%) hue-rotate(358deg) brightness(101%) contrast(105%)';
-				} else {
-					style.filter =
-						'invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg) brightness(101%) contrast(88%)';
-				}
-				buttonContent = (
-					<img
-						className="panel-tower"
-						src={towerSVG}
-						style={style}
-						alt="tower"
-					/>
-				);
-				break;
-		}
-
-		return <IconButton onClick={onClick}>{buttonContent}</IconButton>;
 	};
 
 	return (
 		<Tooltip title={title}>
-			<div>{renderPanelItem()}</div>
+			<>{renderPanelItem()}</>
 		</Tooltip>
 	);
 };
