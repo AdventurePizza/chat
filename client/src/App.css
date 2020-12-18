@@ -1,7 +1,7 @@
 .open-panel-button {
 	position: absolute;
 	top: 20px;
-	right: 10px;
+	left: 10px;
 }
 .app,
 body {

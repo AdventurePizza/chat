@@ -63,7 +63,7 @@ export const BottomPanel = ({
 						}}
 					/>
 				);
-			case 'tower defense':
+			case 'tower':
 				return (
 					<TowerDefensePanel
 						isStarted={towerDefenseState.isPlaying}

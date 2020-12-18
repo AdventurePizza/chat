@@ -75,7 +75,7 @@ export enum PanelItemEnum {
 	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
-	'tower defense' = 'tower defense'
+	'tower' = 'tower'
 }
 
 export interface IUserLocations {
