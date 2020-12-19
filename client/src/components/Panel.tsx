@@ -10,6 +10,7 @@ import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
+import cameraRollIcon from '../assets/navbar/camera_roll.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -27,7 +28,7 @@ export const Panel = ({
 	avatar
 }: IPanelProps) => {
 	return (
-		<Drawer variant="persistent" anchor="left" open={isOpen}>
+		<Drawer className="panel-drawer" variant="persistent" anchor="left" open={isOpen}>
 			<div className="panel-container">
 				<Tooltip title="close panel">
 					<IconButton style={{ marginTop: 20 }} onClick={onClose}>
@@ -64,7 +65,8 @@ const panelIconSrcMap: {
 	emoji: emojiIcon,
 	gifs: gifIcon,
 	chat: chatIcon,
-	tower: towerIcon
+  tower: towerIcon,
+  background: cameraRollIcon,
 };
 
 interface IPanelItemProps {
