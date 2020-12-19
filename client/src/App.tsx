@@ -731,11 +731,15 @@ const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 		const randomY =
 			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
 		// if its a gif, make sure it appears above the tall gif panel, but make sure its not too high as well.
-		if(gif) return { x: randomX, y: Math.max(window.innerHeight/4, randomY-GIF_PANEL_HEIGHT)};
+		if (gif)
+			return {
+				x: randomX,
+				y: Math.max(window.innerHeight / 4, randomY - GIF_PANEL_HEIGHT)
+			};
 		return { x: randomX, y: randomY };
 	} else {
 		const randomX = Math.random() * window.innerWidth;
-		const randomY = Math.random() * (window.innerHeight);
+		const randomY = Math.random() * window.innerHeight;
 		return { x: randomX, y: randomY };
 	}
 };
