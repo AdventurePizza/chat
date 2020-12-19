@@ -28,7 +28,12 @@ export const Panel = ({
 	avatar
 }: IPanelProps) => {
 	return (
-		<Drawer className="panel-drawer" variant="persistent" anchor="left" open={isOpen}>
+		<Drawer
+			className="panel-drawer"
+			variant="persistent"
+			anchor="left"
+			open={isOpen}
+		>
 			<div className="panel-container">
 				<Tooltip title="close panel">
 					<IconButton style={{ marginTop: 20 }} onClick={onClose}>
@@ -65,8 +70,8 @@ const panelIconSrcMap: {
 	emoji: emojiIcon,
 	gifs: gifIcon,
 	chat: chatIcon,
-  tower: towerIcon,
-  background: cameraRollIcon,
+	tower: towerIcon,
+	background: cameraRollIcon
 };
 
 interface IPanelItemProps {

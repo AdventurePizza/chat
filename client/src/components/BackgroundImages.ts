@@ -17,10 +17,10 @@ export const backgroundIcons: IBackgrounds = {
 	mountain: mountain,
 	nature: nature,
 	night_sky: night_sky,
-  stones: stones,
-  tree: tree,
+	stones: stones,
+	tree: tree,
 	tiles: tiles,
 	triangles: triangles
 };
 
-export const backgrounds: IBackgrounds = { ...backgroundIcons, none: "none" };
+export const backgrounds: IBackgrounds = { ...backgroundIcons, none: 'none' };

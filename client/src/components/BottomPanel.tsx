@@ -82,8 +82,8 @@ export const BottomPanel = ({
 							})
 						}
 					/>
-        );
-      case 'background':
+				);
+			case 'background':
 				return <BackgroundPanel sendBackground={onAction} />;
 		}
 	};
