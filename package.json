@@ -15,6 +15,7 @@
     "@giphy/js-components": "^4.0.0-alpha.0",
     "@giphy/js-fetch-api": "^2.0.0-alpha.0",
     "@giphy/react-components": "^2.0.0-alpha.0",
-    "react": "^17.0.1"
+    "react": "^17.0.1",
+    "socket.io": "^3.0.4"
   }
 }

@@ -51,6 +51,7 @@ const socket = io(socketURL, { transports: ['websocket'] });
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
+const GIF_PANEL_HEIGHT = 150;
 
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -99,7 +100,7 @@ function App() {
 		tutorialGifs.forEach((gif) => {
 			setTimeout(async () => {
 				const data = await GIF_FETCH.gif(gif.id);
-				const { x, y } = generateRandomXY(true);
+				const { x, y } = generateRandomXY(true, true);
 
 				const newGif: IGifs = {
 					top: y,
@@ -170,7 +171,7 @@ function App() {
 	}, []);
 
 	const addGif = useCallback((gifId: string) => {
-		const { x, y } = generateRandomXY(true);
+		const { x, y } = generateRandomXY(true, true);
 		GIF_FETCH.gif(gifId).then((data) => {
 			const newGif: IGifs = {
 				top: y,
@@ -723,19 +724,18 @@ const tutorialGifs = [
 	}
 ];
 
-const generateRandomXY = (centered?: boolean) => {
+const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	if (centered) {
-		// 1/4 to 3/4
-
 		const randomX =
 			(Math.random() * window.innerWidth * 2) / 4 + window.innerWidth / 4;
 		const randomY =
 			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
-
+		// if its a gif, make sure it appears above the tall gif panel, but make sure its not too high as well.
+		if(gif) return { x: randomX, y: Math.max(window.innerHeight/4, randomY-GIF_PANEL_HEIGHT)};
 		return { x: randomX, y: randomY };
 	} else {
 		const randomX = Math.random() * window.innerWidth;
-		const randomY = Math.random() * window.innerHeight;
+		const randomY = Math.random() * (window.innerHeight);
 		return { x: randomX, y: randomY };
 	}
 };
