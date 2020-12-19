@@ -7,7 +7,7 @@ interface IBackgroundPanelProps {
 }
 
 const BackgroundPanel = ({ sendBackground }: IBackgroundPanelProps) => {
-	const displayIcons = Object.keys(backgroundIcons).map(backgroundName => {
+	const displayIcons = Object.keys(backgroundIcons).map((backgroundName) => {
 		const backgroundIcon = backgroundIcons[backgroundName];
 		return (
 			<IconButton

@@ -57,8 +57,10 @@ function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
-  const [gifs, setGifs] = useState<IGifs[]>([]);
-  const [backgroundName, setBackgroundName] = useState<string | undefined>("none");
+	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [backgroundName, setBackgroundName] = useState<string | undefined>(
+		'none'
+	);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
@@ -87,7 +89,7 @@ function App() {
 	}>();
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
-  const [figures, setFigures] = useState<IFigure[]>([]);
+	const [figures, setFigures] = useState<IFigure[]>([]);
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -152,7 +154,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower':
-      case 'background':
+			case 'background':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -172,16 +174,14 @@ function App() {
 		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
 
-  const changeBackground = useCallback((newBackgroundName: string) => {
-    setBackgroundName((currentbackgroundName) => {
-      const isSameBackground = newBackgroundName === currentbackgroundName
-      if (isSameBackground)
-        return currentbackgroundName
-      else
-        return newBackgroundName;
-    })
-  }, []);
-  
+	const changeBackground = useCallback((newBackgroundName: string) => {
+		setBackgroundName((currentbackgroundName) => {
+			const isSameBackground = newBackgroundName === currentbackgroundName;
+			if (isSameBackground) return currentbackgroundName;
+			else return newBackgroundName;
+		});
+	}, []);
+
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true);
 		GIF_FETCH.gif(gifId).then((data) => {
@@ -193,7 +193,7 @@ function App() {
 			};
 			setGifs((gifs) => gifs.concat(newGif));
 		});
-  }, []);
+	}, []);
 
 	const updateCursorPosition = useMemo(
 		() =>
@@ -454,9 +454,9 @@ function App() {
 					break;
 				case 'tower defense':
 					handleTowerDefenseEvents(message);
-          break;
-        case 'background':
-          if (message.value) {
+					break;
+				case 'background':
+					if (message.value) {
 						changeBackground(message.value);
 					}
 					break;
@@ -508,8 +508,8 @@ function App() {
 		playSound,
 		addChatMessage,
 		addGif,
-    onCursorMove,
-    changeBackground,
+		onCursorMove,
+		changeBackground,
 		audioNotification
 	]);
 
@@ -579,14 +579,14 @@ function App() {
 					socket.emit('event', args[0]);
 				}
 
-        break;
-      case 'background':
+				break;
+			case 'background':
 				const backgroundName = args[0] as string;
 				socket.emit('event', {
 					key: 'background',
 					value: backgroundName
 				});
-        break;
+				break;
 
 			default:
 				break;
@@ -616,9 +616,9 @@ function App() {
 			className="app"
 			style={{
 				minHeight: window.innerHeight - 10,
-        backgroundImage: `url(${backgrounds[backgroundName!]})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover'
+				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				backgroundRepeat: 'no-repeat',
+				backgroundSize: 'cover'
 			}}
 			onClick={onClickApp}
 		>

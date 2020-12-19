@@ -63,18 +63,17 @@ export interface ISound {
 }
 
 export interface IBackgrounds {
-  [key: string]: string | undefined;
+	[key: string]: string | undefined;
 	butterflys: string;
 	grey_board: string;
 	ice: string;
 	mountain: string;
 	nature: string;
 	night_sky: string;
-  stones: string;
-  tree: string;
+	stones: string;
+	tree: string;
 	tiles: string;
 	triangles: string;
-
 }
 
 export interface IGifs {
@@ -90,8 +89,8 @@ export enum PanelItemEnum {
 	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
-  'tower' = 'tower',
-  'background' = 'background'
+	'tower' = 'tower',
+	'background' = 'background'
 }
 
 export interface IUserLocations {
