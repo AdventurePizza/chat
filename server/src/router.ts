@@ -14,10 +14,10 @@ const httpServer = http.createServer(app);
 const io = new socketio.Server(httpServer);
 
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
-const DEFAULT_IMAGE_BACKGROUND = "none";
+const DEFAULT_IMAGE_BACKGROUND = undefined;
 
 export interface IBackgroundState {
-  imageInterval?: NodeJS.Timeout;
+  imageTimeout?: NodeJS.Timeout;
   currentBackground: string | undefined;
 }
 
@@ -341,18 +341,18 @@ const spawnRates: { [timeSeconds: number]: number } = {
 };
 
 const removeImageAfter1Min = () => {
-  if (backgroundState.imageInterval) {
-    clearInterval(backgroundState.imageInterval);
+  if (backgroundState.imageTimeout) {
+    clearInterval(backgroundState.imageTimeout);
   }
 
-  backgroundState.imageInterval = setTimeout(() => { 
+  backgroundState.imageTimeout = setTimeout(() => { 
     removeImage(); 
   }, 60000)
 };
 
 const removeImage = () => {
-  if (backgroundState.imageInterval) {
-    clearInterval(backgroundState.imageInterval);
+  if (backgroundState.imageTimeout) {
+    clearInterval(backgroundState.imageTimeout);
   }
 
   backgroundState = {
