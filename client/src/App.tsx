@@ -59,7 +59,7 @@ function App() {
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
 	const [backgroundName, setBackgroundName] = useState<string | undefined>(
-		'none'
+		undefined
 	);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
@@ -174,12 +174,8 @@ function App() {
 		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
 
-	const changeBackground = useCallback((newBackgroundName: string) => {
-		setBackgroundName((currentbackgroundName) => {
-			const isSameBackground = newBackgroundName === currentbackgroundName;
-			if (isSameBackground) return currentbackgroundName;
-			else return newBackgroundName;
-		});
+	const changeBackground = useCallback((newBackgroundName: string | undefined) => {
+		setBackgroundName(() => newBackgroundName);
 	}, []);
 
 	const addGif = useCallback((gifId: string) => {
@@ -456,9 +452,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					if (message.value) {
 						changeBackground(message.value);
-					}
 					break;
 			}
 		};
