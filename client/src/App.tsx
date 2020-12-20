@@ -28,6 +28,7 @@ import {
 } from './components/TowerDefense';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
+import { backgrounds } from './components/BackgroundImages';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -51,12 +52,16 @@ const socket = io(socketURL, { transports: ['websocket'] });
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
+const GIF_PANEL_HEIGHT = 150;
 
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [backgroundName, setBackgroundName] = useState<string | undefined>(
+		undefined
+	);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
@@ -99,7 +104,7 @@ function App() {
 		tutorialGifs.forEach((gif) => {
 			setTimeout(async () => {
 				const data = await GIF_FETCH.gif(gif.id);
-				const { x, y } = generateRandomXY(true);
+				const { x, y } = generateRandomXY(true, true);
 
 				const newGif: IGifs = {
 					top: y,
@@ -150,6 +155,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower':
+			case 'background':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -169,8 +175,15 @@ function App() {
 		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
 
+	const changeBackground = useCallback(
+		(newBackgroundName: string | undefined) => {
+			setBackgroundName(newBackgroundName);
+		},
+		[]
+	);
+
 	const addGif = useCallback((gifId: string) => {
-		const { x, y } = generateRandomXY(true);
+		const { x, y } = generateRandomXY(true, true);
 		GIF_FETCH.gif(gifId).then((data) => {
 			const newGif: IGifs = {
 				top: y,
@@ -441,7 +454,9 @@ function App() {
 					break;
 				case 'tower defense':
 					handleTowerDefenseEvents(message);
-
+					break;
+				case 'background':
+					changeBackground(message.value);
 					break;
 			}
 		};
@@ -492,6 +507,7 @@ function App() {
 		addChatMessage,
 		addGif,
 		onCursorMove,
+		changeBackground,
 		audioNotification
 	]);
 
@@ -562,6 +578,13 @@ function App() {
 				}
 
 				break;
+			case 'background':
+				const backgroundName = args[0] as string;
+				socket.emit('event', {
+					key: 'background',
+					value: backgroundName
+				});
+				break;
 
 			default:
 				break;
@@ -589,7 +612,12 @@ function App() {
 	return (
 		<div
 			className="app"
-			style={{ minHeight: window.innerHeight - 10 }}
+			style={{
+				minHeight: window.innerHeight - 10,
+				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				backgroundRepeat: 'no-repeat',
+				backgroundSize: 'cover'
+			}}
 			onClick={onClickApp}
 		>
 			<Board
@@ -723,15 +751,18 @@ const tutorialGifs = [
 	}
 ];
 
-const generateRandomXY = (centered?: boolean) => {
+const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	if (centered) {
-		// 1/4 to 3/4
-
 		const randomX =
 			(Math.random() * window.innerWidth * 2) / 4 + window.innerWidth / 4;
 		const randomY =
 			(Math.random() * window.innerHeight * 2) / 4 + window.innerHeight / 4;
-
+		// if its a gif, make sure it appears above the tall gif panel, but make sure its not too high as well.
+		if (gif)
+			return {
+				x: randomX,
+				y: Math.max(window.innerHeight / 4, randomY - GIF_PANEL_HEIGHT)
+			};
 		return { x: randomX, y: randomY };
 	} else {
 		const randomX = Math.random() * window.innerWidth;
