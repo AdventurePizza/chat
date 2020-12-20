@@ -15,6 +15,10 @@
 	margin-bottom: 20px;
 }
 
+.panel-drawer .MuiPaper-root {
+  border-right: none;
+}
+
 .panel-container {
 	display: flex;
 	flex-direction: column;
@@ -61,6 +65,12 @@
 }
 
 .sound-container {
+	width: 100vw;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.background-container {
 	width: 100vw;
 	padding-left: 10px;
 	padding-right: 10px;
@@ -115,6 +125,11 @@
 }
 
 .sound-icon-list {
+	display: flex;
+	justify-content: center;
+}
+
+.background-icon-list {
 	display: flex;
 	justify-content: center;
 }
