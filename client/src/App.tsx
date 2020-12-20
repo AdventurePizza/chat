@@ -28,6 +28,7 @@ import {
 } from './components/TowerDefense';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
+import { backgrounds } from './components/BackgroundImages';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -58,6 +59,9 @@ function App() {
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [backgroundName, setBackgroundName] = useState<string | undefined>(
+		undefined
+	);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
@@ -151,6 +155,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower':
+			case 'background':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -169,6 +174,13 @@ function App() {
 		};
 		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
+
+	const changeBackground = useCallback(
+		(newBackgroundName: string | undefined) => {
+			setBackgroundName(newBackgroundName);
+		},
+		[]
+	);
 
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -442,7 +454,9 @@ function App() {
 					break;
 				case 'tower defense':
 					handleTowerDefenseEvents(message);
-
+					break;
+				case 'background':
+					changeBackground(message.value);
 					break;
 			}
 		};
@@ -493,6 +507,7 @@ function App() {
 		addChatMessage,
 		addGif,
 		onCursorMove,
+		changeBackground,
 		audioNotification
 	]);
 
@@ -563,6 +578,13 @@ function App() {
 				}
 
 				break;
+			case 'background':
+				const backgroundName = args[0] as string;
+				socket.emit('event', {
+					key: 'background',
+					value: backgroundName
+				});
+				break;
 
 			default:
 				break;
@@ -590,7 +612,12 @@ function App() {
 	return (
 		<div
 			className="app"
-			style={{ minHeight: window.innerHeight - 10 }}
+			style={{
+				minHeight: window.innerHeight - 10,
+				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				backgroundRepeat: 'no-repeat',
+				backgroundSize: 'cover'
+			}}
 			onClick={onClickApp}
 		>
 			<Board
