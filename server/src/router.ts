@@ -14,6 +14,12 @@ const httpServer = http.createServer(app);
 const io = new socketio.Server(httpServer);
 
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
+const DEFAULT_IMAGE_BACKGROUND = undefined;
+
+export interface IBackgroundState {
+  imageTimeout?: NodeJS.Timeout;
+  currentBackground: string | undefined;
+}
 
 export interface ITowerUnit {
   key: string;
@@ -42,8 +48,12 @@ let towerDefenseState: ITowerDefenseState = {
   loopCounter: 0,
 };
 
+let backgroundState: IBackgroundState = {
+  currentBackground: DEFAULT_IMAGE_BACKGROUND
+}
+
 interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif" | "tower defense";
+  key: "sound" | "emoji" | "chat" | "gif" | "tower defense" | "background";
   value?: string;
   [key: string]: any;
 }
@@ -67,6 +77,13 @@ export class Router {
           towers: towerDefenseState.towers,
         });
       }
+
+      // So you only need to change the server for having a different DEFAULT_IMAGE_BACKGROUND, client will prevent unnecessary background changes
+      // Although, the client still needs to have the image in "BackgroundImages.ts"
+      socket.emit("event", {
+        key: "background",
+        value: backgroundState.currentBackground,
+      });
 
       socket.emit("profile info", clientProfiles[socket.id]);
 
@@ -143,6 +160,13 @@ export class Router {
             unitKey: message.unitKey,
           });
         }
+
+        case "background":
+          let backgroundName = message.value;
+          backgroundState.currentBackground = backgroundName;
+          io.emit("event", message);
+          removeImageAfter1Min();
+          break;
 
         break;
     }
@@ -314,4 +338,26 @@ const spawnRates: { [timeSeconds: number]: number } = {
   60: 0.5,
   80: 0.6,
   100: 0.7,
+};
+
+const removeImageAfter1Min = () => {
+  if (backgroundState.imageTimeout) {
+    clearTimeout(backgroundState.imageTimeout);
+  }
+
+  backgroundState.imageTimeout = setTimeout(() => { 
+    removeImage(); 
+  }, 60000)
+};
+
+const removeImage = () => {
+  if (backgroundState.imageTimeout) {
+    clearTimeout(backgroundState.imageTimeout);
+  }
+
+  backgroundState = {
+    currentBackground: DEFAULT_IMAGE_BACKGROUND
+  };
+
+  io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
 };
