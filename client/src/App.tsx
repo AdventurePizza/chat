@@ -174,9 +174,12 @@ function App() {
 		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 	}, []);
 
-	const changeBackground = useCallback((newBackgroundName: string | undefined) => {
-		setBackgroundName(() => newBackgroundName);
-	}, []);
+	const changeBackground = useCallback(
+		(newBackgroundName: string | undefined) => {
+			setBackgroundName(newBackgroundName);
+		},
+		[]
+	);
 
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true);
@@ -452,7 +455,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-						changeBackground(message.value);
+					changeBackground(message.value);
 					break;
 			}
 		};

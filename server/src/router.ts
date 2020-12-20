@@ -342,7 +342,7 @@ const spawnRates: { [timeSeconds: number]: number } = {
 
 const removeImageAfter1Min = () => {
   if (backgroundState.imageTimeout) {
-    clearInterval(backgroundState.imageTimeout);
+    clearTimeout(backgroundState.imageTimeout);
   }
 
   backgroundState.imageTimeout = setTimeout(() => { 
@@ -352,7 +352,7 @@ const removeImageAfter1Min = () => {
 
 const removeImage = () => {
   if (backgroundState.imageTimeout) {
-    clearInterval(backgroundState.imageTimeout);
+    clearTimeout(backgroundState.imageTimeout);
   }
 
   backgroundState = {
