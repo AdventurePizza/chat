@@ -340,7 +340,7 @@ function App() {
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
 				playAnimation('start game');
-				setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+				setTowerDefenseState((state) => ({ ...state, isPlaying: true, scores: 0}));
 			}
 			if (message.value === 'end') {
 				playAnimation('end game');

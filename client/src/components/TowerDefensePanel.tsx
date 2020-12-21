@@ -1,4 +1,4 @@
-import { Button } from '@material-ui/core';
+import { Box, Button } from '@material-ui/core';
 import React from 'react';
 import towerSVG from '../assets/tower.svg';
 
@@ -15,7 +15,7 @@ export const TowerDefensePanel = (props: ITowerDefensePanelProps) => {
 	return (
 		<div className="tower-defense-panel">
 			{isStarted ? (
-				<div style={{display:'flex', position:'relative'}}>
+				<div className="tower-defense-panel">
 					<ScorePanel scores = {scores} />
 					<TowerList onClick={onSelectTower} />
 				</div>
@@ -55,8 +55,8 @@ interface ITowerScoreProps {
 
 const ScorePanel = ({scores}: ITowerScoreProps) => {
 	return (
-		<div className="tower-defense-score-panel">
+		<Box style={{height: "100%", marginBottom: "2px", justifyContent: "flex", fontSize:50}}>
 			{scores}
-		</div>
+		</Box>
 	)
 }
