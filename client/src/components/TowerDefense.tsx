@@ -20,13 +20,15 @@ interface ITowerDefenseProps {
 	onAction: (action: Actions) => void;
 	updateUnits: (units: ITowerUnit[]) => void;
 	updateProjectiles: (projectiles: ITowerProjectile[]) => void;
+	updateScores: (scores: number) => void
 }
 
 export const TowerDefense = (props: ITowerDefenseProps) => {
 	const {
-		state: { towers, units, projectiles },
+		state: { towers, units, projectiles, scores },
 		updateUnits,
-		updateProjectiles
+		updateProjectiles,
+		updateScores,
 	} = props;
 
 	return (
@@ -83,6 +85,8 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							);
 
 							if (toDeleteUnitIndex !== -1) {
+								updateScores(scores + units[toDeleteUnitIndex].value);
+								console.log(scores)
 								updateUnits([
 									...units.slice(0, toDeleteUnitIndex),
 									...units.slice(toDeleteUnitIndex + 1)

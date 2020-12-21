@@ -4,17 +4,21 @@ import towerSVG from '../assets/tower.svg';
 
 interface ITowerDefensePanelProps {
 	isStarted: boolean;
+	scores: number;
 	onStart: () => void;
 	onSelectTower: (key: string) => void;
 }
 
 export const TowerDefensePanel = (props: ITowerDefensePanelProps) => {
-	const { isStarted, onStart, onSelectTower } = props;
+	const { isStarted, scores, onStart, onSelectTower } = props;
 
 	return (
 		<div className="tower-defense-panel">
 			{isStarted ? (
-				<TowerList onClick={onSelectTower} />
+				<div style={{display:'flex', position:'relative'}}>
+					<ScorePanel scores = {scores} />
+					<TowerList onClick={onSelectTower} />
+				</div>
 			) : (
 				<Button onClick={onStart} variant="contained">
 					Start Game
@@ -44,3 +48,15 @@ const TowerList = ({ onClick }: ITowerListProps) => {
 		</div>
 	);
 };
+
+interface ITowerScoreProps {
+	scores: number;
+}
+
+const ScorePanel = ({scores}: ITowerScoreProps) => {
+	return (
+		<div className="tower-defense-score-panel">
+			{scores}
+		</div>
+	)
+}

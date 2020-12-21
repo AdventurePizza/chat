@@ -53,6 +53,7 @@ const socket = io(socketURL, { transports: ['websocket'] });
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
+const ENEMY_VALUES = {'grunt':1}
 
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -79,7 +80,8 @@ function App() {
 		isPlaying: false,
 		towers: [],
 		units: [],
-		projectiles: []
+		projectiles: [],
+		scores: 0
 	});
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
@@ -357,6 +359,7 @@ function App() {
 				enemy.top = window.innerHeight / 2;
 				enemy.left = 0;
 				enemy.ref = React.createRef();
+				enemy.value = ENEMY_VALUES[enemy.type];
 
 				setTowerDefenseState((state) => ({
 					...state,
@@ -647,6 +650,9 @@ function App() {
 				}
 				updateProjectiles={(projectiles) =>
 					setTowerDefenseState((state) => ({ ...state, projectiles }))
+				}
+				updateScores={(scores) => 
+					setTowerDefenseState((state) => ({...state, scores}))
 				}
 			/>
 

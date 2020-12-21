@@ -106,6 +106,7 @@ export interface ITowerUnit {
 	type: 'grunt';
 	top: number;
 	left: number;
+	value: number;
 	ref: React.RefObject<HTMLImageElement>;
 }
 
@@ -129,4 +130,5 @@ export interface ITowerDefenseState {
 	towers: ITowerBuilding[];
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
+	scores: number;
 }
