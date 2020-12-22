@@ -28,7 +28,7 @@ import {
 } from './components/TowerDefense';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
-
+import { Whiteboard, drawLine, ILineData } from './components/Whiteboard';
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
@@ -59,9 +59,12 @@ function App() {
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [brushColor, setBrushColor] = useState('black');
 	const [backgroundName, setBackgroundName] = useState<string | undefined>(
 		undefined
 	);
+
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
@@ -156,6 +159,7 @@ function App() {
 			case 'gifs':
 			case 'tower':
 			case 'background':
+			case 'whiteboard':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -173,6 +177,12 @@ function App() {
 			value: message
 		};
 		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
+	}, []);
+
+	const drawLineEvent = useCallback((strLineData) => {
+		let lineData: ILineData = JSON.parse(strLineData);
+		const { prevX, prevY, currentX, currentY, color } = lineData;
+		drawLine(canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
 	const changeBackground = useCallback(
@@ -458,6 +468,11 @@ function App() {
 				case 'background':
 					changeBackground(message.value);
 					break;
+				case 'whiteboard':
+					if (message.value) {
+						drawLineEvent(message.value);
+					}
+					break;
 			}
 		};
 
@@ -506,8 +521,9 @@ function App() {
 		playSound,
 		addChatMessage,
 		addGif,
-		onCursorMove,
 		changeBackground,
+		drawLineEvent,
+		onCursorMove,
 		audioNotification
 	]);
 
@@ -586,6 +602,13 @@ function App() {
 				});
 				break;
 
+			case 'whiteboard':
+				const strlineData = args[0] as string;
+				socket.emit('event', {
+					key: 'whiteboard',
+					value: strlineData
+				});
+				break;
 			default:
 				break;
 		}
@@ -608,6 +631,8 @@ function App() {
 			return state;
 		});
 	}, []);
+
+	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
 	return (
 		<div
@@ -650,6 +675,13 @@ function App() {
 				}
 			/>
 
+			<Whiteboard
+				onWhiteboardPanel={onWhiteboardPanel}
+				canvasRef={canvasRef}
+				brushColor={brushColor}
+				onAction={actionHandler}
+			/>
+
 			<div className="open-panel-button">
 				{!isPanelOpen && (
 					<Tooltip title="open panel">
@@ -688,6 +720,7 @@ function App() {
 
 			<BottomPanel
 				towerDefenseState={towerDefenseState}
+				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}

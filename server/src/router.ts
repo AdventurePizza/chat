@@ -53,7 +53,7 @@ let backgroundState: IBackgroundState = {
 }
 
 interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif" | "tower defense" | "background";
+  key: "sound" | "emoji" | "chat" | "gif" | "tower defense" | "background" | "whiteboard";
   value?: string;
   [key: string]: any;
 }
@@ -168,7 +168,9 @@ export class Router {
           removeImageAfter1Min();
           break;
 
-        break;
+        case "whiteboard":
+          socket.broadcast.emit("event", message);
+          break;
     }
   };
 }
