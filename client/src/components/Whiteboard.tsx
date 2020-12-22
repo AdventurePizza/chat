@@ -1,4 +1,11 @@
-import React, { useRef, useEffect, useState, MouseEvent } from 'react';
+import React, {
+	useRef,
+	useEffect,
+	useState,
+	MouseEvent,
+	TouchEvent
+} from 'react';
+import { getRelativePos } from '../App';
 
 export interface ILineData {
 	prevX: number;
@@ -37,20 +44,22 @@ export function Whiteboard({
 		if (!onWhiteboardPanel) return;
 		let mouseX = e.clientX;
 		let mouseY = e.clientY;
-		const { x, y } = position.current;
 		if (isDrawing) {
-			drawLine(canvasRef, x, y, mouseX, mouseY, brushColor, false);
+			const { x, y } = position.current;
+			const { x: relPrevX, y: relPrevY } = getRelativePos(x, y);
+			const { x: relCurrentX, y: relCurrentY } = getRelativePos(mouseX, mouseY);
+
+			drawLine(false, canvasRef, x, y, mouseX, mouseY, brushColor, false);
 			const lineData: ILineData = {
-				prevX: x,
-				prevY: y,
-				currentX: mouseX,
-				currentY: mouseY,
+				prevX: relPrevX,
+				prevY: relPrevY,
+				currentX: relCurrentX,
+				currentY: relCurrentY,
 				color: brushColor
 			};
 			const strlineData = JSON.stringify(lineData);
 			onAction('whiteboard', strlineData);
 		}
-
 		position.current = { x: mouseX, y: mouseY };
 	}
 
@@ -63,7 +72,44 @@ export function Whiteboard({
 		};
 	}
 
+	function handleTouchMove(e: TouchEvent) {
+		if (!onWhiteboardPanel) return;
+		let mouseX = e.touches[0].clientX;
+		let mouseY = e.touches[0].clientY;
+		if (isDrawing) {
+			const { x, y } = position.current;
+			const { x: relPrevX, y: relPrevY } = getRelativePos(x, y);
+			const { x: relCurrentX, y: relCurrentY } = getRelativePos(mouseX, mouseY);
+
+			drawLine(false, canvasRef, x, y, mouseX, mouseY, brushColor, false);
+			const lineData: ILineData = {
+				prevX: relPrevX,
+				prevY: relPrevY,
+				currentX: relCurrentX,
+				currentY: relCurrentY,
+				color: brushColor
+			};
+			const strlineData = JSON.stringify(lineData);
+			onAction('whiteboard', strlineData);
+		}
+		position.current = { x: mouseX, y: mouseY };
+	}
+
 	function handleMouseUp() {
+		if (!onWhiteboardPanel) return;
+		setIsDrawing(false);
+	}
+
+	function handleTouchStart(e: TouchEvent) {
+		if (!onWhiteboardPanel) return;
+		setIsDrawing(true);
+		position.current = {
+			x: e.touches[0].clientX,
+			y: e.touches[0].clientY
+		};
+	}
+
+	function handleTouchEnd() {
 		if (!onWhiteboardPanel) return;
 		setIsDrawing(false);
 	}
@@ -72,6 +118,9 @@ export function Whiteboard({
 		<canvas
 			ref={canvasRef}
 			style={onWhiteboardPanel ? canvasStyles : {}}
+			onTouchMove={handleTouchMove}
+			onTouchEnd={handleTouchEnd}
+			onTouchStart={handleTouchStart}
 			onMouseDown={handleMouseDown}
 			onMouseUp={handleMouseUp}
 			onMouseMove={handleMouseMove}
@@ -87,6 +136,7 @@ const canvasStyles = {
 };
 
 export function drawLine(
+	relativePoints: boolean,
 	canvasRef: React.RefObject<HTMLCanvasElement>,
 	prevX: number,
 	prevY: number,
@@ -105,16 +155,36 @@ export function drawLine(
 		canvCtx!.globalCompositeOperation = 'source-over';
 		canvCtx!.lineWidth = 3;
 	}
+
 	canvCtx.beginPath();
-	canvCtx.moveTo(prevX, prevY);
-	canvCtx.lineTo(currentX, currentY);
+	if (relativePoints) {
+		const relPrevX = prevX * window.innerWidth;
+		const relPrevY = prevY * window.innerHeight;
+		const relCurrentX = currentX * window.innerWidth;
+		const relCurrentY = currentY * window.innerHeight;
+
+		canvCtx.moveTo(relPrevX, relPrevY);
+		canvCtx.lineTo(relCurrentX, relCurrentY);
+	} else {
+		canvCtx.moveTo(prevX, prevY);
+		canvCtx.lineTo(currentX, currentY);
+	}
 	canvCtx.strokeStyle = color;
 	canvCtx.stroke();
 	canvCtx.closePath();
 
 	if (!transparent) {
 		setTimeout(() => {
-			drawLine(canvasRef, prevX, prevY, currentX, currentY, color, true);
-		}, 9000);
+			drawLine(
+				relativePoints,
+				canvasRef,
+				prevX,
+				prevY,
+				currentX,
+				currentY,
+				color,
+				true
+			);
+		}, 11000);
 	}
 }
