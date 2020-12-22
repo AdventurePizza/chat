@@ -182,7 +182,7 @@ function App() {
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
 		const { prevX, prevY, currentX, currentY, color } = lineData;
-		drawLine(canvasRef, prevX, prevY, currentX, currentY, color, false);
+		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
 	const changeBackground = useCallback(
@@ -804,7 +804,7 @@ const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	}
 };
 
-const getRelativePos = (clientX: number, clientY: number) => {
+export const getRelativePos = (clientX: number, clientY: number) => {
 	const x = clientX;
 	const y = clientY;
 
