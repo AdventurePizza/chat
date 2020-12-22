@@ -28,7 +28,6 @@ import {
 } from './components/TowerDefense';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
-import { backgrounds } from './components/BackgroundImages';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -40,13 +39,14 @@ import _ from 'underscore';
 // Sound imports
 import audioEnter from './assets/sounds/zap-enter.mp3';
 import audioExit from './assets/sounds/zap-exit.mp3';
+import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
 const socketURL =
 	window.location.hostname === 'localhost'
 		? 'ws://localhost:8000'
-		: 'wss://adventure-chat.herokuapp.com';
+		: 'wss://trychats.herokuapp.com';
 
 const socket = io(socketURL, { transports: ['websocket'] });
 
