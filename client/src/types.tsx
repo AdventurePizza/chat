@@ -97,8 +97,14 @@ export interface IUserLocations {
 	[userId: string]: { x: number; y: number };
 }
 
+export interface IUserProfile {
+	name: string;
+	avatar: string;
+	text?: string;
+}
+
 export interface IUserProfiles {
-	[clientId: string]: { name: string; avatar: string };
+	[clientId: string]: IUserProfile;
 }
 
 export interface ITowerUnit {

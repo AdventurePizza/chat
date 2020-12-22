@@ -61,11 +61,12 @@ interface IUserCursorProps {
 	x?: number;
 	y?: number;
 	isSelectingTower?: ITowerBuilding;
+	text?: string;
 }
 
 export const UserCursor = React.forwardRef(
 	(
-		{ avatar, name, x, y, isSelectingTower }: IUserCursorProps,
+		{ avatar, name, x, y, isSelectingTower, text }: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
 		return (
@@ -82,10 +83,13 @@ export const UserCursor = React.forwardRef(
 						type="basic"
 					/>
 				) : (
-					<>
-						<img src={avatarMap[avatar]} alt="avatar" />
-						<div>{name}</div>
-					</>
+					<div>
+						<div>
+							<img src={avatarMap[avatar]} alt="avatar" />
+							<div>{name}</div>
+						</div>
+						{text}
+					</div>
 				)}
 			</div>
 		);

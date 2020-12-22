@@ -11,6 +11,7 @@ import {
 	ITowerDefenseState,
 	ITowerUnit,
 	IUserLocations,
+	IUserProfile,
 	IUserProfiles,
 	PanelItemEnum
 } from './types';
@@ -84,10 +85,10 @@ function App() {
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
-	const [userProfile, setUserProfile] = useState<{
-		name: string;
-		avatar: string;
-	}>();
+	const [userProfile, setUserProfile] = useState<IUserProfile>({
+		name: '',
+		avatar: ''
+	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
@@ -164,16 +165,26 @@ function App() {
 		}
 	};
 
-	const addChatMessage = useCallback((message: string) => {
-		const { x, y } = generateRandomXY(true);
-		const newMessage: IChatMessage = {
-			top: y,
-			left: x,
-			key: uuidv4(),
-			value: message
-		};
-		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
+	const handleChatMessage = useCallback((message: IMessageEvent) => {
+		// const { x, y } = generateRandomXY(true);
+		// const newMessage: IChatMessage = {
+		// 	top: y,
+		// 	left: x,
+		// 	key: uuidv4(),
+		// 	value: message
+		// };
+		// setChatMessages((chatMessages) => chatMessages.concat(newMessage));
+		const { userId, value } = message;
+		console.log('got chat message ', message);
+		setUserProfiles((profiles) => ({
+			...profiles,
+			[userId]: {
+				...profiles[userId],
+				text: value
+			}
+		}));
 	}, []);
+	console.log(userProfiles);
 
 	const changeBackground = useCallback(
 		(newBackgroundName: string | undefined) => {
@@ -259,7 +270,7 @@ function App() {
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
 		[x, y]: number[],
-		clientProfile: { name: string; avatar: string }
+		clientProfile: IUserProfile
 	) {
 		const width = window.innerWidth;
 		const height = window.innerHeight;
@@ -283,6 +294,7 @@ function App() {
 		setUserProfiles((userProfiles) => ({
 			...userProfiles,
 			[clientId]: {
+				...userProfiles[clientId],
 				...clientProfile
 			}
 		}));
@@ -444,7 +456,7 @@ function App() {
 					break;
 				case 'chat':
 					if (message.value) {
-						addChatMessage(message.value);
+						handleChatMessage(message);
 					}
 					break;
 				case 'gif':
@@ -462,7 +474,7 @@ function App() {
 		};
 
 		const onProfileInfo = (clientProfile: { name: string; avatar: string }) => {
-			setUserProfile(clientProfile);
+			setUserProfile((profile) => ({ ...profile, ...clientProfile }));
 		};
 
 		const onRoomateDisconnect = (clientId: string) => {
@@ -504,7 +516,7 @@ function App() {
 		handleTowerDefenseEvents,
 		playEmoji,
 		playSound,
-		addChatMessage,
+		handleChatMessage,
 		addGif,
 		onCursorMove,
 		changeBackground,
@@ -519,6 +531,7 @@ function App() {
 					key: 'chat',
 					value: chatValue
 				});
+				setUserProfile((profile) => ({ ...profile, text: chatValue }));
 				break;
 			case 'emoji':
 				const emoji = args[0] as string;
@@ -696,8 +709,7 @@ function App() {
 			{userProfile && (
 				<UserCursor
 					ref={userCursorRef}
-					avatar={userProfile.avatar}
-					name={userProfile.name}
+					{...userProfile}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}
