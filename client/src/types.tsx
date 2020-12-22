@@ -7,7 +7,14 @@ export interface IAnimation {
 }
 
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense' | 'background';
+	key:
+		| 'sound'
+		| 'emoji'
+		| 'chat'
+		| 'gif'
+		| 'tower defense'
+		| 'background'
+		| 'whiteboard';
 	value?: string;
 	[key: string]: any;
 }
@@ -90,7 +97,8 @@ export enum PanelItemEnum {
 	'gifs' = 'gifs',
 	'chat' = 'chat',
 	'tower' = 'tower',
-	'background' = 'background'
+	'background' = 'background',
+	'whiteboard' = 'whiteboard'
 }
 
 export interface IUserLocations {
