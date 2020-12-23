@@ -23,4 +23,7 @@ export const backgroundIcons: IBackgrounds = {
 	triangles: triangles
 };
 
-export const backgrounds: IBackgrounds = { ...backgroundIcons, undefined: undefined };
+export const backgrounds: IBackgrounds = {
+	...backgroundIcons,
+	undefined: undefined
+};

@@ -62,7 +62,8 @@ interface IMessageEvent {
     | "gif"
     | "tower defense"
     | "background"
-    | "messages";
+    | "messages"
+    | "whiteboard";
   value?: string;
   [key: string]: any;
 }
@@ -194,6 +195,8 @@ export class Router {
         removeImageAfter1Min();
         break;
 
+      case "whiteboard":
+        socket.broadcast.emit("event", message);
         break;
     }
   };

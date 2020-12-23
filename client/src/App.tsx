@@ -16,6 +16,7 @@ import {
 	IUserProfiles,
 	PanelItemEnum
 } from './types';
+import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Tooltip } from '@material-ui/core';
 import React, {
 	useCallback,
@@ -58,9 +59,12 @@ function App() {
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [brushColor, setBrushColor] = useState('black');
 	const [backgroundName, setBackgroundName] = useState<string | undefined>(
 		undefined
 	);
+
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
@@ -156,6 +160,7 @@ function App() {
 			case 'gifs':
 			case 'tower':
 			case 'background':
+			case 'whiteboard':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -170,6 +175,12 @@ function App() {
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
 		}));
+	}, []);
+
+	const drawLineEvent = useCallback((strLineData) => {
+		let lineData: ILineData = JSON.parse(strLineData);
+		const { prevX, prevY, currentX, currentY, color } = lineData;
+		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
 	const addGif = useCallback((gifId: string) => {
@@ -452,6 +463,11 @@ function App() {
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
+				case 'whiteboard':
+					if (message.value) {
+						drawLineEvent(message.value);
+					}
+					break;
 			}
 		};
 
@@ -500,6 +516,7 @@ function App() {
 		playSound,
 		handleChatMessage,
 		addGif,
+		drawLineEvent,
 		onCursorMove,
 		audioNotification
 	]);
@@ -580,6 +597,13 @@ function App() {
 				});
 				break;
 
+			case 'whiteboard':
+				const strlineData = args[0] as string;
+				socket.emit('event', {
+					key: 'whiteboard',
+					value: strlineData
+				});
+				break;
 			default:
 				break;
 		}
@@ -602,6 +626,8 @@ function App() {
 			return state;
 		});
 	}, []);
+
+	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
 	return (
 		<div
@@ -642,6 +668,13 @@ function App() {
 				}
 			/>
 
+			<Whiteboard
+				onWhiteboardPanel={onWhiteboardPanel}
+				canvasRef={canvasRef}
+				brushColor={brushColor}
+				onAction={actionHandler}
+			/>
+
 			<div className="open-panel-button">
 				{!isPanelOpen && (
 					<Tooltip title="open panel">
@@ -680,6 +713,7 @@ function App() {
 
 			<BottomPanel
 				towerDefenseState={towerDefenseState}
+				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
@@ -762,7 +796,7 @@ const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	}
 };
 
-const getRelativePos = (clientX: number, clientY: number) => {
+export const getRelativePos = (clientX: number, clientY: number) => {
 	const x = clientX;
 	const y = clientY;
 

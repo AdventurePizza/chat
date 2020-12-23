@@ -18,7 +18,8 @@ export interface IMessageEvent {
 		| 'gif'
 		| 'tower defense'
 		| 'background'
-		| 'messages';
+		| 'messages'
+		| 'whiteboard';
 	value?: any;
 	[key: string]: any;
 }
@@ -101,7 +102,8 @@ export enum PanelItemEnum {
 	'gifs' = 'gifs',
 	'chat' = 'chat',
 	'tower' = 'tower',
-	'background' = 'background'
+	'background' = 'background',
+	'whiteboard' = 'whiteboard'
 }
 
 export interface IUserLocations {
