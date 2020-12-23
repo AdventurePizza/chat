@@ -3,6 +3,7 @@ import './Board.css';
 import {
 	AnimationTypes,
 	IAnimation,
+	IAvatarChatMessages,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -33,6 +34,7 @@ interface IBoardProps {
 	userProfiles: IUserProfiles;
 	animations: IAnimation[];
 	updateAnimations: (animations: IAnimation[]) => void;
+	avatarMessages: IAvatarChatMessages;
 }
 
 export const Board = ({
@@ -49,7 +51,8 @@ export const Board = ({
 	figures,
 	updateFigures,
 	animations,
-	updateAnimations
+	updateAnimations,
+	avatarMessages
 }: IBoardProps) => {
 	return (
 		<div className="board-container">
@@ -226,7 +229,11 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
-			<UserCursors userLocations={userLocations} userProfiles={userProfiles} />
+			<UserCursors
+				userLocations={userLocations}
+				userProfiles={userProfiles}
+				avatarChatMessages={avatarMessages}
+			/>
 		</div>
 	);
 };

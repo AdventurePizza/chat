@@ -6,6 +6,10 @@ export interface IAnimation {
 	text?: string;
 }
 
+export interface IAvatarChatMessages {
+	[userId: string]: string[];
+}
+
 export interface IMessageEvent {
 	key:
 		| 'sound'
@@ -14,8 +18,9 @@ export interface IMessageEvent {
 		| 'gif'
 		| 'tower defense'
 		| 'background'
+		| 'messages'
 		| 'whiteboard';
-	value?: string;
+	value?: any;
 	[key: string]: any;
 }
 
@@ -105,8 +110,14 @@ export interface IUserLocations {
 	[userId: string]: { x: number; y: number };
 }
 
+export interface IUserProfile {
+	name: string;
+	avatar: string;
+	message?: string;
+}
+
 export interface IUserProfiles {
-	[clientId: string]: { name: string; avatar: string };
+	[clientId: string]: IUserProfile;
 }
 
 export interface ITowerUnit {
