@@ -125,7 +125,6 @@ function App() {
 		}
 		//@ts-ignore
 		fireworks = new Fireworks(container, options)
-		
 	}, []);
 
 	const playEmoji = useCallback((type: string) => {
@@ -286,8 +285,8 @@ function App() {
 				activateSchoolPride();
 				break;
 			case 'fireworks':
-				console.log(fireworks)
-				fireworks.fire();
+				
+				fireworks.start();
 				break;
 			case 'snow':
 				activateSnow();
@@ -705,13 +704,13 @@ function App() {
 	return (
 		<div
 			className="app"
+			ref={fireWorkContainer}
 			style={{
 				minHeight: window.innerHeight - 10,
 				backgroundImage: `url(${backgrounds[backgroundName!]})`,
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
-			ref={fireWorkContainer}
 			onClick={onClickApp}
 		>
 			<Board
