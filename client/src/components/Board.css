@@ -93,7 +93,8 @@
 	opacity: 0;
 }
 
-.animation-transition-enter {
+.animation-transition-enter,
+.avatar-message-transition-enter {
 	opacity: 0;
 }
 
@@ -112,4 +113,15 @@
 	max-width: 280px;
 	-webkit-line-clamp: 6;
 	position: relative;
+}
+
+.avatar-message-transition-enter-active {
+	opacity: 1;
+	transform: translateY(-10px);
+	transition: opacity 1s, transform 1s;
+	top: 10px;
+}
+.avatar-message-transition-exit {
+	opacity: 0;
+	transition: opacity 1s;
 }

@@ -147,9 +147,9 @@ export class Router {
           userId: socket.id,
           value: message.value,
         });
+
         if (message.value) {
           chatMessages[socket.id].push(message.value);
-          console.log(chatMessages);
         }
         break;
 

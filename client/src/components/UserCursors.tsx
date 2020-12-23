@@ -4,8 +4,9 @@ import {
 	IUserLocations,
 	IUserProfiles
 } from '../types';
+import React, { useEffect, useRef, useState } from 'react';
 
-import React from 'react';
+import { CSSTransition } from 'react-transition-group';
 import { Tower } from './TowerDefense';
 import character1 from '../assets/character1.png';
 import character2 from '../assets/character2.png';
@@ -88,6 +89,23 @@ export const UserCursor = React.forwardRef(
 		{ avatar, name, x, y, isSelectingTower, message }: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
+		const [inProp, setInProp] = useState(false);
+		const timerRef = useRef<NodeJS.Timeout>();
+
+		useEffect(() => {
+			if (message) {
+				setInProp((prop) => !prop);
+
+				if (timerRef.current) {
+					clearTimeout(timerRef.current);
+				}
+
+				timerRef.current = setTimeout(() => {
+					setInProp(true);
+				}, 200);
+			}
+		}, [message]);
+
 		return (
 			<div
 				style={{ transform: `translate(${x}px, ${y}px)` }}
@@ -113,7 +131,14 @@ export const UserCursor = React.forwardRef(
 						<div style={{ textDecoration: 'bold', fontSize: '1.2em' }}>
 							{name}
 						</div>
-						<div className="avatar-message">{message}</div>
+						<CSSTransition
+							timeout={1000}
+							classNames="avatar-message-transition"
+							key={message}
+							in={inProp}
+						>
+							<div className="avatar-message">{message}</div>
+						</CSSTransition>
 					</div>
 				)}
 			</div>
