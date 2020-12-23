@@ -85,8 +85,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							);
 
 							if (toDeleteUnitIndex !== -1) {
-								updateScores(scores + units[toDeleteUnitIndex].value);
-								console.log(scores)
+								updateScores(scores+1);
 								updateUnits([
 									...units.slice(0, toDeleteUnitIndex),
 									...units.slice(toDeleteUnitIndex + 1)

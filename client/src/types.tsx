@@ -115,6 +115,7 @@ export interface ITowerBuilding {
 	type: 'basic';
 	top: number;
 	left: number;
+	cost: number;
 }
 
 export interface ITowerProjectile {

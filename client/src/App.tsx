@@ -54,6 +54,7 @@ const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 const ENEMY_VALUES = {'grunt':1}
+const TOWER_COSTS = {'basic':5}
 
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -340,7 +341,7 @@ function App() {
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
 				playAnimation('start game');
-				setTowerDefenseState((state) => ({ ...state, isPlaying: true, scores: 0}));
+				setTowerDefenseState((state) => ({ ...state, isPlaying: true, scores: 10}));
 			}
 			if (message.value === 'end') {
 				playAnimation('end game');
@@ -369,12 +370,12 @@ function App() {
 
 			if (message.value === 'add tower') {
 				const { x, y, towerKey } = message;
-
 				setTowerDefenseState((state) => ({
 					...state,
 					towers: state.towers.concat({
 						key: towerKey,
 						type: 'basic',
+						cost: TOWER_COSTS['basic'],
 						top: y * window.innerHeight,
 						left: x * window.innerWidth
 					})
@@ -560,6 +561,7 @@ function App() {
 					const towerObj: ITowerBuilding = {
 						key: tower,
 						type: 'basic',
+						cost: TOWER_COSTS['basic'],
 						top: 0,
 						left: 0
 					};
@@ -575,6 +577,7 @@ function App() {
 							...state,
 							selectedPlacementTower: towerObj
 						};
+					
 					});
 				} else {
 					socket.emit('event', args[0]);
@@ -597,20 +600,23 @@ function App() {
 	const onClickApp = useCallback((event: React.MouseEvent) => {
 		setTowerDefenseState((state) => {
 			if (state.selectedPlacementTower) {
-				const { x, y } = getRelativePos(event.clientX, event.clientY);
-
-				socket.emit('event', {
-					key: 'tower defense',
-					value: 'add tower',
-					x,
-					y
-				});
-
+				const newScore = towerDefenseState.scores-5;
+				if(newScore >= 0) {
+					const { x, y } = getRelativePos(event.clientX, event.clientY);
+				
+					socket.emit('event', {
+						key: 'tower defense',
+						value: 'add tower',
+						x,
+						y
+					});	
+					return { ...state, scores: newScore, selectedPlacementTower: undefined };
+				}
 				return { ...state, selectedPlacementTower: undefined };
 			}
 			return state;
 		});
-	}, []);
+	}, [towerDefenseState]);
 
 	return (
 		<div
