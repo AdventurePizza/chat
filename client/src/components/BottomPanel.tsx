@@ -8,10 +8,12 @@ import React from 'react';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import BackgroundPanel from './BackgroundPanel';
+import WhiteboardPanel from './WhiteboardPanel';
 
 export interface IPanelProps {
 	isOpen: boolean;
 	type?: PanelItemEnum;
+	setBrushColor: (color: string) => void;
 	onAction: (key: string, ...args: any[]) => void;
 	towerDefenseState: ITowerDefenseState;
 }
@@ -27,6 +29,7 @@ const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 export const BottomPanel = ({
 	isOpen,
 	type,
+	setBrushColor,
 	onAction,
 	towerDefenseState
 }: IPanelProps) => {
@@ -86,6 +89,8 @@ export const BottomPanel = ({
 				);
 			case 'background':
 				return <BackgroundPanel sendBackground={onAction} />;
+			case 'whiteboard':
+				return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		}
 	};
 

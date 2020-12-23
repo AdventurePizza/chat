@@ -11,6 +11,7 @@ import gifIcon from '../assets/navbar/gifIcon.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
 import cameraRollIcon from '../assets/navbar/camera_roll.png';
+import pencilIcon from '../assets/navbar/pencil.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -71,7 +72,8 @@ const panelIconSrcMap: {
 	gifs: gifIcon,
 	chat: chatIcon,
 	tower: towerIcon,
-	background: cameraRollIcon
+	background: cameraRollIcon,
+	whiteboard: pencilIcon
 };
 
 interface IPanelItemProps {

@@ -1,6 +1,12 @@
-import { ITowerBuilding, IUserLocations, IUserProfiles } from '../types';
+import {
+	IAvatarChatMessages,
+	ITowerBuilding,
+	IUserLocations,
+	IUserProfiles
+} from '../types';
+import React, { useEffect, useRef, useState } from 'react';
 
-import React from 'react';
+import { CSSTransition } from 'react-transition-group';
 import { Tower } from './TowerDefense';
 import character1 from '../assets/character1.png';
 import character2 from '../assets/character2.png';
@@ -36,6 +42,7 @@ interface IUserCursorsProps {
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
 	isSelectingTower?: ITowerBuilding;
+	avatarChatMessages: IAvatarChatMessages;
 }
 
 export const UserCursors = (props: IUserCursorsProps) => {
@@ -48,8 +55,21 @@ export const UserCursors = (props: IUserCursorsProps) => {
 					return null;
 				}
 				const { avatar, name } = props.userProfiles[key];
+				const messages = props.avatarChatMessages[key];
+				let chatMessage;
+				if (Array.isArray(messages)) {
+					chatMessage = messages[messages.length - 1];
+				}
 
-				return <UserCursor avatar={avatar} name={name} x={x} y={y} />;
+				return (
+					<UserCursor
+						avatar={avatar}
+						name={name}
+						x={x}
+						y={y}
+						message={chatMessage}
+					/>
+				);
 			})}
 		</>
 	);
@@ -61,13 +81,31 @@ interface IUserCursorProps {
 	x?: number;
 	y?: number;
 	isSelectingTower?: ITowerBuilding;
+	message?: string;
 }
 
 export const UserCursor = React.forwardRef(
 	(
-		{ avatar, name, x, y, isSelectingTower }: IUserCursorProps,
+		{ avatar, name, x, y, isSelectingTower, message }: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
+		const [inProp, setInProp] = useState(false);
+		const timerRef = useRef<NodeJS.Timeout>();
+
+		useEffect(() => {
+			if (message) {
+				setInProp((prop) => !prop);
+
+				if (timerRef.current) {
+					clearTimeout(timerRef.current);
+				}
+
+				timerRef.current = setTimeout(() => {
+					setInProp(true);
+				}, 200);
+			}
+		}, [message]);
+
 		return (
 			<div
 				style={{ transform: `translate(${x}px, ${y}px)` }}
@@ -83,10 +121,26 @@ export const UserCursor = React.forwardRef(
 						cost={5}
 					/>
 				) : (
-					<>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							flexDirection: 'column'
+						}}
+					>
 						<img src={avatarMap[avatar]} alt="avatar" />
-						<div>{name}</div>
-					</>
+						<div style={{ textDecoration: 'bold', fontSize: '1.2em' }}>
+							{name}
+						</div>
+						<CSSTransition
+							timeout={1000}
+							classNames="avatar-message-transition"
+							key={message}
+							in={inProp}
+						>
+							<div className="avatar-message">{message}</div>
+						</CSSTransition>
+					</div>
 				)}
 			</div>
 		);

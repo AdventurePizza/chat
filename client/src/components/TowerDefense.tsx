@@ -17,7 +17,6 @@ export type Actions = 'hit enemy';
 
 interface ITowerDefenseProps {
 	state: ITowerDefenseState;
-	onAction: (action: Actions) => void;
 	updateUnits: (units: ITowerUnit[]) => void;
 	updateProjectiles: (projectiles: ITowerProjectile[]) => void;
 	updateScores: (scores: number) => void

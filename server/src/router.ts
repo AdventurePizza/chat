@@ -16,6 +16,8 @@ const io = new socketio.Server(httpServer);
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
 const DEFAULT_IMAGE_BACKGROUND = undefined;
 
+const chatMessages: { [userId: string]: string[] } = {};
+
 export interface IBackgroundState {
   imageTimeout?: NodeJS.Timeout;
   currentBackground: string | undefined;
@@ -49,11 +51,19 @@ let towerDefenseState: ITowerDefenseState = {
 };
 
 let backgroundState: IBackgroundState = {
-  currentBackground: DEFAULT_IMAGE_BACKGROUND
-}
+  currentBackground: DEFAULT_IMAGE_BACKGROUND,
+};
 
 interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif" | "tower defense" | "background";
+  key:
+    | "sound"
+    | "emoji"
+    | "chat"
+    | "gif"
+    | "tower defense"
+    | "background"
+    | "messages"
+    | "whiteboard";
   value?: string;
   [key: string]: any;
 }
@@ -68,6 +78,14 @@ export class Router {
       IS_DEBUG && console.log("connected user");
 
       createProfile(socket);
+
+      chatMessages[socket.id] = [];
+
+      // emit all latest chat messages
+      socket.emit("event", {
+        key: "messages",
+        value: chatMessages,
+      });
 
       if (towerDefenseState.isPlaying) {
         socket.emit("event", { key: "tower defense", value: "start" });
@@ -97,6 +115,7 @@ export class Router {
         io.emit("roommate disconnect", socket.id);
         delete clientProfiles[socket.id];
         delete selectedAvatars[socket.id];
+        delete chatMessages[socket.id];
       });
 
       socket.on("cursor move", (data) => {
@@ -124,7 +143,15 @@ export class Router {
         break;
 
       case "chat":
-        io.emit("event", message);
+        io.emit("event", {
+          key: "chat",
+          userId: socket.id,
+          value: message.value,
+        });
+
+        if (message.value) {
+          chatMessages[socket.id].push(message.value);
+        }
         break;
 
       case "gif":
@@ -161,13 +188,15 @@ export class Router {
           });
         }
 
-        case "background":
-          let backgroundName = message.value;
-          backgroundState.currentBackground = backgroundName;
-          io.emit("event", message);
-          removeImageAfter1Min();
-          break;
+      case "background":
+        let backgroundName = message.value;
+        backgroundState.currentBackground = backgroundName;
+        io.emit("event", message);
+        removeImageAfter1Min();
+        break;
 
+      case "whiteboard":
+        socket.broadcast.emit("event", message);
         break;
     }
   };
@@ -345,9 +374,9 @@ const removeImageAfter1Min = () => {
     clearTimeout(backgroundState.imageTimeout);
   }
 
-  backgroundState.imageTimeout = setTimeout(() => { 
-    removeImage(); 
-  }, 60000)
+  backgroundState.imageTimeout = setTimeout(() => {
+    removeImage();
+  }, 60000);
 };
 
 const removeImage = () => {
@@ -356,7 +385,7 @@ const removeImage = () => {
   }
 
   backgroundState = {
-    currentBackground: DEFAULT_IMAGE_BACKGROUND
+    currentBackground: DEFAULT_IMAGE_BACKGROUND,
   };
 
   io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
