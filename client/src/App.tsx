@@ -2,6 +2,7 @@ import './App.css';
 
 import {
 	IAnimation,
+	IAvatarChatMessages,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -11,9 +12,11 @@ import {
 	ITowerDefenseState,
 	ITowerUnit,
 	IUserLocations,
+	IUserProfile,
 	IUserProfiles,
 	PanelItemEnum
 } from './types';
+import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Tooltip } from '@material-ui/core';
 import React, {
 	useCallback,
@@ -22,23 +25,20 @@ import React, {
 	useRef,
 	useState
 } from 'react';
-import {
-	TowerDefense,
-	Actions as TowerDefenseActions
-} from './components/TowerDefense';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
-import { Whiteboard, drawLine, ILineData } from './components/Whiteboard';
+
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
+import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 // Sound imports
-import audioEnter from './assets/sounds/zap-enter.mp3';
-import audioExit from './assets/sounds/zap-exit.mp3';
+// import audioEnter from './assets/sounds/zap-enter.mp3';
+// import audioExit from './assets/sounds/zap-exit.mp3';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
@@ -66,6 +66,7 @@ function App() {
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
+	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
@@ -87,10 +88,10 @@ function App() {
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
-	const [userProfile, setUserProfile] = useState<{
-		name: string;
-		avatar: string;
-	}>();
+	const [userProfile, setUserProfile] = useState<IUserProfile>({
+		name: '',
+		avatar: ''
+	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
@@ -168,15 +169,12 @@ function App() {
 		}
 	};
 
-	const addChatMessage = useCallback((message: string) => {
-		const { x, y } = generateRandomXY(true);
-		const newMessage: IChatMessage = {
-			top: y,
-			left: x,
-			key: uuidv4(),
-			value: message
-		};
-		setChatMessages((chatMessages) => chatMessages.concat(newMessage));
+	const handleChatMessage = useCallback((message: IMessageEvent) => {
+		const { userId, value } = message;
+		setAvatarMessages((messages) => ({
+			...messages,
+			[userId]: (messages[userId] || []).concat(value)
+		}));
 	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -184,13 +182,6 @@ function App() {
 		const { prevX, prevY, currentX, currentY, color } = lineData;
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
-
-	const changeBackground = useCallback(
-		(newBackgroundName: string | undefined) => {
-			setBackgroundName(newBackgroundName);
-		},
-		[]
-	);
 
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -269,7 +260,7 @@ function App() {
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
 		[x, y]: number[],
-		clientProfile: { name: string; avatar: string }
+		clientProfile: IUserProfile
 	) {
 		const width = window.innerWidth;
 		const height = window.innerHeight;
@@ -293,6 +284,7 @@ function App() {
 		setUserProfiles((userProfiles) => ({
 			...userProfiles,
 			[clientId]: {
+				...userProfiles[clientId],
 				...clientProfile
 			}
 		}));
@@ -454,7 +446,7 @@ function App() {
 					break;
 				case 'chat':
 					if (message.value) {
-						addChatMessage(message.value);
+						handleChatMessage(message);
 					}
 					break;
 				case 'gif':
@@ -466,7 +458,10 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					changeBackground(message.value);
+					setBackgroundName(message.value);
+					break;
+				case 'messages':
+					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 				case 'whiteboard':
 					if (message.value) {
@@ -477,7 +472,7 @@ function App() {
 		};
 
 		const onProfileInfo = (clientProfile: { name: string; avatar: string }) => {
-			setUserProfile(clientProfile);
+			setUserProfile((profile) => ({ ...profile, ...clientProfile }));
 		};
 
 		const onRoomateDisconnect = (clientId: string) => {
@@ -491,18 +486,18 @@ function App() {
 				return newUserLocations;
 			});
 
-			audioNotification.current = new Audio(audioExit);
-			audioNotification.current.currentTime = 0;
-			audioNotification.current.play();
+			// audioNotification.current = new Audio(audioExit);
+			// audioNotification.current.currentTime = 0;
+			// audioNotification.current.play();
 		};
 
-		const onNewUser = () => {
-			audioNotification.current = new Audio(audioEnter);
-			audioNotification.current.currentTime = 0;
-			audioNotification.current.play();
-		};
+		// const onNewUser = () => {
+		// 	audioNotification.current = new Audio(audioEnter);
+		// 	audioNotification.current.currentTime = 0;
+		// 	audioNotification.current.play();
+		// };
 
-		socket.on('new user', onNewUser);
+		// socket.on('new user', onNewUser);
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
@@ -513,15 +508,14 @@ function App() {
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('event', onMessageEvent);
-			socket.off('new user', onNewUser);
+			// socket.off('new user', onNewUser);
 		};
 	}, [
 		handleTowerDefenseEvents,
 		playEmoji,
 		playSound,
-		addChatMessage,
+		handleChatMessage,
 		addGif,
-		changeBackground,
 		drawLineEvent,
 		onCursorMove,
 		audioNotification
@@ -535,6 +529,7 @@ function App() {
 					key: 'chat',
 					value: chatValue
 				});
+				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				break;
 			case 'emoji':
 				const emoji = args[0] as string;
@@ -660,13 +655,11 @@ function App() {
 				updateFigures={setFigures}
 				animations={animations}
 				updateAnimations={setAnimations}
+				avatarMessages={avatarMessages}
 			/>
 
 			<TowerDefense
 				state={towerDefenseState}
-				onAction={(action: TowerDefenseActions) => {
-					console.log('tower defense action', action);
-				}}
 				updateUnits={(units) =>
 					setTowerDefenseState((state) => ({ ...state, units }))
 				}
@@ -729,8 +722,7 @@ function App() {
 			{userProfile && (
 				<UserCursor
 					ref={userCursorRef}
-					avatar={userProfile.avatar}
-					name={userProfile.name}
+					{...userProfile}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}
