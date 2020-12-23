@@ -7,7 +7,7 @@ export interface IAnimation {
 }
 
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense' | 'background';
+	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense' | 'background' | 'animation';
 	value?: string;
 	[key: string]: any;
 }
@@ -76,6 +76,14 @@ export interface IBackgrounds {
 	triangles: string;
 }
 
+export interface Ianimations {
+	[key: string]: string | undefined;
+	schoolPride: string;
+	fireworks: string;
+	confetti: string;
+	snow: string;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -90,7 +98,8 @@ export enum PanelItemEnum {
 	'gifs' = 'gifs',
 	'chat' = 'chat',
 	'tower' = 'tower',
-	'background' = 'background'
+	'background' = 'background',
+	'animation' = 'animation'
 }
 
 export interface IUserLocations {
@@ -130,3 +139,5 @@ export interface ITowerDefenseState {
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
 }
+
+

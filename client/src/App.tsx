@@ -32,7 +32,7 @@ import { backgrounds } from './components/BackgroundImages';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
-import { ChevronRight } from '@material-ui/icons';
+import { ChevronRight, LeakAddTwoTone } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
@@ -42,6 +42,11 @@ import audioEnter from './assets/sounds/zap-enter.mp3';
 import audioExit from './assets/sounds/zap-exit.mp3';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+//@ts-ignore
+import confetti from 'canvas-confetti'
+//import confetti from 'canvas-confetti'
+const FireworksCanvas = require('fireworks-canvas')
+//const confetti = require('canvas-confetti');
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -91,6 +96,29 @@ function App() {
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
+
+	const fireWorkContainer = useRef(null);
+	let fireworks : any = null;
+	const [myAnimationType, setMyAnimationType] = useState<string>("");
+	useEffect(() => {
+		  //const container = document.getElementById("abc")
+		  const container : any = fireWorkContainer.current
+		  let options = null;
+		  if (container) {
+		    options = {
+			maxRockets: 3, // max # of rockets to spawn
+			rocketSpawnInterval: 150, // millisends to check if new rockets should spawn
+			numParticles: 100, // number of particles to spawn when rocket explodes (+0-10)
+			explosionMinHeight: 0.5, // percentage. min height at which rockets can explode
+			explosionMaxHeight: 0.9, // percentage. max height before a particle is exploded
+			explosionChance: 0.9, // chance in each tick the rocket will explode
+			width: container.clientWidth, // override the width, defaults to container width
+			height: container.clientHeight // override the height, defaults to container height
+		  }
+		}
+		  fireworks = new FireworksCanvas(container, options)
+		  
+	})
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -155,6 +183,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower':
+			case 'animation':
 			case 'background':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -232,6 +261,29 @@ function App() {
 					type: 'gryphon'
 				})
 			);
+		}
+	}, []);
+
+
+	const activateFireworks = () => {
+		fireworks.fire()
+	  }
+
+	const playMyAnimation = useCallback((animationType : string) => {
+		setMyAnimationType(animationType)
+		switch(animationType) {
+			case 'confetti':
+				activateRandomConfetti();
+				break;
+			case 'schoolPride':
+				activateSchoolPride();
+				break;
+			case 'fireworks':
+				activateFireworks();
+				break;
+			case 'snow':
+				activateSnow();
+				break;
 		}
 	}, []);
 
@@ -458,6 +510,11 @@ function App() {
 				case 'background':
 					changeBackground(message.value);
 					break;
+				case 'animation':
+					if (message.value) {
+						playMyAnimation(message.value);
+						break;
+					}
 			}
 		};
 
@@ -508,7 +565,8 @@ function App() {
 		addGif,
 		onCursorMove,
 		changeBackground,
-		audioNotification
+		audioNotification,
+		playMyAnimation
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -585,7 +643,14 @@ function App() {
 					value: backgroundName
 				});
 				break;
-
+			case 'animation':
+				const animationType = args[0] as string;
+				playMyAnimation(animationType);
+				socket.emit('event', {
+					key: 'animation',
+					value: animationType
+				})
+				break;
 			default:
 				break;
 		}
@@ -618,6 +683,7 @@ function App() {
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
+			ref={fireWorkContainer}
 			onClick={onClickApp}
 		>
 			<Board
@@ -792,3 +858,79 @@ const getDistanceBetweenPoints = (
 ) => {
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
+
+//Celebration - Animation
+const activateRandomConfetti = () => {
+	confetti({
+	  particleCount: 100,
+	  startVelocity: 30,
+	  spread: 360,
+	  origin: {
+		x: Math.random(),
+		// since they fall down, start a bit higher than random
+		y: Math.random() - 0.2
+	  }
+	});  
+}
+const activateSchoolPride = () => {
+  var end = Date.now() + (15 * 1000);
+  // go Buckeyes!
+  var colors = ['#bb0000', '#ffffff'];
+
+  (function frame() {
+	confetti({
+	  particleCount: 2,
+	  angle: 60,
+	  spread: 55,
+	  origin: { x: 0 },
+	  colors: colors
+	});
+	confetti({
+	  particleCount: 2,
+	  angle: 120,
+	  spread: 55,
+	  origin: { x: 1 },
+	  colors: colors
+	});
+
+	if (Date.now() < end) {
+	  requestAnimationFrame(frame);
+	}
+  }());
+}
+
+const activateSnow = () => {
+  var duration = 2 * 1000;
+  var animationEnd = Date.now() + duration;
+  var skew = 1;
+
+  function randomInRange(min : number, max : number) {
+	return Math.random() * (max - min) + min;
+  }
+
+  (function frame() {
+	var timeLeft = animationEnd - Date.now();
+	var ticks = Math.max(200, 500 * (timeLeft / duration));
+	skew = Math.max(0.8, skew - 0.001);
+
+	confetti({
+	  particleCount: 1,
+	  startVelocity: 0,
+	  ticks: ticks,
+	  gravity: 0.5,
+	  origin: {
+		x: Math.random(),
+		// since particles fall down, skew start toward the top
+		y: (Math.random() * skew) - 0.2
+	  },
+	  colors: ['#ffffff'],
+	  shapes: ['circle'],
+	  scalar: randomInRange(0.4, 1)
+	});
+
+	if (timeLeft > 0) {
+	  requestAnimationFrame(frame);
+	}
+  }());
+}
+

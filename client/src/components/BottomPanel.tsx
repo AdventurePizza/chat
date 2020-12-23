@@ -8,6 +8,7 @@ import React from 'react';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import BackgroundPanel from './BackgroundPanel';
+import AnimationPanel from './AnimationPanel'
 
 export interface IPanelProps {
 	isOpen: boolean;
@@ -85,6 +86,8 @@ export const BottomPanel = ({
 				);
 			case 'background':
 				return <BackgroundPanel sendBackground={onAction} />;
+			case 'animation':
+				return <AnimationPanel sendAnimation={onAction} />;
 		}
 	};
 

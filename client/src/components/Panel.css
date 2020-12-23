@@ -129,6 +129,33 @@
 	justify-content: center;
 }
 
+.animation-container {
+	width: 100vw;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.animation-icon-list {
+	display: flex;
+	justify-content: center;
+}
+
+.animation-icon img{
+	width: 51px;
+	height: auto;
+	margin: 0 3px;
+	display: flex;
+}
+
+.animation-icon button {
+	background-color: white;
+	border: rgb(0, 0, 0) 0px;
+	height: auto;
+	width: auto;
+	margin-right: 2px;
+}
+
+
 .background-icon-list {
 	display: flex;
 	justify-content: center;
@@ -175,6 +202,11 @@
 	width: 18px;
 	height: 35px;
 }
+.panel-icon-animation {
+	width: 26px;
+	height: 26px;
+}
+
 /* filter: invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg)
 		brightness(101%) contrast(88%); */
 
