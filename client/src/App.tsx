@@ -2,6 +2,7 @@ import './App.css';
 
 import {
 	IAnimation,
+	IAvatarChatMessages,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -23,10 +24,6 @@ import React, {
 	useRef,
 	useState
 } from 'react';
-import {
-	TowerDefense,
-	Actions as TowerDefenseActions
-} from './components/TowerDefense';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
 
@@ -36,10 +33,11 @@ import { ChevronRight } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
+import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 // Sound imports
-import audioEnter from './assets/sounds/zap-enter.mp3';
-import audioExit from './assets/sounds/zap-exit.mp3';
+// import audioEnter from './assets/sounds/zap-enter.mp3';
+// import audioExit from './assets/sounds/zap-exit.mp3';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
@@ -64,6 +62,7 @@ function App() {
 		undefined
 	);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
+	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
 	>(PanelItemEnum.chat);
@@ -166,32 +165,12 @@ function App() {
 	};
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
-		// const { x, y } = generateRandomXY(true);
-		// const newMessage: IChatMessage = {
-		// 	top: y,
-		// 	left: x,
-		// 	key: uuidv4(),
-		// 	value: message
-		// };
-		// setChatMessages((chatMessages) => chatMessages.concat(newMessage));
 		const { userId, value } = message;
-		console.log('got chat message ', message);
-		setUserProfiles((profiles) => ({
-			...profiles,
-			[userId]: {
-				...profiles[userId],
-				text: value
-			}
+		setAvatarMessages((messages) => ({
+			...messages,
+			[userId]: (messages[userId] || []).concat(value)
 		}));
 	}, []);
-	console.log(userProfiles);
-
-	const changeBackground = useCallback(
-		(newBackgroundName: string | undefined) => {
-			setBackgroundName(newBackgroundName);
-		},
-		[]
-	);
 
 	const addGif = useCallback((gifId: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -468,7 +447,10 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					changeBackground(message.value);
+					setBackgroundName(message.value);
+					break;
+				case 'messages':
+					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 			}
 		};
@@ -488,18 +470,18 @@ function App() {
 				return newUserLocations;
 			});
 
-			audioNotification.current = new Audio(audioExit);
-			audioNotification.current.currentTime = 0;
-			audioNotification.current.play();
+			// audioNotification.current = new Audio(audioExit);
+			// audioNotification.current.currentTime = 0;
+			// audioNotification.current.play();
 		};
 
-		const onNewUser = () => {
-			audioNotification.current = new Audio(audioEnter);
-			audioNotification.current.currentTime = 0;
-			audioNotification.current.play();
-		};
+		// const onNewUser = () => {
+		// 	audioNotification.current = new Audio(audioEnter);
+		// 	audioNotification.current.currentTime = 0;
+		// 	audioNotification.current.play();
+		// };
 
-		socket.on('new user', onNewUser);
+		// socket.on('new user', onNewUser);
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
@@ -510,7 +492,7 @@ function App() {
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('event', onMessageEvent);
-			socket.off('new user', onNewUser);
+			// socket.off('new user', onNewUser);
 		};
 	}, [
 		handleTowerDefenseEvents,
@@ -519,7 +501,6 @@ function App() {
 		handleChatMessage,
 		addGif,
 		onCursorMove,
-		changeBackground,
 		audioNotification
 	]);
 
@@ -531,7 +512,7 @@ function App() {
 					key: 'chat',
 					value: chatValue
 				});
-				setUserProfile((profile) => ({ ...profile, text: chatValue }));
+				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				break;
 			case 'emoji':
 				const emoji = args[0] as string;
@@ -648,13 +629,11 @@ function App() {
 				updateFigures={setFigures}
 				animations={animations}
 				updateAnimations={setAnimations}
+				avatarMessages={avatarMessages}
 			/>
 
 			<TowerDefense
 				state={towerDefenseState}
-				onAction={(action: TowerDefenseActions) => {
-					console.log('tower defense action', action);
-				}}
 				updateUnits={(units) =>
 					setTowerDefenseState((state) => ({ ...state, units }))
 				}

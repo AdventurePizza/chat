@@ -1,4 +1,9 @@
-import { ITowerBuilding, IUserLocations, IUserProfiles } from '../types';
+import {
+	IAvatarChatMessages,
+	ITowerBuilding,
+	IUserLocations,
+	IUserProfiles
+} from '../types';
 
 import React from 'react';
 import { Tower } from './TowerDefense';
@@ -36,6 +41,7 @@ interface IUserCursorsProps {
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
 	isSelectingTower?: ITowerBuilding;
+	avatarChatMessages: IAvatarChatMessages;
 }
 
 export const UserCursors = (props: IUserCursorsProps) => {
@@ -48,8 +54,21 @@ export const UserCursors = (props: IUserCursorsProps) => {
 					return null;
 				}
 				const { avatar, name } = props.userProfiles[key];
+				const messages = props.avatarChatMessages[key];
+				let chatMessage;
+				if (Array.isArray(messages)) {
+					chatMessage = messages[messages.length - 1];
+				}
 
-				return <UserCursor avatar={avatar} name={name} x={x} y={y} />;
+				return (
+					<UserCursor
+						avatar={avatar}
+						name={name}
+						x={x}
+						y={y}
+						message={chatMessage}
+					/>
+				);
 			})}
 		</>
 	);
@@ -61,12 +80,12 @@ interface IUserCursorProps {
 	x?: number;
 	y?: number;
 	isSelectingTower?: ITowerBuilding;
-	text?: string;
+	message?: string;
 }
 
 export const UserCursor = React.forwardRef(
 	(
-		{ avatar, name, x, y, isSelectingTower, text }: IUserCursorProps,
+		{ avatar, name, x, y, isSelectingTower, message }: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
 		return (
@@ -83,12 +102,18 @@ export const UserCursor = React.forwardRef(
 						type="basic"
 					/>
 				) : (
-					<div>
-						<div>
-							<img src={avatarMap[avatar]} alt="avatar" />
-							<div>{name}</div>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							flexDirection: 'column'
+						}}
+					>
+						<img src={avatarMap[avatar]} alt="avatar" />
+						<div style={{ textDecoration: 'bold', fontSize: '1.2em' }}>
+							{name}
 						</div>
-						{text}
+						<div className="avatar-message">{message}</div>
 					</div>
 				)}
 			</div>

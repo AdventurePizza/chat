@@ -55,7 +55,14 @@ let backgroundState: IBackgroundState = {
 };
 
 interface IMessageEvent {
-  key: "sound" | "emoji" | "chat" | "gif" | "tower defense" | "background";
+  key:
+    | "sound"
+    | "emoji"
+    | "chat"
+    | "gif"
+    | "tower defense"
+    | "background"
+    | "messages";
   value?: string;
   [key: string]: any;
 }
@@ -72,6 +79,12 @@ export class Router {
       createProfile(socket);
 
       chatMessages[socket.id] = [];
+
+      // emit all latest chat messages
+      socket.emit("event", {
+        key: "messages",
+        value: chatMessages,
+      });
 
       if (towerDefenseState.isPlaying) {
         socket.emit("event", { key: "tower defense", value: "start" });

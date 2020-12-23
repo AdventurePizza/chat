@@ -6,9 +6,20 @@ export interface IAnimation {
 	text?: string;
 }
 
+export interface IAvatarChatMessages {
+	[userId: string]: string[];
+}
+
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense' | 'background';
-	value?: string;
+	key:
+		| 'sound'
+		| 'emoji'
+		| 'chat'
+		| 'gif'
+		| 'tower defense'
+		| 'background'
+		| 'messages';
+	value?: any;
 	[key: string]: any;
 }
 
@@ -100,7 +111,7 @@ export interface IUserLocations {
 export interface IUserProfile {
 	name: string;
 	avatar: string;
-	text?: string;
+	message?: string;
 }
 
 export interface IUserProfiles {

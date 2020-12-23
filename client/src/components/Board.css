@@ -17,7 +17,8 @@
 	transform: translateY(-50px);
 }
 
-.board-message {
+.board-message,
+.avatar-message {
 	display: -webkit-box;
 	position: absolute;
 	z-index: 9999999;
@@ -105,4 +106,10 @@
 	opacity: 0;
 	transition: opacity 1s;
 	transform: translateY(-50px);
+}
+
+.avatar-message {
+	max-width: 280px;
+	-webkit-line-clamp: 6;
+	position: relative;
 }
