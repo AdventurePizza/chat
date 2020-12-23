@@ -6,9 +6,22 @@ export interface IAnimation {
 	text?: string;
 }
 
+export interface IAvatarChatMessages {
+	[userId: string]: string[];
+}
+
 export interface IMessageEvent {
-	key: 'sound' | 'emoji' | 'chat' | 'gif' | 'tower defense' | 'background' | 'animation';
-	value?: string;
+	key:
+		| 'sound'
+		| 'emoji'
+		| 'chat'
+		| 'gif'
+		| 'tower defense'
+		| 'background'
+		| 'messages'
+		| 'whiteboard'
+		| 'animation';
+	value?: any;
 	[key: string]: any;
 }
 
@@ -99,15 +112,22 @@ export enum PanelItemEnum {
 	'chat' = 'chat',
 	'tower' = 'tower',
 	'background' = 'background',
-	'animation' = 'animation'
+	'animation' = 'animation',
+	'whiteboard' = 'whiteboard'
 }
 
 export interface IUserLocations {
 	[userId: string]: { x: number; y: number };
 }
 
+export interface IUserProfile {
+	name: string;
+	avatar: string;
+	message?: string;
+}
+
 export interface IUserProfiles {
-	[clientId: string]: { name: string; avatar: string };
+	[clientId: string]: IUserProfile;
 }
 
 export interface ITowerUnit {

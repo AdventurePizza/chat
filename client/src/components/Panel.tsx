@@ -12,6 +12,7 @@ import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
 import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import animationIcon from '../assets/navbar/animation.png'
+import pencilIcon from '../assets/navbar/pencil.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -73,7 +74,8 @@ const panelIconSrcMap: {
 	chat: chatIcon,
 	tower: towerIcon,
 	background: cameraRollIcon,
-	animation: animationIcon
+	animation: animationIcon,
+	whiteboard: pencilIcon,
 };
 
 interface IPanelItemProps {

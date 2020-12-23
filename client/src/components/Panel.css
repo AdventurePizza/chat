@@ -195,16 +195,22 @@
 	height: 26px;
 }
 .panel-icon-background {
-	width: 26px;
-	height: 26px;
+	width: 30px;
+	height: 30px;
 }
 .panel-icon-tower {
 	width: 18px;
 	height: 35px;
 }
+
 .panel-icon-animation {
 	width: 26px;
 	height: 26px;
+}
+
+.panel-icon-whiteboard {
+	width: 33px;
+	height: 33px;
 }
 
 /* filter: invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg)
