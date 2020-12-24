@@ -30,7 +30,7 @@ import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
-import { ChevronRight, LeakAddTwoTone } from '@material-ui/icons';
+import { ChevronRight } from '@material-ui/icons';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
@@ -44,11 +44,6 @@ import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 //@ts-ignore
 import confetti from 'canvas-confetti'
-//import confetti from 'canvas-confetti'
-//import * as FireworksCanvas from 'fireworks-canvas'
-//var FireworksCanvas = require('fireworks-canvas')
-//const confetti = require('canvas-confetti');
-import * as Fireworks from 'fireworks-canvas'
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -105,27 +100,7 @@ function App() {
 
 	const fireWorkContainer = useRef(null);
 	//const fireworks = useRef(null)
-	let fireworks : any = null;
-	const [myAnimationType, setMyAnimationType] = useState<string>("");
-	useEffect(() => {
-		  //const container = document.getElementById("abc")
-		  const container : any = fireWorkContainer.current
-		  let options = null;
-		  if (container) {
-		    options = {
-			maxRockets: 3, // max # of rockets to spawn
-			rocketSpawnInterval: 150, // millisends to check if new rockets should spawn
-			numParticles: 100, // number of particles to spawn when rocket explodes (+0-10)
-			explosionMinHeight: 0.5, // percentage. min height at which rockets can explode
-			explosionMaxHeight: 0.9, // percentage. max height before a particle is exploded
-			explosionChance: 0.9, // chance in each tick the rocket will explode
-			width: container.clientWidth, // override the width, defaults to container width
-			height: container.clientHeight // override the height, defaults to container height
-		  }
-		}
-		//@ts-ignore
-		fireworks = new Fireworks(container, options)
-	}, []);
+
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -270,13 +245,65 @@ function App() {
 
 
 	const activateFireworks = () => {
-		console.log(fireworks)
-		//@ts-ignore
-			fireworks.start()
+		var duration = 15 * 1000;
+		var animationEnd = Date.now() + duration;
+		var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+		function randomInRange(min : number, max : number) {
+		return Math.random() * (max - min) + min;
+		}
+
+		var  interval : any = setInterval(function() {
+		var timeLeft = animationEnd - Date.now();
+
+		if (timeLeft <= 0) {
+			return clearInterval(interval);
+		}
+
+		var particleCount = 50 * (timeLeft / duration);
+		// since particles fall down, start a bit higher than random
+		confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+		confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+		}, 250);
+		
+			
 	  }
 
+	  const activateSnow = async () => {
+		var duration = 15 * 1000;
+		var animationEnd = Date.now() + duration;
+		var skew = 1;
+
+		function randomInRange(min : number, max : number) {
+		return Math.random() * (max - min) + min;
+		}
+
+		(function frame() {
+		var timeLeft = animationEnd - Date.now();
+		var ticks = Math.max(200, 500 * (timeLeft / duration));
+		skew = Math.max(0.8, skew - 0.001);
+
+		confetti({
+			particleCount: 1,
+			startVelocity: 0,
+			ticks: ticks,
+			gravity: 0.5,
+			origin: {
+			x: Math.random(),
+			// since particles fall down, skew start toward the top
+			y: (Math.random() * skew) - 0.2
+			},
+			colors: ['#ffffff'],
+			shapes: ['circle'],
+			scalar: randomInRange(0.4, 1)
+		});
+
+		if (timeLeft > 0) {
+			requestAnimationFrame(frame);
+		}
+		}());
+	  }
 	const playMyAnimation = useCallback((animationType : string) => {
-		setMyAnimationType(animationType)
 		switch(animationType) {
 			case 'confetti':
 				activateRandomConfetti();
@@ -285,8 +312,7 @@ function App() {
 				activateSchoolPride();
 				break;
 			case 'fireworks':
-				
-				fireworks.start();
+				activateFireworks();
 				break;
 			case 'snow':
 				activateSnow();
@@ -713,6 +739,7 @@ function App() {
 			}}
 			onClick={onClickApp}
 		>
+
 			<Board
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -893,16 +920,49 @@ const getDistanceBetweenPoints = (
 
 //Celebration - Animation
 const activateRandomConfetti = () => {
-	confetti({
-	  particleCount: 100,
-	  startVelocity: 30,
-	  spread: 360,
-	  origin: {
-		x: Math.random(),
-		// since they fall down, start a bit higher than random
-		y: Math.random() - 0.2
-	  }
-	});  
+	// confetti({
+	//   particleCount: 100,
+	//   startVelocity: 30,
+	//   spread: 360,
+	//   origin: {
+	// 	x: Math.random(),
+	// 	// since they fall down, start a bit higher than random
+	// 	y: Math.random() - 0.2
+	//   }
+	// });
+	var count = 200;
+	var defaults = {
+	origin: { y: 0.7 }
+	};
+
+	function fire(particleRatio : number, opts : any) {
+	confetti(Object.assign({}, defaults, opts, {
+		particleCount: Math.floor(count * particleRatio)
+	}));
+	}
+
+	fire(0.25, {
+	spread: 26,
+	startVelocity: 55,
+	});
+	fire(0.2, {
+	spread: 60,
+	});
+	fire(0.35, {
+	spread: 100,
+	decay: 0.91,
+	scalar: 0.8
+	});
+	fire(0.1, {
+	spread: 120,
+	startVelocity: 25,
+	decay: 0.92,
+	scalar: 1.2
+	});
+	fire(0.1, {
+	spread: 120,
+	startVelocity: 45,
+	}); 
 }
 const activateSchoolPride = () => {
   var end = Date.now() + (15 * 1000);
@@ -931,38 +991,4 @@ const activateSchoolPride = () => {
   }());
 }
 
-const activateSnow = () => {
-  var duration = 2 * 1000;
-  var animationEnd = Date.now() + duration;
-  var skew = 1;
-
-  function randomInRange(min : number, max : number) {
-	return Math.random() * (max - min) + min;
-  }
-
-  (function frame() {
-	var timeLeft = animationEnd - Date.now();
-	var ticks = Math.max(200, 500 * (timeLeft / duration));
-	skew = Math.max(0.8, skew - 0.001);
-
-	confetti({
-	  particleCount: 1,
-	  startVelocity: 0,
-	  ticks: ticks,
-	  gravity: 0.5,
-	  origin: {
-		x: Math.random(),
-		// since particles fall down, skew start toward the top
-		y: (Math.random() * skew) - 0.2
-	  },
-	  colors: ['#ffffff'],
-	  shapes: ['circle'],
-	  scalar: randomInRange(0.4, 1)
-	});
-
-	if (timeLeft > 0) {
-	  requestAnimationFrame(frame);
-	}
-  }());
-}
 
