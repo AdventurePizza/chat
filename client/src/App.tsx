@@ -35,6 +35,7 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
+import {ENEMY_VALUES, TOWER_COSTS} from './components/TowerDefenseConstants'
 import _ from 'underscore';
 // Sound imports
 // import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -53,8 +54,6 @@ const socket = io(socketURL, { transports: ['websocket'] });
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
-const ENEMY_VALUES = {'grunt':1}
-const TOWER_COSTS = {'basic':5}
 
 function App() {
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
