@@ -617,10 +617,10 @@ function App() {
 	const onClickApp = useCallback((event: React.MouseEvent) => {
 		setTowerDefenseState((state) => {
 			if (state.selectedPlacementTower) {
+				const { x, y } = getRelativePos(event.clientX, event.clientY);
+				console.log(x + ', ' + y)
 				const newScore = towerDefenseState.scores - BUILDING_COSTS[state.selectedPlacementTower.type];
 				if(newScore >= 0) {
-					const { x, y } = getRelativePos(event.clientX, event.clientY);
-					
 					socket.emit('event', {
 						key: 'tower defense',
 						value: 'add tower',
@@ -629,6 +629,17 @@ function App() {
 						y
 					});	
 					return { ...state, scores: newScore, selectedPlacementTower: undefined };
+				} else {
+					console.log("hi")
+					setChatMessages((messages) =>
+						messages.concat({
+							top: y*window.innerHeight,
+							left: x*window.innerWidth,
+							key: uuidv4(),
+							value: "Not Enough Money",
+							isCentered: false
+						})
+					);
 				}
 				return { ...state, selectedPlacementTower: undefined };
 			}

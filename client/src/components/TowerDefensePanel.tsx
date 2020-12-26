@@ -1,7 +1,7 @@
 import { Box, Button } from '@material-ui/core';
 import React from 'react';
 import towerSVG from '../assets/tower.svg';
-import { BUILDING_TYPES } from './TowerDefenseConstants';
+import { BUILDING_COSTS, BUILDING_TYPES } from './TowerDefenseConstants';
 
 interface ITowerDefensePanelProps {
 	isStarted: boolean;
@@ -36,19 +36,19 @@ interface ITowerListProps {
 const TowerList = ({ onClick }: ITowerListProps) => {
 	return (
 		<div className="tower-defense-panel-list">
-			{BUILDING_TYPES.map((type: string) => {
-				return <img 
-					key={type}
-					onClick={(event) => {
-						event.stopPropagation();
-						onClick(type);
-					}}
-					src={towerSVG}
-					style={{ cursor: 'pointer' }}
-					className="tower-building"
-					alt="tower"
-				/>
-			})}
+			{BUILDING_TYPES.map((type: string) => (
+					<img 
+						key={type}
+						onClick={(event) => {
+							event.stopPropagation();
+							onClick(type);
+						}}
+						src={towerSVG}
+						style={{ cursor: 'pointer'}}
+						className="tower-building"
+						alt="tower"
+					/>
+			))}
 		</div>
 	);
 };
