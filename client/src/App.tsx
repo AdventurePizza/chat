@@ -35,7 +35,7 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
-import {ENEMY_VALUES, TOWER_COSTS} from './components/TowerDefenseConstants'
+import {ENEMY_VALUES, BUILDING_COSTS} from './components/TowerDefenseConstants'
 import _ from 'underscore';
 // Sound imports
 // import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -370,13 +370,13 @@ function App() {
 			}
 
 			if (message.value === 'add tower') {
-				const { x, y, towerKey } = message;
+				const { x, y, type, towerKey } = message;
 				setTowerDefenseState((state) => ({
 					...state,
 					towers: state.towers.concat({
 						key: towerKey,
-						type: 'basic',
-						cost: TOWER_COSTS['basic'],
+						type: type,
+						cost: BUILDING_COSTS[type],
 						top: y * window.innerHeight,
 						left: x * window.innerWidth
 					})
@@ -566,12 +566,11 @@ function App() {
 					value: string;
 					tower?: string;
 				};
-
 				if (value === 'select tower' && tower) {
 					const towerObj: ITowerBuilding = {
 						key: tower,
-						type: 'basic',
-						cost: TOWER_COSTS['basic'],
+						type: tower,
+						cost: BUILDING_COSTS[tower],
 						top: 0,
 						left: 0
 					};
@@ -590,6 +589,7 @@ function App() {
 					
 					});
 				} else {
+					console.log(args[0])
 					socket.emit('event', args[0]);
 				}
 
@@ -617,13 +617,14 @@ function App() {
 	const onClickApp = useCallback((event: React.MouseEvent) => {
 		setTowerDefenseState((state) => {
 			if (state.selectedPlacementTower) {
-				const newScore = towerDefenseState.scores-5;
+				const newScore = towerDefenseState.scores - BUILDING_COSTS[state.selectedPlacementTower.type];
 				if(newScore >= 0) {
 					const { x, y } = getRelativePos(event.clientX, event.clientY);
-				
+					
 					socket.emit('event', {
 						key: 'tower defense',
 						value: 'add tower',
+						type: state.selectedPlacementTower.type,
 						x,
 						y
 					});	

@@ -12,12 +12,12 @@ import React from 'react';
 import projectileSVG from '../assets/projectile.svg';
 import towerSVG from '../assets/tower.svg';
 import zombieSVG from '../assets/zombie.svg';
+import { ENEMY_VALUES } from './TowerDefenseConstants';
 
 export type Actions = 'hit enemy';
 
 interface ITowerDefenseProps {
 	state: ITowerDefenseState;
-	onAction: (action: Actions) => void;
 	updateUnits: (units: ITowerUnit[]) => void;
 	updateProjectiles: (projectiles: ITowerProjectile[]) => void;
 	updateScores: (scores: number) => void
@@ -85,7 +85,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							);
 
 							if (toDeleteUnitIndex !== -1) {
-								updateScores(scores+1);
+								updateScores(scores + ENEMY_VALUES[units[toDeleteUnitIndex].type]);
 								updateUnits([
 									...units.slice(0, toDeleteUnitIndex),
 									...units.slice(toDeleteUnitIndex + 1)
@@ -109,7 +109,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 	);
 };
 
-export const Tower = ({ top, left }: ITowerBuilding) => {
+export const Tower = ({ top, left}: ITowerBuilding) => {
 	return (
 		<img
 			src={towerSVG}

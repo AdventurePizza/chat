@@ -122,7 +122,7 @@ export interface IUserProfiles {
 
 export interface ITowerUnit {
 	key: string;
-	type: 'grunt';
+	type: string;
 	top: number;
 	left: number;
 	value: number;
@@ -131,7 +131,7 @@ export interface ITowerUnit {
 
 export interface ITowerBuilding {
 	key: string;
-	type: 'basic';
+	type: string;
 	top: number;
 	left: number;
 	cost: number;
