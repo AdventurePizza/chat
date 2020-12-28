@@ -106,38 +106,6 @@ function App() {
 		);
 	}, []);
 
-	const playTutorial = async () => {
-		tutorialGifs.forEach((gif) => {
-			setTimeout(async () => {
-				const data = await GIF_FETCH.gif(gif.id);
-				const { x, y } = generateRandomXY(true, true);
-
-				const newGif: IGifs = {
-					top: y,
-					left: x,
-					key: uuidv4(),
-					data: data.data
-				};
-
-				setGifs((gifs) => gifs.concat(newGif));
-			}, gif.time);
-		});
-
-		for (let i = 0; i < tutorialMessages.length; i++) {
-			setChatMessages((messages) =>
-				messages.concat({
-					top: window.innerHeight * 0.1 + i * 25,
-					left: window.innerWidth / 2 - tutorialMessages[i].length * 5,
-					key: uuidv4(),
-					value: tutorialMessages[i],
-					isCentered: true
-				})
-			);
-
-			await sleep(1000);
-		}
-	};
-
 	const playSound = useCallback((soundType) => {
 		audio.current = new Audio(sounds[soundType]);
 
@@ -239,8 +207,6 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		playTutorial();
-
 		// spawn gryphon randomly
 		setInterval(() => {
 			if (Math.random() < 0.1) {
@@ -754,50 +720,6 @@ function App() {
 }
 
 export default App;
-
-const sleep = async (time: number) =>
-	new Promise((resolve) => setTimeout(resolve, time));
-
-const tutorialMessages = [
-	'built with web sockets',
-	'anyone visiting the url',
-	'can see 👀 & hear 👂',
-	'the various actions',
-	'text',
-	'audio',
-	'emojis 🙌',
-	'gifs',
-	'etc',
-	'try !',
-	'😊send to a friend !😊',
-	'coming soon: ',
-	'ethereum integrations',
-	'chat rooms',
-	'video channels',
-	'games 🎮',
-	'etc',
-	'have fun',
-	'try with friends, share www.trychats.com'
-];
-
-const tutorialGifs = [
-	{
-		id: 'cPZ582I9Mxtk6crJ37',
-		time: 0
-	},
-	{
-		id: 'l4pT6w42S93xNKz2U',
-		time: 3000
-	},
-	{
-		id: '42YlR8u9gV5Cw',
-		time: 10000
-	},
-	{
-		id: '3og0IzoPfRVwyxjDUs',
-		time: 15000
-	}
-];
 
 const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	if (centered) {
