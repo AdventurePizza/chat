@@ -57,6 +57,8 @@ For more info on socket.io check https://socket.io/docs/v3/emit-cheatsheet/index
 
 ## how to contribute / git basics
 
+Send Leo your github username to be added to the repo, you'll receive an invite through email.
+
 First, get the latest code by pulling while on the `master` branch, `git pull origin master`
 
 Make your commits on a new branch. Checkout your branch with a name related to what changes you are making, like:
