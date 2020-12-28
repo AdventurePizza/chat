@@ -1,7 +1,7 @@
 import { Box, Button } from '@material-ui/core';
 import React from 'react';
 import towerSVG from '../assets/tower.svg';
-import { BUILDING_COSTS, BUILDING_TYPES } from './TowerDefenseConstants';
+import {  BUILDING_TYPES } from './TowerDefenseConstants';
 
 interface ITowerDefensePanelProps {
 	isStarted: boolean;

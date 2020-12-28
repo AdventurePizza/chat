@@ -1,7 +1,7 @@
 .tower-building {
 	width: 75px;
 	height: 75px;
-	position: relative;
+	position: absolute;
 }
 
 .tower-defense-panel,
