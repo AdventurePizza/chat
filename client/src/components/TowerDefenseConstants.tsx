@@ -9,3 +9,4 @@ export const BUILDING_COSTS:  {[type: string]: number} = {
 
 export const BUILDING_TYPES = ["basic"];
 export const ENEMY_TYPES = ["grunt"];
+export const INITIAL_SCORE = 10;

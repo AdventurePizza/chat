@@ -555,7 +555,6 @@ function App() {
 					
 					});
 				} else {
-					console.log(args[0])
 					socket.emit('event', args[0]);
 				}
 
@@ -584,7 +583,6 @@ function App() {
 		setTowerDefenseState((state) => {
 			if (state.selectedPlacementTower) {
 				const { x, y } = getRelativePos(event.clientX, event.clientY);
-				console.log(x + ', ' + y)
 				const newScore = towerDefenseState.scores - BUILDING_COSTS[state.selectedPlacementTower.type];
 				if(newScore >= 0) {
 					socket.emit('event', {
@@ -596,7 +594,6 @@ function App() {
 					});	
 					return { ...state, scores: newScore, selectedPlacementTower: undefined };
 				} else {
-					console.log("hi")
 					setChatMessages((messages) =>
 						messages.concat({
 							top: y*window.innerHeight,
