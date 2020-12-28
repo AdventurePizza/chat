@@ -35,7 +35,7 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
-import {ENEMY_VALUES, BUILDING_COSTS} from './components/TowerDefenseConstants'
+import {ENEMY_VALUES, BUILDING_COSTS, INITIAL_SCORE} from './components/TowerDefenseConstants'
 import _ from 'underscore';
 // Sound imports
 // import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -308,7 +308,7 @@ function App() {
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
 				playAnimation('start game');
-				setTowerDefenseState((state) => ({ ...state, isPlaying: true, scores: 10}));
+				setTowerDefenseState((state) => ({ ...state, isPlaying: true, scores: INITIAL_SCORE}));
 			}
 			if (message.value === 'end') {
 				playAnimation('end game');
