@@ -4,14 +4,15 @@ import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { PanelItemEnum } from '../types';
 import React from 'react';
+import SettingsIcon from '@material-ui/icons/Settings';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
+import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
+import pencilIcon from '../assets/navbar/pencil.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
-import cameraRollIcon from '../assets/navbar/camera_roll.png';
-import pencilIcon from '../assets/navbar/pencil.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -76,6 +77,12 @@ const panelIconSrcMap: {
 	whiteboard: pencilIcon
 };
 
+const panelIconComponentMap: {
+	[key: string]: JSX.Element;
+} = {
+	settings: <SettingsIcon />
+};
+
 interface IPanelItemProps {
 	onClick: () => void;
 	title: string;
@@ -84,19 +91,23 @@ interface IPanelItemProps {
 
 const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 	const renderPanelItem = () => {
+		const iconSrc = panelIconSrcMap[title];
+		const IconComponent = panelIconComponentMap[title];
 		return (
 			<div
 				className="panel-icon-container"
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
 			>
 				<IconButton onClick={onClick}>
-					{
+					{iconSrc ? (
 						<img
-							src={panelIconSrcMap[title]}
+							src={iconSrc}
 							className={`panel-icon-${title}`}
 							alt={`${title} icon`}
 						/>
-					}
+					) : (
+						<IconButton onClick={onClick}> {IconComponent}</IconButton>
+					)}
 				</IconButton>
 			</div>
 		);

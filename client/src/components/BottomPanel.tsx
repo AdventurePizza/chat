@@ -6,6 +6,7 @@ import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import React from 'react';
+import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import WhiteboardPanel from './WhiteboardPanel';
@@ -35,7 +36,7 @@ export const BottomPanel = ({
 	towerDefenseState,
 	updateIsTyping
 }: IPanelProps) => {
-	const RenderPanelContent = () => {
+	const renderPanelContent = () => {
 		switch (type) {
 			case 'emoji':
 				return (
@@ -94,12 +95,16 @@ export const BottomPanel = ({
 				return <BackgroundPanel sendBackground={onAction} />;
 			case 'whiteboard':
 				return <WhiteboardPanel setBrushColor={setBrushColor} />;
+			case 'settings':
+				return (
+					<SettingsPanel onChangeName={(name) => onAction('settings', name)} />
+				);
 		}
 	};
 
 	return (
 		<Drawer variant="persistent" anchor="bottom" open={isOpen}>
-			<div className="bottom-panel-container">{RenderPanelContent()}</div>
+			<div className="bottom-panel-container">{renderPanelContent()}</div>
 		</Drawer>
 	);
 };

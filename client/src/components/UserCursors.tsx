@@ -49,7 +49,7 @@ const useStyles = makeStyles({
 		},
 
 		position: 'absolute',
-		left: '70%',
+		left: '75%',
 		overflow: 'visible'
 	}
 });

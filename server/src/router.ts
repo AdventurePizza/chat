@@ -64,7 +64,8 @@ interface IMessageEvent {
     | "background"
     | "messages"
     | "whiteboard"
-    | "isTyping";
+    | "isTyping"
+    | "username";
   value?: string;
   [key: string]: any;
 }
@@ -161,6 +162,12 @@ export class Router {
 
       case "isTyping":
         io.emit("event", { ...message, id: socket.id });
+        break;
+
+      case "username":
+        io.emit("event", { ...message, id: socket.id });
+        clientProfiles[socket.id].name = message.value as string;
+        break;
 
       case "tower defense":
         if (message.value === "start" && !towerDefenseState.isPlaying) {

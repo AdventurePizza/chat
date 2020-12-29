@@ -20,7 +20,8 @@ export interface IMessageEvent {
 		| 'background'
 		| 'messages'
 		| 'whiteboard'
-		| 'isTyping';
+		| 'isTyping'
+		| 'username';
 	value?: any;
 	[key: string]: any;
 }
@@ -97,6 +98,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'settings' = 'settings',
 	'sound' = 'sound',
 	'emoji' = 'emoji',
 	// 'color' = 'color',

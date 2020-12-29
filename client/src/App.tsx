@@ -135,6 +135,7 @@ function App() {
 			case 'tower':
 			case 'background':
 			case 'whiteboard':
+			case 'settings':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -457,6 +458,12 @@ function App() {
 						[message.id]: { ...profiles[message.id], isTyping: message.value }
 					}));
 					break;
+				case 'username':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], name: message.value }
+					}));
+					break;
 			}
 		};
 
@@ -592,6 +599,15 @@ function App() {
 					key: 'whiteboard',
 					value: strlineData
 				});
+				break;
+
+			case 'settings':
+				const username = args[0] as string;
+				socket.emit('event', {
+					key: 'username',
+					value: username
+				});
+				setUserProfile((profile) => ({ ...profile, name: username }));
 				break;
 			default:
 				break;
