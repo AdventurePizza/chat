@@ -1,13 +1,14 @@
 import { Drawer, IconButton } from '@material-ui/core';
 import { ITowerDefenseState, PanelItemEnum } from '../types';
 
+import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import React from 'react';
+import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
-import BackgroundPanel from './BackgroundPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 
 export interface IPanelProps {
@@ -16,6 +17,7 @@ export interface IPanelProps {
 	setBrushColor: (color: string) => void;
 	onAction: (key: string, ...args: any[]) => void;
 	towerDefenseState: ITowerDefenseState;
+	updateIsTyping: (isTyping: boolean) => void;
 }
 
 export interface ISoundPairs {
@@ -31,9 +33,10 @@ export const BottomPanel = ({
 	type,
 	setBrushColor,
 	onAction,
-	towerDefenseState
+	towerDefenseState,
+	updateIsTyping
 }: IPanelProps) => {
-	const RenderPanelContent = () => {
+	const renderPanelContent = () => {
 		switch (type) {
 			case 'emoji':
 				return (
@@ -54,6 +57,7 @@ export const BottomPanel = ({
 						sendMessage={(message) => {
 							onAction('chat', message);
 						}}
+						updateIsTyping={updateIsTyping}
 					/>
 				);
 			case 'sound':
@@ -91,12 +95,16 @@ export const BottomPanel = ({
 				return <BackgroundPanel sendBackground={onAction} />;
 			case 'whiteboard':
 				return <WhiteboardPanel setBrushColor={setBrushColor} />;
+			case 'settings':
+				return (
+					<SettingsPanel onChangeName={(name) => onAction('settings', name)} />
+				);
 		}
 	};
 
 	return (
 		<Drawer variant="persistent" anchor="bottom" open={isOpen}>
-			<div className="bottom-panel-container">{RenderPanelContent()}</div>
+			<div className="bottom-panel-container">{renderPanelContent()}</div>
 		</Drawer>
 	);
 };
