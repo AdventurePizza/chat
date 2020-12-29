@@ -19,7 +19,8 @@ export interface IMessageEvent {
 		| 'tower defense'
 		| 'background'
 		| 'messages'
-		| 'whiteboard';
+		| 'whiteboard'
+		| 'isTyping';
 	value?: any;
 	[key: string]: any;
 }
@@ -114,6 +115,7 @@ export interface IUserProfile {
 	name: string;
 	avatar: string;
 	message?: string;
+	isTyping?: boolean;
 }
 
 export interface IUserProfiles {

@@ -63,7 +63,8 @@ interface IMessageEvent {
     | "tower defense"
     | "background"
     | "messages"
-    | "whiteboard";
+    | "whiteboard"
+    | "isTyping";
   value?: string;
   [key: string]: any;
 }
@@ -157,6 +158,9 @@ export class Router {
       case "gif":
         io.emit("event", message);
         break;
+
+      case "isTyping":
+        io.emit("event", { ...message, id: socket.id });
 
       case "tower defense":
         if (message.value === "start" && !towerDefenseState.isPlaying) {
