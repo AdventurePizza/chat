@@ -1,6 +1,11 @@
 import './App.css';
 
 import {
+	BUILDING_COSTS,
+	ENEMY_VALUES,
+	INITIAL_GOLD
+} from './components/TowerDefenseConstants';
+import {
 	IAnimation,
 	IAvatarChatMessages,
 	IChatMessage,
@@ -35,11 +40,6 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
-import {
-	ENEMY_VALUES,
-	BUILDING_COSTS,
-	INITIAL_GOLD
-} from './components/TowerDefenseConstants';
 import _ from 'underscore';
 // Sound imports
 // import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -135,6 +135,7 @@ function App() {
 			case 'tower':
 			case 'background':
 			case 'whiteboard':
+			case 'settings':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -208,6 +209,13 @@ function App() {
 			);
 		}
 	}, []);
+
+	const onIsTyping = (isTyping: boolean) => {
+		socket.emit('event', {
+			key: 'isTyping',
+			value: isTyping
+		});
+	};
 
 	useEffect(() => {
 		// spawn gryphon randomly
@@ -444,6 +452,18 @@ function App() {
 						drawLineEvent(message.value);
 					}
 					break;
+				case 'isTyping':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], isTyping: message.value }
+					}));
+					break;
+				case 'username':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], name: message.value }
+					}));
+					break;
 			}
 		};
 
@@ -580,6 +600,15 @@ function App() {
 					value: strlineData
 				});
 				break;
+
+			case 'settings':
+				const username = args[0] as string;
+				socket.emit('event', {
+					key: 'username',
+					value: username
+				});
+				setUserProfile((profile) => ({ ...profile, name: username }));
+				break;
 			default:
 				break;
 		}
@@ -704,7 +733,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, and grant`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, and andrew`}
 			>
 				<div className="adventure-logo">
 					<div>adventure</div>
@@ -718,6 +747,7 @@ function App() {
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
+				updateIsTyping={onIsTyping}
 			/>
 
 			{userProfile && (

@@ -7,6 +7,8 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 
 import { CSSTransition } from 'react-transition-group';
+import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
+import { Icon } from '@material-ui/core';
 import { Tower } from './TowerDefense';
 import character1 from '../assets/character1.png';
 import character2 from '../assets/character2.png';
@@ -18,6 +20,8 @@ import character7 from '../assets/character7.png';
 import ghost from '../assets/red_ghost.gif';
 import kirby from '../assets/kirby.gif';
 import link from '../assets/link-run.gif';
+import loadingDots from '../assets/loading-dots.gif';
+import { makeStyles } from '@material-ui/core/styles';
 import mario from '../assets/mario.gif';
 import nyancat from '../assets/nyancat_big.gif';
 import yoshi from '../assets/yoshi.gif';
@@ -38,6 +42,18 @@ export const avatarMap: { [key: string]: string } = {
 	character7
 };
 
+const useStyles = makeStyles({
+	chatIcon: {
+		'& .MuiSvgIcon-root': {
+			fontSize: 55
+		},
+
+		position: 'absolute',
+		left: '75%',
+		overflow: 'visible'
+	}
+});
+
 interface IUserCursorsProps {
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
@@ -54,7 +70,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 				if (!props.userProfiles[key]) {
 					return null;
 				}
-				const { avatar, name } = props.userProfiles[key];
+				const { avatar, name, isTyping } = props.userProfiles[key];
 				const messages = props.avatarChatMessages[key];
 				let chatMessage;
 				if (Array.isArray(messages)) {
@@ -68,6 +84,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 						x={x}
 						y={y}
 						message={chatMessage}
+						isTyping={isTyping}
 					/>
 				);
 			})}
@@ -82,13 +99,23 @@ interface IUserCursorProps {
 	y?: number;
 	isSelectingTower?: ITowerBuilding;
 	message?: string;
+	isTyping?: boolean;
 }
 
 export const UserCursor = React.forwardRef(
 	(
-		{ avatar, name, x, y, isSelectingTower, message }: IUserCursorProps,
+		{
+			avatar,
+			name,
+			x,
+			y,
+			isSelectingTower,
+			message,
+			isTyping
+		}: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
+		const classes = useStyles();
 		const [inProp, setInProp] = useState(false);
 		const timerRef = useRef<NodeJS.Timeout>();
 
@@ -125,7 +152,8 @@ export const UserCursor = React.forwardRef(
 						style={{
 							display: 'flex',
 							alignItems: 'center',
-							flexDirection: 'column'
+							flexDirection: 'column',
+							position: 'relative'
 						}}
 					>
 						<img src={avatarMap[avatar]} alt="avatar" />
@@ -140,6 +168,23 @@ export const UserCursor = React.forwardRef(
 						>
 							<div className="avatar-message">{message}</div>
 						</CSSTransition>
+						{isTyping && (
+							<Icon className={classes.chatIcon}>
+								<div style={{ position: 'relative' }}>
+									<ChatBubbleOutlineIcon />
+									<img
+										style={{
+											position: 'absolute',
+											top: 20,
+											width: 30,
+											left: 12
+										}}
+										src={loadingDots}
+										alt="three dots"
+									/>
+								</div>
+							</Icon>
+						)}
 					</div>
 				)}
 			</div>
