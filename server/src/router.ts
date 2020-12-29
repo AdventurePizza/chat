@@ -168,12 +168,13 @@ export class Router {
             value: "add tower",
             x: message.x,
             y: message.y,
+            type: message.type,
             towerKey: uuidv4(),
           });
 
           towerDefenseState.towers.push({
             key: uuidv4(),
-            type: "basic",
+            type: message.type,
             top: message.y,
             left: message.x,
           });

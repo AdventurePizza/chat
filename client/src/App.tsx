@@ -35,6 +35,11 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
+import {
+	ENEMY_VALUES,
+	BUILDING_COSTS,
+	INITIAL_GOLD
+} from './components/TowerDefenseConstants';
 import _ from 'underscore';
 // Sound imports
 // import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -83,7 +88,8 @@ function App() {
 		isPlaying: false,
 		towers: [],
 		units: [],
-		projectiles: []
+		projectiles: [],
+		gold: 0
 	});
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
@@ -132,7 +138,6 @@ function App() {
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
-
 				break;
 		}
 	};
@@ -306,7 +311,11 @@ function App() {
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
 				playAnimation('start game');
-				setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+				setTowerDefenseState((state) => ({
+					...state,
+					isPlaying: true,
+					gold: INITIAL_GOLD
+				}));
 			}
 			if (message.value === 'end') {
 				playAnimation('end game');
@@ -325,6 +334,7 @@ function App() {
 				enemy.top = window.innerHeight / 2;
 				enemy.left = 0;
 				enemy.ref = React.createRef();
+				enemy.value = ENEMY_VALUES[enemy.type];
 
 				setTowerDefenseState((state) => ({
 					...state,
@@ -333,13 +343,13 @@ function App() {
 			}
 
 			if (message.value === 'add tower') {
-				const { x, y, towerKey } = message;
-
+				const { x, y, type, towerKey } = message;
 				setTowerDefenseState((state) => ({
 					...state,
 					towers: state.towers.concat({
 						key: towerKey,
-						type: 'basic',
+						type: type,
+						cost: BUILDING_COSTS[type],
 						top: y * window.innerHeight,
 						left: x * window.innerWidth
 					})
@@ -529,11 +539,11 @@ function App() {
 					value: string;
 					tower?: string;
 				};
-
 				if (value === 'select tower' && tower) {
 					const towerObj: ITowerBuilding = {
 						key: tower,
-						type: 'basic',
+						type: tower,
+						cost: BUILDING_COSTS[tower],
 						top: 0,
 						left: 0
 					};
@@ -575,23 +585,45 @@ function App() {
 		}
 	};
 
-	const onClickApp = useCallback((event: React.MouseEvent) => {
-		setTowerDefenseState((state) => {
-			if (state.selectedPlacementTower) {
-				const { x, y } = getRelativePos(event.clientX, event.clientY);
-
-				socket.emit('event', {
-					key: 'tower defense',
-					value: 'add tower',
-					x,
-					y
-				});
-
-				return { ...state, selectedPlacementTower: undefined };
-			}
-			return state;
-		});
-	}, []);
+	const onClickApp = useCallback(
+		(event: React.MouseEvent) => {
+			setTowerDefenseState((state) => {
+				if (state.selectedPlacementTower) {
+					const { x, y } = getRelativePos(event.clientX, event.clientY);
+					const newGold =
+						towerDefenseState.gold -
+						BUILDING_COSTS[state.selectedPlacementTower.type];
+					if (newGold >= 0) {
+						socket.emit('event', {
+							key: 'tower defense',
+							value: 'add tower',
+							type: state.selectedPlacementTower.type,
+							x,
+							y
+						});
+						return {
+							...state,
+							gold: newGold,
+							selectedPlacementTower: undefined
+						};
+					} else {
+						setChatMessages((messages) =>
+							messages.concat({
+								top: y * window.innerHeight,
+								left: x * window.innerWidth,
+								key: uuidv4(),
+								value: 'Not Enough Gold',
+								isCentered: false
+							})
+						);
+					}
+					return { ...state, selectedPlacementTower: undefined };
+				}
+				return state;
+			});
+		},
+		[towerDefenseState]
+	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
@@ -631,6 +663,9 @@ function App() {
 				}
 				updateProjectiles={(projectiles) =>
 					setTowerDefenseState((state) => ({ ...state, projectiles }))
+				}
+				updateGold={(gold) =>
+					setTowerDefenseState((state) => ({ ...state, gold }))
 				}
 			/>
 
