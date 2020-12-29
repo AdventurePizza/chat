@@ -598,7 +598,7 @@ function App() {
 							top: y*window.innerHeight,
 							left: x*window.innerWidth,
 							key: uuidv4(),
-							value: "Not Enough Money",
+							value: "Not Enough Gold",
 							isCentered: false
 						})
 					);
