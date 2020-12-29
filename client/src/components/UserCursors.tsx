@@ -118,6 +118,7 @@ export const UserCursor = React.forwardRef(
 						left={x || 0}
 						key={isSelectingTower.key}
 						type="basic"
+						cost={5}
 					/>
 				) : (
 					<div
