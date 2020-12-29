@@ -71,6 +71,7 @@ export const BottomPanel = ({
 				return (
 					<TowerDefensePanel
 						isStarted={towerDefenseState.isPlaying}
+						gold={towerDefenseState.gold}
 						onStart={() =>
 							onAction('tower defense', {
 								key: 'tower defense',
