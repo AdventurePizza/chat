@@ -150,5 +150,5 @@ export interface ITowerDefenseState {
 	towers: ITowerBuilding[];
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
-	scores: number;
+	gold: number;
 }

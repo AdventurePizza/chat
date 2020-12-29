@@ -35,7 +35,7 @@ import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
-import {ENEMY_VALUES, BUILDING_COSTS, INITIAL_SCORE} from './components/TowerDefenseConstants'
+import {ENEMY_VALUES, BUILDING_COSTS, INITIAL_GOLD} from './components/TowerDefenseConstants'
 import _ from 'underscore';
 // Sound imports
 // import audioEnter from './assets/sounds/zap-enter.mp3';
@@ -85,7 +85,7 @@ function App() {
 		towers: [],
 		units: [],
 		projectiles: [],
-		scores: 0
+		gold: 0
 	});
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
@@ -134,7 +134,6 @@ function App() {
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
-
 				break;
 		}
 	};
@@ -308,7 +307,7 @@ function App() {
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
 				playAnimation('start game');
-				setTowerDefenseState((state) => ({ ...state, isPlaying: true, scores: INITIAL_SCORE}));
+				setTowerDefenseState((state) => ({ ...state, isPlaying: true, gold: INITIAL_GOLD}));
 			}
 			if (message.value === 'end') {
 				playAnimation('end game');
@@ -583,8 +582,8 @@ function App() {
 		setTowerDefenseState((state) => {
 			if (state.selectedPlacementTower) {
 				const { x, y } = getRelativePos(event.clientX, event.clientY);
-				const newScore = towerDefenseState.scores - BUILDING_COSTS[state.selectedPlacementTower.type];
-				if(newScore >= 0) {
+				const newGold = towerDefenseState.gold - BUILDING_COSTS[state.selectedPlacementTower.type];
+				if(newGold >= 0) {
 					socket.emit('event', {
 						key: 'tower defense',
 						value: 'add tower',
@@ -592,7 +591,7 @@ function App() {
 						x,
 						y
 					});	
-					return { ...state, scores: newScore, selectedPlacementTower: undefined };
+					return { ...state, gold: newGold, selectedPlacementTower: undefined };
 				} else {
 					setChatMessages((messages) =>
 						messages.concat({
@@ -649,8 +648,8 @@ function App() {
 				updateProjectiles={(projectiles) =>
 					setTowerDefenseState((state) => ({ ...state, projectiles }))
 				}
-				updateScores={(scores) => 
-					setTowerDefenseState((state) => ({...state, scores}))
+				updateGold={(gold) => 
+					setTowerDefenseState((state) => ({...state, gold}))
 				}
 			/>
 
