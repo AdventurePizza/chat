@@ -10,7 +10,11 @@ import {
 
 import React from 'react';
 import projectileSVG from '../assets/projectile.svg';
-import { BUILDING_ICONS, ENEMY_ICONS, ENEMY_VALUES } from './TowerDefenseConstants';
+import {
+	BUILDING_ICONS,
+	ENEMY_ICONS,
+	ENEMY_VALUES
+} from './TowerDefenseConstants';
 
 export type Actions = 'hit enemy';
 
@@ -18,7 +22,7 @@ interface ITowerDefenseProps {
 	state: ITowerDefenseState;
 	updateUnits: (units: ITowerUnit[]) => void;
 	updateProjectiles: (projectiles: ITowerProjectile[]) => void;
-	updateGold: (gold: number) => void
+	updateGold: (gold: number) => void;
 }
 
 export const TowerDefense = (props: ITowerDefenseProps) => {
@@ -26,7 +30,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 		state: { towers, units, projectiles, gold },
 		updateUnits,
 		updateProjectiles,
-		updateGold,
+		updateGold
 	} = props;
 
 	return (
@@ -107,7 +111,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 	);
 };
 
-export const Tower = ({ top, left, type}: ITowerBuilding) => {
+export const Tower = ({ top, left, type }: ITowerBuilding) => {
 	return (
 		<img
 			src={BUILDING_ICONS[type]}

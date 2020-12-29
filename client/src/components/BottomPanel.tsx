@@ -78,7 +78,6 @@ export const BottomPanel = ({
 								value: 'start'
 							})
 						}
-						
 						onSelectTower={(towerValue: string) =>
 							onAction('tower defense', {
 								key: 'tower defense',
