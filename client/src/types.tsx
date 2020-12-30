@@ -19,7 +19,9 @@ export interface IMessageEvent {
 		| 'tower defense'
 		| 'background'
 		| 'messages'
-		| 'whiteboard';
+		| 'whiteboard'
+		| 'isTyping'
+		| 'username';
 	value?: any;
 	[key: string]: any;
 }
@@ -96,6 +98,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'settings' = 'settings',
 	'sound' = 'sound',
 	'emoji' = 'emoji',
 	// 'color' = 'color',
@@ -114,6 +117,7 @@ export interface IUserProfile {
 	name: string;
 	avatar: string;
 	message?: string;
+	isTyping?: boolean;
 }
 
 export interface IUserProfiles {

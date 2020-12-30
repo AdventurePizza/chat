@@ -63,7 +63,9 @@ interface IMessageEvent {
     | "tower defense"
     | "background"
     | "messages"
-    | "whiteboard";
+    | "whiteboard"
+    | "isTyping"
+    | "username";
   value?: string;
   [key: string]: any;
 }
@@ -156,6 +158,15 @@ export class Router {
 
       case "gif":
         io.emit("event", message);
+        break;
+
+      case "isTyping":
+        io.emit("event", { ...message, id: socket.id });
+        break;
+
+      case "username":
+        io.emit("event", { ...message, id: socket.id });
+        clientProfiles[socket.id].name = message.value as string;
         break;
 
       case "tower defense":
