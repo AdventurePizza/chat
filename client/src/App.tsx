@@ -69,7 +69,9 @@ function App() {
 		undefined
 	);
 
+	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const [bottomPanelHeight, setBottomPanelHeight] = useState(0);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
@@ -216,6 +218,14 @@ function App() {
 			value: isTyping
 		});
 	};
+
+	useEffect(() => {
+		if (bottomPanelRef.current) {
+			setBottomPanelHeight(
+				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
+			);
+		}
+	}, [selectedPanelItem]);
 
 	useEffect(() => {
 		// spawn gryphon randomly
@@ -655,13 +665,17 @@ function App() {
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const backgroundImg = backgroundName?.startsWith('http')
+		? backgroundName
+		: backgrounds[backgroundName!];
 
 	return (
 		<div
 			className="app"
 			style={{
-				minHeight: window.innerHeight - 10,
-				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				height: window.innerHeight - bottomPanelHeight,
+				backgroundImage: `url(${backgroundImg})`,
+				backgroundPosition: 'center',
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
@@ -742,6 +756,7 @@ function App() {
 			</Tooltip>
 
 			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
