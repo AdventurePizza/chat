@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface IWeatherProps {
 	sendLocation: (location: string) => void;
@@ -9,8 +9,10 @@ export const Weather = ({ sendLocation }: IWeatherProps) => {
 
 	const handleLocationInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setLocation(e.target.value);
-		sendLocation(location);
 	};
+	useEffect(() => {
+		sendLocation(location);
+	}, [location]);
 
 	return (
 		<div>

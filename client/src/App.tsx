@@ -522,6 +522,7 @@ function App() {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
+				console.log(chatValue);
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue
@@ -612,6 +613,7 @@ function App() {
 				break;
 			case 'weather':
 				const location = args[0] as string;
+				console.log(location);
 				socket.emit('event', {
 					key: 'weather',
 					value: location
