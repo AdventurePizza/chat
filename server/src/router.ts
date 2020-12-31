@@ -3,8 +3,14 @@ import socketio, { Socket } from "socket.io";
 import express from "express";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+import { error } from "console";
+
+const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
 const IS_DEBUG = false;
+
+
 
 const port = process.env.PORT || 8000;
 
@@ -15,6 +21,7 @@ const io = new socketio.Server(httpServer);
 
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
 const DEFAULT_IMAGE_BACKGROUND = undefined;
+
 
 const chatMessages: { [userId: string]: string[] } = {};
 
@@ -215,7 +222,16 @@ export class Router {
       case "weather":
 
 
-      
+      axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`)
+      .then(res => {
+        console.log(res.data.weather[0])
+        console.log(res.data.main)
+        console.log(`In fareinheit in city${message.value}: `,res.data.main.temp * (9/5) - 459.67)
+
+      }).catch(error => {
+        console.error(error.response.data)
+      })
+        
         console.log(message.value)
         break;
     }
