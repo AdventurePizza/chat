@@ -64,7 +64,9 @@ interface IMessageEvent {
     | "background"
     | "messages"
     | "whiteboard"
-    | "animation";
+    | "animation"
+    | "isTyping"
+    | "username";
   value?: string;
   [key: string]: any;
 }
@@ -159,6 +161,15 @@ export class Router {
         io.emit("event", message);
         break;
 
+      case "isTyping":
+        io.emit("event", { ...message, id: socket.id });
+        break;
+
+      case "username":
+        io.emit("event", { ...message, id: socket.id });
+        clientProfiles[socket.id].name = message.value as string;
+        break;
+
       case "tower defense":
         if (message.value === "start" && !towerDefenseState.isPlaying) {
           startGame();
@@ -169,12 +180,13 @@ export class Router {
             value: "add tower",
             x: message.x,
             y: message.y,
+            type: message.type,
             towerKey: uuidv4(),
           });
 
           towerDefenseState.towers.push({
             key: uuidv4(),
-            type: "basic",
+            type: message.type,
             top: message.y,
             left: message.x,
           });

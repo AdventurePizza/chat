@@ -1,6 +1,11 @@
 import './App.css';
 
 import {
+	BUILDING_COSTS,
+	ENEMY_VALUES,
+	INITIAL_GOLD
+} from './components/TowerDefenseConstants';
+import {
 	IAnimation,
 	IAvatarChatMessages,
 	IChatMessage,
@@ -85,7 +90,8 @@ function App() {
 		isPlaying: false,
 		towers: [],
 		units: [],
-		projectiles: []
+		projectiles: [],
+		gold: 0
 	});
 
 	const [userLocations, setUserLocations] = useState<IUserLocations>({});
@@ -109,38 +115,6 @@ function App() {
 			emojis.concat({ top: y, left: x, key: uuidv4(), type })
 		);
 	}, []);
-
-	const playTutorial = async () => {
-		tutorialGifs.forEach((gif) => {
-			setTimeout(async () => {
-				const data = await GIF_FETCH.gif(gif.id);
-				const { x, y } = generateRandomXY(true, true);
-
-				const newGif: IGifs = {
-					top: y,
-					left: x,
-					key: uuidv4(),
-					data: data.data
-				};
-
-				setGifs((gifs) => gifs.concat(newGif));
-			}, gif.time);
-		});
-
-		for (let i = 0; i < tutorialMessages.length; i++) {
-			setChatMessages((messages) =>
-				messages.concat({
-					top: window.innerHeight * 0.1 + i * 25,
-					left: window.innerWidth / 2 - tutorialMessages[i].length * 5,
-					key: uuidv4(),
-					value: tutorialMessages[i],
-					isCentered: true
-				})
-			);
-
-			await sleep(1000);
-		}
-	};
 
 	const playSound = useCallback((soundType) => {
 		audio.current = new Audio(sounds[soundType]);
@@ -168,10 +142,10 @@ function App() {
 			case 'animation':
 			case 'background':
 			case 'whiteboard':
+			case 'settings':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
-
 				break;
 		}
 	};
@@ -242,7 +216,6 @@ function App() {
 			);
 		}
 	}, []);
-
 
 	const activateFireworks = () => {
 		var duration = 2 * 1000;
@@ -320,9 +293,14 @@ function App() {
 		}
 	}, []);
 
-	useEffect(() => {
-		playTutorial();
+	const onIsTyping = (isTyping: boolean) => {
+		socket.emit('event', {
+			key: 'isTyping',
+			value: isTyping
+		});
+	};
 
+	useEffect(() => {
 		// spawn gryphon randomly
 		setInterval(() => {
 			if (Math.random() < 0.1) {
@@ -424,7 +402,11 @@ function App() {
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
 				playAnimation('start game');
-				setTowerDefenseState((state) => ({ ...state, isPlaying: true }));
+				setTowerDefenseState((state) => ({
+					...state,
+					isPlaying: true,
+					gold: INITIAL_GOLD
+				}));
 			}
 			if (message.value === 'end') {
 				playAnimation('end game');
@@ -443,6 +425,7 @@ function App() {
 				enemy.top = window.innerHeight / 2;
 				enemy.left = 0;
 				enemy.ref = React.createRef();
+				enemy.value = ENEMY_VALUES[enemy.type];
 
 				setTowerDefenseState((state) => ({
 					...state,
@@ -451,13 +434,13 @@ function App() {
 			}
 
 			if (message.value === 'add tower') {
-				const { x, y, towerKey } = message;
-
+				const { x, y, type, towerKey } = message;
 				setTowerDefenseState((state) => ({
 					...state,
 					towers: state.towers.concat({
 						key: towerKey,
-						type: 'basic',
+						type: type,
+						cost: BUILDING_COSTS[type],
 						top: y * window.innerHeight,
 						left: x * window.innerWidth
 					})
@@ -552,11 +535,25 @@ function App() {
 						drawLineEvent(message.value);
 					}
 					break;
+
 				case 'animation':
 					if (message.value) {
 						playMyAnimation(message.value);
-						break;
 					}
+					break;
+				case 'isTyping':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], isTyping: message.value }
+					}));
+					break;
+				case 'username':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], name: message.value }
+					}));
+					break;
+
 			}
 		};
 
@@ -653,11 +650,11 @@ function App() {
 					value: string;
 					tower?: string;
 				};
-
 				if (value === 'select tower' && tower) {
 					const towerObj: ITowerBuilding = {
 						key: tower,
-						type: 'basic',
+						type: tower,
+						cost: BUILDING_COSTS[tower],
 						top: 0,
 						left: 0
 					};
@@ -702,28 +699,59 @@ function App() {
 					value: strlineData
 				});
 				break;
+
+			case 'settings':
+				const username = args[0] as string;
+				socket.emit('event', {
+					key: 'username',
+					value: username
+				});
+				setUserProfile((profile) => ({ ...profile, name: username }));
+				break;
 			default:
 				break;
 		}
 	};
 
-	const onClickApp = useCallback((event: React.MouseEvent) => {
-		setTowerDefenseState((state) => {
-			if (state.selectedPlacementTower) {
-				const { x, y } = getRelativePos(event.clientX, event.clientY);
-
-				socket.emit('event', {
-					key: 'tower defense',
-					value: 'add tower',
-					x,
-					y
-				});
-
-				return { ...state, selectedPlacementTower: undefined };
-			}
-			return state;
-		});
-	}, []);
+	const onClickApp = useCallback(
+		(event: React.MouseEvent) => {
+			setTowerDefenseState((state) => {
+				if (state.selectedPlacementTower) {
+					const { x, y } = getRelativePos(event.clientX, event.clientY);
+					const newGold =
+						towerDefenseState.gold -
+						BUILDING_COSTS[state.selectedPlacementTower.type];
+					if (newGold >= 0) {
+						socket.emit('event', {
+							key: 'tower defense',
+							value: 'add tower',
+							type: state.selectedPlacementTower.type,
+							x,
+							y
+						});
+						return {
+							...state,
+							gold: newGold,
+							selectedPlacementTower: undefined
+						};
+					} else {
+						setChatMessages((messages) =>
+							messages.concat({
+								top: y * window.innerHeight,
+								left: x * window.innerWidth,
+								key: uuidv4(),
+								value: 'Not Enough Gold',
+								isCentered: false
+							})
+						);
+					}
+					return { ...state, selectedPlacementTower: undefined };
+				}
+				return state;
+			});
+		},
+		[towerDefenseState]
+	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
@@ -766,6 +794,9 @@ function App() {
 				updateProjectiles={(projectiles) =>
 					setTowerDefenseState((state) => ({ ...state, projectiles }))
 				}
+				updateGold={(gold) =>
+					setTowerDefenseState((state) => ({ ...state, gold }))
+				}
 			/>
 
 			<Whiteboard
@@ -803,7 +834,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, and grant`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, and andrew`}
 			>
 				<div className="adventure-logo">
 					<div>adventure</div>
@@ -817,6 +848,7 @@ function App() {
 				type={selectedPanelItem}
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
+				updateIsTyping={onIsTyping}
 			/>
 
 			{userProfile && (
@@ -831,50 +863,6 @@ function App() {
 }
 
 export default App;
-
-const sleep = async (time: number) =>
-	new Promise((resolve) => setTimeout(resolve, time));
-
-const tutorialMessages = [
-	'built with web sockets',
-	'anyone visiting the url',
-	'can see 👀 & hear 👂',
-	'the various actions',
-	'text',
-	'audio',
-	'emojis 🙌',
-	'gifs',
-	'etc',
-	'try !',
-	'😊send to a friend !😊',
-	'coming soon: ',
-	'ethereum integrations',
-	'chat rooms',
-	'video channels',
-	'games 🎮',
-	'etc',
-	'have fun',
-	'try with friends, share www.trychats.com'
-];
-
-const tutorialGifs = [
-	{
-		id: 'cPZ582I9Mxtk6crJ37',
-		time: 0
-	},
-	{
-		id: 'l4pT6w42S93xNKz2U',
-		time: 3000
-	},
-	{
-		id: '42YlR8u9gV5Cw',
-		time: 10000
-	},
-	{
-		id: '3og0IzoPfRVwyxjDUs',
-		time: 15000
-	}
-];
 
 const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	if (centered) {

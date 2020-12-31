@@ -20,7 +20,9 @@ export interface IMessageEvent {
 		| 'background'
 		| 'messages'
 		| 'whiteboard'
-		| 'animation';
+		| 'animation'
+		| 'isTyping'
+		| 'username';
 	value?: any;
 	[key: string]: any;
 }
@@ -105,6 +107,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'settings' = 'settings',
 	'sound' = 'sound',
 	'emoji' = 'emoji',
 	// 'color' = 'color',
@@ -124,6 +127,7 @@ export interface IUserProfile {
 	name: string;
 	avatar: string;
 	message?: string;
+	isTyping?: boolean;
 }
 
 export interface IUserProfiles {
@@ -132,17 +136,19 @@ export interface IUserProfiles {
 
 export interface ITowerUnit {
 	key: string;
-	type: 'grunt';
+	type: string;
 	top: number;
 	left: number;
+	value: number;
 	ref: React.RefObject<HTMLImageElement>;
 }
 
 export interface ITowerBuilding {
 	key: string;
-	type: 'basic';
+	type: string;
 	top: number;
 	left: number;
+	cost: number;
 }
 
 export interface ITowerProjectile {
@@ -158,6 +164,7 @@ export interface ITowerDefenseState {
 	towers: ITowerBuilding[];
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
+	gold: number;
 }
 
 

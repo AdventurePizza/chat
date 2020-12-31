@@ -10,8 +10,11 @@ import {
 
 import React from 'react';
 import projectileSVG from '../assets/projectile.svg';
-import towerSVG from '../assets/tower.svg';
-import zombieSVG from '../assets/zombie.svg';
+import {
+	BUILDING_ICONS,
+	ENEMY_ICONS,
+	ENEMY_VALUES
+} from './TowerDefenseConstants';
 
 export type Actions = 'hit enemy';
 
@@ -19,13 +22,15 @@ interface ITowerDefenseProps {
 	state: ITowerDefenseState;
 	updateUnits: (units: ITowerUnit[]) => void;
 	updateProjectiles: (projectiles: ITowerProjectile[]) => void;
+	updateGold: (gold: number) => void;
 }
 
 export const TowerDefense = (props: ITowerDefenseProps) => {
 	const {
-		state: { towers, units, projectiles },
+		state: { towers, units, projectiles, gold },
 		updateUnits,
-		updateProjectiles
+		updateProjectiles,
+		updateGold
 	} = props;
 
 	return (
@@ -82,6 +87,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							);
 
 							if (toDeleteUnitIndex !== -1) {
+								updateGold(gold + ENEMY_VALUES[units[toDeleteUnitIndex].type]);
 								updateUnits([
 									...units.slice(0, toDeleteUnitIndex),
 									...units.slice(toDeleteUnitIndex + 1)
@@ -105,10 +111,10 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 	);
 };
 
-export const Tower = ({ top, left }: ITowerBuilding) => {
+export const Tower = ({ top, left, type }: ITowerBuilding) => {
 	return (
 		<img
-			src={towerSVG}
+			src={BUILDING_ICONS[type]}
 			style={{
 				top,
 				left
@@ -121,11 +127,11 @@ export const Tower = ({ top, left }: ITowerBuilding) => {
 
 // const Unit = React.forwardRef(({ top, left }: ITowerUnit), ref) => {
 const Unit = React.forwardRef(
-	({ top, left }: ITowerUnit, ref: React.Ref<HTMLImageElement>) => {
+	({ top, left, type }: ITowerUnit, ref: React.Ref<HTMLImageElement>) => {
 		return (
 			<img
 				ref={ref}
-				src={zombieSVG}
+				src={ENEMY_ICONS[type]}
 				style={{
 					top,
 					left
