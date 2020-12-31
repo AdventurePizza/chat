@@ -245,7 +245,7 @@ function App() {
 
 
 	const activateFireworks = () => {
-		var duration = 15 * 1000;
+		var duration = 2 * 1000;
 		var animationEnd = Date.now() + duration;
 		var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
@@ -270,7 +270,7 @@ function App() {
 	  }
 
 	  const activateSnow = async () => {
-		var duration = 15 * 1000;
+		var duration = 3.5 * 1000;
 		var animationEnd = Date.now() + duration;
 		var skew = 1;
 
@@ -965,7 +965,7 @@ const activateRandomConfetti = () => {
 	}); 
 }
 const activateSchoolPride = () => {
-  var end = Date.now() + (15 * 1000);
+  var end = Date.now() + (1.3 * 1000);
   // go Buckeyes!
   var colors = ['#bb0000', '#ffffff'];
 
