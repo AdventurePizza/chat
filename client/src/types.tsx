@@ -91,7 +91,7 @@ export interface IBackgrounds {
 	triangles: string;
 }
 
-export interface Ianimations {
+export interface ITextAnimation {
 	[key: string]: string | undefined;
 	schoolPride: string;
 	fireworks: string;

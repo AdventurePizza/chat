@@ -4,13 +4,13 @@ import fireworksIcon from '../assets/animations/fireworks.png';
 import confettiIcon from '../assets/animations/confetti.png';
 import snowIcon from '../assets/animations/snow.png';
 
-import { Ianimations } from '../types';
+import { ITextAnimation } from '../types';
 
 interface IAnimationPanelProps {
 	sendAnimation: (animationText: string, animationType: string) => void;
 }
 
-const animationIcons: Ianimations = {
+const animationIcons: ITextAnimation = {
 	schoolPride: schoolPrideIcon,
 	fireworks: fireworksIcon,
 	confetti: confettiIcon,

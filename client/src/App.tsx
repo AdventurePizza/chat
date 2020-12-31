@@ -47,8 +47,7 @@ import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-//@ts-ignore
-import confetti from 'canvas-confetti';
+import { activateRandomConfetti, activateSchoolPride, activateFireworks, activateSnow } from './components/Animation'
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -104,8 +103,6 @@ function App() {
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
 
-	const fireWorkContainer = useRef(null);
-	//const fireworks = useRef(null)
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -216,74 +213,7 @@ function App() {
 		}
 	}, []);
 
-	const activateFireworks = () => {
-		var duration = 2 * 1000;
-		var animationEnd = Date.now() + duration;
-		var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-		function randomInRange(min: number, max: number) {
-			return Math.random() * (max - min) + min;
-		}
-
-		var interval: any = setInterval(function () {
-			var timeLeft = animationEnd - Date.now();
-
-			if (timeLeft <= 0) {
-				return clearInterval(interval);
-			}
-
-			var particleCount = 50 * (timeLeft / duration);
-			// since particles fall down, start a bit higher than random
-			confetti(
-				Object.assign({}, defaults, {
-					particleCount,
-					origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-				})
-			);
-			confetti(
-				Object.assign({}, defaults, {
-					particleCount,
-					origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-				})
-			);
-		}, 250);
-	};
-
-	const activateSnow = async () => {
-		var duration = 3.5 * 1000;
-		var animationEnd = Date.now() + duration;
-		var skew = 1;
-
-		function randomInRange(min: number, max: number) {
-			return Math.random() * (max - min) + min;
-		}
-
-		(function frame() {
-			var timeLeft = animationEnd - Date.now();
-			var ticks = Math.max(200, 500 * (timeLeft / duration));
-			skew = Math.max(0.8, skew - 0.001);
-
-			confetti({
-				particleCount: 1,
-				startVelocity: 0,
-				ticks: ticks,
-				gravity: 0.5,
-				origin: {
-					x: Math.random(),
-					// since particles fall down, skew start toward the top
-					y: Math.random() * skew - 0.2
-				},
-				colors: ['#ffffff'],
-				shapes: ['circle'],
-				scalar: randomInRange(0.4, 1)
-			});
-
-			if (timeLeft > 0) {
-				requestAnimationFrame(frame);
-			}
-		})();
-	};
-	const playMyAnimation = useCallback((animationType: string) => {
+	const playTextAnimation = useCallback((animationType: string) => {
 		switch (animationType) {
 			case 'confetti':
 				activateRandomConfetti();
@@ -545,7 +475,7 @@ function App() {
 
 				case 'animation':
 					if (message.value) {
-						playMyAnimation(message.value);
+						playTextAnimation(message.value);
 					}
 					break;
 				case 'isTyping':
@@ -611,7 +541,7 @@ function App() {
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
-		playMyAnimation
+		playTextAnimation
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -691,7 +621,7 @@ function App() {
 				break;
 			case 'animation':
 				const animationType = args[0] as string;
-				playMyAnimation(animationType);
+				playTextAnimation(animationType);
 				socket.emit('event', {
 					key: 'animation',
 					value: animationType
@@ -764,7 +694,6 @@ function App() {
 	return (
 		<div
 			className="app"
-			ref={fireWorkContainer}
 			style={{
 				minHeight: window.innerHeight - 10,
 				backgroundImage: `url(${backgrounds[backgroundName!]})`,
@@ -911,77 +840,3 @@ const getDistanceBetweenPoints = (
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
 
-//Celebration - Animation
-const activateRandomConfetti = () => {
-	// confetti({
-	//   particleCount: 100,
-	//   startVelocity: 30,
-	//   spread: 360,
-	//   origin: {
-	// 	x: Math.random(),
-	// 	// since they fall down, start a bit higher than random
-	// 	y: Math.random() - 0.2
-	//   }
-	// });
-	var count = 200;
-	var defaults = {
-		origin: { y: 0.7 }
-	};
-
-	function fire(particleRatio: number, opts: any) {
-		confetti(
-			Object.assign({}, defaults, opts, {
-				particleCount: Math.floor(count * particleRatio)
-			})
-		);
-	}
-
-	fire(0.25, {
-		spread: 26,
-		startVelocity: 55
-	});
-	fire(0.2, {
-		spread: 60
-	});
-	fire(0.35, {
-		spread: 100,
-		decay: 0.91,
-		scalar: 0.8
-	});
-	fire(0.1, {
-		spread: 120,
-		startVelocity: 25,
-		decay: 0.92,
-		scalar: 1.2
-	});
-	fire(0.1, {
-		spread: 120,
-		startVelocity: 45
-	});
-};
-const activateSchoolPride = () => {
-	var end = Date.now() + 1.3 * 1000;
-	// go Buckeyes!
-	var colors = ['#bb0000', '#ffffff'];
-
-	(function frame() {
-		confetti({
-			particleCount: 2,
-			angle: 60,
-			spread: 55,
-			origin: { x: 0 },
-			colors: colors
-		});
-		confetti({
-			particleCount: 2,
-			angle: 120,
-			spread: 55,
-			origin: { x: 1 },
-			colors: colors
-		});
-
-		if (Date.now() < end) {
-			requestAnimationFrame(frame);
-		}
-	})();
-};
