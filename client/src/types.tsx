@@ -21,7 +21,9 @@ export interface IMessageEvent {
 		| 'messages'
 		| 'whiteboard'
 		| 'isTyping'
-		| 'username';
+		| 'username'
+		| 'weather';
+
 	value?: any;
 	[key: string]: any;
 }
@@ -106,7 +108,8 @@ export enum PanelItemEnum {
 	'chat' = 'chat',
 	'tower' = 'tower',
 	'background' = 'background',
-	'whiteboard' = 'whiteboard'
+	'whiteboard' = 'whiteboard',
+	'weather' = 'weather'
 }
 
 export interface IUserLocations {
@@ -155,4 +158,8 @@ export interface ITowerDefenseState {
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
 	gold: number;
+}
+
+export interface IWeather {
+	location: string;
 }

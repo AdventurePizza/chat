@@ -65,7 +65,8 @@ interface IMessageEvent {
     | "messages"
     | "whiteboard"
     | "isTyping"
-    | "username";
+    | "username"
+    | "weather";
   value?: string;
   [key: string]: any;
 }
@@ -145,6 +146,7 @@ export class Router {
         break;
 
       case "chat":
+
         io.emit("event", {
           key: "chat",
           userId: socket.id,
@@ -209,6 +211,12 @@ export class Router {
 
       case "whiteboard":
         socket.broadcast.emit("event", message);
+        break;
+      case "weather":
+
+
+      
+        console.log(message.value)
         break;
     }
   };

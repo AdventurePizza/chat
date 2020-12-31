@@ -10,6 +10,7 @@ import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import WhiteboardPanel from './WhiteboardPanel';
+import { Weather } from './Weather';
 
 export interface IPanelProps {
 	isOpen: boolean;
@@ -98,6 +99,10 @@ export const BottomPanel = ({
 			case 'settings':
 				return (
 					<SettingsPanel onChangeName={(name) => onAction('settings', name)} />
+				);
+			case 'weather':
+				return (
+					<Weather sendLocation={(location) => onAction('weather', location)} />
 				);
 		}
 	};

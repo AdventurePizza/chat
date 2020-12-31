@@ -135,6 +135,7 @@ function App() {
 			case 'tower':
 			case 'background':
 			case 'whiteboard':
+			case 'weather':
 			case 'settings':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -608,6 +609,13 @@ function App() {
 					value: username
 				});
 				setUserProfile((profile) => ({ ...profile, name: username }));
+				break;
+			case 'weather':
+				const location = args[0] as string;
+				socket.emit('event', {
+					key: 'weather',
+					value: location
+				});
 				break;
 			default:
 				break;

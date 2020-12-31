@@ -74,7 +74,8 @@ const panelIconSrcMap: {
 	chat: chatIcon,
 	tower: towerIcon,
 	background: cameraRollIcon,
-	whiteboard: pencilIcon
+	whiteboard: pencilIcon,
+	weather: pencilIcon
 };
 
 const panelIconComponentMap: {
