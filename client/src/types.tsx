@@ -166,5 +166,3 @@ export interface ITowerDefenseState {
 	projectiles: ITowerProjectile[];
 	gold: number;
 }
-
-

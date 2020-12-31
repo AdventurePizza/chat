@@ -9,9 +9,8 @@ import React from 'react';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
-import AnimationPanel from './AnimationPanel'
+import AnimationPanel from './AnimationPanel';
 import WhiteboardPanel from './WhiteboardPanel';
-
 
 export interface IPanelProps {
 	isOpen: boolean;

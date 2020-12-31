@@ -13,8 +13,7 @@ import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
-import animationIcon from '../assets/navbar/animation.png'
-
+import animationIcon from '../assets/navbar/animation.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -77,7 +76,7 @@ const panelIconSrcMap: {
 	tower: towerIcon,
 	background: cameraRollIcon,
 	animation: animationIcon,
-	whiteboard: pencilIcon,
+	whiteboard: pencilIcon
 };
 
 const panelIconComponentMap: {
