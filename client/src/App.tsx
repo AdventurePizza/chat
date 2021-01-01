@@ -19,6 +19,7 @@ import {
 	IUserLocations,
 	IUserProfile,
 	IUserProfiles,
+	IWeather,
 	PanelItemEnum
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
@@ -101,6 +102,13 @@ function App() {
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
+
+	const [weather, setWeather] = useState<IWeather[]>([
+		{
+			temp: 'thi sis a placeholder extended extended extended extended',
+			condition: ''
+		}
+	]);
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -217,6 +225,10 @@ function App() {
 			value: isTyping
 		});
 	};
+
+	// const handleWeather = (weatherValue: string) => {
+	// 	setWeather([{ weather: weatherValue }]);
+	// };
 
 	useEffect(() => {
 		// spawn gryphon randomly
@@ -467,6 +479,9 @@ function App() {
 					break;
 				case 'weather':
 					console.log(message.value);
+					setWeather([
+						{ temp: message.value.temp, condition: message.value.condition }
+					]);
 					break;
 			}
 		};
@@ -696,6 +711,8 @@ function App() {
 				animations={animations}
 				updateAnimations={setAnimations}
 				avatarMessages={avatarMessages}
+				weather={weather}
+				updateWeather={setWeather}
 			/>
 
 			<TowerDefense

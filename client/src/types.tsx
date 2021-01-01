@@ -161,5 +161,6 @@ export interface ITowerDefenseState {
 }
 
 export interface IWeather {
-	location: string;
+	temp: string;
+	condition: string;
 }
