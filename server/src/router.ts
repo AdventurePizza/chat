@@ -228,6 +228,14 @@ export class Router {
         console.log(res.data.main)
         console.log(`In fareinheit in city${message.value}: `,res.data.main.temp * (9/5) - 459.67)
 
+        io.emit("event", {
+          key: "weather",
+          value:{temp:res.data.main.temp * (9/5) - 459.67 ,
+                condition:res.data.weather[0].main 
+          }   
+            ,
+        
+        }); 
       }).catch(error => {
         console.error(error.response.data)
       })

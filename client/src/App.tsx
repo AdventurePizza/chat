@@ -465,6 +465,9 @@ function App() {
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
 					break;
+				case 'weather':
+					console.log(message.value);
+					break;
 			}
 		};
 
@@ -613,7 +616,7 @@ function App() {
 				break;
 			case 'weather':
 				const location = args[0] as string;
-				console.log(location);
+
 				socket.emit('event', {
 					key: 'weather',
 					value: location
