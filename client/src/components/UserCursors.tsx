@@ -163,8 +163,17 @@ export const UserCursor = React.forwardRef(
 					>
 						{/* {add weather state here} */}
 
-						<div>{weather!.temp}</div>
-						<div>{weather!.condition}</div>
+						{weather!.temp.length > 0 ? (
+							<div>
+								<div>{weather!.temp} &#8457; </div>
+								<div>{weather!.condition}</div>{' '}
+							</div>
+						) : (
+							<div></div>
+						)}
+
+						{/* {add weather state here} */}
+
 						<img src={avatarMap[avatar]} alt="avatar" />
 						<div style={{ textDecoration: 'bold', fontSize: '1.2em' }}>
 							{name}
