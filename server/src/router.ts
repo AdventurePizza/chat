@@ -385,7 +385,7 @@ const fireTowers = (roomId: string) => {
   io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
 };
 
-const GAME_LENGTH_SECONDS = 5;
+const GAME_LENGTH_SECONDS = 120;
 
 const startGame = (roomId: string) => {
   //   io.emit("event", { key: "tower defense", value: "start" });
