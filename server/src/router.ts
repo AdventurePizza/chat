@@ -42,7 +42,7 @@ export interface ITowerBuilding {
   left: number;
 }
 
-export interface ITowerDefenseState {
+interface ITowerDefenseStateRoom {
   isPlaying: boolean;
   units: ITowerUnit[];
   towers: ITowerBuilding[];
@@ -50,12 +50,11 @@ export interface ITowerDefenseState {
   loopCounter: number;
 }
 
-let towerDefenseState: ITowerDefenseState = {
-  isPlaying: false,
-  units: [],
-  towers: [],
-  loopCounter: 0,
-};
+export interface ITowerDefenseState {
+  [roomId: string]: ITowerDefenseStateRoom;
+}
+
+let towerDefenseState: ITowerDefenseState = {};
 
 let backgroundState: IBackgroundState = {};
 
@@ -94,15 +93,6 @@ export class Router {
         value: chatMessages,
       });
 
-      if (towerDefenseState.isPlaying) {
-        socket.emit("event", { key: "tower defense", value: "start" });
-        socket.emit("event", {
-          key: "tower defense",
-          value: "towers",
-          towers: towerDefenseState.towers,
-        });
-      }
-
       // So you only need to change the server for having a different DEFAULT_IMAGE_BACKGROUND, client will prevent unnecessary background changes
       // Although, the client still needs to have the image in "BackgroundImages.ts"
 
@@ -128,6 +118,26 @@ export class Router {
               ? backgroundState[roomId].currentBackground
               : undefined,
           });
+
+          const towerDefenseStateRoom = towerDefenseState[roomId];
+
+          if (!towerDefenseStateRoom) {
+            towerDefenseState[roomId] = {
+              isPlaying: false,
+              units: [],
+              towers: [],
+              loopCounter: 0,
+            };
+          }
+
+          if (towerDefenseStateRoom && towerDefenseStateRoom.isPlaying) {
+            socket.emit("event", { key: "tower defense", value: "start" });
+            socket.emit("event", {
+              key: "tower defense",
+              value: "towers",
+              towers: towerDefenseState.towers,
+            });
+          }
         }
       });
 
@@ -159,19 +169,20 @@ export class Router {
   }
 
   handleEvent = (message: IMessageEvent, socket: Socket) => {
+    const room = clientRooms[socket.id];
     switch (message.key) {
       case "sound":
         // socket.broadcast.emit("event", message);
-        socket.to(clientRooms[socket.id]).broadcast.emit("event", message);
+        socket.to(room).broadcast.emit("event", message);
         break;
 
       case "emoji":
         // socket.broadcast.emit("event", message);
-        socket.to(clientRooms[socket.id]).broadcast.emit("event", message);
+        socket.to(room).broadcast.emit("event", message);
         break;
 
       case "chat":
-        socket.to(clientRooms[socket.id]).emit("event", {
+        socket.to(room).emit("event", {
           key: "chat",
           userId: socket.id,
           value: message.value,
@@ -190,30 +201,27 @@ export class Router {
 
       case "gif":
         // io.emit("event", message);
-        socket.to(clientRooms[socket.id]).emit("event", message);
+        socket.to(room).emit("event", message);
         break;
 
       case "isTyping":
         // io.emit("event", { ...message, id: socket.id });
-        socket
-          .to(clientRooms[socket.id])
-          .emit("event", { ...message, id: socket.id });
+        socket.to(room).emit("event", { ...message, id: socket.id });
         break;
 
       case "username":
         // io.emit("event", { ...message, id: socket.id });
-        socket
-          .to(clientRooms[socket.id])
-          .emit("event", { ...message, id: socket.id });
+        socket.to(room).emit("event", { ...message, id: socket.id });
         clientProfiles[socket.id].name = message.value as string;
         break;
 
       case "tower defense":
-        if (message.value === "start" && !towerDefenseState.isPlaying) {
-          startGame();
+        const towerDefenseStateRoom = towerDefenseState[clientRooms[socket.id]];
+        if (message.value === "start" && !towerDefenseStateRoom.isPlaying) {
+          startGame(room);
         }
         if (message.value === "add tower") {
-          socket.to(clientRooms[socket.id]).emit("event", {
+          socket.to(room).emit("event", {
             key: "tower defense",
             value: "add tower",
             x: message.x,
@@ -230,7 +238,7 @@ export class Router {
           //     towerKey: uuidv4(),
           //   });
 
-          towerDefenseState.towers.push({
+          towerDefenseStateRoom.towers.push({
             key: uuidv4(),
             type: message.type,
             top: message.y,
@@ -355,35 +363,45 @@ const createProfile = (client: Socket) => {
   };
 };
 
-const spawnEnemy = () => {
+const spawnEnemy = (roomId: string) => {
+  const towerDefenseStateRoom = towerDefenseState[roomId];
   const enemy: ITowerUnit = {
     key: uuidv4(),
     type: "grunt",
   };
 
-  towerDefenseState.units.push(enemy);
+  towerDefenseStateRoom.units.push(enemy);
 
-  io.emit("event", { key: "tower defense", value: "spawn enemy", enemy });
+  //   io.emit("event", { key: "tower defense", value: "spawn enemy", enemy });
+  io.to(roomId).emit("event", {
+    key: "tower defense",
+    value: "spawn enemy",
+    enemy,
+  });
 };
 
-const fireTowers = () => {
-  io.emit("event", { key: "tower defense", value: "fire towers" });
+const fireTowers = (roomId: string) => {
+  //   io.emit("event", { key: "tower defense", value: "fire towers" });
+  io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
 };
 
-const GAME_LENGTH_SECONDS = 120;
+const GAME_LENGTH_SECONDS = 5;
 
-const startGame = () => {
-  io.emit("event", { key: "tower defense", value: "start" });
+const startGame = (roomId: string) => {
+  //   io.emit("event", { key: "tower defense", value: "start" });
+  //   io.to(roomId).emit("event", { key: "tower defense", value: "start" });
 
-  towerDefenseState.isPlaying = true;
+  const towerDefenseStateRoom = towerDefenseState[roomId];
 
-  if (towerDefenseState.towerDefenseGameInterval) {
-    clearInterval(towerDefenseState.towerDefenseGameInterval);
-    towerDefenseState.loopCounter = 0;
+  towerDefenseStateRoom.isPlaying = true;
+
+  if (towerDefenseStateRoom.towerDefenseGameInterval) {
+    clearInterval(towerDefenseStateRoom.towerDefenseGameInterval);
+    towerDefenseStateRoom.loopCounter = 0;
   }
 
-  towerDefenseState.towerDefenseGameInterval = setInterval(() => {
-    const { loopCounter } = towerDefenseState;
+  towerDefenseStateRoom.towerDefenseGameInterval = setInterval(() => {
+    const { loopCounter } = towerDefenseStateRoom;
 
     let spawnRate = 0;
 
@@ -402,35 +420,37 @@ const startGame = () => {
     }
 
     if (Math.random() < spawnRate) {
-      spawnEnemy();
+      spawnEnemy(roomId);
     }
 
     // fire every 4 seconds
     if (loopCounter % 4 === 0) {
-      fireTowers();
+      fireTowers(roomId);
     }
 
-    towerDefenseState.loopCounter++;
+    towerDefenseStateRoom.loopCounter++;
 
-    if (towerDefenseState.loopCounter === GAME_LENGTH_SECONDS) {
-      endGame();
+    if (towerDefenseStateRoom.loopCounter === GAME_LENGTH_SECONDS) {
+      endGame(roomId);
     }
   }, 1000);
 };
 
-const endGame = () => {
-  if (towerDefenseState.towerDefenseGameInterval) {
-    clearInterval(towerDefenseState.towerDefenseGameInterval);
+const endGame = (roomId: string) => {
+  const towerDefenseStateRoom = towerDefenseState[roomId];
+
+  if (towerDefenseStateRoom.towerDefenseGameInterval) {
+    clearInterval(towerDefenseStateRoom.towerDefenseGameInterval);
   }
 
-  towerDefenseState = {
+  towerDefenseState[roomId] = {
     isPlaying: false,
     units: [],
     towers: [],
     loopCounter: 0,
   };
 
-  io.emit("event", { key: "tower defense", value: "end" });
+  io.to(roomId).emit("event", { key: "tower defense", value: "end" });
 };
 
 const spawnRates: { [timeSeconds: number]: number } = {
@@ -458,6 +478,10 @@ const removeImageAfter1Min = (roomId: string) => {
       currentBackground: DEFAULT_IMAGE_BACKGROUND,
     };
 
-    io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
+    // io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
+    io.to(roomId).emit("event", {
+      key: "background",
+      value: DEFAULT_IMAGE_BACKGROUND,
+    });
   }, 60000);
 };
