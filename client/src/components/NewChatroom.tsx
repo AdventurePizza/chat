@@ -163,14 +163,14 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 			</Paper>
 
 			<div className={classes.previewText}>
-				www.trychats.com/room/{inputValue}
+				www.trychats.com/#/room/{inputValue}
 			</div>
 			{errorMsg && <div className={classes.errorText}> {errorMsg} </div>}
 			{successMsg && (
 				<div className={classes.successMsg}>
 					Success! Created your room, check it out at{' '}
-					<a href={`http://www.trychats.com/room/${successMsg.name}`}>
-						www.trychats.com/room/{successMsg.name}
+					<a href={`http://www.trychats.com/#/room/${successMsg.name}`}>
+						www.trychats.com/#/room/{successMsg.name}
 					</a>
 				</div>
 			)}

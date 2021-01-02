@@ -33,7 +33,7 @@ import React, {
 } from 'react';
 import {
 	Route,
-	BrowserRouter as Router,
+	HashRouter as Router,
 	Switch,
 	useHistory,
 	useParams
