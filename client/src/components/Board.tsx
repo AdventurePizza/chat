@@ -237,16 +237,8 @@ export const Board = ({
 				userLocations={userLocations}
 				userProfiles={userProfiles}
 				avatarChatMessages={avatarMessages}
+				weather={weather[0]}
 			/>
-
-			<div>
-				{' '}
-				{'sadasdasdasdasdasd' +
-					weather[0].temp +
-					'condition is: ' +
-					weather[0].condition}
-			</div>
-			<div>{}</div>
 		</div>
 	);
 };

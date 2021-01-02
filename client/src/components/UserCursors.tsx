@@ -2,7 +2,8 @@ import {
 	IAvatarChatMessages,
 	ITowerBuilding,
 	IUserLocations,
-	IUserProfiles
+	IUserProfiles,
+	IWeather
 } from '../types';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -59,6 +60,7 @@ interface IUserCursorsProps {
 	userProfiles: IUserProfiles;
 	isSelectingTower?: ITowerBuilding;
 	avatarChatMessages: IAvatarChatMessages;
+	weather: IWeather;
 }
 
 export const UserCursors = (props: IUserCursorsProps) => {
@@ -85,6 +87,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 						y={y}
 						message={chatMessage}
 						isTyping={isTyping}
+						weather={props.weather}
 					/>
 				);
 			})}
@@ -100,6 +103,7 @@ interface IUserCursorProps {
 	isSelectingTower?: ITowerBuilding;
 	message?: string;
 	isTyping?: boolean;
+	weather?: IWeather;
 }
 
 export const UserCursor = React.forwardRef(
@@ -111,7 +115,8 @@ export const UserCursor = React.forwardRef(
 			y,
 			isSelectingTower,
 			message,
-			isTyping
+			isTyping,
+			weather
 		}: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
@@ -156,10 +161,15 @@ export const UserCursor = React.forwardRef(
 							position: 'relative'
 						}}
 					>
+						{/* {add weather state here} */}
+
+						<div>{weather!.temp}</div>
+						<div>{weather!.condition}</div>
 						<img src={avatarMap[avatar]} alt="avatar" />
 						<div style={{ textDecoration: 'bold', fontSize: '1.2em' }}>
 							{name}
 						</div>
+
 						<CSSTransition
 							timeout={1000}
 							classNames="avatar-message-transition"

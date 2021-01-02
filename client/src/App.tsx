@@ -105,7 +105,7 @@ function App() {
 
 	const [weather, setWeather] = useState<IWeather[]>([
 		{
-			temp: 'thi sis a placeholder extended extended extended extended',
+			temp: '',
 			condition: ''
 		}
 	]);
@@ -785,6 +785,7 @@ function App() {
 					ref={userCursorRef}
 					{...userProfile}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
+					weather={weather[0]}
 				/>
 			)}
 		</div>
