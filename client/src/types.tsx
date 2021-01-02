@@ -113,11 +113,8 @@ export enum PanelItemEnum {
 	'tower' = 'tower',
 	'background' = 'background',
 	'whiteboard' = 'whiteboard',
-<<<<<<< HEAD
-	'weather' = 'weather'
-=======
+	'weather' = 'weather',
 	'new-room' = 'new-room'
->>>>>>> 0c04a42ed92c95af6a9e5fd0ebc6fef4a17d4a0f
 }
 
 export interface IUserLocations {

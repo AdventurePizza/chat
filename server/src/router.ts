@@ -26,15 +26,12 @@ const DEFAULT_IMAGE_BACKGROUND = undefined;
 const chatMessages: { [userId: string]: string[] } = {};
 const clientRooms: { [userId: string]: string } = {};
 
-<<<<<<< HEAD
 const KELVIN_FIXED:number =  459.67;
 
-=======
 // export interface IBackgroundState {
 //   imageTimeout?: NodeJS.Timeout;
 //   currentBackground: string | undefined;
 // }
->>>>>>> 0c04a42ed92c95af6a9e5fd0ebc6fef4a17d4a0f
 export interface IBackgroundState {
   [roomId: string]: {
     imageTimeout?: NodeJS.Timeout;
@@ -62,19 +59,9 @@ interface ITowerDefenseStateRoom {
   loopCounter: number;
 }
 
-<<<<<<< HEAD
-
-let towerDefenseState: ITowerDefenseState = {
-  isPlaying: false,
-  units: [],
-  towers: [],
-  loopCounter: 0,
-};
-=======
 export interface ITowerDefenseState {
   [roomId: string]: ITowerDefenseStateRoom;
 }
->>>>>>> 0c04a42ed92c95af6a9e5fd0ebc6fef4a17d4a0f
 
 let towerDefenseState: ITowerDefenseState = {};
 
@@ -205,12 +192,7 @@ export class Router {
         break;
 
       case "chat":
-<<<<<<< HEAD
-
-        io.emit("event", {
-=======
         socket.to(room).emit("event", {
->>>>>>> 0c04a42ed92c95af6a9e5fd0ebc6fef4a17d4a0f
           key: "chat",
           userId: socket.id,
           value: message.value,
