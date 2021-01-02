@@ -22,9 +22,10 @@ import {
 	PanelItemEnum
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
-import { IconButton, Tooltip } from '@material-ui/core';
+import { IconButton, Modal, Tooltip } from '@material-ui/core';
 import React, {
 	useCallback,
+	useContext,
 	useEffect,
 	useMemo,
 	useRef,
@@ -36,8 +37,10 @@ import { cymbalHit, sounds } from './components/Sounds';
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
+import { FirebaseContext } from './firebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
+import { NewChatroom } from './components/NewChatroom';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
@@ -60,6 +63,8 @@ const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 
 function App() {
+	const firebaseContext = useContext(FirebaseContext);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -140,6 +145,12 @@ function App() {
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
+			case 'new-room':
+				setIsModalOpen(true);
+				setSelectedPanelItem(
+					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
+				);
+				break;
 		}
 	};
 
@@ -199,17 +210,6 @@ function App() {
 		[updateCursorPosition, userCursorRef]
 	);
 
-	const onKeyPress = useCallback((event: KeyboardEvent) => {
-		if (event.ctrlKey && event.code === 'KeyQ') {
-			setFigures((figures) =>
-				figures.concat({
-					key: uuidv4(),
-					type: 'gryphon'
-				})
-			);
-		}
-	}, []);
-
 	const onIsTyping = (isTyping: boolean) => {
 		socket.emit('event', {
 			key: 'isTyping',
@@ -218,23 +218,8 @@ function App() {
 	};
 
 	useEffect(() => {
-		// spawn gryphon randomly
-		setInterval(() => {
-			if (Math.random() < 0.1) {
-				setFigures((figures) =>
-					figures.concat({
-						key: uuidv4(),
-						type: 'gryphon'
-					})
-				);
-			}
-		}, 10000);
-	}, []);
-
-	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
-		window.addEventListener('keypress', onKeyPress);
-	}, [onMouseMove, onKeyPress]);
+	}, [onMouseMove]);
 
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
@@ -656,6 +641,17 @@ function App() {
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
+	const onCreateRoom = (roomName: string) => {
+		return firebaseContext.createRoom(roomName);
+		// return new Promise<INewChatroomCreateResponse>((resolve) => {
+		// 	resolve({
+		// 		name: roomName,
+		// 		message: 'success'
+		// 		// message: 'room name already taken'
+		// 	});
+		// });
+	};
+
 	return (
 		<div
 			className="app"
@@ -757,6 +753,13 @@ function App() {
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}
+
+			<Modal className="modal-container" open={isModalOpen}>
+				<NewChatroom
+					onClickCancel={() => setIsModalOpen(false)}
+					onCreate={onCreateRoom}
+				/>
+			</Modal>
 		</div>
 	);
 }
