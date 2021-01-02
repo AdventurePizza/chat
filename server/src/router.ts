@@ -19,9 +19,15 @@ const DEFAULT_IMAGE_BACKGROUND = undefined;
 const chatMessages: { [userId: string]: string[] } = {};
 const clientRooms: { [userId: string]: string } = {};
 
+// export interface IBackgroundState {
+//   imageTimeout?: NodeJS.Timeout;
+//   currentBackground: string | undefined;
+// }
 export interface IBackgroundState {
-  imageTimeout?: NodeJS.Timeout;
-  currentBackground: string | undefined;
+  [roomId: string]: {
+    imageTimeout?: NodeJS.Timeout;
+    currentBackground: string | undefined;
+  };
 }
 
 export interface ITowerUnit {
@@ -51,9 +57,7 @@ let towerDefenseState: ITowerDefenseState = {
   loopCounter: 0,
 };
 
-let backgroundState: IBackgroundState = {
-  currentBackground: DEFAULT_IMAGE_BACKGROUND,
-};
+let backgroundState: IBackgroundState = {};
 
 interface IMessageEvent {
   key:
@@ -101,10 +105,6 @@ export class Router {
 
       // So you only need to change the server for having a different DEFAULT_IMAGE_BACKGROUND, client will prevent unnecessary background changes
       // Although, the client still needs to have the image in "BackgroundImages.ts"
-      socket.emit("event", {
-        key: "background",
-        value: backgroundState.currentBackground,
-      });
 
       socket.emit("profile info", clientProfiles[socket.id]);
 
@@ -121,6 +121,13 @@ export class Router {
         if (roomId) {
           socket.join(roomId);
           clientRooms[socket.id] = roomId;
+
+          socket.emit("event", {
+            key: "background",
+            value: backgroundState[roomId]
+              ? backgroundState[roomId].currentBackground
+              : undefined,
+          });
         }
       });
 
@@ -248,10 +255,16 @@ export class Router {
 
       case "background":
         let backgroundName = message.value;
-        backgroundState.currentBackground = backgroundName;
-        socket.to(clientRooms[socket.id]).emit("event", message);
-        // io.emit("event", message);
-        removeImageAfter1Min();
+        const roomId = clientRooms[socket.id];
+
+        if (!backgroundState[roomId])
+          backgroundState[roomId] = { currentBackground: undefined };
+
+        backgroundState[roomId].currentBackground = backgroundName;
+
+        socket.to(roomId).emit("event", message);
+        socket.emit("event", message);
+        removeImageAfter1Min(clientRooms[socket.id]);
         break;
 
       case "whiteboard":
@@ -429,24 +442,22 @@ const spawnRates: { [timeSeconds: number]: number } = {
   100: 0.7,
 };
 
-const removeImageAfter1Min = () => {
-  if (backgroundState.imageTimeout) {
-    clearTimeout(backgroundState.imageTimeout);
+const removeImageAfter1Min = (roomId: string) => {
+  const imageTimeout = backgroundState[roomId].imageTimeout;
+
+  if (imageTimeout) {
+    clearTimeout(imageTimeout);
   }
 
-  backgroundState.imageTimeout = setTimeout(() => {
-    removeImage();
+  backgroundState[roomId].imageTimeout = setTimeout(() => {
+    if (imageTimeout) {
+      clearTimeout(imageTimeout);
+    }
+
+    backgroundState[roomId] = {
+      currentBackground: DEFAULT_IMAGE_BACKGROUND,
+    };
+
+    io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
   }, 60000);
-};
-
-const removeImage = () => {
-  if (backgroundState.imageTimeout) {
-    clearTimeout(backgroundState.imageTimeout);
-  }
-
-  backgroundState = {
-    currentBackground: DEFAULT_IMAGE_BACKGROUND,
-  };
-
-  io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
 };

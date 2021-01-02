@@ -33,7 +33,6 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 export const FirebaseProvider: React.FC = ({ children }) => {
 	const getRoom = (roomName: string) => {
 		return new Promise<IChatRoom | null>(async (resolve) => {
-			console.log('getRoom checking room ', roomName);
 			const docRef = db.collection('chatrooms').doc(roomName);
 			const doc = await docRef.get();
 
