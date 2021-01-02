@@ -224,7 +224,7 @@ export class Router {
         break;
       case "weather":
 
-
+        console.log(message.value)
       axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`)
       .then(res => {
         let temp =res.data.main.temp ;
@@ -440,6 +440,6 @@ const removeImage = () => {
 const convertKelToFar = (temp:number, KELVIN_FIXED:number) => {
   temp = Math.floor( temp * (9/5) - 459.67);
 
-  return temp;
+  return temp.toString();
 }
 
