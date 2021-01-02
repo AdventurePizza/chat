@@ -121,6 +121,7 @@ export interface IUserProfile {
 	avatar: string;
 	message?: string;
 	isTyping?: boolean;
+	weather?: IWeather;
 }
 
 export interface IUserProfiles {
@@ -161,5 +162,6 @@ export interface ITowerDefenseState {
 }
 
 export interface IWeather {
-	location: string;
+	temp: string;
+	condition: string;
 }
