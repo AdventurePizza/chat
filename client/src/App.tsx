@@ -31,6 +31,13 @@ import React, {
 	useRef,
 	useState
 } from 'react';
+import {
+	Route,
+	BrowserRouter as Router,
+	Switch,
+	useHistory,
+	useParams
+} from 'react-router-dom';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
 
@@ -63,6 +70,11 @@ const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 
 function App() {
+	const { roomId } = useParams<{ roomId?: string }>();
+	const history = useHistory();
+
+	const [isRoomError, setIsRoomError] = useState(false);
+
 	const firebaseContext = useContext(FirebaseContext);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -466,30 +478,28 @@ function App() {
 
 				return newUserLocations;
 			});
-
-			// audioNotification.current = new Audio(audioExit);
-			// audioNotification.current.currentTime = 0;
-			// audioNotification.current.play();
 		};
 
-		// const onNewUser = () => {
-		// 	audioNotification.current = new Audio(audioEnter);
-		// 	audioNotification.current.currentTime = 0;
-		// 	audioNotification.current.play();
-		// };
+		const onConnect = () => {
+			if (roomId) {
+				socket.emit('connect room', roomId);
+			} else {
+				socket.emit('connect room', 'default');
+			}
+		};
 
-		// socket.on('new user', onNewUser);
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
 		socket.on('event', onMessageEvent);
+		socket.on('connect', onConnect);
 
 		return () => {
 			socket.off('roomate disconnect', onRoomateDisconnect);
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('event', onMessageEvent);
-			// socket.off('new user', onNewUser);
+			socket.off('connect', onConnect);
 		};
 	}, [
 		handleTowerDefenseEvents,
@@ -499,7 +509,8 @@ function App() {
 		addGif,
 		drawLineEvent,
 		onCursorMove,
-		audioNotification
+		audioNotification,
+		roomId
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -652,6 +663,22 @@ function App() {
 		// });
 	};
 
+	useEffect(() => {
+		if (history.location.pathname !== '/' && roomId) {
+			firebaseContext.getRoom(roomId).then((result) => {
+				if (result === null) {
+					setIsRoomError(true);
+				} else {
+					setIsRoomError(false);
+				}
+			});
+		}
+	}, [roomId, history, firebaseContext]);
+
+	if (isRoomError) {
+		return <div>Invalid room {roomId}</div>;
+	}
+
 	return (
 		<div
 			className="app"
@@ -754,7 +781,11 @@ function App() {
 				/>
 			)}
 
-			<Modal className="modal-container" open={isModalOpen}>
+			<Modal
+				onClose={() => setIsModalOpen(false)}
+				className="modal-container"
+				open={isModalOpen}
+			>
 				<NewChatroom
 					onClickCancel={() => setIsModalOpen(false)}
 					onCreate={onCreateRoom}
@@ -763,8 +794,6 @@ function App() {
 		</div>
 	);
 }
-
-export default App;
 
 const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	if (centered) {
@@ -807,3 +836,19 @@ const getDistanceBetweenPoints = (
 ) => {
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
+
+const RouterHandler = () => {
+	return (
+		<Router>
+			<Switch>
+				<Route path="/room/:roomId">
+					<App />
+				</Route>
+				<Route path="/">
+					<App />
+				</Route>
+			</Switch>
+		</Router>
+	);
+};
+export default RouterHandler;
