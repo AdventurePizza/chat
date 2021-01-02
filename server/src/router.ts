@@ -4,7 +4,7 @@ import express from "express";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import { error } from "console";
+
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -24,6 +24,8 @@ const DEFAULT_IMAGE_BACKGROUND = undefined;
 
 
 const chatMessages: { [userId: string]: string[] } = {};
+
+const KELVIN_FIXED:number =  459.67;
 
 export interface IBackgroundState {
   imageTimeout?: NodeJS.Timeout;
@@ -49,6 +51,7 @@ export interface ITowerDefenseState {
   towerDefenseGameInterval?: NodeJS.Timeout;
   loopCounter: number;
 }
+
 
 let towerDefenseState: ITowerDefenseState = {
   isPlaying: false,
@@ -224,14 +227,13 @@ export class Router {
 
       axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`)
       .then(res => {
-        console.log(res.data.weather[0])
-        console.log(res.data.main)
-        console.log(`In fareinheit in city${message.value}: `,res.data.main.temp * (9/5) - 459.67)
+        let temp =res.data.main.temp ;
+        let condition = res.data.weather[0].main ;
 
         io.emit("event", {
           key: "weather",
-          value:{temp:res.data.main.temp * (9/5) - 459.67 ,
-                condition:res.data.weather[0].main 
+          value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
+                condition:condition
           }   
             ,
         
@@ -240,7 +242,7 @@ export class Router {
         console.error(error.response.data)
       })
         
-        console.log(message.value)
+       
         break;
     }
   };
@@ -434,3 +436,10 @@ const removeImage = () => {
 
   io.emit("event", { key: "background", value: DEFAULT_IMAGE_BACKGROUND });
 };
+
+const convertKelToFar = (temp:number, KELVIN_FIXED:number) => {
+  temp = Math.floor( temp * (9/5) - 459.67);
+
+  return temp;
+}
+

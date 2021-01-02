@@ -12,7 +12,7 @@ export const Weather = ({ sendLocation }: IWeatherProps) => {
 	};
 	useEffect(() => {
 		sendLocation(location);
-	}, [location, sendLocation]);
+	}, [location]);
 
 	return (
 		<div>
