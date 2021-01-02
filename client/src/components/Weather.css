@@ -1,0 +1,14 @@
+.location-input-container input {
+	font-size: 20px;
+	text-align: center;
+	height: 3.5rem;
+}
+
+.location-input-container {
+	display: flex;
+	flex-direction: column;
+}
+.location-input-container label {
+	margin-top: 0.5rem;
+	text-align: center;
+}

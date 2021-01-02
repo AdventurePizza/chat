@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Weather.css';
 
 interface IWeatherProps {
 	sendLocation: (location: string) => void;
@@ -15,7 +16,7 @@ export const Weather = ({ sendLocation }: IWeatherProps) => {
 	}, [location]);
 
 	return (
-		<div>
+		<div className="location-input-container">
 			<input
 				type="text"
 				name="location"
