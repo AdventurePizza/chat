@@ -1,3 +1,4 @@
+import { IChatRoom } from './types';
 import { INewChatroomCreateResponse } from './components/NewChatroom';
 import React from 'react';
 import firebase from 'firebase';
@@ -17,28 +18,32 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 export interface IFirebaseContext {
-	//   updateDrumCount: (amt: number) => void;
-	//   getDrumCount: () => Promise<number>;
 	createRoom: (roomName: string) => Promise<INewChatroomCreateResponse>;
+	getRoom: (roomName: string) => Promise<IChatRoom | null>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
 	createRoom: () =>
 		Promise.resolve({
 			message: ''
-		})
+		}),
+	getRoom: () => Promise.resolve(null)
 });
 
 export const FirebaseProvider: React.FC = ({ children }) => {
-	//   const createRoom = (amt: number) => {
-	//     const docRef = db.collection("drumbeat").doc("tracking");
-	//     docRef.set(
-	//       { drumbeatCount: firebase.firestore.FieldValue.increment(amt) },
-	//       {
-	//         merge: true,
-	//       }
-	//     );
-	//   };
+	const getRoom = (roomName: string) => {
+		return new Promise<IChatRoom | null>(async (resolve) => {
+			console.log('getRoom checking room ', roomName);
+			const docRef = db.collection('chatrooms').doc(roomName);
+			const doc = await docRef.get();
+
+			if (!doc.exists) {
+				resolve(null);
+			} else {
+				resolve(doc.data);
+			}
+		});
+	};
 
 	const createRoom = (roomName: string) => {
 		return new Promise<INewChatroomCreateResponse>(async (resolve) => {
@@ -48,7 +53,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			if (doc.exists) {
 				resolve({ message: `room name ${roomName} already taken` });
 			} else {
-				await db.collection('chatrooms').doc(roomName).set({ name: roomName });
+				await docRef.set({ name: roomName });
 				resolve({ name: roomName, message: 'success' });
 			}
 		});
@@ -57,7 +62,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 	return (
 		<FirebaseContext.Provider
 			value={{
-				createRoom
+				createRoom,
+				getRoom
 			}}
 		>
 			{children}

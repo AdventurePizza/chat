@@ -17,6 +17,7 @@ const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
 const DEFAULT_IMAGE_BACKGROUND = undefined;
 
 const chatMessages: { [userId: string]: string[] } = {};
+const clientRooms: { [userId: string]: string } = {};
 
 export interface IBackgroundState {
   imageTimeout?: NodeJS.Timeout;
@@ -107,14 +108,27 @@ export class Router {
 
       socket.emit("profile info", clientProfiles[socket.id]);
 
-      socket.broadcast.emit("new user", clientProfiles[socket.id]);
+      //   socket.broadcast.emit("new user", clientProfiles[socket.id]);
+      socket
+        .to(clientRooms[socket.id])
+        .emit("new user", clientProfiles[socket.id]);
 
       socket.on("event", (message: IMessageEvent) => {
         this.handleEvent(message, socket);
       });
 
+      socket.on("connect room", (roomId: string) => {
+        if (roomId) {
+          socket.join(roomId);
+          clientRooms[socket.id] = roomId;
+        }
+      });
+
       socket.on("disconnect", () => {
-        io.emit("roommate disconnect", socket.id);
+        // io.emit("roommate disconnect", socket.id);
+        socket
+          .to(clientRooms[socket.id])
+          .emit("roommate disconnect", socket.id);
         delete clientProfiles[socket.id];
         delete selectedAvatars[socket.id];
         delete chatMessages[socket.id];
@@ -124,12 +138,15 @@ export class Router {
         const { x, y } = data;
         clientPositions[socket.id] = { x, y };
 
-        socket.broadcast.emit(
-          "cursor move",
-          socket.id,
-          [x, y],
-          clientProfiles[socket.id]
-        );
+        // socket.broadcast.emit(
+        socket
+          .to(clientRooms[socket.id])
+          .broadcast.emit(
+            "cursor move",
+            socket.id,
+            [x, y],
+            clientProfiles[socket.id]
+          );
       });
     });
   }
@@ -137,19 +154,27 @@ export class Router {
   handleEvent = (message: IMessageEvent, socket: Socket) => {
     switch (message.key) {
       case "sound":
-        socket.broadcast.emit("event", message);
+        // socket.broadcast.emit("event", message);
+        socket.to(clientRooms[socket.id]).broadcast.emit("event", message);
         break;
 
       case "emoji":
-        socket.broadcast.emit("event", message);
+        // socket.broadcast.emit("event", message);
+        socket.to(clientRooms[socket.id]).broadcast.emit("event", message);
         break;
 
       case "chat":
-        io.emit("event", {
+        socket.to(clientRooms[socket.id]).emit("event", {
           key: "chat",
           userId: socket.id,
           value: message.value,
         });
+
+        // io.emit("event", {
+        //   key: "chat",
+        //   userId: socket.id,
+        //   value: message.value,
+        // });
 
         if (message.value) {
           chatMessages[socket.id].push(message.value);
@@ -157,15 +182,22 @@ export class Router {
         break;
 
       case "gif":
-        io.emit("event", message);
+        // io.emit("event", message);
+        socket.to(clientRooms[socket.id]).emit("event", message);
         break;
 
       case "isTyping":
-        io.emit("event", { ...message, id: socket.id });
+        // io.emit("event", { ...message, id: socket.id });
+        socket
+          .to(clientRooms[socket.id])
+          .emit("event", { ...message, id: socket.id });
         break;
 
       case "username":
-        io.emit("event", { ...message, id: socket.id });
+        // io.emit("event", { ...message, id: socket.id });
+        socket
+          .to(clientRooms[socket.id])
+          .emit("event", { ...message, id: socket.id });
         clientProfiles[socket.id].name = message.value as string;
         break;
 
@@ -174,7 +206,7 @@ export class Router {
           startGame();
         }
         if (message.value === "add tower") {
-          io.emit("event", {
+          socket.to(clientRooms[socket.id]).emit("event", {
             key: "tower defense",
             value: "add tower",
             x: message.x,
@@ -182,6 +214,14 @@ export class Router {
             type: message.type,
             towerKey: uuidv4(),
           });
+          //   io.emit("event", {
+          //     key: "tower defense",
+          //     value: "add tower",
+          //     x: message.x,
+          //     y: message.y,
+          //     type: message.type,
+          //     towerKey: uuidv4(),
+          //   });
 
           towerDefenseState.towers.push({
             key: uuidv4(),
@@ -192,23 +232,31 @@ export class Router {
         }
 
         if (message.value === "fire tower") {
-          io.emit("event", {
+          socket.to(clientRooms[socket.id]).emit("event", {
             key: "tower defense",
             value: "hit unit",
             towerKey: message.towerKey,
             unitKey: message.unitKey,
           });
+          //   io.emit("event", {
+          //     key: "tower defense",
+          //     value: "hit unit",
+          //     towerKey: message.towerKey,
+          //     unitKey: message.unitKey,
+          //   });
         }
 
       case "background":
         let backgroundName = message.value;
         backgroundState.currentBackground = backgroundName;
-        io.emit("event", message);
+        socket.to(clientRooms[socket.id]).emit("event", message);
+        // io.emit("event", message);
         removeImageAfter1Min();
         break;
 
       case "whiteboard":
-        socket.broadcast.emit("event", message);
+        // socket.broadcast.emit("event", message);
+        socket.to(clientRooms[socket.id]).emit("event", message);
         break;
     }
   };
