@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 
-// import PublishRoundedIcon from '@material-ui/icons/PublishRounded';
-// import PlayArrowRoundedIcon from '@material-ui/icons/PlayArrowRounded';
 import { PlayArrowRounded, PublishRounded } from '@material-ui/icons';
 import IconButton from '@material-ui/core/IconButton';
 import { ISoundPairs } from './BottomPanel';
@@ -62,7 +60,6 @@ const soundList: ISoundPairs[] = [
 ];
 
 interface ISoundIconProps {
-	icon: string;
 	type: string;
 }
 
@@ -86,23 +83,34 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 		setActiveCategory(category);
 	};
 
-	const SoundIcon = ({ icon, type }: ISoundIconProps) => {
+	const SoundIcon = ({ type }: ISoundIconProps) => {
 		const [isHovering, setIsHovering] = useState(false);
 
 		const displayHoverIcon = () => (
 			<div className="display-hover-icon">
 				<span>{type}</span>
-				<div className="abcd">
+				<div className="hover-icon-container">
+					dasdasdasd
 					<IconButton
 						onClick={() => sendSound('previewSound', type)}
-						style={{ backgroundColor: 'transparent', padding: 0, margin: 0, color: 'black' }}
+						style={{
+							backgroundColor: 'transparent',
+							padding: 0,
+							margin: 0,
+							color: 'black'
+						}}
 						size="small"
 					>
 						<PlayArrowRounded />
 					</IconButton>
 					<IconButton
 						onClick={() => sendSound('sound', type)}
-						style={{ backgroundColor: 'transparent', padding: 0, margin: 0, color: 'black' }}
+						style={{
+							backgroundColor: 'transparent',
+							padding: 0,
+							margin: 0,
+							color: 'black'
+						}}
 						size="small"
 					>
 						<PublishRounded />
@@ -110,14 +118,14 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 				</div>
 			</div>
 		);
-		const displayIcon = () => <p>{type}</p>
+		const displayIcon = () => <p>{type}</p>;
 		const iconToDisplay = isHovering ? displayHoverIcon : displayIcon;
 		return (
 			<div
 				className="sound-icon"
 				onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-        onTouchStart={() => setIsHovering(true)}
+				onMouseLeave={() => setIsHovering(false)}
+				onTouchStart={() => setIsHovering(true)}
 			>
 				{iconToDisplay()}
 			</div>
@@ -150,9 +158,7 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 	const DisplayIcons = soundList.map(({ icon, type, category }) => {
 		const iconsCategoryIsActive = category === activeCategory;
 
-		return (
-			iconsCategoryIsActive && <SoundIcon key={icon} icon={icon} type={type} />
-		);
+		return iconsCategoryIsActive && <SoundIcon key={icon} type={type} />;
 	});
 
 	return (
