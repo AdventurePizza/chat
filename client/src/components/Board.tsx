@@ -36,8 +36,8 @@ interface IBoardProps {
 	animations: IAnimation[];
 	updateAnimations: (animations: IAnimation[]) => void;
 	avatarMessages: IAvatarChatMessages;
-	weather: IWeather[];
-	updateWeather: (weather: IWeather[]) => void;
+	weather: IWeather;
+	updateWeather: (weather: IWeather) => void;
 }
 
 export const Board = ({
@@ -237,7 +237,7 @@ export const Board = ({
 				userLocations={userLocations}
 				userProfiles={userProfiles}
 				avatarChatMessages={avatarMessages}
-				weather={weather[0]}
+				weather={weather}
 			/>
 		</div>
 	);

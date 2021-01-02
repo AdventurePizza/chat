@@ -103,12 +103,10 @@ function App() {
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
 
-	const [weather, setWeather] = useState<IWeather[]>([
-		{
-			temp: '',
-			condition: ''
-		}
-	]);
+	const [weather, setWeather] = useState<IWeather>({
+		temp: '',
+		condition: ''
+	});
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -478,10 +476,10 @@ function App() {
 					}));
 					break;
 				case 'weather':
-					console.log(message.value);
-					setWeather([
-						{ temp: message.value.temp, condition: message.value.condition }
-					]);
+					setWeather({
+						temp: message.value.temp,
+						condition: message.value.condition
+					});
 					break;
 			}
 		};
@@ -785,7 +783,7 @@ function App() {
 					ref={userCursorRef}
 					{...userProfile}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
-					weather={weather[0]}
+					weather={weather}
 				/>
 			)}
 		</div>
