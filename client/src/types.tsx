@@ -1,5 +1,9 @@
 import { IGif } from '@giphy/js-types';
 
+export interface IChatRoom {
+	name: string;
+}
+
 export type AnimationTypes = 'start game' | 'info' | 'end game';
 export interface IAnimation {
 	type: AnimationTypes;
@@ -109,7 +113,11 @@ export enum PanelItemEnum {
 	'tower' = 'tower',
 	'background' = 'background',
 	'whiteboard' = 'whiteboard',
+<<<<<<< HEAD
 	'weather' = 'weather'
+=======
+	'new-room' = 'new-room'
+>>>>>>> 0c04a42ed92c95af6a9e5fd0ebc6fef4a17d4a0f
 }
 
 export interface IUserLocations {
