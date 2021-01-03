@@ -1,10 +1,8 @@
-import { Button, InputBase } from '@material-ui/core';
 import { Cancel, ControlPoint } from '@material-ui/icons';
 import React, { useState } from 'react';
 
-import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
+import { InputButton } from './InputButton';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
@@ -113,18 +111,11 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 		INewChatroomCreateResponse | undefined
 	>();
 
-	const onClickCreate = async () => {
-		console.log('on click create called');
+	const onClickCreate = async (inputValue: string) => {
 		const { name, message } = await onCreate(inputValue);
-		console.log(name, message);
 		if (message === 'success') {
 			setErrorMsg('');
 			setSuccessMsg({ name, message });
-			// setSuccessMsg(
-			// 	'Success! Created your room, check it out at ' +
-			// 		`www.trychats.com/room/${inputValue}`
-			// );
-			setInputValue('');
 		} else {
 			setSuccessMsg(undefined);
 			setErrorMsg(message);
@@ -138,33 +129,16 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 			</IconButton>
 			<div className={classes.title}>New Chatroom</div>
 
-			<Paper component="form" className={classes.root}>
-				<InputBase
-					className={classes.input}
-					placeholder="enter name"
-					inputProps={{ 'aria-label': 'enter name' }}
-					value={inputValue}
-					onChange={(evt) => setInputValue(evt.currentTarget.value)}
-				/>
-				<Divider className={classes.divider} orientation="vertical" />
-				<IconButton
-					color="primary"
-					className={classes.iconButton}
-					aria-label="directions"
-				>
-					<Button
-						onClick={onClickCreate}
-						className={classes.createButton}
-						variant="contained"
-					>
-						Create!
-					</Button>
-				</IconButton>
-			</Paper>
+			<InputButton
+				onClick={onClickCreate}
+				buttonText="Create!"
+				updateValue={setInputValue}
+			/>
 
 			<div className={classes.previewText}>
 				www.trychats.com/#/room/{inputValue}
 			</div>
+
 			{errorMsg && <div className={classes.errorText}> {errorMsg} </div>}
 			{successMsg && (
 				<div className={classes.successMsg}>
