@@ -50,7 +50,8 @@ const useStyles = makeStyles({
 
 		position: 'absolute',
 		left: '75%',
-		overflow: 'visible'
+		overflow: 'visible',
+		top: -30
 	}
 });
 
