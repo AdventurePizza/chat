@@ -461,6 +461,22 @@ function App() {
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
 					break;
+				case 'settings-url':
+					if (message.value && message.isSelf) {
+						setUserProfile((profile) => ({
+							...profile,
+							musicMetadata: message.value
+						}));
+					} else {
+						setUserProfiles((profiles) => ({
+							...profiles,
+							[message.id]: {
+								...profiles[message.id],
+								musicMetadata: message.value
+							}
+						}));
+					}
+					break;
 			}
 		};
 
@@ -598,12 +614,21 @@ function App() {
 				break;
 
 			case 'settings':
-				const username = args[0] as string;
-				socket.emit('event', {
-					key: 'username',
-					value: username
-				});
-				setUserProfile((profile) => ({ ...profile, name: username }));
+				const type = args[0] as string;
+				const settingsValue = args[1] as string;
+
+				if (type === 'url') {
+					socket.emit('event', {
+						key: 'settings-url',
+						value: settingsValue
+					});
+				} else if (type === 'name') {
+					socket.emit('event', {
+						key: 'username',
+						value: settingsValue
+					});
+					setUserProfile((profile) => ({ ...profile, name: settingsValue }));
+				}
 				break;
 			default:
 				break;
