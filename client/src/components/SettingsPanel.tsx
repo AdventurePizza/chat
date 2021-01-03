@@ -1,6 +1,5 @@
-import { Button, TextField } from '@material-ui/core';
-import React, { useState } from 'react';
-
+import { InputButton } from './InputButton';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
@@ -9,36 +8,36 @@ const useStyles = makeStyles({
 			marginRight: 10
 		},
 		display: 'flex',
-		alignItems: 'center'
+		alignItems: 'center',
+		overflowX: 'auto'
 	}
 });
 
 interface ISettingsPanelProps {
 	onChangeName: (username: string) => void;
+	onSubmitUrl: (url: string) => void;
 }
 
-export const SettingsPanel = ({ onChangeName }: ISettingsPanelProps) => {
-	const [usernameValue, setUsernameValue] = useState('');
-
+export const SettingsPanel = ({
+	onChangeName,
+	onSubmitUrl
+}: ISettingsPanelProps) => {
 	const classes = useStyles();
-
-	const submitName = () => {
-		onChangeName(usernameValue);
-		setUsernameValue('');
-	};
 
 	return (
 		<div className={classes.container}>
-			<TextField
-				onKeyPress={(evt) => evt.key === 'Enter' && submitName()}
-				value={usernameValue}
-				onChange={(evt) => setUsernameValue(evt.target.value)}
-				variant="outlined"
-				placeholder="enter new username"
+			<InputButton
+				buttonText="go!"
+				placeholder="enter name"
+				onClick={onChangeName}
+				inputWidth={300}
 			/>
-			<Button onClick={submitName} variant="contained">
-				change name
-			</Button>
+			<InputButton
+				buttonText="go!"
+				placeholder="enter music url"
+				onClick={onSubmitUrl}
+				inputWidth={300}
+			/>
 		</div>
 	);
 };

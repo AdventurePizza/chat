@@ -1,8 +1,12 @@
 import socketio, { Socket } from "socket.io";
 
 import express from "express";
+import fetch from "node-fetch";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
+
+const { getMetadata } = require("page-metadata-parser");
+const domino = require("domino");
 
 const IS_DEBUG = false;
 
@@ -69,8 +73,9 @@ interface IMessageEvent {
     | "messages"
     | "whiteboard"
     | "isTyping"
-    | "username";
-  value?: string;
+    | "username"
+    | "settings-url";
+  value?: any;
   [key: string]: any;
 }
 
@@ -168,7 +173,7 @@ export class Router {
     });
   }
 
-  handleEvent = (message: IMessageEvent, socket: Socket) => {
+  handleEvent = async (message: IMessageEvent, socket: Socket) => {
     const room = clientRooms[socket.id];
     switch (message.key) {
       case "sound":
@@ -188,31 +193,35 @@ export class Router {
           value: message.value,
         });
 
-        // io.emit("event", {
-        //   key: "chat",
-        //   userId: socket.id,
-        //   value: message.value,
-        // });
-
         if (message.value) {
           chatMessages[socket.id].push(message.value);
         }
         break;
 
       case "gif":
-        // io.emit("event", message);
         socket.to(room).emit("event", message);
         break;
 
       case "isTyping":
-        // io.emit("event", { ...message, id: socket.id });
         socket.to(room).emit("event", { ...message, id: socket.id });
         break;
 
       case "username":
-        // io.emit("event", { ...message, id: socket.id });
         socket.to(room).emit("event", { ...message, id: socket.id });
         clientProfiles[socket.id].name = message.value as string;
+        break;
+
+      case "settings-url":
+        const metadata = await resolveUrl(message.value as string);
+        clientProfiles[socket.id].musicMetadata = metadata;
+        const emitData = {
+          key: "settings-url",
+          id: socket.id,
+          value: metadata,
+        };
+        socket.to(room).emit("event", emitData);
+
+        socket.emit("event", { ...emitData, isSelf: true });
         break;
 
       case "tower defense":
@@ -321,11 +330,14 @@ const profileOptions = {
     "character5",
     "character6",
     "character7",
+    "character8",
   ],
 };
 
 const selectedAvatars: { [avatar: string]: string } = {};
-const clientProfiles: { [key: string]: { name: string; avatar: string } } = {};
+const clientProfiles: {
+  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata };
+} = {};
 
 const createProfile = (client: Socket) => {
   const username =
@@ -484,4 +496,33 @@ const removeImageAfter1Min = (roomId: string) => {
       value: DEFAULT_IMAGE_BACKGROUND,
     });
   }, 60000);
+};
+
+interface IMetadata {
+  description: string;
+  icon: string;
+  image: string;
+  title: string;
+  url: string;
+  type: string;
+  provider: string;
+}
+
+const urls: { [url: string]: IMetadata } = {};
+
+const resolveUrl = async (url: string): Promise<IMetadata> => {
+  let metadata = urls[url];
+  if (!metadata) {
+    try {
+      const response = await fetch(url);
+      const html = await response.text();
+      const doc = domino.createWindow(html).document;
+      metadata = getMetadata(doc, url);
+
+      urls[url] = metadata;
+    } catch (e) {
+      console.log("error resolving url: ", e);
+    }
+  }
+  return Promise.resolve(metadata);
 };

@@ -53,17 +53,12 @@
 	left: 0;
 	transition: transform 0.2s ease-in-out;
 	z-index: 99999998;
-	user-select: none;
-	pointer-events: none;
 }
 .user-connection-cursor * {
-	user-select: none;
-	pointer-events: none;
 }
 
 .user-connection-cursor img {
 	width: 50px;
-	/* height: 60px; */
 	height: auto;
 }
 
