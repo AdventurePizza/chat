@@ -133,6 +133,7 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 				onClick={onClickCreate}
 				buttonText="Create!"
 				updateValue={setInputValue}
+				placeholder="enter name"
 			/>
 
 			<div className={classes.previewText}>

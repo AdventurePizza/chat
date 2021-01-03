@@ -25,7 +25,8 @@ export interface IMessageEvent {
 		| 'messages'
 		| 'whiteboard'
 		| 'isTyping'
-		| 'username';
+		| 'username'
+		| 'settings-url';
 	value?: any;
 	[key: string]: any;
 }
@@ -118,11 +119,21 @@ export interface IUserLocations {
 	[userId: string]: { x: number; y: number };
 }
 
+export interface IMetadata {
+	description: string;
+	icon: string;
+	image: string;
+	title: string;
+	url: string;
+	type: string;
+	provider: string;
+}
 export interface IUserProfile {
 	name: string;
 	avatar: string;
 	message?: string;
 	isTyping?: boolean;
+	musicMetadata?: IMetadata;
 }
 
 export interface IUserProfiles {
