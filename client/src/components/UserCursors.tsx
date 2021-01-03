@@ -17,6 +17,7 @@ import character4 from '../assets/character4.png';
 import character5 from '../assets/character5.png';
 import character6 from '../assets/character6.png';
 import character7 from '../assets/character7.png';
+import character8 from '../assets/character8.png';
 import ghost from '../assets/red_ghost.gif';
 import kirby from '../assets/kirby.gif';
 import link from '../assets/link-run.gif';
@@ -39,7 +40,8 @@ export const avatarMap: { [key: string]: string } = {
 	character4,
 	character5,
 	character6,
-	character7
+	character7,
+	character8
 };
 
 const useStyles = makeStyles({

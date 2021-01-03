@@ -321,6 +321,7 @@ const profileOptions = {
     "character5",
     "character6",
     "character7",
+    "character8",
   ],
 };
 
