@@ -200,6 +200,7 @@ export class Router {
 
       case "gif":
         socket.to(room).emit("event", message);
+        socket.emit("event", message);
         break;
 
       case "isTyping":
