@@ -242,8 +242,13 @@ const MusicLink = ({ musicMetadata: data }: IMusicLinkProps) => {
 
 	return (
 		<div className={classes.metadataContainer} title={data.description}>
-			<img src={data.icon} className={classes.metadataIcon} />
-			<a href={data.url} className={classes.metadataTitle} target="_blank">
+			<img src={data.icon} className={classes.metadataIcon} alt="icon" />
+			<a
+				href={data.url}
+				className={classes.metadataTitle}
+				target="_blank"
+				rel="noreferrer"
+			>
 				{data.title}
 			</a>
 		</div>
