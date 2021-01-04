@@ -17,6 +17,7 @@
 	justify-content: center;
 	width: 100%;
 	height: 80px;
+	padding: 10px;
 }
 
 .projectile-transition-enter {

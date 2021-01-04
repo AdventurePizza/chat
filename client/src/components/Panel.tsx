@@ -49,9 +49,28 @@ export const Panel = ({
 					</IconButton>
 				</Tooltip>
 
-				<img src={avatar} alt="user avatar" className="panel-avatar" />
+				<div
+					style={{
+						backgroundColor:
+							selectedItem === 'settings' ? '#87D3F3' : undefined,
+						width: '100%'
+					}}
+				>
+					<IconButton onClick={() => onClick('settings')}>
+						<div className="panel-avatar-container">
+							<img src={avatar} alt="user avatar" className="panel-avatar" />
 
-				<div className="panel-you-text">you</div>
+							<div className="panel-you-container">
+								<div className="panel-you-text">you</div>
+								<SettingsIcon
+									style={{
+										fontSize: 16
+									}}
+								/>
+							</div>
+						</div>
+					</IconButton>
+				</div>
 
 				{Object.keys(PanelItemEnum).map((item) => (
 					<PanelItem
@@ -83,7 +102,6 @@ const panelIconSrcMap: {
 const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
-	settings: <SettingsIcon />,
 	'new-room': <NewRoomPanelButton />
 };
 
