@@ -11,8 +11,7 @@
 	cursor: pointer;
 }
 .panel-you-text {
-	font-size: 1.2em;
-	margin-bottom: 20px;
+	font-size: 18px;
 }
 
 .panel-drawer .MuiPaper-root {
@@ -184,6 +183,10 @@
 	height: 60px;
 	display: flex;
 	align-items: center;
+}
+
+.panel-you-container {
+	display: flex;
 }
 
 @media only screen and (max-width: 500px) {
