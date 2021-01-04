@@ -9,7 +9,11 @@ const useStyles = makeStyles({
 		},
 		display: 'flex',
 		alignItems: 'center',
-		overflowX: 'auto'
+		overflowX: 'auto',
+		background: '#212121',
+		width: '100%',
+		justifyContent: 'center',
+		height: 100
 	}
 });
 
