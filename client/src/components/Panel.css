@@ -42,10 +42,9 @@
 .bottom-panel-container {
 	display: flex;
 	justify-content: center;
-	padding: 10px 0;
+	/* padding: 10px 0; */
 	display: flex;
 	justify-content: center;
-	padding: 10px 0;
 	overflow-y: hidden;
 }
 
@@ -64,9 +63,8 @@
 }
 
 .sound-container {
-	width: 100vw;
-	padding-left: 10px;
-	padding-right: 10px;
+	width: 100%;
+	padding: 10px;
 }
 
 .background-container {
@@ -146,6 +144,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	padding: 10px;
 }
 
 .panel-icon-sound {
