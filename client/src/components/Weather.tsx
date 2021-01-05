@@ -11,9 +11,10 @@ export const Weather = ({ sendLocation }: IWeatherProps) => {
 	const handleLocationInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setLocation(e.target.value);
 	};
-	useEffect(() => {
+
+	const handleClick = () => {
 		sendLocation(location);
-	}, [location]);
+	};
 
 	return (
 		<div className="location-input-container">
@@ -22,8 +23,9 @@ export const Weather = ({ sendLocation }: IWeatherProps) => {
 				name="location"
 				value={location}
 				onChange={handleLocationInput}
+				placeholder="Enter your location"
 			/>
-			<label htmlFor="location">Enter you location</label>
+			<button onClick={handleClick}>See weather result</button>
 		</div>
 	);
 };

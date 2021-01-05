@@ -312,14 +312,16 @@ export class Router {
         socket.to(clientRooms[socket.id]).emit("event", message);
         break;
       case "weather":
-
-        console.log(message.value)
+        
+        
       axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`)
       .then(res => {
         let temp =res.data.main.temp ;
         let condition = res.data.weather[0].main ;
 
-        io.emit("event", {
+
+       
+        socket.to(room).emit("event", {
           key: "weather",
           value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
                 condition:condition

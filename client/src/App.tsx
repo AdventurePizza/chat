@@ -236,10 +236,6 @@ function App() {
 		});
 	};
 
-	// const handleWeather = (weatherValue: string) => {
-	// 	setWeather([{ weather: weatherValue }]);
-	// };
-
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
 	}, [onMouseMove]);
@@ -584,7 +580,6 @@ function App() {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
-				console.log(chatValue);
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue

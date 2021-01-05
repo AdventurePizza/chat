@@ -188,13 +188,11 @@ export const UserCursor = React.forwardRef(
 					>
 						{/* {add weather state here} */}
 
-						{weather!.temp.length > 0 ? (
+						{weather!.temp.length > 0 && (
 							<div>
 								<div>{weather!.temp} &#8457; </div>
 								<div>{weather!.condition}</div>{' '}
 							</div>
-						) : (
-							<div></div>
 						)}
 
 						{/* {add weather state here} */}
