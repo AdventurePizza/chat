@@ -129,7 +129,7 @@ function App() {
 		);
 	}, []);
 
-	const playSound = useCallback((soundType) => {
+	const playSound = useCallback((soundType, isPreviewSound) => {
 		audio.current = new Audio(sounds[soundType]);
 
 		if (!audio || !audio.current) return;
@@ -137,9 +137,10 @@ function App() {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 
-		setMusicNotes((notes) =>
-			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-		);
+		if (!isPreviewSound)
+			setMusicNotes((notes) =>
+				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+			);
 
 		audio.current.currentTime = 0;
 		audio.current.play();
@@ -455,7 +456,8 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
-					playSound(message.value);
+					console.log(message.value);
+					playSound(message.value, false);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -594,12 +596,16 @@ function App() {
 			case 'sound':
 				const soundType = args[0] as string;
 
-				playSound(soundType);
+				playSound(soundType, false);
 
 				socket.emit('event', {
 					key: 'sound',
 					value: soundType
 				});
+				break;
+			case 'previewSound':
+				const previwedSoundType = args[0] as string;
+				playSound(previwedSoundType, true);
 				break;
 			case 'gif':
 				const gif = args[0] as string;

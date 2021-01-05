@@ -1,6 +1,8 @@
+import { PlayArrowRounded, PublishRounded } from '@material-ui/icons';
 import React, { useState } from 'react';
 
 import { ISoundPairs } from './BottomPanel';
+import IconButton from '@material-ui/core/IconButton';
 import ahhhIcon from '../assets/funny/ahhh.png';
 import airIcon from '../assets/funny/air.png';
 import applauseIcon from '../assets/funny/applause.png';
@@ -57,6 +59,10 @@ const soundList: ISoundPairs[] = [
 	{ icon: waterIcon, type: 'water', category: 'Nature' }
 ];
 
+interface ISoundIconProps {
+	type: string;
+}
+
 enum SoundCategories {
 	'Instruments' = 'Instruments',
 	'Funny' = 'Funny',
@@ -77,15 +83,65 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 		setActiveCategory(category);
 	};
 
+	const SoundIcon = ({ type }: ISoundIconProps) => {
+		const [isHovering, setIsHovering] = useState(false);
+
+		const displayHoverIcon = () => (
+			<div className="display-hover-icon">
+				<span>{type}</span>
+				<div className="hover-icon-container">
+					<IconButton
+						onClick={() => sendSound('previewSound', type)}
+						style={{
+							backgroundColor: 'transparent',
+							padding: 0,
+							margin: 0,
+							color: 'black'
+						}}
+						size="small"
+					>
+						<PlayArrowRounded />
+					</IconButton>
+					<IconButton
+						onClick={() => sendSound('sound', type)}
+						style={{
+							backgroundColor: 'transparent',
+							padding: 0,
+							margin: 0,
+							color: 'black'
+						}}
+						size="small"
+					>
+						<PublishRounded />
+					</IconButton>
+				</div>
+			</div>
+		);
+		const displayIcon = () => <p>{type}</p>;
+		const iconToDisplay = isHovering ? displayHoverIcon : displayIcon;
+		return (
+			<div
+				className="sound-icon"
+				onMouseEnter={() => setIsHovering(true)}
+				onMouseLeave={() => setIsHovering(false)}
+				onTouchStart={() => setIsHovering(true)}
+			>
+				{iconToDisplay()}
+			</div>
+		);
+	};
+
 	const Category = ({ category }: { category: SoundCategories }) => {
-		const classToUse =
+		const idSelectorToUse =
 			category === activeCategory
 				? 'sound-active-category'
 				: 'sound-unactive-category';
 
 		return (
-			<div className={classToUse}>
-				<button onClick={() => toggleCategory(category)}>{category}</button>
+			<div className="category">
+				<button id={idSelectorToUse} onClick={() => toggleCategory(category)}>
+					{category}
+				</button>
 			</div>
 		);
 	};
@@ -101,15 +157,7 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 	const DisplayIcons = soundList.map(({ icon, type, category }) => {
 		const iconsCategoryIsActive = category === activeCategory;
 
-		return (
-			iconsCategoryIsActive && (
-				<div key={icon} className="sound-icon">
-					<button onClick={() => sendSound('sound', type)}>
-						<img src={icon} alt="sound" />
-					</button>
-				</div>
-			)
-		);
+		return iconsCategoryIsActive && <SoundIcon key={icon} type={type} />;
 	});
 
 	return (
