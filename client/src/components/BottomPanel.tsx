@@ -97,7 +97,10 @@ export const BottomPanel = ({
 				return <WhiteboardPanel setBrushColor={setBrushColor} />;
 			case 'settings':
 				return (
-					<SettingsPanel onChangeName={(name) => onAction('settings', name)} />
+					<SettingsPanel
+						onSubmitUrl={(url) => onAction('settings', 'url', url)}
+						onChangeName={(name) => onAction('settings', 'name', name)}
+					/>
 				);
 		}
 	};

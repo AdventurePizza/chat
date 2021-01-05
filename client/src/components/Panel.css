@@ -11,8 +11,7 @@
 	cursor: pointer;
 }
 .panel-you-text {
-	font-size: 1.2em;
-	margin-bottom: 20px;
+	font-size: 18px;
 }
 
 .panel-drawer .MuiPaper-root {
@@ -43,10 +42,9 @@
 .bottom-panel-container {
 	display: flex;
 	justify-content: center;
-	padding: 10px 0;
+	/* padding: 10px 0; */
 	display: flex;
 	justify-content: center;
-	padding: 10px 0;
 	overflow-y: hidden;
 }
 
@@ -65,9 +63,8 @@
 }
 
 .sound-container {
-	width: 100vw;
-	padding-left: 10px;
-	padding-right: 10px;
+	width: 100%;
+	padding: 10px;
 }
 
 .background-container {
@@ -179,6 +176,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	padding: 10px;
 }
 
 .panel-icon-sound {
@@ -216,6 +214,10 @@
 	height: 60px;
 	display: flex;
 	align-items: center;
+}
+
+.panel-you-container {
+	display: flex;
 }
 
 @media only screen and (max-width: 500px) {
