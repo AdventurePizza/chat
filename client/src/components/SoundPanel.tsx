@@ -1,8 +1,8 @@
+import { PlayArrowRounded, PublishRounded } from '@material-ui/icons';
 import React, { useState } from 'react';
 
-import { PlayArrowRounded, PublishRounded } from '@material-ui/icons';
-import IconButton from '@material-ui/core/IconButton';
 import { ISoundPairs } from './BottomPanel';
+import IconButton from '@material-ui/core/IconButton';
 import ahhhIcon from '../assets/funny/ahhh.png';
 import airIcon from '../assets/funny/air.png';
 import applauseIcon from '../assets/funny/applause.png';
@@ -90,7 +90,6 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 			<div className="display-hover-icon">
 				<span>{type}</span>
 				<div className="hover-icon-container">
-					dasdasdasd
 					<IconButton
 						onClick={() => sendSound('previewSound', type)}
 						style={{
