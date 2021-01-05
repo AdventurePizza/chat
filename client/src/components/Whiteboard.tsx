@@ -185,6 +185,6 @@ export function drawLine(
 				color,
 				true
 			);
-		}, 11000);
+		}, 30000);
 	}
 }
