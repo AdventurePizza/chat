@@ -1,5 +1,15 @@
 import { IGif } from '@giphy/js-types';
 
+export type PinTypes = 'gif';
+
+export interface IPinnedItem {
+	type: PinTypes;
+	top: number;
+	left: number;
+	key: string;
+	data: IGif;
+}
+
 export interface IChatRoom {
 	name: string;
 }
@@ -27,7 +37,9 @@ export interface IMessageEvent {
 		| 'isTyping'
 		| 'username'
 		| 'weather'
-		| 'settings-url';
+		| 'settings-url'
+		| 'pin-item'
+		| 'unpin-item';
 	value?: any;
 	[key: string]: any;
 }
@@ -101,6 +113,7 @@ export interface IGifs {
 	left: number;
 	key: string;
 	data: IGif;
+	isPinned?: boolean;
 }
 
 export enum PanelItemEnum {

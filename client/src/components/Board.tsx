@@ -15,7 +15,7 @@ import {
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
-import { Gif } from '@giphy/react-components';
+import { BoardGif } from './Gifs';
 import React from 'react';
 import { UserCursors } from './UserCursors';
 import gryphon from '../assets/gryphon_walk.gif';
@@ -38,6 +38,8 @@ interface IBoardProps {
 	avatarMessages: IAvatarChatMessages;
 	weather: IWeather;
 	updateWeather: (weather: IWeather) => void;
+	pinGif: (gifKey: string) => void;
+	unpinGif: (gifKey: string) => void;
 }
 
 export const Board = ({
@@ -56,7 +58,9 @@ export const Board = ({
 	animations,
 	updateAnimations,
 	avatarMessages,
-	weather
+	weather,
+	pinGif,
+	unpinGif
 }: IBoardProps) => {
 	return (
 		<div className="board-container">
@@ -162,21 +166,21 @@ export const Board = ({
 						timeout={5000}
 						classNames="gif-transition"
 						onEntered={() => {
-							const index = gifs.findIndex((_gif) => _gif.key === gif.key);
-							updateGifs([...gifs.slice(0, index), ...gifs.slice(index + 1)]);
+							if (!gif.isPinned) {
+								const index = gifs.findIndex((_gif) => _gif.key === gif.key);
+								updateGifs([...gifs.slice(0, index), ...gifs.slice(index + 1)]);
+							}
 						}}
 					>
-						<div
-							style={{
-								top: gif.top,
-								left: gif.left,
-								position: 'absolute',
-								zIndex: 9999998,
-								userSelect: 'none'
+						<BoardGif
+							{...gif}
+							onPin={() => {
+								pinGif(gif.key);
 							}}
-						>
-							<Gif gif={gif.data} width={180} noLink={true} />
-						</div>
+							onUnpin={() => {
+								unpinGif(gif.key);
+							}}
+						/>
 					</CSSTransition>
 				))}
 			</TransitionGroup>
