@@ -2,6 +2,7 @@ import './Panel.css';
 
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
+import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -47,9 +48,28 @@ export const Panel = ({
 					</IconButton>
 				</Tooltip>
 
-				<img src={avatar} alt="user avatar" className="panel-avatar" />
+				<div
+					style={{
+						backgroundColor:
+							selectedItem === 'settings' ? '#87D3F3' : undefined,
+						width: '100%'
+					}}
+				>
+					<IconButton onClick={() => onClick('settings')}>
+						<div className="panel-avatar-container">
+							<img src={avatar} alt="user avatar" className="panel-avatar" />
 
-				<div className="panel-you-text">you</div>
+							<div className="panel-you-container">
+								<div className="panel-you-text">you</div>
+								<SettingsIcon
+									style={{
+										fontSize: 16
+									}}
+								/>
+							</div>
+						</div>
+					</IconButton>
+				</div>
 
 				{Object.keys(PanelItemEnum).map((item) => (
 					<PanelItem
@@ -80,7 +100,7 @@ const panelIconSrcMap: {
 const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
-	settings: <SettingsIcon />
+	'new-room': <NewRoomPanelButton />
 };
 
 interface IPanelItemProps {
@@ -93,22 +113,36 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 	const renderPanelItem = () => {
 		const iconSrc = panelIconSrcMap[title];
 		const IconComponent = panelIconComponentMap[title];
+
+		const renderIconComponent = () => (
+			<IconButton onClick={onClick}>{IconComponent}</IconButton>
+		);
+		const renderIconImage = () => (
+			<div className="panel-icon-image-container">
+				<IconButton onClick={onClick}>
+					<img
+						src={iconSrc}
+						className={`panel-icon-${title}`}
+						alt={`${title} icon`}
+					/>
+				</IconButton>
+			</div>
+		);
+
 		return (
 			<div
 				className="panel-icon-container"
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
 			>
-				<IconButton onClick={onClick}>
+				{iconSrc && renderIconImage()}
+				{IconComponent && renderIconComponent()}
+				{/* <IconButton onClick={onClick}>
 					{iconSrc ? (
-						<img
-							src={iconSrc}
-							className={`panel-icon-${title}`}
-							alt={`${title} icon`}
-						/>
 					) : (
-						<IconButton onClick={onClick}> {IconComponent}</IconButton>
+						// <IconButton onClick={onClick}> {IconComponent}</IconButton>
+						IconComponent
 					)}
-				</IconButton>
+				</IconButton> */}
 			</div>
 		);
 	};

@@ -52,18 +52,13 @@
 	top: 0;
 	left: 0;
 	transition: transform 0.2s ease-in-out;
-	z-index: 99999999;
-	user-select: none;
-	pointer-events: none;
+	z-index: 99999998;
 }
 .user-connection-cursor * {
-	user-select: none;
-	pointer-events: none;
 }
 
 .user-connection-cursor img {
 	width: 50px;
-	/* height: 60px; */
 	height: auto;
 }
 
@@ -79,6 +74,9 @@
 .gif-transition-exit {
 	opacity: 0;
 	transition: opacity 5s;
+	transform: translateY(-50px);
+}
+.gif-transition-enter-done {
 	transform: translateY(-50px);
 }
 

@@ -11,12 +11,11 @@
 	cursor: pointer;
 }
 .panel-you-text {
-	font-size: 1.2em;
-	margin-bottom: 20px;
+	font-size: 18px;
 }
 
 .panel-drawer .MuiPaper-root {
-  border-right: none;
+	border-right: none;
 }
 
 .panel-container {
@@ -24,7 +23,7 @@
 	flex-direction: column;
 	align-items: center;
 	background-color: #212121;
-	height: 100%;
+	min-height: 100%;
 }
 
 .panel-container * {
@@ -37,16 +36,15 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	height: 50px;
+	/* height: 50px; */
 }
 
 .bottom-panel-container {
 	display: flex;
 	justify-content: center;
-	padding: 10px 0;
+	/* padding: 10px 0; */
 	display: flex;
 	justify-content: center;
-	padding: 10px 0;
 	overflow-y: hidden;
 }
 
@@ -65,9 +63,8 @@
 }
 
 .sound-container {
-	width: 100vw;
-	padding-left: 10px;
-	padding-right: 10px;
+	width: 100%;
+	padding: 10px;
 }
 
 .background-container {
@@ -147,6 +144,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	padding: 10px;
 }
 
 .panel-icon-sound {
@@ -179,8 +177,16 @@
 	width: 33px;
 	height: 33px;
 }
-/* filter: invert(42%) sepia(28%) saturate(0%) hue-rotate(151deg)
-		brightness(101%) contrast(88%); */
+
+.panel-icon-image-container {
+	height: 60px;
+	display: flex;
+	align-items: center;
+}
+
+.panel-you-container {
+	display: flex;
+}
 
 @media only screen and (max-width: 500px) {
 	.bottom-panel-emoji {

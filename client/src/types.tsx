@@ -1,5 +1,19 @@
 import { IGif } from '@giphy/js-types';
 
+export type PinTypes = 'gif';
+
+export interface IPinnedItem {
+	type: PinTypes;
+	top: number;
+	left: number;
+	key: string;
+	data: IGif;
+}
+
+export interface IChatRoom {
+	name: string;
+}
+
 export type AnimationTypes = 'start game' | 'info' | 'end game';
 export interface IAnimation {
 	type: AnimationTypes;
@@ -21,7 +35,10 @@ export interface IMessageEvent {
 		| 'messages'
 		| 'whiteboard'
 		| 'isTyping'
-		| 'username';
+		| 'username'
+		| 'settings-url'
+		| 'pin-item'
+		| 'unpin-item';
 	value?: any;
 	[key: string]: any;
 }
@@ -95,6 +112,7 @@ export interface IGifs {
 	left: number;
 	key: string;
 	data: IGif;
+	isPinned?: boolean;
 }
 
 export enum PanelItemEnum {
@@ -106,18 +124,29 @@ export enum PanelItemEnum {
 	'chat' = 'chat',
 	'tower' = 'tower',
 	'background' = 'background',
-	'whiteboard' = 'whiteboard'
+	'whiteboard' = 'whiteboard',
+	'new-room' = 'new-room'
 }
 
 export interface IUserLocations {
 	[userId: string]: { x: number; y: number };
 }
 
+export interface IMetadata {
+	description: string;
+	icon: string;
+	image: string;
+	title: string;
+	url: string;
+	type: string;
+	provider: string;
+}
 export interface IUserProfile {
 	name: string;
 	avatar: string;
 	message?: string;
 	isTyping?: boolean;
+	musicMetadata?: IMetadata;
 }
 
 export interface IUserProfiles {
