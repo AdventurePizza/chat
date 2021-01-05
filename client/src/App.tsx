@@ -86,7 +86,9 @@ function App() {
 		undefined
 	);
 
+	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const [bottomPanelHeight, setBottomPanelHeight] = useState(0);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
@@ -228,6 +230,14 @@ function App() {
 			value: isTyping
 		});
 	};
+
+	useEffect(() => {
+		if (bottomPanelRef.current) {
+			setBottomPanelHeight(
+				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
+			);
+		}
+	}, [selectedPanelItem]);
 
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
@@ -710,6 +720,9 @@ function App() {
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const backgroundImg = backgroundName?.startsWith('http')
+		? backgroundName
+		: backgrounds[backgroundName!];
 
 	const onCreateRoom = (roomName: string) => {
 		return firebaseContext.createRoom(roomName);
@@ -792,8 +805,9 @@ function App() {
 		<div
 			className="app"
 			style={{
-				minHeight: window.innerHeight - 10,
-				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				height: window.innerHeight - bottomPanelHeight,
+				backgroundImage: `url(${backgroundImg})`,
+				backgroundPosition: 'center',
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
@@ -876,6 +890,7 @@ function App() {
 			</Tooltip>
 
 			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
