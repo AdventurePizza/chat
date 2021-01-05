@@ -135,10 +135,10 @@ function App() {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 
-    if (!isPreviewSound)
-		  setMusicNotes((notes) =>
-		  	notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-		  );
+		if (!isPreviewSound)
+			setMusicNotes((notes) =>
+				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+			);
 
 		audio.current.currentTime = 0;
 		audio.current.play();
@@ -446,7 +446,7 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
-          console.log(message.value);
+					console.log(message.value);
 					playSound(message.value, false);
 					break;
 				case 'emoji':
@@ -592,8 +592,8 @@ function App() {
 					key: 'sound',
 					value: soundType
 				});
-        break;
-      case 'previewSound':
+				break;
+			case 'previewSound':
 				const previwedSoundType = args[0] as string;
 				playSound(previwedSoundType, true);
 				break;
