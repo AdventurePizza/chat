@@ -76,6 +76,9 @@
 	transition: opacity 5s;
 	transform: translateY(-50px);
 }
+.gif-transition-enter-done {
+	transform: translateY(-50px);
+}
 
 .figure-transition-enter {
 }

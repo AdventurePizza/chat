@@ -180,13 +180,13 @@ function App() {
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
-	const addGif = useCallback((gifId: string) => {
+	const addGif = useCallback((gifId: string, gifKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
 		GIF_FETCH.gif(gifId).then((data) => {
 			const newGif: IGifs = {
 				top: y,
 				left: x,
-				key: uuidv4(),
+				key: gifKey || uuidv4(),
 				data: data.data
 			};
 			setGifs((gifs) => gifs.concat(newGif));
@@ -414,6 +414,33 @@ function App() {
 		[fireTowers, playAnimation]
 	);
 
+	const handlePinItemMessage = useCallback(
+		(message: IMessageEvent, isUnpin?: boolean) => {
+			const { type, itemKey } = message;
+			switch (type) {
+				case 'gif':
+					const gifIndex = gifs.findIndex((gif) => gif.key === itemKey);
+					const gif = gifs[gifIndex];
+					if (gif) {
+						if (isUnpin) {
+							setGifs([
+								...gifs.slice(0, gifIndex),
+								...gifs.slice(gifIndex + 1)
+							]);
+						} else {
+							console.log('want to pin gif ', gif);
+							setGifs([
+								...gifs.slice(0, gifIndex),
+								{ ...gif, isPinned: true },
+								...gifs.slice(gifIndex + 1)
+							]);
+						}
+					}
+			}
+		},
+		[gifs]
+	);
+
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
@@ -432,7 +459,7 @@ function App() {
 					break;
 				case 'gif':
 					if (message.value) {
-						addGif(message.value);
+						addGif(message.value, message.gifKey);
 					}
 					break;
 				case 'tower defense':
@@ -476,6 +503,12 @@ function App() {
 							}
 						}));
 					}
+					break;
+				case 'pin-item':
+					handlePinItemMessage(message);
+					break;
+				case 'unpin-item':
+					handlePinItemMessage(message, true);
 					break;
 			}
 		};
@@ -526,7 +559,8 @@ function App() {
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
-		roomId
+		roomId,
+		handlePinItemMessage
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -679,13 +713,6 @@ function App() {
 
 	const onCreateRoom = (roomName: string) => {
 		return firebaseContext.createRoom(roomName);
-		// return new Promise<INewChatroomCreateResponse>((resolve) => {
-		// 	resolve({
-		// 		name: roomName,
-		// 		message: 'success'
-		// 		// message: 'room name already taken'
-		// 	});
-		// });
 	};
 
 	useEffect(() => {
@@ -697,8 +724,65 @@ function App() {
 					setIsRoomError(false);
 				}
 			});
+			firebaseContext.getRoomPinnedItems(roomId).then((pinnedItems) => {
+				const pinnedGifs: IGifs[] = [];
+
+				pinnedItems.forEach((item) => {
+					if (item.type === 'gif') {
+						pinnedGifs.push({
+							...item,
+							top: item.top * window.innerHeight,
+							left: item.left * window.innerWidth,
+							isPinned: true
+						});
+					}
+				});
+
+				setGifs((gifs) => gifs.concat(...pinnedGifs));
+			});
 		}
 	}, [roomId, history, firebaseContext]);
+
+	const pinGif = (gifKey: string) => {
+		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
+		const gif = gifs[gifIndex];
+
+		if (gif && roomId && !gif.isPinned) {
+			firebaseContext.pinRoomItem(roomId, {
+				...gif,
+				type: 'gif',
+				left: gif.left / window.innerWidth,
+				top: gif.top / window.innerHeight
+			});
+			setGifs([
+				...gifs.slice(0, gifIndex),
+				{ ...gif, isPinned: true },
+				...gifs.slice(gifIndex + 1)
+			]);
+
+			socket.emit('event', {
+				key: 'pin-item',
+				type: 'gif',
+				itemKey: gifKey
+			});
+		}
+	};
+
+	const unpinGif = (gifKey: string) => {
+		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
+		const gif = gifs[gifIndex];
+
+		if (gif && roomId && gif.isPinned) {
+			firebaseContext.unpinRoomItem(roomId, gif.key);
+			setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
+
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'gif',
+				itemKey: gifKey
+			});
+		}
+	};
 
 	if (isRoomError) {
 		return <div>Invalid room {roomId}</div>;
@@ -731,6 +815,8 @@ function App() {
 				animations={animations}
 				updateAnimations={setAnimations}
 				avatarMessages={avatarMessages}
+				pinGif={pinGif}
+				unpinGif={unpinGif}
 			/>
 
 			<TowerDefense
