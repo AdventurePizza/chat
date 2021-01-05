@@ -74,7 +74,9 @@ interface IMessageEvent {
     | "whiteboard"
     | "isTyping"
     | "username"
-    | "settings-url";
+    | "settings-url"
+    | "pin-item"
+    | "unpin-item";
   value?: any;
   [key: string]: any;
 }
@@ -199,8 +201,18 @@ export class Router {
         break;
 
       case "gif":
+        const gifKey = uuidv4();
+        const newMessage = {
+          ...message,
+          gifKey,
+        };
+        socket.to(room).emit("event", newMessage);
+        socket.emit("event", newMessage);
+        break;
+
+      case "pin-item":
+      case "unpin-item":
         socket.to(room).emit("event", message);
-        socket.emit("event", message);
         break;
 
       case "isTyping":
