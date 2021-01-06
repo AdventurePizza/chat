@@ -10,6 +10,7 @@ import {
 	IAvatarChatMessages,
 	IChatMessage,
 	IEmoji,
+	IEmojiDict,
 	IFigure,
 	IGifs,
 	IMessageEvent,
@@ -121,11 +122,11 @@ function App() {
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
 
-	const playEmoji = useCallback((type: string) => {
+	const playEmoji = useCallback((dict: IEmojiDict) => {
 		const { x, y } = generateRandomXY();
 
 		setEmojis((emojis) =>
-			emojis.concat({ top: y, left: x, key: uuidv4(), type })
+			emojis.concat({ top: y, left: x, key: uuidv4(), dict })
 		);
 	}, []);
 
@@ -586,7 +587,7 @@ function App() {
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				break;
 			case 'emoji':
-				const emoji = args[0] as string;
+				const emoji = args[0] as IEmojiDict;
 				playEmoji(emoji);
 				socket.emit('event', {
 					key: 'emoji',

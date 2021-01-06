@@ -64,7 +64,7 @@ export const Board = ({
 				{emojis.map((emoji) => (
 					<CSSTransition
 						key={emoji.key}
-						timeout={1000}
+						timeout={emoji.dict.speed || 1000}
 						classNames="note-transition"
 						onEntered={() => {
 							const index = emojis.findIndex(
@@ -87,7 +87,11 @@ export const Board = ({
 								userSelect: 'none'
 							}}
 						>
-							{emoji.type}
+							{emoji.dict.url ? (
+								<img src={emoji.dict.url} alt={emoji.dict.name} width="24" />
+							) : (
+								emoji.dict.name
+							)}
 						</div>
 					</CSSTransition>
 				))}
