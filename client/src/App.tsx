@@ -19,6 +19,7 @@ import {
 	IUserLocations,
 	IUserProfile,
 	IUserProfiles,
+	IWeather,
 	PanelItemEnum
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
@@ -121,11 +122,17 @@ function App() {
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
 	const [userProfile, setUserProfile] = useState<IUserProfile>({
 		name: '',
-		avatar: ''
+		avatar: '',
+		weather: { temp: '', condition: '' }
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
+
+	const [weather, setWeather] = useState<IWeather>({
+		temp: '',
+		condition: ''
+	});
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -162,6 +169,7 @@ function App() {
 			case 'animation':
 			case 'background':
 			case 'whiteboard':
+			case 'weather':
 			case 'settings':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -530,6 +538,20 @@ function App() {
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
 					break;
+				case 'weather':
+					if (message.toSelf) {
+						setUserProfile((profile) => ({
+							...profile,
+							weather: message.value
+						}));
+					} else {
+						setUserProfiles((profiles) => ({
+							...profiles,
+							[message.id]: { ...profiles[message.id], weather: message.value }
+						}));
+					}
+
+					break;
 				case 'settings-url':
 					if (message.value && message.isSelf) {
 						setUserProfile((profile) => ({
@@ -719,6 +741,14 @@ function App() {
 					setUserProfile((profile) => ({ ...profile, name: settingsValue }));
 				}
 				break;
+			case 'weather':
+				const location = args[0] as string;
+
+				socket.emit('event', {
+					key: 'weather',
+					value: location
+				});
+				break;
 			default:
 				break;
 		}
@@ -874,6 +904,8 @@ function App() {
 				animations={animations}
 				updateAnimations={setAnimations}
 				avatarMessages={avatarMessages}
+				weather={weather}
+				updateWeather={setWeather}
 				pinGif={pinGif}
 				unpinGif={unpinGif}
 			/>

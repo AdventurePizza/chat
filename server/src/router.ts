@@ -4,11 +4,17 @@ import express from "express";
 import fetch from "node-fetch";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+
+
+const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
 const { getMetadata } = require("page-metadata-parser");
 const domino = require("domino");
 
 const IS_DEBUG = false;
+
+
 
 const port = process.env.PORT || 8000;
 
@@ -20,8 +26,11 @@ const io = new socketio.Server(httpServer);
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
 const DEFAULT_IMAGE_BACKGROUND = undefined;
 
+
 const chatMessages: { [userId: string]: string[] } = {};
 const clientRooms: { [userId: string]: string } = {};
+
+const KELVIN_FIXED:number =  459.67;
 
 // export interface IBackgroundState {
 //   imageTimeout?: NodeJS.Timeout;
@@ -58,6 +67,11 @@ export interface ITowerDefenseState {
   [roomId: string]: ITowerDefenseStateRoom;
 }
 
+export interface IWeather{
+  temp:string,
+  condition:string
+}
+
 let towerDefenseState: ITowerDefenseState = {};
 
 let backgroundState: IBackgroundState = {};
@@ -76,6 +90,7 @@ interface IMessageEvent {
     | "isTyping"
     | "username"
     | "settings-url"
+    | "weather"
     | "pin-item"
     | "unpin-item";
   value?: any;
@@ -301,6 +316,42 @@ export class Router {
         // socket.broadcast.emit("event", message);
         socket.to(clientRooms[socket.id]).emit("event", message);
         break;
+      case "weather":
+        
+        
+      axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`)
+      .then(res => {
+        let temp =res.data.main.temp ;
+        let condition = res.data.weather[0].main ;
+
+
+       
+        socket.to(room).emit("event", {
+          key: "weather",
+          value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
+                condition:condition
+          }   
+            ,
+            id:socket.id
+        
+        }); 
+        
+        io.to(socket.id).emit("event", {
+          key: "weather",
+          value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
+                condition:condition},
+              toSelf:true
+              },
+            
+             )
+        clientProfiles[socket.id].weather = {temp:convertKelToFar(temp,KELVIN_FIXED) ,
+          condition:condition};
+      }).catch(error => {
+        console.error(error.response.data)
+      })
+        
+       
+        break;
       case "animation":
         socket.to(room).broadcast.emit("event", message);
         break;
@@ -353,7 +404,7 @@ const profileOptions = {
 
 const selectedAvatars: { [avatar: string]: string } = {};
 const clientProfiles: {
-  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata };
+  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata,weather?:IWeather };
 } = {};
 
 const createProfile = (client: Socket) => {
@@ -389,6 +440,7 @@ const createProfile = (client: Socket) => {
   clientProfiles[client.id] = {
     name: username,
     avatar: newAvatar,
+    weather: {temp:"",condition:""}
   };
 };
 
@@ -514,6 +566,12 @@ const removeImageAfter1Min = (roomId: string) => {
     });
   }, 60000);
 };
+
+const convertKelToFar = (temp:number, KELVIN_FIXED:number) => {
+  temp = Math.floor( temp * (9/5) - 459.67);
+
+  return temp.toString();
+}
 
 interface IMetadata {
   description: string;

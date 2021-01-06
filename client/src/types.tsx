@@ -37,6 +37,7 @@ export interface IMessageEvent {
 		| 'animation'
 		| 'isTyping'
 		| 'username'
+		| 'weather'
 		| 'settings-url'
 		| 'pin-item'
 		| 'unpin-item';
@@ -135,6 +136,7 @@ export enum PanelItemEnum {
 	'background' = 'background',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
+	'weather' = 'weather',
 	'new-room' = 'new-room'
 }
 
@@ -156,6 +158,7 @@ export interface IUserProfile {
 	avatar: string;
 	message?: string;
 	isTyping?: boolean;
+	weather?: IWeather;
 	musicMetadata?: IMetadata;
 }
 
@@ -194,4 +197,9 @@ export interface ITowerDefenseState {
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
 	gold: number;
+}
+
+export interface IWeather {
+	temp: string;
+	condition: string;
 }
