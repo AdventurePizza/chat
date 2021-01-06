@@ -1,13 +1,19 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif';
+export type PinTypes = 'gif' | 'background';
+
+export interface IBackgroundState {
+	isPinned?: boolean;
+	name: string | undefined;
+}
 
 export interface IPinnedItem {
 	type: PinTypes;
-	top: number;
-	left: number;
-	key: string;
-	data: IGif;
+	top?: number;
+	left?: number;
+	key?: string;
+	data?: IGif;
+	[key: string]: any;
 }
 
 export interface IChatRoom {

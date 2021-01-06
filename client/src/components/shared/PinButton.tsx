@@ -23,20 +23,26 @@ interface IPinButtonProps {
 	isPinned?: boolean;
 	onPin: () => void;
 	onUnpin: () => void;
+	placeholder?: string;
 }
 
-export const PinButton = ({ isPinned, onPin, onUnpin }: IPinButtonProps) => {
+export const PinButton = ({
+	isPinned,
+	onPin,
+	onUnpin,
+	placeholder
+}: IPinButtonProps) => {
 	const classes = useStyles();
 	return (
 		<>
 			{isPinned ? (
-				<Tooltip title="unpin item" placement="top">
+				<Tooltip title={`unpin ${placeholder || 'item'}`} placement="top">
 					<IconButton onClick={onUnpin}>
 						<Cancel />
 					</IconButton>
 				</Tooltip>
 			) : (
-				<Tooltip title="pin item">
+				<Tooltip title={`pin ${placeholder || 'item'}`}>
 					<IconButton onClick={onPin}>
 						<img alt="push-pin" className={classes.pushPin} src={pushPinIcon} />
 					</IconButton>

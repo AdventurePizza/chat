@@ -8,6 +8,7 @@ import {
 import {
 	IAnimation,
 	IAvatarChatMessages,
+	IBackgroundState,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -33,6 +34,7 @@ import React, {
 	useState
 } from 'react';
 import {
+	Redirect,
 	Route,
 	HashRouter as Router,
 	Switch,
@@ -58,10 +60,6 @@ import { NewChatroom } from './components/NewChatroom';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
-// Sound imports
-// import audioEnter from './assets/sounds/zap-enter.mp3';
-// import audioExit from './assets/sounds/zap-exit.mp3';
-import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -89,9 +87,12 @@ function App() {
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
-	const [backgroundName, setBackgroundName] = useState<string | undefined>(
-		undefined
-	);
+	const [background, setBackground] = useState<IBackgroundState>({
+		name: undefined
+	});
+	// const [backgroundName, setBackgroundName] = useState<string | undefined>(
+	// 	undefined
+	// );
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -479,6 +480,13 @@ function App() {
 							]);
 						}
 					}
+					break;
+				case 'background':
+					if (isUnpin) {
+						setBackground({ name: '', isPinned: false });
+					} else {
+						setBackground({ name: message.name, isPinned: true });
+					}
 			}
 		},
 		[gifs]
@@ -510,7 +518,11 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					setBackgroundName(message.value);
+					setBackground((background) => ({
+						...background,
+						name: message.value,
+						isPinned: message.isPinned
+					}));
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
@@ -706,6 +718,7 @@ function App() {
 					key: 'background',
 					value: backgroundName
 				});
+				firebaseContext.unpinRoomItem(roomId || 'default', 'background');
 				break;
 			case 'animation':
 				const animationType = args[0] as string;
@@ -795,9 +808,6 @@ function App() {
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
-	const backgroundImg = backgroundName?.startsWith('http')
-		? backgroundName
-		: backgrounds[backgroundName!];
 
 	const onCreateRoom = (roomName: string) => {
 		return firebaseContext.createRoom(roomName);
@@ -821,10 +831,14 @@ function App() {
 				if (item.type === 'gif') {
 					pinnedGifs.push({
 						...item,
-						top: item.top * window.innerHeight,
-						left: item.left * window.innerWidth,
-						isPinned: true
+						top: item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						key: item.key!,
+						data: item.data!
 					});
+				} else if (item.type === 'background') {
+					setBackground({ name: item.name, isPinned: true });
 				}
 			});
 
@@ -858,6 +872,38 @@ function App() {
 		}
 	};
 
+	const pinBackground = () => {
+		const room = roomId || 'default';
+
+		if (!background.isPinned) {
+			firebaseContext.pinRoomItem(room, {
+				name: background.name,
+				type: 'background'
+			});
+			setBackground((background) => ({ ...background, isPinned: true }));
+
+			socket.emit('event', {
+				key: 'pin-item',
+				type: 'background',
+				name: background.name
+			});
+		}
+	};
+
+	const unpinBackground = () => {
+		const room = roomId || 'default';
+
+		if (background.isPinned) {
+			firebaseContext.unpinRoomItem(room, 'background');
+			setBackground({ name: '', isPinned: false });
+
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'background'
+			});
+		}
+	};
+
 	const unpinGif = (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
@@ -883,15 +929,12 @@ function App() {
 		<div
 			className="app"
 			style={{
-				height: window.innerHeight - bottomPanelHeight,
-				backgroundImage: `url(${backgroundImg})`,
-				backgroundPosition: 'center',
-				backgroundRepeat: 'no-repeat',
-				backgroundSize: 'cover'
+				height: window.innerHeight - bottomPanelHeight
 			}}
 			onClick={onClickApp}
 		>
 			<Board
+				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
 				emojis={emojis}
@@ -911,6 +954,8 @@ function App() {
 				updateWeather={setWeather}
 				pinGif={pinGif}
 				unpinGif={unpinGif}
+				pinBackground={pinBackground}
+				unpinBackground={unpinBackground}
 			/>
 
 			<TowerDefense
@@ -1051,9 +1096,10 @@ const RouterHandler = () => {
 				<Route path="/room/:roomId">
 					<App />
 				</Route>
-				<Route path="/">
+				<Route exact path="/">
 					<App />
 				</Route>
+				<Redirect from="*" to="/" />
 			</Switch>
 		</Router>
 	);
