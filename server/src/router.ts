@@ -326,7 +326,7 @@ export class Router {
 
 
        
-        socket.to(room).emit("event", {
+        io.in(room).emit("event", {
           key: "weather",
           value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
                 condition:condition
