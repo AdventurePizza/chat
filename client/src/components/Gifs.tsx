@@ -9,14 +9,13 @@ import {
 	SuggestionBar
 } from '@giphy/react-components';
 import { IconButton, Paper, Tooltip } from '@material-ui/core';
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 
 import { Cancel } from '@material-ui/icons';
 import { IGif } from '@giphy/js-types';
 import { IGifs } from '../types';
 import { makeStyles } from '@material-ui/core/styles';
 import pushPinIcon from '../assets/push-pin.svg';
-import { useParams } from 'react-router';
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 interface IGifsProps {
@@ -74,7 +73,7 @@ export const BoardGif = ({
 	onUnpin,
 	isPinned
 }: BoardGifProps) => {
-	const { roomId } = useParams<{ roomId?: string }>();
+	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
 
 	return (
@@ -88,12 +87,25 @@ export const BoardGif = ({
 				display: 'flex'
 			}}
 		>
-			<Paper elevation={5} className={classes.paper}>
+			<Paper
+				elevation={5}
+				className={classes.paper}
+				onMouseEnter={() => setIsHovering(true)}
+				onMouseLeave={() => setIsHovering(false)}
+				onTouchStart={() => setIsHovering(true)}
+				onTouchEnd={() => setIsHovering(false)}
+			>
 				<Gif gif={data} width={180} noLink={true} />
 			</Paper>
 
-			{roomId && (
-				<div className={classes.buttonList}>
+			{isHovering && (
+				<div
+					className={classes.buttonList}
+					onMouseEnter={() => setIsHovering(true)}
+					onMouseLeave={() => setIsHovering(false)}
+					onTouchStart={() => setIsHovering(true)}
+					onTouchEnd={() => setIsHovering(false)}
+				>
 					{isPinned ? (
 						<Tooltip title="unpin item" placement="top">
 							<IconButton onClick={onUnpin}>

@@ -804,39 +804,41 @@ function App() {
 	};
 
 	useEffect(() => {
-		if (history.location.pathname !== '/' && roomId) {
-			firebaseContext.getRoom(roomId).then((result) => {
-				if (result === null) {
-					setIsRoomError(true);
-				} else {
-					setIsRoomError(false);
+		const room = roomId || 'default';
+
+		firebaseContext.getRoom(room).then((result) => {
+			if (result === null) {
+				setIsRoomError(true);
+			} else {
+				setIsRoomError(false);
+			}
+		});
+
+		firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
+			const pinnedGifs: IGifs[] = [];
+
+			pinnedItems.forEach((item) => {
+				if (item.type === 'gif') {
+					pinnedGifs.push({
+						...item,
+						top: item.top * window.innerHeight,
+						left: item.left * window.innerWidth,
+						isPinned: true
+					});
 				}
 			});
-			firebaseContext.getRoomPinnedItems(roomId).then((pinnedItems) => {
-				const pinnedGifs: IGifs[] = [];
 
-				pinnedItems.forEach((item) => {
-					if (item.type === 'gif') {
-						pinnedGifs.push({
-							...item,
-							top: item.top * window.innerHeight,
-							left: item.left * window.innerWidth,
-							isPinned: true
-						});
-					}
-				});
-
-				setGifs((gifs) => gifs.concat(...pinnedGifs));
-			});
-		}
+			setGifs((gifs) => gifs.concat(...pinnedGifs));
+		});
 	}, [roomId, history, firebaseContext]);
 
 	const pinGif = (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
+		const room = roomId || 'default';
 
-		if (gif && roomId && !gif.isPinned) {
-			firebaseContext.pinRoomItem(roomId, {
+		if (gif && !gif.isPinned) {
+			firebaseContext.pinRoomItem(room, {
 				...gif,
 				type: 'gif',
 				left: gif.left / window.innerWidth,
@@ -859,9 +861,10 @@ function App() {
 	const unpinGif = (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
+		const room = roomId || 'default';
 
-		if (gif && roomId && gif.isPinned) {
-			firebaseContext.unpinRoomItem(roomId, gif.key);
+		if (gif && gif.isPinned) {
+			firebaseContext.unpinRoomItem(room, gif.key);
 			setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
 
 			socket.emit('event', {
