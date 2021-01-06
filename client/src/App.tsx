@@ -40,6 +40,12 @@ import {
 	useParams
 } from 'react-router-dom';
 import { UserCursor, avatarMap } from './components/UserCursors';
+import {
+	activateFireworks,
+	activateRandomConfetti,
+	activateSchoolPride,
+	activateSnow
+} from './components/Animation';
 import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
@@ -58,12 +64,6 @@ import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import {
-	activateRandomConfetti,
-	activateSchoolPride,
-	activateFireworks,
-	activateSnow
-} from './components/Animation';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -958,7 +958,8 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, and andrew`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, and allen`}
+				placement="left"
 			>
 				<div className="adventure-logo">
 					<div>adventure</div>
