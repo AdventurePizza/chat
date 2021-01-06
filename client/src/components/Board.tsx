@@ -9,7 +9,8 @@ import {
 	IFigure,
 	IGifs,
 	IUserLocations,
-	IUserProfiles
+	IUserProfiles,
+	IWeather
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -35,6 +36,8 @@ interface IBoardProps {
 	animations: IAnimation[];
 	updateAnimations: (animations: IAnimation[]) => void;
 	avatarMessages: IAvatarChatMessages;
+	weather: IWeather;
+	updateWeather: (weather: IWeather) => void;
 	pinGif: (gifKey: string) => void;
 	unpinGif: (gifKey: string) => void;
 }
@@ -55,6 +58,7 @@ export const Board = ({
 	animations,
 	updateAnimations,
 	avatarMessages,
+	weather,
 	pinGif,
 	unpinGif
 }: IBoardProps) => {
@@ -237,6 +241,7 @@ export const Board = ({
 				userLocations={userLocations}
 				userProfiles={userProfiles}
 				avatarChatMessages={avatarMessages}
+				weather={weather}
 			/>
 		</div>
 	);

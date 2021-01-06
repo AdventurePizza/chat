@@ -11,6 +11,7 @@ import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import AnimationPanel from './AnimationPanel';
 import WhiteboardPanel from './WhiteboardPanel';
+import { Weather } from './Weather';
 
 export interface IPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -106,6 +107,10 @@ export const BottomPanel = ({
 						onSubmitUrl={(url) => onAction('settings', 'url', url)}
 						onChangeName={(name) => onAction('settings', 'name', name)}
 					/>
+				);
+			case 'weather':
+				return (
+					<Weather sendLocation={(location) => onAction('weather', location)} />
 				);
 		}
 	};

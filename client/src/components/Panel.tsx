@@ -14,6 +14,7 @@ import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
+import weatherIcon from '../assets/navbar/weatherIcon.png';
 import animationIcon from '../assets/navbar/animation.png';
 
 interface IPanelProps {
@@ -95,8 +96,9 @@ const panelIconSrcMap: {
 	chat: chatIcon,
 	tower: towerIcon,
 	background: cameraRollIcon,
-	animation: animationIcon,
-	whiteboard: pencilIcon
+	whiteboard: pencilIcon,
+	weather: weatherIcon,
+	animation: animationIcon
 };
 
 const panelIconComponentMap: {
