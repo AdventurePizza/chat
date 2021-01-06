@@ -496,10 +496,10 @@ function App() {
 					}));
 					break;
 				case 'weather':
-					setWeather({
-						temp: message.value.temp,
-						condition: message.value.condition
-					});
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], weather: message.value }
+					}));
 					break;
 				case 'settings-url':
 					if (message.value && message.isSelf) {

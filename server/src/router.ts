@@ -67,6 +67,11 @@ export interface ITowerDefenseState {
   [roomId: string]: ITowerDefenseStateRoom;
 }
 
+export interface IWeather{
+  temp:string,
+  condition:string
+}
+
 let towerDefenseState: ITowerDefenseState = {};
 
 let backgroundState: IBackgroundState = {};
@@ -327,6 +332,7 @@ export class Router {
                 condition:condition
           }   
             ,
+            id:socket.id
         
         }); 
       }).catch(error => {
@@ -383,7 +389,7 @@ const profileOptions = {
 
 const selectedAvatars: { [avatar: string]: string } = {};
 const clientProfiles: {
-  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata };
+  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata,weather?:IWeather };
 } = {};
 
 const createProfile = (client: Socket) => {
