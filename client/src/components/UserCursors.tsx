@@ -105,7 +105,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 						x={x}
 						y={y}
 						message={chatMessage}
-						weather={props.weather}
+						weather={userProfile.weather}
 						{...userProfile}
 						isClickable
 					/>

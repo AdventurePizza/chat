@@ -326,7 +326,7 @@ export class Router {
 
 
        
-        io.in(room).emit("event", {
+        socket.to(room).emit("event", {
           key: "weather",
           value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
                 condition:condition
@@ -335,6 +335,17 @@ export class Router {
             id:socket.id
         
         }); 
+        
+        io.to(socket.id).emit("event", {
+          key: "weather",
+          value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
+                condition:condition},
+              toSelf:true
+              },
+            
+             )
+        clientProfiles[socket.id].weather = {temp:convertKelToFar(temp,KELVIN_FIXED) ,
+          condition:condition};
       }).catch(error => {
         console.error(error.response.data)
       })
@@ -425,6 +436,7 @@ const createProfile = (client: Socket) => {
   clientProfiles[client.id] = {
     name: username,
     avatar: newAvatar,
+    weather: {temp:"",condition:""}
   };
 };
 

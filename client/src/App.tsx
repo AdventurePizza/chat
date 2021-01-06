@@ -114,7 +114,8 @@ function App() {
 	const [userProfiles, setUserProfiles] = useState<IUserProfiles>({});
 	const [userProfile, setUserProfile] = useState<IUserProfile>({
 		name: '',
-		avatar: ''
+		avatar: '',
+		weather: { temp: '', condition: '' }
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -496,10 +497,18 @@ function App() {
 					}));
 					break;
 				case 'weather':
-					setUserProfiles((profiles) => ({
-						...profiles,
-						[message.id]: { ...profiles[message.id], weather: message.value }
-					}));
+					if (message.toSelf) {
+						setUserProfile((profile) => ({
+							...profile,
+							weather: message.value
+						}));
+					} else {
+						setUserProfiles((profiles) => ({
+							...profiles,
+							[message.id]: { ...profiles[message.id], weather: message.value }
+						}));
+					}
+
 					break;
 				case 'settings-url':
 					if (message.value && message.isSelf) {
@@ -912,7 +921,6 @@ function App() {
 					ref={userCursorRef}
 					{...userProfile}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
-					weather={weather}
 				/>
 			)}
 
