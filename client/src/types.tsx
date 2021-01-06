@@ -34,6 +34,7 @@ export interface IMessageEvent {
 		| 'background'
 		| 'messages'
 		| 'whiteboard'
+		| 'animation'
 		| 'isTyping'
 		| 'username'
 		| 'weather'
@@ -108,6 +109,14 @@ export interface IBackgrounds {
 	triangles: string;
 }
 
+export interface ITextAnimation {
+	[key: string]: string | undefined;
+	schoolPride: string;
+	fireworks: string;
+	confetti: string;
+	snow: string;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -125,6 +134,7 @@ export enum PanelItemEnum {
 	'chat' = 'chat',
 	'tower' = 'tower',
 	'background' = 'background',
+	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'new-room' = 'new-room'

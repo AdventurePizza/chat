@@ -58,6 +58,12 @@ import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+import {
+	activateRandomConfetti,
+	activateSchoolPride,
+	activateFireworks,
+	activateSnow
+} from './components/Animation';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -87,7 +93,9 @@ function App() {
 		undefined
 	);
 
+	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const [bottomPanelHeight, setBottomPanelHeight] = useState(0);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
@@ -134,7 +142,7 @@ function App() {
 		);
 	}, []);
 
-	const playSound = useCallback((soundType) => {
+	const playSound = useCallback((soundType, isPreviewSound) => {
 		audio.current = new Audio(sounds[soundType]);
 
 		if (!audio || !audio.current) return;
@@ -142,9 +150,10 @@ function App() {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 
-		setMusicNotes((notes) =>
-			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-		);
+		if (!isPreviewSound)
+			setMusicNotes((notes) =>
+				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+			);
 
 		audio.current.currentTime = 0;
 		audio.current.play();
@@ -157,6 +166,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower':
+			case 'animation':
 			case 'background':
 			case 'whiteboard':
 			case 'weather':
@@ -230,12 +240,37 @@ function App() {
 		[updateCursorPosition, userCursorRef]
 	);
 
+	const playAnimation = useCallback((animationType: string) => {
+		switch (animationType) {
+			case 'confetti':
+				activateRandomConfetti();
+				break;
+			case 'schoolPride':
+				activateSchoolPride();
+				break;
+			case 'fireworks':
+				activateFireworks();
+				break;
+			case 'snow':
+				activateSnow();
+				break;
+		}
+	}, []);
+
 	const onIsTyping = (isTyping: boolean) => {
 		socket.emit('event', {
 			key: 'isTyping',
 			value: isTyping
 		});
 	};
+
+	useEffect(() => {
+		if (bottomPanelRef.current) {
+			setBottomPanelHeight(
+				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
+			);
+		}
+	}, [selectedPanelItem]);
 
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
@@ -275,7 +310,7 @@ function App() {
 	},
 	[]);
 
-	const playAnimation = useCallback((animationType: string) => {
+	const playTextAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {
 			setAnimations((animations) => animations.concat({ type: 'start game' }));
 			setTimeout(() => {
@@ -323,7 +358,7 @@ function App() {
 	const handleTowerDefenseEvents = useCallback(
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
-				playAnimation('start game');
+				playTextAnimation('start game');
 				setTowerDefenseState((state) => ({
 					...state,
 					isPlaying: true,
@@ -331,7 +366,7 @@ function App() {
 				}));
 			}
 			if (message.value === 'end') {
-				playAnimation('end game');
+				playTextAnimation('end game');
 				setTowerDefenseState((state) => ({
 					...state,
 					isPlaying: false,
@@ -419,7 +454,7 @@ function App() {
 				}));
 			}
 		},
-		[fireTowers, playAnimation]
+		[fireTowers, playTextAnimation]
 	);
 
 	const handlePinItemMessage = useCallback(
@@ -453,7 +488,8 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
-					playSound(message.value);
+					console.log(message.value);
+					playSound(message.value, false);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -482,6 +518,12 @@ function App() {
 				case 'whiteboard':
 					if (message.value) {
 						drawLineEvent(message.value);
+					}
+					break;
+
+				case 'animation':
+					if (message.value) {
+						playAnimation(message.value);
 					}
 					break;
 				case 'isTyping':
@@ -581,6 +623,7 @@ function App() {
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
+		playAnimation,
 		roomId,
 		handlePinItemMessage
 	]);
@@ -606,12 +649,16 @@ function App() {
 			case 'sound':
 				const soundType = args[0] as string;
 
-				playSound(soundType);
+				playSound(soundType, false);
 
 				socket.emit('event', {
 					key: 'sound',
 					value: soundType
 				});
+				break;
+			case 'previewSound':
+				const previwedSoundType = args[0] as string;
+				playSound(previwedSoundType, true);
 				break;
 			case 'gif':
 				const gif = args[0] as string;
@@ -658,6 +705,14 @@ function App() {
 				socket.emit('event', {
 					key: 'background',
 					value: backgroundName
+				});
+				break;
+			case 'animation':
+				const animationType = args[0] as string;
+				playAnimation(animationType);
+				socket.emit('event', {
+					key: 'animation',
+					value: animationType
 				});
 				break;
 
@@ -740,6 +795,9 @@ function App() {
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const backgroundImg = backgroundName?.startsWith('http')
+		? backgroundName
+		: backgrounds[backgroundName!];
 
 	const onCreateRoom = (roomName: string) => {
 		return firebaseContext.createRoom(roomName);
@@ -822,8 +880,9 @@ function App() {
 		<div
 			className="app"
 			style={{
-				minHeight: window.innerHeight - 10,
-				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				height: window.innerHeight - bottomPanelHeight,
+				backgroundImage: `url(${backgroundImg})`,
+				backgroundPosition: 'center',
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
@@ -908,6 +967,7 @@ function App() {
 			</Tooltip>
 
 			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}

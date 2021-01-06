@@ -9,10 +9,12 @@ import React from 'react';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
+import AnimationPanel from './AnimationPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 import { Weather } from './Weather';
 
 export interface IPanelProps {
+	bottomPanelRef: React.RefObject<HTMLDivElement>;
 	isOpen: boolean;
 	type?: PanelItemEnum;
 	setBrushColor: (color: string) => void;
@@ -30,6 +32,7 @@ export interface ISoundPairs {
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 
 export const BottomPanel = ({
+	bottomPanelRef,
 	isOpen,
 	type,
 	setBrushColor,
@@ -94,6 +97,8 @@ export const BottomPanel = ({
 				);
 			case 'background':
 				return <BackgroundPanel sendBackground={onAction} />;
+			case 'animation':
+				return <AnimationPanel sendAnimation={onAction} />;
 			case 'whiteboard':
 				return <WhiteboardPanel setBrushColor={setBrushColor} />;
 			case 'settings':
@@ -112,7 +117,9 @@ export const BottomPanel = ({
 
 	return (
 		<Drawer variant="persistent" anchor="bottom" open={isOpen}>
-			<div className="bottom-panel-container">{renderPanelContent()}</div>
+			<div ref={bottomPanelRef} className="bottom-panel-container">
+				{renderPanelContent()}
+			</div>
 		</Drawer>
 	);
 };
