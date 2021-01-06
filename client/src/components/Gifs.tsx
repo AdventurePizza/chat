@@ -8,14 +8,13 @@ import {
 	SearchContextManager,
 	SuggestionBar
 } from '@giphy/react-components';
-import { IconButton, Paper, Tooltip } from '@material-ui/core';
 import React, { useContext, useState } from 'react';
 
-import { Cancel } from '@material-ui/icons';
 import { IGif } from '@giphy/js-types';
 import { IGifs } from '../types';
+import { Paper } from '@material-ui/core';
+import { PinButton } from './shared/PinButton';
 import { makeStyles } from '@material-ui/core/styles';
-import pushPinIcon from '../assets/push-pin.svg';
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 interface IGifsProps {
@@ -24,10 +23,6 @@ interface IGifsProps {
 }
 
 const useStyles = makeStyles({
-	pushPin: {
-		width: 25,
-		height: 25
-	},
 	paper: {
 		padding: 5
 	},
@@ -106,23 +101,7 @@ export const BoardGif = ({
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{isPinned ? (
-						<Tooltip title="unpin item" placement="top">
-							<IconButton onClick={onUnpin}>
-								<Cancel />
-							</IconButton>
-						</Tooltip>
-					) : (
-						<Tooltip title="pin item">
-							<IconButton onClick={onPin}>
-								<img
-									alt="push-pin"
-									className={classes.pushPin}
-									src={pushPinIcon}
-								/>
-							</IconButton>
-						</Tooltip>
-					)}
+					<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
 				</div>
 			)}
 		</div>
