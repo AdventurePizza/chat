@@ -57,7 +57,12 @@ import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import { activateRandomConfetti, activateSchoolPride, activateFireworks, activateSnow } from './components/Animation'
+import {
+	activateRandomConfetti,
+	activateSchoolPride,
+	activateFireworks,
+	activateSnow
+} from './components/Animation';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -121,7 +126,6 @@ function App() {
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [figures, setFigures] = useState<IFigure[]>([]);
-
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();

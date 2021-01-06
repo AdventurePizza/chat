@@ -2,19 +2,19 @@
 import confetti from 'canvas-confetti';
 
 function fire(particleRatio: number, opts: any) {
-    let count = 200;
-    let defaults = {
+	let count = 200;
+	let defaults = {
 		origin: { y: 0.7 }
 	};
-    confetti(
-        Object.assign({}, defaults, opts, {
-            particleCount: Math.floor(count * particleRatio)
-        })
-    );
+	confetti(
+		Object.assign({}, defaults, opts, {
+			particleCount: Math.floor(count * particleRatio)
+		})
+	);
 }
 
 function randomInRange(min: number, max: number) {
-    return Math.random() * (max - min) + min;
+	return Math.random() * (max - min) + min;
 }
 
 //Celebration - Animation
@@ -44,7 +44,7 @@ export const activateRandomConfetti = () => {
 };
 
 export const activateSchoolPride = () => {
-    let end = Date.now() + 1.3 * 1000;
+	let end = Date.now() + 1.3 * 1000;
 	// go Buckeyes!
 	let colors = ['#bb0000', '#ffffff'];
 
@@ -70,65 +70,62 @@ export const activateSchoolPride = () => {
 	})();
 };
 
-
 export const activateFireworks = () => {
-    let duration = 2 * 1000;
-    let animationEnd = Date.now() + duration;
-    let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+	let duration = 2 * 1000;
+	let animationEnd = Date.now() + duration;
+	let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
-    let interval: NodeJS.Timeout  = setInterval(function () {
-        let timeLeft = animationEnd - Date.now();
+	let interval: NodeJS.Timeout = setInterval(function () {
+		let timeLeft = animationEnd - Date.now();
 
-        if (timeLeft <= 0) {
-            return clearInterval(interval);
-        }
+		if (timeLeft <= 0) {
+			return clearInterval(interval);
+		}
 
-        let particleCount = 50 * (timeLeft / duration);
-        // since particles fall down, start a bit higher than random
-        confetti(
-            Object.assign({}, defaults, {
-                particleCount,
-                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-            })
-        );
-        confetti(
-            Object.assign({}, defaults, {
-                particleCount,
-                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-            })
-        );
-    }, 250);
+		let particleCount = 50 * (timeLeft / duration);
+		// since particles fall down, start a bit higher than random
+		confetti(
+			Object.assign({}, defaults, {
+				particleCount,
+				origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+			})
+		);
+		confetti(
+			Object.assign({}, defaults, {
+				particleCount,
+				origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+			})
+		);
+	}, 250);
 };
 
 export const activateSnow = async () => {
-    const duration = 3.5 * 1000;
-    const animationEnd = Date.now() + duration;
-    let skew = 1;
+	const duration = 3.5 * 1000;
+	const animationEnd = Date.now() + duration;
+	let skew = 1;
 
-    (function frame() {
-        let timeLeft = animationEnd - Date.now();
-        let ticks = Math.max(200, 500 * (timeLeft / duration));
-        skew = Math.max(0.8, skew - 0.001);
+	(function frame() {
+		let timeLeft = animationEnd - Date.now();
+		let ticks = Math.max(200, 500 * (timeLeft / duration));
+		skew = Math.max(0.8, skew - 0.001);
 
-        confetti({
-            particleCount: 1,
-            startVelocity: 0,
-            ticks: ticks,
-            gravity: 0.5,
-            origin: {
-                x: Math.random(),
-                // since particles fall down, skew start toward the top
-                y: Math.random() * skew - 0.2
-            },
-            colors: ['#ffffff'],
-            shapes: ['circle'],
-            scalar: randomInRange(0.4, 1)
-        });
+		confetti({
+			particleCount: 1,
+			startVelocity: 0,
+			ticks: ticks,
+			gravity: 0.5,
+			origin: {
+				x: Math.random(),
+				// since particles fall down, skew start toward the top
+				y: Math.random() * skew - 0.2
+			},
+			colors: ['#ffffff'],
+			shapes: ['circle'],
+			scalar: randomInRange(0.4, 1)
+		});
 
-        if (timeLeft > 0) {
-            requestAnimationFrame(frame);
-        }
-    })();
+		if (timeLeft > 0) {
+			requestAnimationFrame(frame);
+		}
+	})();
 };
-
-
