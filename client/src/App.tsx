@@ -57,6 +57,12 @@ import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+import {
+	activateRandomConfetti,
+	activateSchoolPride,
+	activateFireworks,
+	activateSnow
+} from './components/Animation';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -153,6 +159,7 @@ function App() {
 			case 'chat':
 			case 'gifs':
 			case 'tower':
+			case 'animation':
 			case 'background':
 			case 'whiteboard':
 			case 'settings':
@@ -225,6 +232,23 @@ function App() {
 		[updateCursorPosition, userCursorRef]
 	);
 
+	const playAnimation = useCallback((animationType: string) => {
+		switch (animationType) {
+			case 'confetti':
+				activateRandomConfetti();
+				break;
+			case 'schoolPride':
+				activateSchoolPride();
+				break;
+			case 'fireworks':
+				activateFireworks();
+				break;
+			case 'snow':
+				activateSnow();
+				break;
+		}
+	}, []);
+
 	const onIsTyping = (isTyping: boolean) => {
 		socket.emit('event', {
 			key: 'isTyping',
@@ -278,7 +302,7 @@ function App() {
 	},
 	[]);
 
-	const playAnimation = useCallback((animationType: string) => {
+	const playTextAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {
 			setAnimations((animations) => animations.concat({ type: 'start game' }));
 			setTimeout(() => {
@@ -326,7 +350,7 @@ function App() {
 	const handleTowerDefenseEvents = useCallback(
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
-				playAnimation('start game');
+				playTextAnimation('start game');
 				setTowerDefenseState((state) => ({
 					...state,
 					isPlaying: true,
@@ -334,7 +358,7 @@ function App() {
 				}));
 			}
 			if (message.value === 'end') {
-				playAnimation('end game');
+				playTextAnimation('end game');
 				setTowerDefenseState((state) => ({
 					...state,
 					isPlaying: false,
@@ -422,7 +446,7 @@ function App() {
 				}));
 			}
 		},
-		[fireTowers, playAnimation]
+		[fireTowers, playTextAnimation]
 	);
 
 	const handlePinItemMessage = useCallback(
@@ -486,6 +510,12 @@ function App() {
 				case 'whiteboard':
 					if (message.value) {
 						drawLineEvent(message.value);
+					}
+					break;
+
+				case 'animation':
+					if (message.value) {
+						playAnimation(message.value);
 					}
 					break;
 				case 'isTyping':
@@ -571,6 +601,7 @@ function App() {
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
+		playAnimation,
 		roomId,
 		handlePinItemMessage
 	]);
@@ -652,6 +683,14 @@ function App() {
 				socket.emit('event', {
 					key: 'background',
 					value: backgroundName
+				});
+				break;
+			case 'animation':
+				const animationType = args[0] as string;
+				playAnimation(animationType);
+				socket.emit('event', {
+					key: 'animation',
+					value: animationType
 				});
 				break;
 

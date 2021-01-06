@@ -72,6 +72,7 @@ interface IMessageEvent {
     | "background"
     | "messages"
     | "whiteboard"
+    | "animation"
     | "isTyping"
     | "username"
     | "settings-url"
@@ -282,7 +283,6 @@ export class Router {
           //     unitKey: message.unitKey,
           //   });
         }
-
       case "background":
         let backgroundName = message.value;
         const roomId = clientRooms[socket.id];
@@ -301,6 +301,10 @@ export class Router {
         // socket.broadcast.emit("event", message);
         socket.to(clientRooms[socket.id]).emit("event", message);
         break;
+      case "animation":
+        socket.to(room).broadcast.emit("event", message);
+        break;
+
     }
   };
 }
