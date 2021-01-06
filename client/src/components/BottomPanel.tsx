@@ -13,6 +13,7 @@ import AnimationPanel from './AnimationPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 
 export interface IPanelProps {
+	bottomPanelRef: React.RefObject<HTMLDivElement>;
 	isOpen: boolean;
 	type?: PanelItemEnum;
 	setBrushColor: (color: string) => void;
@@ -30,6 +31,7 @@ export interface ISoundPairs {
 const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 
 export const BottomPanel = ({
+	bottomPanelRef,
 	isOpen,
 	type,
 	setBrushColor,
@@ -100,14 +102,19 @@ export const BottomPanel = ({
 				return <WhiteboardPanel setBrushColor={setBrushColor} />;
 			case 'settings':
 				return (
-					<SettingsPanel onChangeName={(name) => onAction('settings', name)} />
+					<SettingsPanel
+						onSubmitUrl={(url) => onAction('settings', 'url', url)}
+						onChangeName={(name) => onAction('settings', 'name', name)}
+					/>
 				);
 		}
 	};
 
 	return (
 		<Drawer variant="persistent" anchor="bottom" open={isOpen}>
-			<div className="bottom-panel-container">{renderPanelContent()}</div>
+			<div ref={bottomPanelRef} className="bottom-panel-container">
+				{renderPanelContent()}
+			</div>
 		</Drawer>
 	);
 };

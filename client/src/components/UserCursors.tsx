@@ -1,5 +1,6 @@
 import {
 	IAvatarChatMessages,
+	IMetadata,
 	ITowerBuilding,
 	IUserLocations,
 	IUserProfiles
@@ -17,6 +18,7 @@ import character4 from '../assets/character4.png';
 import character5 from '../assets/character5.png';
 import character6 from '../assets/character6.png';
 import character7 from '../assets/character7.png';
+import character8 from '../assets/character8.png';
 import ghost from '../assets/red_ghost.gif';
 import kirby from '../assets/kirby.gif';
 import link from '../assets/link-run.gif';
@@ -39,7 +41,8 @@ export const avatarMap: { [key: string]: string } = {
 	character4,
 	character5,
 	character6,
-	character7
+	character7,
+	character8
 };
 
 const useStyles = makeStyles({
@@ -50,7 +53,25 @@ const useStyles = makeStyles({
 
 		position: 'absolute',
 		left: '75%',
-		overflow: 'visible'
+		overflow: 'visible',
+		top: -30
+	},
+	metadataIcon: {
+		marginRight: 5
+	},
+	metadataContainer: {
+		display: 'flex',
+		'& > img': {
+			width: 20,
+			height: 20
+		},
+		alignItems: 'center'
+	},
+	metadataTitle: {
+		maxWidth: 100,
+		wordBreak: 'break-word',
+		overflow: 'hidden',
+		textOverflow: 'ellipsis'
 	}
 });
 
@@ -70,7 +91,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 				if (!props.userProfiles[key]) {
 					return null;
 				}
-				const { avatar, name, isTyping } = props.userProfiles[key];
+				const userProfile = props.userProfiles[key];
 				const messages = props.avatarChatMessages[key];
 				let chatMessage;
 				if (Array.isArray(messages)) {
@@ -79,12 +100,11 @@ export const UserCursors = (props: IUserCursorsProps) => {
 
 				return (
 					<UserCursor
-						avatar={avatar}
-						name={name}
 						x={x}
 						y={y}
 						message={chatMessage}
-						isTyping={isTyping}
+						{...userProfile}
+						isClickable
 					/>
 				);
 			})}
@@ -100,6 +120,8 @@ interface IUserCursorProps {
 	isSelectingTower?: ITowerBuilding;
 	message?: string;
 	isTyping?: boolean;
+	musicMetadata?: IMetadata;
+	isClickable?: boolean;
 }
 
 export const UserCursor = React.forwardRef(
@@ -111,7 +133,9 @@ export const UserCursor = React.forwardRef(
 			y,
 			isSelectingTower,
 			message,
-			isTyping
+			isTyping,
+			musicMetadata,
+			isClickable
 		}: IUserCursorProps,
 		ref: React.Ref<HTMLDivElement>
 	) => {
@@ -133,9 +157,13 @@ export const UserCursor = React.forwardRef(
 			}
 		}, [message]);
 
+		const clickableStyle: React.CSSProperties = isClickable
+			? {}
+			: { userSelect: 'none', pointerEvents: 'none' };
+
 		return (
 			<div
-				style={{ transform: `translate(${x}px, ${y}px)` }}
+				style={{ transform: `translate(${x}px, ${y}px)`, ...clickableStyle }}
 				className="user-connection-cursor"
 				ref={ref}
 			>
@@ -150,44 +178,79 @@ export const UserCursor = React.forwardRef(
 				) : (
 					<div
 						style={{
-							display: 'flex',
-							alignItems: 'center',
-							flexDirection: 'column',
-							position: 'relative'
+							display: 'flex'
 						}}
 					>
-						<img src={avatarMap[avatar]} alt="avatar" />
-						<div style={{ textDecoration: 'bold', fontSize: '1.2em' }}>
-							{name}
-						</div>
-						<CSSTransition
-							timeout={1000}
-							classNames="avatar-message-transition"
-							key={message}
-							in={inProp}
+						{musicMetadata && <MusicLink musicMetadata={musicMetadata} />}
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								flexDirection: 'column',
+								position: 'relative'
+							}}
 						>
-							<div className="avatar-message">{message}</div>
-						</CSSTransition>
-						{isTyping && (
-							<Icon className={classes.chatIcon}>
-								<div style={{ position: 'relative' }}>
-									<ChatBubbleOutlineIcon />
-									<img
-										style={{
-											position: 'absolute',
-											top: 20,
-											width: 30,
-											left: 12
-										}}
-										src={loadingDots}
-										alt="three dots"
-									/>
-								</div>
-							</Icon>
-						)}
+							<img src={avatarMap[avatar]} alt="avatar" />
+							<div
+								style={{
+									textDecoration: 'bold',
+									fontSize: '1.2em',
+									width: 'fit-content'
+								}}
+							>
+								{name}
+							</div>
+							<CSSTransition
+								timeout={1000}
+								classNames="avatar-message-transition"
+								key={message}
+								in={inProp}
+							>
+								<div className="avatar-message">{message}</div>
+							</CSSTransition>
+							{isTyping && (
+								<Icon className={classes.chatIcon}>
+									<div style={{ position: 'relative' }}>
+										<ChatBubbleOutlineIcon />
+										<img
+											style={{
+												position: 'absolute',
+												top: 20,
+												width: 30,
+												left: 12
+											}}
+											src={loadingDots}
+											alt="three dots"
+										/>
+									</div>
+								</Icon>
+							)}
+						</div>
 					</div>
 				)}
 			</div>
 		);
 	}
 );
+
+interface IMusicLinkProps {
+	musicMetadata: IMetadata;
+}
+
+const MusicLink = ({ musicMetadata: data }: IMusicLinkProps) => {
+	const classes = useStyles();
+
+	return (
+		<div className={classes.metadataContainer} title={data.description}>
+			<img src={data.icon} className={classes.metadataIcon} alt="icon" />
+			<a
+				href={data.url}
+				className={classes.metadataTitle}
+				target="_blank"
+				rel="noreferrer"
+			>
+				{data.title}
+			</a>
+		</div>
+	);
+};

@@ -22,22 +22,32 @@ import {
 	PanelItemEnum
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
-import { IconButton, Tooltip } from '@material-ui/core';
+import { IconButton, Modal, Tooltip } from '@material-ui/core';
 import React, {
 	useCallback,
+	useContext,
 	useEffect,
 	useMemo,
 	useRef,
 	useState
 } from 'react';
+import {
+	Route,
+	HashRouter as Router,
+	Switch,
+	useHistory,
+	useParams
+} from 'react-router-dom';
 import { UserCursor, avatarMap } from './components/UserCursors';
 import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
+import { FirebaseContext } from './firebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
+import { NewChatroom } from './components/NewChatroom';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
@@ -61,6 +71,13 @@ const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 
 function App() {
+	const { roomId } = useParams<{ roomId?: string }>();
+	const history = useHistory();
+
+	const [isRoomError, setIsRoomError] = useState(false);
+
+	const firebaseContext = useContext(FirebaseContext);
+	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -70,7 +87,9 @@ function App() {
 		undefined
 	);
 
+	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const [bottomPanelHeight, setBottomPanelHeight] = useState(0);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
@@ -112,7 +131,7 @@ function App() {
 		);
 	}, []);
 
-	const playSound = useCallback((soundType) => {
+	const playSound = useCallback((soundType, isPreviewSound) => {
 		audio.current = new Audio(sounds[soundType]);
 
 		if (!audio || !audio.current) return;
@@ -120,9 +139,10 @@ function App() {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 
-		setMusicNotes((notes) =>
-			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-		);
+		if (!isPreviewSound)
+			setMusicNotes((notes) =>
+				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+			);
 
 		audio.current.currentTime = 0;
 		audio.current.play();
@@ -139,6 +159,12 @@ function App() {
 			case 'background':
 			case 'whiteboard':
 			case 'settings':
+				setSelectedPanelItem(
+					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
+				);
+				break;
+			case 'new-room':
+				setIsModalOpen(true);
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -160,13 +186,13 @@ function App() {
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
-	const addGif = useCallback((gifId: string) => {
+	const addGif = useCallback((gifId: string, gifKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
 		GIF_FETCH.gif(gifId).then((data) => {
 			const newGif: IGifs = {
 				top: y,
 				left: x,
-				key: uuidv4(),
+				key: gifKey || uuidv4(),
 				data: data.data
 			};
 			setGifs((gifs) => gifs.concat(newGif));
@@ -202,18 +228,7 @@ function App() {
 		[updateCursorPosition, userCursorRef]
 	);
 
-	const onKeyPress = useCallback((event: KeyboardEvent) => {
-		if (event.ctrlKey && event.code === 'KeyQ') {
-			setFigures((figures) =>
-				figures.concat({
-					key: uuidv4(),
-					type: 'gryphon'
-				})
-			);
-		}
-	}, []);
-
-	const playTextAnimation = useCallback((animationType: string) => {
+	const playAnimation = useCallback((animationType: string) => {
 		switch (animationType) {
 			case 'confetti':
 				activateRandomConfetti();
@@ -238,23 +253,16 @@ function App() {
 	};
 
 	useEffect(() => {
-		// spawn gryphon randomly
-		setInterval(() => {
-			if (Math.random() < 0.1) {
-				setFigures((figures) =>
-					figures.concat({
-						key: uuidv4(),
-						type: 'gryphon'
-					})
-				);
-			}
-		}, 10000);
-	}, []);
+		if (bottomPanelRef.current) {
+			setBottomPanelHeight(
+				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
+			);
+		}
+	}, [selectedPanelItem]);
 
 	useEffect(() => {
 		window.addEventListener('mousemove', onMouseMove);
-		window.addEventListener('keypress', onKeyPress);
-	}, [onMouseMove, onKeyPress]);
+	}, [onMouseMove]);
 
 	const onCursorMove = useCallback(function cursorMove(
 		clientId: string,
@@ -290,7 +298,7 @@ function App() {
 	},
 	[]);
 
-	const playAnimation = useCallback((animationType: string) => {
+	const playTextAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {
 			setAnimations((animations) => animations.concat({ type: 'start game' }));
 			setTimeout(() => {
@@ -338,7 +346,7 @@ function App() {
 	const handleTowerDefenseEvents = useCallback(
 		(message: IMessageEvent) => {
 			if (message.value === 'start') {
-				playAnimation('start game');
+				playTextAnimation('start game');
 				setTowerDefenseState((state) => ({
 					...state,
 					isPlaying: true,
@@ -346,7 +354,7 @@ function App() {
 				}));
 			}
 			if (message.value === 'end') {
-				playAnimation('end game');
+				playTextAnimation('end game');
 				setTowerDefenseState((state) => ({
 					...state,
 					isPlaying: false,
@@ -434,14 +442,42 @@ function App() {
 				}));
 			}
 		},
-		[fireTowers, playAnimation]
+		[fireTowers, playTextAnimation]
+	);
+
+	const handlePinItemMessage = useCallback(
+		(message: IMessageEvent, isUnpin?: boolean) => {
+			const { type, itemKey } = message;
+			switch (type) {
+				case 'gif':
+					const gifIndex = gifs.findIndex((gif) => gif.key === itemKey);
+					const gif = gifs[gifIndex];
+					if (gif) {
+						if (isUnpin) {
+							setGifs([
+								...gifs.slice(0, gifIndex),
+								...gifs.slice(gifIndex + 1)
+							]);
+						} else {
+							console.log('want to pin gif ', gif);
+							setGifs([
+								...gifs.slice(0, gifIndex),
+								{ ...gif, isPinned: true },
+								...gifs.slice(gifIndex + 1)
+							]);
+						}
+					}
+			}
+		},
+		[gifs]
 	);
 
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
-					playSound(message.value);
+					console.log(message.value);
+					playSound(message.value, false);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -455,7 +491,7 @@ function App() {
 					break;
 				case 'gif':
 					if (message.value) {
-						addGif(message.value);
+						addGif(message.value, message.gifKey);
 					}
 					break;
 				case 'tower defense':
@@ -475,7 +511,7 @@ function App() {
 
 				case 'animation':
 					if (message.value) {
-						playTextAnimation(message.value);
+						playAnimation(message.value);
 					}
 					break;
 				case 'isTyping':
@@ -489,6 +525,28 @@ function App() {
 						...profiles,
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
+					break;
+				case 'settings-url':
+					if (message.value && message.isSelf) {
+						setUserProfile((profile) => ({
+							...profile,
+							musicMetadata: message.value
+						}));
+					} else {
+						setUserProfiles((profiles) => ({
+							...profiles,
+							[message.id]: {
+								...profiles[message.id],
+								musicMetadata: message.value
+							}
+						}));
+					}
+					break;
+				case 'pin-item':
+					handlePinItemMessage(message);
+					break;
+				case 'unpin-item':
+					handlePinItemMessage(message, true);
 					break;
 			}
 		};
@@ -507,30 +565,28 @@ function App() {
 
 				return newUserLocations;
 			});
-
-			// audioNotification.current = new Audio(audioExit);
-			// audioNotification.current.currentTime = 0;
-			// audioNotification.current.play();
 		};
 
-		// const onNewUser = () => {
-		// 	audioNotification.current = new Audio(audioEnter);
-		// 	audioNotification.current.currentTime = 0;
-		// 	audioNotification.current.play();
-		// };
+		const onConnect = () => {
+			if (roomId) {
+				socket.emit('connect room', roomId);
+			} else {
+				socket.emit('connect room', 'default');
+			}
+		};
 
-		// socket.on('new user', onNewUser);
 		socket.on('roommate disconnect', onRoomateDisconnect);
 		socket.on('profile info', onProfileInfo);
 		socket.on('cursor move', onCursorMove);
 		socket.on('event', onMessageEvent);
+		socket.on('connect', onConnect);
 
 		return () => {
 			socket.off('roomate disconnect', onRoomateDisconnect);
 			socket.off('profile info', onProfileInfo);
 			socket.off('cursor move', onCursorMove);
 			socket.off('event', onMessageEvent);
-			// socket.off('new user', onNewUser);
+			socket.off('connect', onConnect);
 		};
 	}, [
 		handleTowerDefenseEvents,
@@ -541,7 +597,9 @@ function App() {
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
-		playTextAnimation
+		playAnimation,
+		roomId,
+		handlePinItemMessage
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -565,12 +623,16 @@ function App() {
 			case 'sound':
 				const soundType = args[0] as string;
 
-				playSound(soundType);
+				playSound(soundType, false);
 
 				socket.emit('event', {
 					key: 'sound',
 					value: soundType
 				});
+				break;
+			case 'previewSound':
+				const previwedSoundType = args[0] as string;
+				playSound(previwedSoundType, true);
 				break;
 			case 'gif':
 				const gif = args[0] as string;
@@ -621,7 +683,7 @@ function App() {
 				break;
 			case 'animation':
 				const animationType = args[0] as string;
-				playTextAnimation(animationType);
+				playAnimation(animationType);
 				socket.emit('event', {
 					key: 'animation',
 					value: animationType
@@ -637,12 +699,21 @@ function App() {
 				break;
 
 			case 'settings':
-				const username = args[0] as string;
-				socket.emit('event', {
-					key: 'username',
-					value: username
-				});
-				setUserProfile((profile) => ({ ...profile, name: username }));
+				const type = args[0] as string;
+				const settingsValue = args[1] as string;
+
+				if (type === 'url') {
+					socket.emit('event', {
+						key: 'settings-url',
+						value: settingsValue
+					});
+				} else if (type === 'name') {
+					socket.emit('event', {
+						key: 'username',
+						value: settingsValue
+					});
+					setUserProfile((profile) => ({ ...profile, name: settingsValue }));
+				}
 				break;
 			default:
 				break;
@@ -690,13 +761,94 @@ function App() {
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const backgroundImg = backgroundName?.startsWith('http')
+		? backgroundName
+		: backgrounds[backgroundName!];
+
+	const onCreateRoom = (roomName: string) => {
+		return firebaseContext.createRoom(roomName);
+	};
+
+	useEffect(() => {
+		if (history.location.pathname !== '/' && roomId) {
+			firebaseContext.getRoom(roomId).then((result) => {
+				if (result === null) {
+					setIsRoomError(true);
+				} else {
+					setIsRoomError(false);
+				}
+			});
+			firebaseContext.getRoomPinnedItems(roomId).then((pinnedItems) => {
+				const pinnedGifs: IGifs[] = [];
+
+				pinnedItems.forEach((item) => {
+					if (item.type === 'gif') {
+						pinnedGifs.push({
+							...item,
+							top: item.top * window.innerHeight,
+							left: item.left * window.innerWidth,
+							isPinned: true
+						});
+					}
+				});
+
+				setGifs((gifs) => gifs.concat(...pinnedGifs));
+			});
+		}
+	}, [roomId, history, firebaseContext]);
+
+	const pinGif = (gifKey: string) => {
+		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
+		const gif = gifs[gifIndex];
+
+		if (gif && roomId && !gif.isPinned) {
+			firebaseContext.pinRoomItem(roomId, {
+				...gif,
+				type: 'gif',
+				left: gif.left / window.innerWidth,
+				top: gif.top / window.innerHeight
+			});
+			setGifs([
+				...gifs.slice(0, gifIndex),
+				{ ...gif, isPinned: true },
+				...gifs.slice(gifIndex + 1)
+			]);
+
+			socket.emit('event', {
+				key: 'pin-item',
+				type: 'gif',
+				itemKey: gifKey
+			});
+		}
+	};
+
+	const unpinGif = (gifKey: string) => {
+		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
+		const gif = gifs[gifIndex];
+
+		if (gif && roomId && gif.isPinned) {
+			firebaseContext.unpinRoomItem(roomId, gif.key);
+			setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
+
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'gif',
+				itemKey: gifKey
+			});
+		}
+	};
+
+	if (isRoomError) {
+		return <div>Invalid room {roomId}</div>;
+	}
 
 	return (
 		<div
 			className="app"
 			style={{
-				minHeight: window.innerHeight - 10,
-				backgroundImage: `url(${backgrounds[backgroundName!]})`,
+				height: window.innerHeight - bottomPanelHeight,
+				backgroundImage: `url(${backgroundImg})`,
+				backgroundPosition: 'center',
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
@@ -718,6 +870,8 @@ function App() {
 				animations={animations}
 				updateAnimations={setAnimations}
 				avatarMessages={avatarMessages}
+				pinGif={pinGif}
+				unpinGif={unpinGif}
 			/>
 
 			<TowerDefense
@@ -777,6 +931,7 @@ function App() {
 			</Tooltip>
 
 			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
@@ -792,11 +947,20 @@ function App() {
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}
+
+			<Modal
+				onClose={() => setIsModalOpen(false)}
+				className="modal-container"
+				open={isModalOpen}
+			>
+				<NewChatroom
+					onClickCancel={() => setIsModalOpen(false)}
+					onCreate={onCreateRoom}
+				/>
+			</Modal>
 		</div>
 	);
 }
-
-export default App;
 
 const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	if (centered) {
@@ -840,3 +1004,18 @@ const getDistanceBetweenPoints = (
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
 
+const RouterHandler = () => {
+	return (
+		<Router>
+			<Switch>
+				<Route path="/room/:roomId">
+					<App />
+				</Route>
+				<Route path="/">
+					<App />
+				</Route>
+			</Switch>
+		</Router>
+	);
+};
+export default RouterHandler;
