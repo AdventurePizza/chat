@@ -9,6 +9,7 @@ import React from 'react';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
+import AnimationPanel from './AnimationPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 
 export interface IPanelProps {
@@ -95,6 +96,8 @@ export const BottomPanel = ({
 				);
 			case 'background':
 				return <BackgroundPanel sendBackground={onAction} />;
+			case 'animation':
+				return <AnimationPanel sendAnimation={onAction} />;
 			case 'whiteboard':
 				return <WhiteboardPanel setBrushColor={setBrushColor} />;
 			case 'settings':
