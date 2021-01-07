@@ -1,10 +1,11 @@
 import React, {
-	useRef,
-	useEffect,
-	useState,
 	MouseEvent,
-	TouchEvent
+	TouchEvent,
+	useEffect,
+	useRef,
+	useState
 } from 'react';
+
 import { getRelativePos } from '../App';
 
 export interface ILineData {
@@ -128,11 +129,14 @@ export function Whiteboard({
 	);
 }
 
-const canvasStyles = {
+const canvasStyles: React.CSSProperties = {
 	cursor: 'crosshair',
 	width: window.innerWidth,
 	height: window.innerHeight,
-	backgroundColor: 'transparent'
+	backgroundColor: 'transparent',
+	position: 'absolute',
+	top: 0,
+	right: 0
 };
 
 export function drawLine(
