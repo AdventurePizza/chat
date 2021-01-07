@@ -123,7 +123,8 @@ function App() {
 	const [userProfile, setUserProfile] = useState<IUserProfile>({
 		name: '',
 		avatar: '',
-		weather: { temp: '', condition: '' }
+		weather: { temp: '', condition: '' },
+		soundType: ''
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -142,7 +143,10 @@ function App() {
 		);
 	}, []);
 
-	const playSound = useCallback((soundType, isPreviewSound) => {
+	const deleteProfileSoundType = () =>
+		setUserProfile((profile) => ({ ...profile, soundType: '' }));
+
+	const playSound = useCallback((soundType) => {
 		audio.current = new Audio(sounds[soundType]);
 
 		if (!audio || !audio.current) return;
@@ -150,10 +154,17 @@ function App() {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 
-		if (!isPreviewSound)
-			setMusicNotes((notes) =>
-				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-			);
+		setMusicNotes((notes) =>
+			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+		);
+
+		audio.current.currentTime = 0;
+		audio.current.play();
+	}, []);
+
+	const playPreviewSound = useCallback((soundType) => {
+		audio.current = new Audio(sounds[soundType]);
+		if (!audio || !audio.current) return;
 
 		audio.current.currentTime = 0;
 		audio.current.play();
@@ -488,8 +499,16 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
-					console.log(message.value);
-					playSound(message.value, false);
+					if (message.value) {
+						playSound(message.value);
+						setUserProfiles((profiles) => ({
+							...profiles,
+							[message.userId]: {
+								...profiles[message.userId],
+								soundType: message.value
+							}
+						}));
+					}
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -649,7 +668,8 @@ function App() {
 			case 'sound':
 				const soundType = args[0] as string;
 
-				playSound(soundType, false);
+				playSound(soundType);
+				setUserProfile((profile) => ({ ...profile, soundType: soundType }));
 
 				socket.emit('event', {
 					key: 'sound',
@@ -658,7 +678,7 @@ function App() {
 				break;
 			case 'previewSound':
 				const previwedSoundType = args[0] as string;
-				playSound(previwedSoundType, true);
+				playPreviewSound(previwedSoundType);
 				break;
 			case 'gif':
 				const gif = args[0] as string;
@@ -899,6 +919,7 @@ function App() {
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
 				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
 				figures={figures}
 				updateFigures={setFigures}
 				animations={animations}
@@ -980,6 +1001,7 @@ function App() {
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
+					deleteSoundType={deleteProfileSoundType}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
 				/>
 			)}

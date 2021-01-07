@@ -196,7 +196,12 @@ export class Router {
     switch (message.key) {
       case "sound":
         // socket.broadcast.emit("event", message);
-        socket.to(room).broadcast.emit("event", message);
+        // socket.to(room).broadcast.emit("event", message);
+        socket.to(room).emit("event", {
+          key: "sound",
+          userId: socket.id,
+          value: message.value,
+        });
         break;
 
       case "emoji":
