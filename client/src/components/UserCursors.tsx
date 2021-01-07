@@ -6,6 +6,7 @@ import {
 	IUserProfiles,
 	IWeather
 } from '../types';
+import musicNote from '../assets/musical-note.svg';
 import React, { useEffect, useRef, useState } from 'react';
 import { CSSTransition } from 'react-transition-group';
 import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
@@ -173,7 +174,7 @@ export const UserCursor = React.forwardRef(
 				clearTimeout(soundTypeTimerRef.current);
 			}
 
-			soundTypeTimerRef.current = setTimeout(() => deleteSoundType(), 4000);
+			soundTypeTimerRef.current = setTimeout(() => deleteSoundType(), 1500);
 		}, [soundType, deleteSoundType]);
 
 		useEffect(() => {
@@ -234,7 +235,11 @@ export const UserCursor = React.forwardRef(
 							}}
 						>
 							{soundType && deleteSoundType && (
-								<div className={classes.soundText}>{soundType}</div>
+								<img
+									src={musicNote}
+									alt="musicNote"
+									style={{ width: 30, height: 30, marginBottom: '5px' }}
+								/>
 							)}
 							<img src={avatarMap[avatar]} alt="avatar" />
 							<div
