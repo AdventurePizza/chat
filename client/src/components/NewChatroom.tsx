@@ -2,7 +2,7 @@ import { Cancel, ControlPoint } from '@material-ui/icons';
 import React, { useState } from 'react';
 
 import IconButton from '@material-ui/core/IconButton';
-import { InputButton } from './InputButton';
+import { InputButton } from './shared/InputButton';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({

@@ -8,15 +8,12 @@ import {
 	SearchContextManager,
 	SuggestionBar
 } from '@giphy/react-components';
-import { IconButton, Paper, Tooltip } from '@material-ui/core';
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 
-import { Cancel } from '@material-ui/icons';
 import { IGif } from '@giphy/js-types';
-import { IGifs } from '../types';
+import { Paper } from '@material-ui/core';
+import { PinButton } from './shared/PinButton';
 import { makeStyles } from '@material-ui/core/styles';
-import pushPinIcon from '../assets/push-pin.svg';
-import { useParams } from 'react-router';
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 interface IGifsProps {
@@ -25,10 +22,6 @@ interface IGifsProps {
 }
 
 const useStyles = makeStyles({
-	pushPin: {
-		width: 25,
-		height: 25
-	},
 	paper: {
 		padding: 5
 	},
@@ -64,17 +57,28 @@ export const Gifs = ({ sendGif }: IGifsProps) => {
 	);
 };
 
-type BoardGifProps = IGifs & { onPin: () => void; onUnpin: () => void };
+interface BoardImageProps {
+	isGif?: boolean;
+	data?: IGif;
+	imgSrc?: string;
+	onPin: () => void;
+	onUnpin: () => void;
+	top: number;
+	left: number;
+	isPinned?: boolean;
+}
 
-export const BoardGif = ({
+export const BoardImage = ({
 	top,
 	left,
 	data,
 	onPin,
 	onUnpin,
-	isPinned
-}: BoardGifProps) => {
-	const { roomId } = useParams<{ roomId?: string }>();
+	isPinned,
+	isGif,
+	imgSrc
+}: BoardImageProps) => {
+	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
 
 	return (
@@ -88,29 +92,29 @@ export const BoardGif = ({
 				display: 'flex'
 			}}
 		>
-			<Paper elevation={5} className={classes.paper}>
-				<Gif gif={data} width={180} noLink={true} />
+			<Paper
+				elevation={5}
+				className={classes.paper}
+				onMouseEnter={() => setIsHovering(true)}
+				onMouseLeave={() => setIsHovering(false)}
+				onTouchStart={() => setIsHovering(true)}
+				onTouchEnd={() => setIsHovering(false)}
+			>
+				{isGif && data && <Gif gif={data} width={180} noLink={true} />}
+				{!isGif && imgSrc && (
+					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
+				)}
 			</Paper>
 
-			{roomId && (
-				<div className={classes.buttonList}>
-					{isPinned ? (
-						<Tooltip title="unpin item" placement="top">
-							<IconButton onClick={onUnpin}>
-								<Cancel />
-							</IconButton>
-						</Tooltip>
-					) : (
-						<Tooltip title="pin item">
-							<IconButton onClick={onPin}>
-								<img
-									alt="push-pin"
-									className={classes.pushPin}
-									src={pushPinIcon}
-								/>
-							</IconButton>
-						</Tooltip>
-					)}
+			{isHovering && (
+				<div
+					className={classes.buttonList}
+					onMouseEnter={() => setIsHovering(true)}
+					onMouseLeave={() => setIsHovering(false)}
+					onTouchStart={() => setIsHovering(true)}
+					onTouchEnd={() => setIsHovering(false)}
+				>
+					<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
 				</div>
 			)}
 		</div>

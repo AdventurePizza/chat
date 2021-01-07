@@ -8,6 +8,8 @@ import {
 import {
 	IAnimation,
 	IAvatarChatMessages,
+	IBackgroundState,
+	IBoardImage,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -33,6 +35,7 @@ import React, {
 	useState
 } from 'react';
 import {
+	Redirect,
 	Route,
 	HashRouter as Router,
 	Switch,
@@ -40,6 +43,12 @@ import {
 	useParams
 } from 'react-router-dom';
 import { UserCursor, avatarMap } from './components/UserCursors';
+import {
+	activateFireworks,
+	activateRandomConfetti,
+	activateSchoolPride,
+	activateSnow
+} from './components/Animation';
 import { cymbalHit, sounds } from './components/Sounds';
 
 import { Board } from './components/Board';
@@ -52,18 +61,9 @@ import { NewChatroom } from './components/NewChatroom';
 import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
-// Sound imports
-// import audioEnter from './assets/sounds/zap-enter.mp3';
-// import audioExit from './assets/sounds/zap-exit.mp3';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
-import {
-	activateRandomConfetti,
-	activateSchoolPride,
-	activateFireworks,
-	activateSnow
-} from './components/Animation';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -88,10 +88,11 @@ function App() {
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
-	const [backgroundName, setBackgroundName] = useState<string | undefined>(
-		undefined
-	);
+	const [background, setBackground] = useState<IBackgroundState>({
+		name: undefined
+	});
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -209,6 +210,17 @@ function App() {
 			};
 			setGifs((gifs) => gifs.concat(newGif));
 		});
+	}, []);
+
+	const addImage = useCallback((image: string, imageKey?: string) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newImage: IBoardImage = {
+			top: y,
+			left: x,
+			key: imageKey || uuidv4(),
+			url: imageToUrl(image)
+		};
+		setImages((images) => images.concat(newImage));
 	}, []);
 
 	const updateCursorPosition = useMemo(
@@ -479,9 +491,35 @@ function App() {
 							]);
 						}
 					}
+					break;
+
+				case 'image':
+					const index = images.findIndex((image) => image.key === itemKey);
+					const image = images[index];
+					if (image) {
+						if (isUnpin) {
+							setImages([
+								...images.slice(0, index),
+								...images.slice(index + 1)
+							]);
+						} else {
+							setImages([
+								...images.slice(0, index),
+								{ ...image, isPinned: true },
+								...images.slice(index + 1)
+							]);
+						}
+					}
+					break;
+				case 'background':
+					if (isUnpin) {
+						setBackground({ name: '', isPinned: false });
+					} else {
+						setBackground({ name: message.name, isPinned: true });
+					}
 			}
 		},
-		[gifs]
+		[gifs, images]
 	);
 
 	useEffect(() => {
@@ -506,11 +544,20 @@ function App() {
 						addGif(message.value, message.gifKey);
 					}
 					break;
+				case 'image':
+					if (message.value) {
+						addImage(message.value, message.imageKey);
+					}
+					break;
 				case 'tower defense':
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					setBackgroundName(message.value);
+					setBackground((background) => ({
+						...background,
+						name: message.value,
+						isPinned: message.isPinned
+					}));
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
@@ -625,7 +672,8 @@ function App() {
 		audioNotification,
 		playAnimation,
 		roomId,
-		handlePinItemMessage
+		handlePinItemMessage,
+		addImage
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -705,6 +753,14 @@ function App() {
 				socket.emit('event', {
 					key: 'background',
 					value: backgroundName
+				});
+				firebaseContext.unpinRoomItem(roomId || 'default', 'background');
+				break;
+			case 'image':
+				const image = args[0] as string;
+				socket.emit('event', {
+					key: 'image',
+					value: image
 				});
 				break;
 			case 'animation':
@@ -795,48 +851,62 @@ function App() {
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
-	const backgroundImg = backgroundName?.startsWith('http')
-		? backgroundName
-		: backgrounds[backgroundName!];
 
 	const onCreateRoom = (roomName: string) => {
 		return firebaseContext.createRoom(roomName);
 	};
 
 	useEffect(() => {
-		if (history.location.pathname !== '/' && roomId) {
-			firebaseContext.getRoom(roomId).then((result) => {
-				if (result === null) {
-					setIsRoomError(true);
-				} else {
-					setIsRoomError(false);
+		const room = roomId || 'default';
+
+		firebaseContext.getRoom(room).then((result) => {
+			if (result === null) {
+				setIsRoomError(true);
+			} else {
+				setIsRoomError(false);
+			}
+		});
+
+		firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
+			const pinnedGifs: IGifs[] = [];
+			const pinnedImages: IBoardImage[] = [];
+
+			pinnedItems.forEach((item) => {
+				if (item.type === 'gif') {
+					pinnedGifs.push({
+						...item,
+						top: item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						key: item.key!,
+						data: item.data!
+					});
+				} else if (item.type === 'image') {
+					pinnedImages.push({
+						...item,
+						top: item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						key: item.key!,
+						url: item.url
+					});
+				} else if (item.type === 'background') {
+					setBackground({ name: item.name, isPinned: true });
 				}
 			});
-			firebaseContext.getRoomPinnedItems(roomId).then((pinnedItems) => {
-				const pinnedGifs: IGifs[] = [];
 
-				pinnedItems.forEach((item) => {
-					if (item.type === 'gif') {
-						pinnedGifs.push({
-							...item,
-							top: item.top * window.innerHeight,
-							left: item.left * window.innerWidth,
-							isPinned: true
-						});
-					}
-				});
-
-				setGifs((gifs) => gifs.concat(...pinnedGifs));
-			});
-		}
+			setGifs((gifs) => gifs.concat(...pinnedGifs));
+			setImages((images) => images.concat(...pinnedImages));
+		});
 	}, [roomId, history, firebaseContext]);
 
 	const pinGif = (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
+		const room = roomId || 'default';
 
-		if (gif && roomId && !gif.isPinned) {
-			firebaseContext.pinRoomItem(roomId, {
+		if (gif && !gif.isPinned) {
+			firebaseContext.pinRoomItem(room, {
 				...gif,
 				type: 'gif',
 				left: gif.left / window.innerWidth,
@@ -856,18 +926,94 @@ function App() {
 		}
 	};
 
+	const pinImage = (imageKey: string) => {
+		const imageIndex = images.findIndex((image) => image.key === imageKey);
+		const image = images[imageIndex];
+		const room = roomId || 'default';
+
+		if (image && !image.isPinned) {
+			firebaseContext.pinRoomItem(room, {
+				...image,
+				type: 'image',
+				left: image.left / window.innerWidth,
+				top: image.top / window.innerHeight
+			});
+			setImages([
+				...images.slice(0, imageIndex),
+				{ ...image, isPinned: true },
+				...images.slice(imageIndex + 1)
+			]);
+
+			socket.emit('event', {
+				key: 'pin-item',
+				type: 'image',
+				itemKey: imageKey
+			});
+		}
+	};
+
+	const pinBackground = () => {
+		const room = roomId || 'default';
+
+		if (!background.isPinned) {
+			firebaseContext.pinRoomItem(room, {
+				name: background.name,
+				type: 'background'
+			});
+			setBackground((background) => ({ ...background, isPinned: true }));
+
+			socket.emit('event', {
+				key: 'pin-item',
+				type: 'background',
+				name: background.name
+			});
+		}
+	};
+
+	const unpinBackground = () => {
+		const room = roomId || 'default';
+
+		if (background.isPinned) {
+			firebaseContext.unpinRoomItem(room, 'background');
+			setBackground({ name: '', isPinned: false });
+
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'background'
+			});
+		}
+	};
+
 	const unpinGif = (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
+		const room = roomId || 'default';
 
-		if (gif && roomId && gif.isPinned) {
-			firebaseContext.unpinRoomItem(roomId, gif.key);
+		if (gif && gif.isPinned) {
+			firebaseContext.unpinRoomItem(room, gif.key);
 			setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
 
 			socket.emit('event', {
 				key: 'unpin-item',
 				type: 'gif',
 				itemKey: gifKey
+			});
+		}
+	};
+
+	const unpinImage = (imageKey: string) => {
+		const index = images.findIndex((image) => image.key === imageKey);
+		const image = images[index];
+		const room = roomId || 'default';
+
+		if (image && image.isPinned) {
+			firebaseContext.unpinRoomItem(room, image.key);
+			setImages([...images.slice(0, index), ...images.slice(index + 1)]);
+
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'image',
+				itemKey: imageKey
 			});
 		}
 	};
@@ -880,21 +1026,20 @@ function App() {
 		<div
 			className="app"
 			style={{
-				height: window.innerHeight - bottomPanelHeight,
-				backgroundImage: `url(${backgroundImg})`,
-				backgroundPosition: 'center',
-				backgroundRepeat: 'no-repeat',
-				backgroundSize: 'cover'
+				height: window.innerHeight - bottomPanelHeight
 			}}
 			onClick={onClickApp}
 		>
 			<Board
+				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
 				emojis={emojis}
 				updateEmojis={setEmojis}
 				gifs={gifs}
 				updateGifs={setGifs}
+				images={images}
+				updateImages={setImages}
 				chatMessages={chatMessages}
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
@@ -908,6 +1053,10 @@ function App() {
 				updateWeather={setWeather}
 				pinGif={pinGif}
 				unpinGif={unpinGif}
+				pinImage={pinImage}
+				unpinImage={unpinImage}
+				pinBackground={pinBackground}
+				unpinBackground={unpinBackground}
 			/>
 
 			<TowerDefense
@@ -958,7 +1107,8 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, and andrew`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, and allen`}
+				placement="left"
 			>
 				<div className="adventure-logo">
 					<div>adventure</div>
@@ -1040,6 +1190,10 @@ const getDistanceBetweenPoints = (
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 };
 
+const imageToUrl = (name: string) => {
+	return name.startsWith('http') ? name : backgrounds[name] || '';
+};
+
 const RouterHandler = () => {
 	return (
 		<Router>
@@ -1047,9 +1201,10 @@ const RouterHandler = () => {
 				<Route path="/room/:roomId">
 					<App />
 				</Route>
-				<Route path="/">
+				<Route exact path="/">
 					<App />
 				</Route>
+				<Redirect from="*" to="/" />
 			</Switch>
 		</Router>
 	);

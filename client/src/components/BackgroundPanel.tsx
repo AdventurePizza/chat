@@ -1,12 +1,18 @@
+import {
+	Avatar,
+	FormControlLabel,
+	IconButton,
+	Switch
+} from '@material-ui/core';
 import React, { useState } from 'react';
-import axios from 'axios';
+
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
-import { IconButton, Avatar } from '@material-ui/core';
+import axios from 'axios';
 import { backgroundIcons } from './BackgroundImages';
 
 interface IBackgroundPanelProps {
-	sendBackground: (backgroundText: string, backgroundType: string) => void;
+	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
 }
 
 interface IResponseData {
@@ -28,9 +34,10 @@ interface IImagesState {
 	id: string;
 }
 
-const BackgroundPanel = ({ sendBackground }: IBackgroundPanelProps) => {
+const BackgroundPanel = ({ sendImage }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [images, setImages] = useState<IImagesState[]>([]);
+	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 
 	const displayDefaultIcons = () =>
 		Object.keys(backgroundIcons).map((backgroundName) => {
@@ -38,7 +45,9 @@ const BackgroundPanel = ({ sendBackground }: IBackgroundPanelProps) => {
 			return (
 				<IconButton
 					key={backgroundName}
-					onClick={() => sendBackground('background', backgroundName)}
+					onClick={() => {
+						sendImage(backgroundName, isSwitchChecked ? 'background' : 'image');
+					}}
 				>
 					<Avatar
 						variant="rounded"
@@ -54,7 +63,9 @@ const BackgroundPanel = ({ sendBackground }: IBackgroundPanelProps) => {
 			return (
 				<IconButton
 					key={id}
-					onClick={() => sendBackground('background', imageLink)}
+					onClick={() =>
+						sendImage(imageLink, isSwitchChecked ? 'background' : 'image')
+					}
 				>
 					<Avatar variant="rounded" src={thumbnailLink} alt={alt} />
 				</IconButton>
@@ -98,6 +109,14 @@ const BackgroundPanel = ({ sendBackground }: IBackgroundPanelProps) => {
 				<IconButton color="primary" onClick={onSearchSubmit}>
 					<SearchIcon />
 				</IconButton>
+				<div style={{ display: 'flex' }}>
+					<FormControlLabel
+						checked={isSwitchChecked}
+						onChange={() => setIsSwitchChecked(!isSwitchChecked)}
+						control={<Switch color="primary" />}
+						label="background"
+					/>
+				</div>
 			</div>
 			<div className="background-icon-list">{iconsToDisplay()}</div>
 		</div>

@@ -1,5 +1,16 @@
 .board-container {
 	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+.board-container-pin {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+	background: white;
+	opacity: 0.8;
+	border-radius: 20px;
 }
 
 .note-transition-enter {
