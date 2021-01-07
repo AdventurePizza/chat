@@ -78,6 +78,7 @@ interface IMessageEvent {
     | "emoji"
     | "chat"
     | "gif"
+    | "image"
     | "tower defense"
     | "background"
     | "messages"
@@ -220,6 +221,16 @@ export class Router {
         };
         socket.to(room).emit("event", newMessage);
         socket.emit("event", newMessage);
+        break;
+
+      case "image":
+        const imageKey = uuidv4();
+        const newImageMessage = {
+          ...message,
+          imageKey,
+        };
+        socket.to(room).emit("event", newImageMessage);
+        socket.emit("event", newImageMessage);
         break;
 
       case "pin-item":

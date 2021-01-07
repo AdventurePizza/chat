@@ -11,7 +11,6 @@ import {
 import React, { useContext, useState } from 'react';
 
 import { IGif } from '@giphy/js-types';
-import { IGifs } from '../types';
 import { Paper } from '@material-ui/core';
 import { PinButton } from './shared/PinButton';
 import { makeStyles } from '@material-ui/core/styles';
@@ -58,16 +57,27 @@ export const Gifs = ({ sendGif }: IGifsProps) => {
 	);
 };
 
-type BoardGifProps = IGifs & { onPin: () => void; onUnpin: () => void };
+interface BoardImageProps {
+	isGif?: boolean;
+	data?: IGif;
+	imgSrc?: string;
+	onPin: () => void;
+	onUnpin: () => void;
+	top: number;
+	left: number;
+	isPinned?: boolean;
+}
 
-export const BoardGif = ({
+export const BoardImage = ({
 	top,
 	left,
 	data,
 	onPin,
 	onUnpin,
-	isPinned
-}: BoardGifProps) => {
+	isPinned,
+	isGif,
+	imgSrc
+}: BoardImageProps) => {
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
 
@@ -90,7 +100,10 @@ export const BoardGif = ({
 				onTouchStart={() => setIsHovering(true)}
 				onTouchEnd={() => setIsHovering(false)}
 			>
-				<Gif gif={data} width={180} noLink={true} />
+				{isGif && data && <Gif gif={data} width={180} noLink={true} />}
+				{!isGif && imgSrc && (
+					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
+				)}
 			</Paper>
 
 			{isHovering && (

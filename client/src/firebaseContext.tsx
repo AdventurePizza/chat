@@ -72,7 +72,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		if (doc.exists) {
 			if (item.type === 'background') {
 				docRef.collection('pinnedItems').doc('background').set(item);
-			} else if (item.type === 'gif') {
+			} else if (item.type === 'gif' || item.type === 'image') {
 				docRef.collection('pinnedItems').doc(item.key).set(item);
 			}
 		}

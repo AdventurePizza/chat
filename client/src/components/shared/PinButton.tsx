@@ -10,6 +10,11 @@ const useStyles = makeStyles({
 		width: 25,
 		height: 25
 	},
+	container: {
+		background: 'whitesmoke',
+		borderRadius: 20,
+		opacity: 0.8
+	},
 	paper: {
 		padding: 5
 	},
@@ -34,7 +39,7 @@ export const PinButton = ({
 }: IPinButtonProps) => {
 	const classes = useStyles();
 	return (
-		<>
+		<div className={classes.container}>
 			{isPinned ? (
 				<Tooltip title={`unpin ${placeholder || 'item'}`} placement="top">
 					<IconButton onClick={onUnpin}>
@@ -48,6 +53,6 @@ export const PinButton = ({
 					</IconButton>
 				</Tooltip>
 			)}
-		</>
+		</div>
 	);
 };
