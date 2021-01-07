@@ -1,5 +1,5 @@
 import { PlayArrowRounded, PublishRounded } from '@material-ui/icons';
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 import { ISoundPairs } from './BottomPanel';
 import IconButton from '@material-ui/core/IconButton';
@@ -83,7 +83,7 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 		setActiveCategory(category);
 	};
 
-	const SoundIcon = ({ type }: ISoundIconProps) => {
+	const SoundIcon = memo(({ type }: ISoundIconProps) => {
 		const [isHovering, setIsHovering] = useState(false);
 
 		const displayHoverIcon = () => (
@@ -129,7 +129,7 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 				{iconToDisplay()}
 			</div>
 		);
-	};
+	});
 
 	const Category = ({ category }: { category: SoundCategories }) => {
 		const idSelectorToUse =
