@@ -4,6 +4,8 @@ import {
 	AnimationTypes,
 	IAnimation,
 	IAvatarChatMessages,
+	IBackgroundState,
+	IBoardImage,
 	IChatMessage,
 	IEmoji,
 	IFigure,
@@ -15,9 +17,11 @@ import {
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
-import { BoardGif } from './Gifs';
+import { BoardImage } from './Gifs';
+import { PinButton } from './shared/PinButton';
 import React from 'react';
 import { UserCursors } from './UserCursors';
+import { backgrounds } from './BackgroundImages';
 import gryphon from '../assets/gryphon_walk.gif';
 
 interface IBoardProps {
@@ -27,6 +31,8 @@ interface IBoardProps {
 	updateEmojis: (emojis: IEmoji[]) => void;
 	gifs: IGifs[];
 	updateGifs: (gifs: IGifs[]) => void;
+	images: IBoardImage[];
+	updateImages: (images: IBoardImage[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
 	figures: IFigure[];
@@ -41,6 +47,11 @@ interface IBoardProps {
 	updateWeather: (weather: IWeather) => void;
 	pinGif: (gifKey: string) => void;
 	unpinGif: (gifKey: string) => void;
+	pinImage: (imageKey: string) => void;
+	unpinImage: (gifKey: string) => void;
+	pinBackground: () => void;
+	unpinBackground: () => void;
+	background: IBackgroundState;
 }
 
 export const Board = ({
@@ -50,6 +61,8 @@ export const Board = ({
 	updateEmojis,
 	gifs,
 	updateGifs,
+	images,
+	updateImages,
 	chatMessages,
 	updateChatMessages,
 	userLocations,
@@ -62,10 +75,37 @@ export const Board = ({
 	avatarMessages,
 	weather,
 	pinGif,
-	unpinGif
+	unpinGif,
+	pinImage,
+	unpinImage,
+	background,
+	pinBackground,
+	unpinBackground
 }: IBoardProps) => {
+	const backgroundImg = background.name?.startsWith('http')
+		? background.name
+		: backgrounds[background.name!];
+
 	return (
-		<div className="board-container">
+		<div
+			className="board-container"
+			style={{
+				backgroundImage: `url(${backgroundImg})`,
+				backgroundPosition: 'center',
+				backgroundRepeat: 'no-repeat',
+				backgroundSize: 'cover'
+			}}
+		>
+			<div className="board-container-pin">
+				{background.name && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>
+				)}
+			</div>
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -174,13 +214,47 @@ export const Board = ({
 							}
 						}}
 					>
-						<BoardGif
+						<BoardImage
+							isGif
 							{...gif}
 							onPin={() => {
 								pinGif(gif.key);
 							}}
 							onUnpin={() => {
 								unpinGif(gif.key);
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
+			<TransitionGroup>
+				{images.map((image) => (
+					<CSSTransition
+						key={image.key}
+						timeout={5000}
+						classNames="gif-transition"
+						onEntered={() => {
+							if (!image.isPinned) {
+								const index = images.findIndex(
+									(_image) => _image.key === image.key
+								);
+								updateImages([
+									...images.slice(0, index),
+									...images.slice(index + 1)
+								]);
+							}
+						}}
+					>
+						<BoardImage
+							isGif={false}
+							{...image}
+							imgSrc={image.url}
+							onPin={() => {
+								pinImage(image.key);
+							}}
+							onUnpin={() => {
+								unpinImage(image.key);
 							}}
 						/>
 					</CSSTransition>

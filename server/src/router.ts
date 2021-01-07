@@ -1,11 +1,10 @@
 import socketio, { Socket } from "socket.io";
 
+import axios from "axios";
 import express from "express";
 import fetch from "node-fetch";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
-import axios from "axios";
-
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -13,8 +12,6 @@ const { getMetadata } = require("page-metadata-parser");
 const domino = require("domino");
 
 const IS_DEBUG = false;
-
-
 
 const port = process.env.PORT || 8000;
 
@@ -26,11 +23,10 @@ const io = new socketio.Server(httpServer);
 const clientPositions: { [clientId: string]: { x: number; y: number } } = {};
 const DEFAULT_IMAGE_BACKGROUND = undefined;
 
-
 const chatMessages: { [userId: string]: string[] } = {};
 const clientRooms: { [userId: string]: string } = {};
 
-const KELVIN_FIXED:number =  459.67;
+const KELVIN_FIXED: number = 459.67;
 
 // export interface IBackgroundState {
 //   imageTimeout?: NodeJS.Timeout;
@@ -67,9 +63,9 @@ export interface ITowerDefenseState {
   [roomId: string]: ITowerDefenseStateRoom;
 }
 
-export interface IWeather{
-  temp:string,
-  condition:string
+export interface IWeather {
+  temp: string;
+  condition: string;
 }
 
 let towerDefenseState: ITowerDefenseState = {};
@@ -82,6 +78,7 @@ interface IMessageEvent {
     | "emoji"
     | "chat"
     | "gif"
+    | "image"
     | "tower defense"
     | "background"
     | "messages"
@@ -231,9 +228,49 @@ export class Router {
         socket.emit("event", newMessage);
         break;
 
+      case "image":
+        const imageKey = uuidv4();
+        const newImageMessage = {
+          ...message,
+          imageKey,
+        };
+        socket.to(room).emit("event", newImageMessage);
+        socket.emit("event", newImageMessage);
+        break;
+
       case "pin-item":
+        if (message.type === "background") {
+          if (!backgroundState[room]) {
+            backgroundState[room] = { currentBackground: undefined };
+          }
+
+          if (backgroundState[room].imageTimeout) {
+            clearTimeout(backgroundState[room].imageTimeout!);
+          }
+        }
+        socket.to(room).emit("event", { ...message, isPinned: true });
+        break;
       case "unpin-item":
+        if (message.type === "background") {
+          if (!backgroundState[room]) {
+            backgroundState[room] = { currentBackground: undefined };
+          }
+          backgroundState[room].currentBackground = undefined;
+
+          if (backgroundState[room].imageTimeout) {
+            clearTimeout(backgroundState[room].imageTimeout!);
+          }
+          //   socket.to(room).emit("event", {
+          //     key: "background",
+          //     value: undefined,
+          //   });
+          // socket.emit('event', {
+          // 	key: 'background',
+          // 	value: backgroundName
+          // });
+        }
         socket.to(room).emit("event", message);
+        socket.emit("event", message);
         break;
 
       case "isTyping":
@@ -322,45 +359,44 @@ export class Router {
         socket.to(clientRooms[socket.id]).emit("event", message);
         break;
       case "weather":
-        
-        
-      axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`)
-      .then(res => {
-        let temp =res.data.main.temp ;
-        let condition = res.data.weather[0].main ;
+        axios
+          .get(
+            `http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`
+          )
+          .then((res) => {
+            let temp = res.data.main.temp;
+            let condition = res.data.weather[0].main;
 
-
-       
-        socket.to(room).emit("event", {
-          key: "weather",
-          value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
-                condition:condition
-          }   
-            ,
-            id:socket.id
-        
-        }); 
-        
-        io.to(socket.id).emit("event", {
-          key: "weather",
-          value:{temp:convertKelToFar(temp,KELVIN_FIXED) ,
-                condition:condition},
-              toSelf:true
+            socket.to(room).emit("event", {
+              key: "weather",
+              value: {
+                temp: convertKelToFar(temp, KELVIN_FIXED),
+                condition: condition,
               },
-            
-             )
-        clientProfiles[socket.id].weather = {temp:convertKelToFar(temp,KELVIN_FIXED) ,
-          condition:condition};
-      }).catch(error => {
-        console.error(error.response.data)
-      })
-        
-       
+              id: socket.id,
+            });
+
+            io.to(socket.id).emit("event", {
+              key: "weather",
+              value: {
+                temp: convertKelToFar(temp, KELVIN_FIXED),
+                condition: condition,
+              },
+              toSelf: true,
+            });
+            clientProfiles[socket.id].weather = {
+              temp: convertKelToFar(temp, KELVIN_FIXED),
+              condition: condition,
+            };
+          })
+          .catch((error) => {
+            console.error(error.response.data);
+          });
+
         break;
       case "animation":
         socket.to(room).broadcast.emit("event", message);
         break;
-
     }
   };
 }
@@ -409,7 +445,12 @@ const profileOptions = {
 
 const selectedAvatars: { [avatar: string]: string } = {};
 const clientProfiles: {
-  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata,weather?:IWeather };
+  [key: string]: {
+    name: string;
+    avatar: string;
+    musicMetadata?: IMetadata;
+    weather?: IWeather;
+  };
 } = {};
 
 const createProfile = (client: Socket) => {
@@ -445,7 +486,7 @@ const createProfile = (client: Socket) => {
   clientProfiles[client.id] = {
     name: username,
     avatar: newAvatar,
-    weather: {temp:"",condition:""}
+    weather: { temp: "", condition: "" },
   };
 };
 
@@ -548,6 +589,8 @@ const spawnRates: { [timeSeconds: number]: number } = {
   100: 0.7,
 };
 
+const BACKGROUND_TIMEOUT = 60000;
+
 const removeImageAfter1Min = (roomId: string) => {
   const imageTimeout = backgroundState[roomId].imageTimeout;
 
@@ -569,14 +612,14 @@ const removeImageAfter1Min = (roomId: string) => {
       key: "background",
       value: DEFAULT_IMAGE_BACKGROUND,
     });
-  }, 60000);
+  }, BACKGROUND_TIMEOUT);
 };
 
-const convertKelToFar = (temp:number, KELVIN_FIXED:number) => {
-  temp = Math.floor( temp * (9/5) - 459.67);
+const convertKelToFar = (temp: number, KELVIN_FIXED: number) => {
+  temp = Math.floor(temp * (9 / 5) - 459.67);
 
   return temp.toString();
-}
+};
 
 interface IMetadata {
   description: string;
