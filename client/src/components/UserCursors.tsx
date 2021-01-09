@@ -177,7 +177,7 @@ export const UserCursor = React.forwardRef(
 						top={y || 0}
 						left={x || 0}
 						key={isSelectingTower.key}
-						type="basic"
+						type={isSelectingTower.type}
 						cost={5}
 					/>
 				) : (
