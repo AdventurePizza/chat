@@ -41,12 +41,12 @@ export interface IBackgroundState {
 
 export interface ITowerUnit {
   key: string;
-  type: "grunt";
+  type: string;
 }
 
 export interface ITowerBuilding {
   key: string;
-  type: "basic";
+  type: string;
   top: number;
   left: number;
 }
@@ -481,7 +481,7 @@ const spawnEnemy = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
   const enemy: ITowerUnit = {
     key: uuidv4(),
-    type: "grunt",
+    type: Math.random() < 0.5 ? "grunt" : "pepeNaruto",
   };
 
   towerDefenseStateRoom.units.push(enemy);
