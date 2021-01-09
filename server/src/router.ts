@@ -155,7 +155,7 @@ export class Router {
             socket.emit("event", {
               key: "tower defense",
               value: "towers",
-              towers: towerDefenseState.towers,
+              towers: towerDefenseState[roomId].towers,
             });
           }
         }
@@ -304,14 +304,6 @@ export class Router {
             type: message.type,
             towerKey: uuidv4(),
           });
-          //   io.emit("event", {
-          //     key: "tower defense",
-          //     value: "add tower",
-          //     x: message.x,
-          //     y: message.y,
-          //     type: message.type,
-          //     towerKey: uuidv4(),
-          //   });
 
           towerDefenseStateRoom.towers.push({
             key: uuidv4(),
@@ -328,12 +320,12 @@ export class Router {
             towerKey: message.towerKey,
             unitKey: message.unitKey,
           });
-          //   io.emit("event", {
-          //     key: "tower defense",
-          //     value: "hit unit",
-          //     towerKey: message.towerKey,
-          //     unitKey: message.unitKey,
-          //   });
+          socket.emit("event", {
+            key: "tower defense",
+            value: "hit unit",
+            towerKey: message.towerKey,
+            unitKey: message.unitKey,
+          });
         }
       case "background":
         let backgroundName = message.value;
@@ -503,7 +495,6 @@ const spawnEnemy = (roomId: string) => {
 };
 
 const fireTowers = (roomId: string) => {
-  //   io.emit("event", { key: "tower defense", value: "fire towers" });
   io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
 };
 
