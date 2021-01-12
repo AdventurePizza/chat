@@ -1,6 +1,6 @@
 {
 	"name": "chat-client",
-	"version": "1.14.1",
+	"version": "1.17.0",
 	"private": true,
 	"dependencies": {
 		"@giphy/js-fetch-api": "^2.0.1",

@@ -6,8 +6,8 @@ import {
 	IUserProfiles,
 	IWeather
 } from '../types';
+import musicNote from '../assets/musical-note.svg';
 import React, { useEffect, useRef, useState } from 'react';
-
 import { CSSTransition } from 'react-transition-group';
 import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
 import { Icon } from '@material-ui/core';
@@ -73,12 +73,19 @@ const useStyles = makeStyles({
 		wordBreak: 'break-word',
 		overflow: 'hidden',
 		textOverflow: 'ellipsis'
+	},
+	soundText: {
+		textTransform: 'capitalize',
+		fontFamily: 'Blinker',
+		fontSize: '19px',
+		fontWeight: 600
 	}
 });
 
 interface IUserCursorsProps {
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
+	setUserProfiles: React.Dispatch<React.SetStateAction<IUserProfiles>>;
 	isSelectingTower?: ITowerBuilding;
 	avatarChatMessages: IAvatarChatMessages;
 	weather: IWeather;
@@ -100,12 +107,19 @@ export const UserCursors = (props: IUserCursorsProps) => {
 					chatMessage = messages[messages.length - 1];
 				}
 
+				const deleteSoundType = () =>
+					props.setUserProfiles((profiles) => ({
+						...profiles,
+						[key]: { ...profiles[key], soundType: '' }
+					}));
+
 				return (
 					<UserCursor
 						x={x}
 						y={y}
 						message={chatMessage}
 						weather={userProfile.weather}
+						deleteSoundType={deleteSoundType}
 						{...userProfile}
 						isClickable
 					/>
@@ -124,6 +138,8 @@ interface IUserCursorProps {
 	message?: string;
 	isTyping?: boolean;
 	weather?: IWeather;
+	soundType?: string;
+	deleteSoundType?: () => void;
 	musicMetadata?: IMetadata;
 	isClickable?: boolean;
 }
@@ -139,6 +155,8 @@ export const UserCursor = React.forwardRef(
 			message,
 			isTyping,
 			weather,
+			soundType,
+			deleteSoundType,
 			musicMetadata,
 			isClickable
 		}: IUserCursorProps,
@@ -147,6 +165,17 @@ export const UserCursor = React.forwardRef(
 		const classes = useStyles();
 		const [inProp, setInProp] = useState(false);
 		const timerRef = useRef<NodeJS.Timeout>();
+		const soundTypeTimerRef = useRef<NodeJS.Timeout>();
+
+		useEffect(() => {
+			if (!soundType || !deleteSoundType) return;
+
+			if (soundTypeTimerRef.current) {
+				clearTimeout(soundTypeTimerRef.current);
+			}
+
+			soundTypeTimerRef.current = setTimeout(() => deleteSoundType(), 1500);
+		}, [soundType, deleteSoundType]);
 
 		useEffect(() => {
 			if (message) {
@@ -177,7 +206,7 @@ export const UserCursor = React.forwardRef(
 						top={y || 0}
 						left={x || 0}
 						key={isSelectingTower.key}
-						type="basic"
+						type={isSelectingTower.type}
 						cost={5}
 					/>
 				) : (
@@ -188,7 +217,7 @@ export const UserCursor = React.forwardRef(
 					>
 						{/* {add weather state here} */}
 
-						{weather!.temp.length > 0 && (
+						{weather && weather!.temp.length > 0 && (
 							<div>
 								<div>{weather!.temp} &#8457; </div>
 								<div>{weather!.condition}</div>{' '}
@@ -205,6 +234,13 @@ export const UserCursor = React.forwardRef(
 								position: 'relative'
 							}}
 						>
+							{soundType && deleteSoundType && (
+								<img
+									src={musicNote}
+									alt="musicNote"
+									style={{ width: 30, height: 30, marginBottom: '5px' }}
+								/>
+							)}
 							<img src={avatarMap[avatar]} alt="avatar" />
 							<div
 								style={{

@@ -61,6 +61,7 @@ const soundList: ISoundPairs[] = [
 
 interface ISoundIconProps {
 	type: string;
+	sendSound: (soundText: string, soundType: string) => void;
 }
 
 enum SoundCategories {
@@ -73,6 +74,12 @@ interface ISoundPanelProps {
 	sendSound: (soundText: string, soundType: string) => void;
 }
 
+interface ICategoryProps {
+	category: SoundCategories;
+	activeCategory: SoundCategories;
+	toggleCategory: (category: SoundCategories) => void;
+}
+
 function SoundPanel({ sendSound }: ISoundPanelProps) {
 	// we only need to track activeCategory
 	const [activeCategory, setActiveCategory] = useState<SoundCategories>(
@@ -83,81 +90,25 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 		setActiveCategory(category);
 	};
 
-	const SoundIcon = ({ type }: ISoundIconProps) => {
-		const [isHovering, setIsHovering] = useState(false);
-
-		const displayHoverIcon = () => (
-			<div className="display-hover-icon">
-				<span>{type}</span>
-				<div className="hover-icon-container">
-					<IconButton
-						onClick={() => sendSound('previewSound', type)}
-						style={{
-							backgroundColor: 'transparent',
-							padding: 0,
-							margin: 0,
-							color: 'black'
-						}}
-						size="small"
-					>
-						<PlayArrowRounded />
-					</IconButton>
-					<IconButton
-						onClick={() => sendSound('sound', type)}
-						style={{
-							backgroundColor: 'transparent',
-							padding: 0,
-							margin: 0,
-							color: 'black'
-						}}
-						size="small"
-					>
-						<PublishRounded />
-					</IconButton>
-				</div>
-			</div>
-		);
-		const displayIcon = () => <p>{type}</p>;
-		const iconToDisplay = isHovering ? displayHoverIcon : displayIcon;
-		return (
-			<div
-				className="sound-icon"
-				onMouseEnter={() => setIsHovering(true)}
-				onMouseLeave={() => setIsHovering(false)}
-				onTouchStart={() => setIsHovering(true)}
-			>
-				{iconToDisplay()}
-			</div>
-		);
-	};
-
-	const Category = ({ category }: { category: SoundCategories }) => {
-		const idSelectorToUse =
-			category === activeCategory
-				? 'sound-active-category'
-				: 'sound-unactive-category';
-
-		return (
-			<div className="category">
-				<button id={idSelectorToUse} onClick={() => toggleCategory(category)}>
-					{category}
-				</button>
-			</div>
-		);
-	};
-
 	const DisplayCategories = Object.values(SoundCategories).map((category) => {
 		return (
 			<div key={category} className="sound-category">
-				<Category category={category} />
+				<Category
+					category={category}
+					toggleCategory={toggleCategory}
+					activeCategory={activeCategory}
+				/>
 			</div>
 		);
 	});
 
 	const DisplayIcons = soundList.map(({ icon, type, category }) => {
 		const iconsCategoryIsActive = category === activeCategory;
-
-		return iconsCategoryIsActive && <SoundIcon key={icon} type={type} />;
+		return (
+			iconsCategoryIsActive && (
+				<SoundIcon sendSound={sendSound} key={icon} type={type} />
+			)
+		);
 	});
 
 	return (
@@ -167,5 +118,72 @@ function SoundPanel({ sendSound }: ISoundPanelProps) {
 		</div>
 	);
 }
+
+const SoundIcon = ({ type, sendSound }: ISoundIconProps) => {
+	const [isHovering, setIsHovering] = useState(false);
+
+	const displayHoverIcon = () => (
+		<div className="display-hover-icon">
+			<span>{type}</span>
+			<div className="hover-icon-container">
+				<IconButton
+					onClick={() => sendSound('previewSound', type)}
+					style={{
+						backgroundColor: 'transparent',
+						padding: 0,
+						margin: 0,
+						color: 'black'
+					}}
+					size="small"
+				>
+					<PlayArrowRounded />
+				</IconButton>
+				<IconButton
+					onClick={() => sendSound('sound', type)}
+					style={{
+						backgroundColor: 'transparent',
+						padding: 0,
+						margin: 0,
+						color: 'black'
+					}}
+					size="small"
+				>
+					<PublishRounded />
+				</IconButton>
+			</div>
+		</div>
+	);
+	const displayIcon = () => <p>{type}</p>;
+	const iconToDisplay = isHovering ? displayHoverIcon : displayIcon;
+	return (
+		<div
+			className="sound-icon"
+			onMouseEnter={() => setIsHovering(true)}
+			onMouseLeave={() => setIsHovering(false)}
+			onTouchStart={() => setIsHovering(true)}
+		>
+			{iconToDisplay()}
+		</div>
+	);
+};
+
+const Category = ({
+	category,
+	activeCategory,
+	toggleCategory
+}: ICategoryProps) => {
+	const idSelectorToUse =
+		category === activeCategory
+			? 'sound-active-category'
+			: 'sound-unactive-category';
+
+	return (
+		<div className="category">
+			<button id={idSelectorToUse} onClick={() => toggleCategory(category)}>
+				{category}
+			</button>
+		</div>
+	);
+};
 
 export default SoundPanel;
