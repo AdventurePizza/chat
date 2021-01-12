@@ -725,8 +725,8 @@ function App() {
 				});
 				break;
 			case 'previewSound':
-				const previwedSoundType = args[0] as string;
-				playPreviewSound(previwedSoundType);
+				const previewedSoundType = args[0] as string;
+				playPreviewSound(previewedSoundType);
 				break;
 			case 'gif':
 				const gif = args[0] as string;
