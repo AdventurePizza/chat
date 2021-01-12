@@ -198,13 +198,6 @@
 	color: rgba(0, 0, 0, 1);
 }
 
-.chat-container {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 10px;
-}
-
 .panel-icon-sound {
 	width: 20px;
 	height: 28px;
