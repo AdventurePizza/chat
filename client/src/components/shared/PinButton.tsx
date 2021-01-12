@@ -49,10 +49,22 @@ export const PinButton = ({
 			) : (
 				<Tooltip title={`pin ${placeholder || 'item'}`}>
 					<IconButton onClick={onPin}>
-						<img alt="push-pin" className={classes.pushPin} src={pushPinIcon} />
+						<PinButtonImage />
 					</IconButton>
 				</Tooltip>
 			)}
 		</div>
+	);
+};
+
+export const PinButtonImage = ({ style }: { style?: React.CSSProperties }) => {
+	const classes = useStyles();
+	return (
+		<img
+			alt="push-pin"
+			className={classes.pushPin}
+			src={pushPinIcon}
+			style={style}
+		/>
 	);
 };
