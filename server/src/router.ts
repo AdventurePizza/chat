@@ -41,12 +41,12 @@ export interface IBackgroundState {
 
 export interface ITowerUnit {
   key: string;
-  type: "grunt";
+  type: string;
 }
 
 export interface ITowerBuilding {
   key: string;
-  type: "basic";
+  type: string;
   top: number;
   left: number;
 }
@@ -155,7 +155,7 @@ export class Router {
             socket.emit("event", {
               key: "tower defense",
               value: "towers",
-              towers: towerDefenseState.towers,
+              towers: towerDefenseState[roomId].towers,
             });
           }
         }
@@ -309,14 +309,6 @@ export class Router {
             type: message.type,
             towerKey: uuidv4(),
           });
-          //   io.emit("event", {
-          //     key: "tower defense",
-          //     value: "add tower",
-          //     x: message.x,
-          //     y: message.y,
-          //     type: message.type,
-          //     towerKey: uuidv4(),
-          //   });
 
           towerDefenseStateRoom.towers.push({
             key: uuidv4(),
@@ -333,12 +325,12 @@ export class Router {
             towerKey: message.towerKey,
             unitKey: message.unitKey,
           });
-          //   io.emit("event", {
-          //     key: "tower defense",
-          //     value: "hit unit",
-          //     towerKey: message.towerKey,
-          //     unitKey: message.unitKey,
-          //   });
+          socket.emit("event", {
+            key: "tower defense",
+            value: "hit unit",
+            towerKey: message.towerKey,
+            unitKey: message.unitKey,
+          });
         }
       case "background":
         let backgroundName = message.value;
@@ -494,7 +486,7 @@ const spawnEnemy = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
   const enemy: ITowerUnit = {
     key: uuidv4(),
-    type: "grunt",
+    type: Math.random() < 0.5 ? "grunt" : "pepeNaruto",
   };
 
   towerDefenseStateRoom.units.push(enemy);
@@ -508,7 +500,6 @@ const spawnEnemy = (roomId: string) => {
 };
 
 const fireTowers = (roomId: string) => {
-  //   io.emit("event", { key: "tower defense", value: "fire towers" });
   io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
 };
 
