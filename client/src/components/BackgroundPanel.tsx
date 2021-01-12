@@ -4,7 +4,7 @@ import {
 	IconButton,
 	Switch
 } from '@material-ui/core';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
@@ -36,16 +36,12 @@ export interface IImagesState {
 	id: string;
 }
 
-export interface IDefaultIconsProps {
+export interface IIconsProps {
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
 	isSwitchChecked: boolean;
 }
 
-export interface IUnsplashIconsProps {
-	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
-	images: IImagesState[];
-	isSwitchChecked: boolean;
-}
+export type unsplashIconsProps = IIconsProps & { images: IImagesState[] };
 
 export const getSearchedUnsplashImages = async (text: string) =>
 	await axios.get('https://api.unsplash.com/search/photos', {
@@ -112,7 +108,7 @@ const BackgroundPanel = ({
 	);
 };
 
-const DefaultIcons = ({ sendImage, isSwitchChecked }: IDefaultIconsProps) => {
+const DefaultIcons = ({ sendImage, isSwitchChecked }: IIconsProps) => {
 	const defaultIcons = Object.keys(backgroundIcons).map((backgroundName) => {
 		const backgroundIcon = backgroundIcons[backgroundName];
 		return (
@@ -138,7 +134,7 @@ const UnsplashIcons = ({
 	sendImage,
 	images,
 	isSwitchChecked
-}: IUnsplashIconsProps) => {
+}: unsplashIconsProps) => {
 	const unsplashIcons = images.map(({ alt, thumbnailLink, imageLink, id }) => (
 		<IconButton
 			key={id}
