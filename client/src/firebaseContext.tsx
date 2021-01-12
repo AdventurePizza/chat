@@ -78,6 +78,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				item.type === 'text'
 			) {
 				docRef.collection('pinnedItems').doc(item.key).set(item);
+			} else if (item.type === 'text' && item.value) {
+				docRef.collection('pinnedItems').doc(item.key).set(item);
 			}
 		}
 	};

@@ -731,13 +731,15 @@ function App() {
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
 
-				setMovingBoardItem({
-					type: 'text',
-					top: 0,
-					left: 0,
-					value: chatPinValue,
-					key: uuidv4()
-				});
+				if (chatPinValue) {
+					setMovingBoardItem({
+						type: 'text',
+						top: 0,
+						left: 0,
+						value: chatPinValue,
+						key: uuidv4()
+					});
+				}
 
 				break;
 			case 'emoji':
