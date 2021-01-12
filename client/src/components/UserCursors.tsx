@@ -6,11 +6,12 @@ import {
 	IUserProfiles,
 	IWeather
 } from '../types';
-import musicNote from '../assets/musical-note.svg';
 import React, { useEffect, useRef, useState } from 'react';
+
 import { CSSTransition } from 'react-transition-group';
 import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
 import { Icon } from '@material-ui/core';
+import { PinButtonImage } from './shared/PinButton';
 import { Tower } from './TowerDefense';
 import character1 from '../assets/character1.png';
 import character2 from '../assets/character2.png';
@@ -26,6 +27,7 @@ import link from '../assets/link-run.gif';
 import loadingDots from '../assets/loading-dots.gif';
 import { makeStyles } from '@material-ui/core/styles';
 import mario from '../assets/mario.gif';
+import musicNote from '../assets/musical-note.svg';
 import nyancat from '../assets/nyancat_big.gif';
 import yoshi from '../assets/yoshi.gif';
 
@@ -142,29 +144,20 @@ interface IUserCursorProps {
 	deleteSoundType?: () => void;
 	musicMetadata?: IMetadata;
 	isClickable?: boolean;
+	isMovingBoardObject?: boolean;
 }
 
 export const UserCursor = React.forwardRef(
-	(
-		{
-			avatar,
-			name,
+	(props: IUserCursorProps, ref: React.Ref<HTMLDivElement>) => {
+		const {
 			x,
 			y,
 			isSelectingTower,
-			message,
-			isTyping,
-			weather,
 			soundType,
 			deleteSoundType,
-			musicMetadata,
-			isClickable
-		}: IUserCursorProps,
-		ref: React.Ref<HTMLDivElement>
-	) => {
-		const classes = useStyles();
-		const [inProp, setInProp] = useState(false);
-		const timerRef = useRef<NodeJS.Timeout>();
+			isClickable,
+			isMovingBoardObject
+		} = props;
 		const soundTypeTimerRef = useRef<NodeJS.Timeout>();
 
 		useEffect(() => {
@@ -177,31 +170,13 @@ export const UserCursor = React.forwardRef(
 			soundTypeTimerRef.current = setTimeout(() => deleteSoundType(), 1500);
 		}, [soundType, deleteSoundType]);
 
-		useEffect(() => {
-			if (message) {
-				setInProp((prop) => !prop);
-
-				if (timerRef.current) {
-					clearTimeout(timerRef.current);
-				}
-
-				timerRef.current = setTimeout(() => {
-					setInProp(true);
-				}, 200);
-			}
-		}, [message]);
-
 		const clickableStyle: React.CSSProperties = isClickable
 			? {}
 			: { userSelect: 'none', pointerEvents: 'none' };
 
-		return (
-			<div
-				style={{ transform: `translate(${x}px, ${y}px)`, ...clickableStyle }}
-				className="user-connection-cursor"
-				ref={ref}
-			>
-				{isSelectingTower ? (
+		const render = () => {
+			if (isSelectingTower) {
+				return (
 					<Tower
 						top={y || 0}
 						left={x || 0}
@@ -209,81 +184,141 @@ export const UserCursor = React.forwardRef(
 						type={isSelectingTower.type}
 						cost={5}
 					/>
-				) : (
-					<div
+				);
+			}
+
+			if (isMovingBoardObject) {
+				return (
+					<PinButtonImage
 						style={{
-							display: 'flex'
+							position: 'absolute',
+							top: y || 0,
+							left: y || 0
 						}}
-					>
-						{/* {add weather state here} */}
+					/>
+				);
+			}
 
-						{weather && weather!.temp.length > 0 && (
-							<div>
-								<div>{weather!.temp} &#8457; </div>
-								<div>{weather!.condition}</div>{' '}
-							</div>
-						)}
+			return <UserCursorContent {...props} />;
+		};
 
-						{/* {add weather state here} */}
-						{musicMetadata && <MusicLink musicMetadata={musicMetadata} />}
-						<div
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								flexDirection: 'column',
-								position: 'relative'
-							}}
-						>
-							{soundType && deleteSoundType && (
-								<img
-									src={musicNote}
-									alt="musicNote"
-									style={{ width: 30, height: 30, marginBottom: '5px' }}
-								/>
-							)}
-							<img src={avatarMap[avatar]} alt="avatar" />
-							<div
-								style={{
-									textDecoration: 'bold',
-									fontSize: '1.2em',
-									width: 'fit-content'
-								}}
-							>
-								{name}
-							</div>
-							<CSSTransition
-								timeout={1000}
-								classNames="avatar-message-transition"
-								key={message}
-								in={inProp}
-							>
-								<div className="avatar-message">{message}</div>
-							</CSSTransition>
-							{isTyping && (
-								<Icon className={classes.chatIcon}>
-									<div style={{ position: 'relative' }}>
-										<ChatBubbleOutlineIcon />
-										<img
-											style={{
-												position: 'absolute',
-												top: 20,
-												width: 30,
-												left: 12
-											}}
-											src={loadingDots}
-											alt="three dots"
-										/>
-									</div>
-								</Icon>
-							)}
-						</div>
-					</div>
-				)}
+		return (
+			<div
+				style={{ transform: `translate(${x}px, ${y}px)`, ...clickableStyle }}
+				className="user-connection-cursor"
+				ref={ref}
+			>
+				{render()}
 			</div>
 		);
 	}
 );
 
+interface IUserCursorContentProps {
+	avatar: string;
+	name: string;
+	isTyping?: boolean;
+	weather?: IWeather;
+	musicMetadata?: IMetadata;
+	soundType?: string;
+	message?: string;
+}
+
+const UserCursorContent = ({
+	avatar,
+	name,
+	isTyping,
+	weather,
+	musicMetadata,
+	soundType,
+	message
+}: IUserCursorContentProps) => {
+	const classes = useStyles();
+	const [inProp, setInProp] = useState(false);
+	const timerRef = useRef<NodeJS.Timeout>();
+
+	useEffect(() => {
+		if (message) {
+			setInProp((prop) => !prop);
+
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+			}
+
+			timerRef.current = setTimeout(() => {
+				setInProp(true);
+			}, 200);
+		}
+	}, [message]);
+
+	return (
+		<div
+			style={{
+				display: 'flex'
+			}}
+		>
+			{weather && weather!.temp.length > 0 && (
+				<div>
+					<div>{weather!.temp} &#8457; </div>
+					<div>{weather!.condition}</div>{' '}
+				</div>
+			)}
+
+			{musicMetadata && <MusicLink musicMetadata={musicMetadata} />}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					flexDirection: 'column',
+					position: 'relative'
+				}}
+			>
+				{soundType && (
+					<img
+						src={musicNote}
+						alt="musicNote"
+						style={{ width: 30, height: 30, marginBottom: '5px' }}
+					/>
+				)}
+				<img src={avatarMap[avatar]} alt="avatar" />
+				<div
+					style={{
+						textDecoration: 'bold',
+						fontSize: '1.2em',
+						width: 'fit-content'
+					}}
+				>
+					{name}
+				</div>
+				<CSSTransition
+					timeout={1000}
+					classNames="avatar-message-transition"
+					key={message}
+					in={inProp}
+				>
+					<div className="avatar-message">{message}</div>
+				</CSSTransition>
+				{isTyping && (
+					<Icon className={classes.chatIcon}>
+						<div style={{ position: 'relative' }}>
+							<ChatBubbleOutlineIcon />
+							<img
+								style={{
+									position: 'absolute',
+									top: 20,
+									width: 30,
+									left: 12
+								}}
+								src={loadingDots}
+								alt="three dots"
+							/>
+						</div>
+					</Icon>
+				)}
+			</div>
+		</div>
+	);
+};
 interface IMusicLinkProps {
 	musicMetadata: IMetadata;
 }

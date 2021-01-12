@@ -247,8 +247,21 @@ export class Router {
           if (backgroundState[room].imageTimeout) {
             clearTimeout(backgroundState[room].imageTimeout!);
           }
+
+          socket.to(room).emit("event", { ...message, isPinned: true });
+        } else if (message.type === "text") {
+          const chatPinMessage = {
+            key: "pin-item",
+            type: "text",
+            userId: socket.id,
+            value: message.value,
+            itemKey: message.itemKey,
+            top: message.top,
+            left: message.left,
+          };
+          socket.to(room).emit("event", chatPinMessage);
+          socket.emit("event", chatPinMessage);
         }
-        socket.to(room).emit("event", { ...message, isPinned: true });
         break;
       case "unpin-item":
         if (message.type === "background") {

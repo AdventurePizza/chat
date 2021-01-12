@@ -12,9 +12,9 @@ import {
 	IBoardImage,
 	IChatMessage,
 	IEmoji,
-	IFigure,
 	IGifs,
 	IMessageEvent,
+	IPinnedItem,
 	ITowerBuilding,
 	ITowerDefenseState,
 	ITowerUnit,
@@ -88,6 +88,12 @@ function App() {
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [pinnedText, setPinnedText] = useState<{ [key: string]: IPinnedItem }>(
+		{}
+	);
+	const [movingBoardItem, setMovingBoardItem] = useState<
+		IPinnedItem | undefined
+	>(undefined);
 	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
 	const [background, setBackground] = useState<IBackgroundState>({
@@ -128,8 +134,6 @@ function App() {
 		soundType: ''
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
-
-	const [figures, setFigures] = useState<IFigure[]>([]);
 
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
@@ -494,7 +498,6 @@ function App() {
 								...gifs.slice(gifIndex + 1)
 							]);
 						} else {
-							console.log('want to pin gif ', gif);
 							setGifs([
 								...gifs.slice(0, gifIndex),
 								{ ...gif, isPinned: true },
@@ -528,9 +531,29 @@ function App() {
 					} else {
 						setBackground({ name: message.name, isPinned: true });
 					}
+					break;
+				case 'text':
+					if (isUnpin) {
+						const newPinnedText = { ...pinnedText };
+						delete newPinnedText[itemKey];
+						setPinnedText(newPinnedText);
+					} else {
+						setPinnedText((pinnedText) => ({
+							...pinnedText,
+							[message.itemKey]: {
+								type: 'text',
+								text: message.value,
+								key: message.itemKey,
+								top: message.top * window.innerHeight,
+								left: message.left * window.innerWidth,
+								isPinned: true
+							}
+						}));
+					}
+					break;
 			}
 		},
-		[gifs, images]
+		[gifs, images, pinnedText]
 	);
 
 	useEffect(() => {
@@ -705,6 +728,18 @@ function App() {
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				break;
+			case 'chat-pin':
+				const chatPinValue = args[0] as string;
+
+				setMovingBoardItem({
+					type: 'text',
+					top: 0,
+					left: 0,
+					value: chatPinValue,
+					key: uuidv4()
+				});
+
+				break;
 			case 'emoji':
 				const emoji = args[0] as string;
 				playEmoji(emoji);
@@ -832,12 +867,11 @@ function App() {
 
 	const onClickApp = useCallback(
 		(event: React.MouseEvent) => {
+			const { x, y } = getRelativePos(event.clientX, event.clientY);
 			setTowerDefenseState((state) => {
 				if (state.selectedPlacementTower) {
-					const { x, y } = getRelativePos(event.clientX, event.clientY);
 					const newGold =
-						towerDefenseState.gold -
-						BUILDING_COSTS[state.selectedPlacementTower.type];
+						state.gold - BUILDING_COSTS[state.selectedPlacementTower.type];
 					if (newGold >= 0) {
 						socket.emit('event', {
 							key: 'tower defense',
@@ -866,8 +900,31 @@ function App() {
 				}
 				return state;
 			});
+
+			if (movingBoardItem && movingBoardItem.type === 'text') {
+				const { key, value } = movingBoardItem;
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'text',
+					value,
+					top: y,
+					left: x,
+					itemKey: key
+				});
+
+				firebaseContext.pinRoomItem(roomId || 'default', {
+					type: 'text',
+					top: y,
+					left: x,
+					key,
+					value
+				});
+
+				setMovingBoardItem(undefined);
+			}
 		},
-		[towerDefenseState]
+		[movingBoardItem, firebaseContext, roomId]
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
@@ -890,6 +947,7 @@ function App() {
 		firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 			const pinnedGifs: IGifs[] = [];
 			const pinnedImages: IBoardImage[] = [];
+			const pinnedText: { [key: string]: IPinnedItem } = {};
 
 			pinnedItems.forEach((item) => {
 				if (item.type === 'gif') {
@@ -912,11 +970,21 @@ function App() {
 					});
 				} else if (item.type === 'background') {
 					setBackground({ name: item.name, isPinned: true });
+				} else if (item.type === 'text') {
+					pinnedText[item.key!] = {
+						...item,
+						top: item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						key: item.key!,
+						text: item.value
+					};
 				}
 			});
 
 			setGifs((gifs) => gifs.concat(...pinnedGifs));
 			setImages((images) => images.concat(...pinnedImages));
+			setPinnedText((text) => ({ ...text, ...pinnedText }));
 		});
 	}, [roomId, history, firebaseContext]);
 
@@ -978,7 +1046,9 @@ function App() {
 		if (!background.isPinned) {
 			firebaseContext.pinRoomItem(room, {
 				name: background.name,
-				type: 'background'
+				type: 'background',
+				top: 0,
+				left: 0
 			});
 			setBackground((background) => ({ ...background, isPinned: true }));
 
@@ -1038,6 +1108,22 @@ function App() {
 		}
 	};
 
+	const unpinText = (key: string) => {
+		const newPinnedText = { ...pinnedText };
+
+		delete newPinnedText[key];
+
+		setPinnedText(newPinnedText);
+
+		firebaseContext.unpinRoomItem(roomId || 'default', key);
+
+		socket.emit('event', {
+			key: 'unpin-item',
+			type: 'text',
+			itemKey: key
+		});
+	};
+
 	if (isRoomError) {
 		return <div>Invalid room {roomId}</div>;
 	}
@@ -1065,8 +1151,6 @@ function App() {
 				userLocations={userLocations}
 				userProfiles={userProfiles}
 				setUserProfiles={setUserProfiles}
-				figures={figures}
-				updateFigures={setFigures}
 				animations={animations}
 				updateAnimations={setAnimations}
 				avatarMessages={avatarMessages}
@@ -1078,6 +1162,8 @@ function App() {
 				unpinImage={unpinImage}
 				pinBackground={pinBackground}
 				unpinBackground={unpinBackground}
+				pinnedText={pinnedText}
+				unpinText={unpinText}
 			/>
 
 			<TowerDefense
@@ -1153,6 +1239,7 @@ function App() {
 					{...userProfile}
 					deleteSoundType={deleteProfileSoundType}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
+					isMovingBoardObject={!!movingBoardItem}
 				/>
 			)}
 

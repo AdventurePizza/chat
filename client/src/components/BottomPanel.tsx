@@ -1,12 +1,13 @@
 import { Drawer, IconButton } from '@material-ui/core';
 import { ITowerDefenseState, PanelItemEnum } from '../types';
-import { IImagesState } from './BackgroundPanel';
+import React, { useState } from 'react';
+
 import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
-import React, { useState } from 'react';
+import { IImagesState } from './BackgroundPanel';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
@@ -97,6 +98,9 @@ const PanelContent = ({
 				<Chat
 					sendMessage={(message) => {
 						onAction('chat', message);
+					}}
+					pinMessage={(message) => {
+						onAction('chat-pin', message);
 					}}
 					updateIsTyping={updateIsTyping}
 				/>
