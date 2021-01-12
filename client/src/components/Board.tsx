@@ -39,6 +39,7 @@ interface IBoardProps {
 	updateFigures: (figures: IFigure[]) => void;
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
+	setUserProfiles: React.Dispatch<React.SetStateAction<IUserProfiles>>;
 	animations: IAnimation[];
 	updateAnimations: (animations: IAnimation[]) => void;
 	avatarMessages: IAvatarChatMessages;
@@ -66,6 +67,7 @@ export const Board = ({
 	updateChatMessages,
 	userLocations,
 	userProfiles,
+	setUserProfiles,
 	figures,
 	updateFigures,
 	animations,
@@ -314,6 +316,7 @@ export const Board = ({
 			<UserCursors
 				userLocations={userLocations}
 				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
 				avatarChatMessages={avatarMessages}
 				weather={weather}
 			/>

@@ -174,6 +174,7 @@ export interface IUserProfile {
 	message?: string;
 	isTyping?: boolean;
 	weather?: IWeather;
+	soundType?: string;
 	musicMetadata?: IMetadata;
 }
 

@@ -134,3 +134,15 @@
 	opacity: 0;
 	transition: opacity 1s;
 }
+
+.sound-text-transition-enter-active {
+  text-align: center;
+	opacity: 1;
+	transition: opacity 1s, transform 1s;
+}
+
+.sound-text-transition-exit {
+  text-align: center;
+	opacity: 0;
+	transition: opacity 1s;
+}
