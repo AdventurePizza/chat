@@ -1,4 +1,4 @@
-import { InputButton } from './InputButton';
+import { InputButton } from './shared/InputButton';
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -10,7 +10,7 @@ const useStyles = makeStyles({
 		display: 'flex',
 		alignItems: 'center',
 		overflowX: 'auto',
-		background: '#212121',
+		background: 'var(--background)',
 		width: '100%',
 		justifyContent: 'center',
 		height: 100

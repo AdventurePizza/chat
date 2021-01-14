@@ -1,5 +1,10 @@
 import './TowerDefense.css';
 
+import {
+	BUILDING_ICONS,
+	ENEMY_ICONS,
+	ENEMY_VALUES
+} from './TowerDefenseConstants';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
 	ITowerBuilding,
@@ -9,12 +14,8 @@ import {
 } from '../types';
 
 import React from 'react';
+import castle from '../assets/castle.png';
 import projectileSVG from '../assets/projectile.svg';
-import {
-	BUILDING_ICONS,
-	ENEMY_ICONS,
-	ENEMY_VALUES
-} from './TowerDefenseConstants';
 
 export type Actions = 'hit enemy';
 
@@ -27,7 +28,7 @@ interface ITowerDefenseProps {
 
 export const TowerDefense = (props: ITowerDefenseProps) => {
 	const {
-		state: { towers, units, projectiles, gold },
+		state: { towers, units, projectiles, gold, isPlaying },
 		updateUnits,
 		updateProjectiles,
 		updateGold
@@ -87,6 +88,7 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							);
 
 							if (toDeleteUnitIndex !== -1) {
+								console.log(ENEMY_VALUES[units[toDeleteUnitIndex].type]);
 								updateGold(gold + ENEMY_VALUES[units[toDeleteUnitIndex].type]);
 								updateUnits([
 									...units.slice(0, toDeleteUnitIndex),
@@ -107,6 +109,18 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+			{isPlaying && (
+				<img
+					alt="castle"
+					src={castle}
+					style={{
+						width: 200,
+						position: 'absolute',
+						right: 0,
+						top: window.innerHeight / 2 - 100
+					}}
+				/>
+			)}
 		</div>
 	);
 };

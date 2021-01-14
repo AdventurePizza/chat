@@ -4,20 +4,24 @@ import {
 	AnimationTypes,
 	IAnimation,
 	IAvatarChatMessages,
+	IBackgroundState,
+	IBoardImage,
 	IChatMessage,
 	IEmoji,
-	IFigure,
 	IGifs,
+	IPinnedItem,
 	IUserLocations,
-	IUserProfiles
+	IUserProfiles,
+	IWeather
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
-import { BoardGif } from './Gifs';
+import { BoardObject } from './BoardObject';
+import { PinButton } from './shared/PinButton';
 import React from 'react';
 import { UserCursors } from './UserCursors';
-import gryphon from '../assets/gryphon_walk.gif';
+import { backgrounds } from './BackgroundImages';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -26,17 +30,27 @@ interface IBoardProps {
 	updateEmojis: (emojis: IEmoji[]) => void;
 	gifs: IGifs[];
 	updateGifs: (gifs: IGifs[]) => void;
+	images: IBoardImage[];
+	updateImages: (images: IBoardImage[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
-	figures: IFigure[];
-	updateFigures: (figures: IFigure[]) => void;
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
+	setUserProfiles: React.Dispatch<React.SetStateAction<IUserProfiles>>;
 	animations: IAnimation[];
 	updateAnimations: (animations: IAnimation[]) => void;
 	avatarMessages: IAvatarChatMessages;
+	weather: IWeather;
+	updateWeather: (weather: IWeather) => void;
 	pinGif: (gifKey: string) => void;
 	unpinGif: (gifKey: string) => void;
+	pinImage: (imageKey: string) => void;
+	unpinImage: (gifKey: string) => void;
+	pinBackground: () => void;
+	unpinBackground: () => void;
+	background: IBackgroundState;
+	pinnedText: { [key: string]: IPinnedItem };
+	unpinText: (textKey: string) => void;
 }
 
 export const Board = ({
@@ -46,20 +60,51 @@ export const Board = ({
 	updateEmojis,
 	gifs,
 	updateGifs,
+	images,
+	updateImages,
 	chatMessages,
 	updateChatMessages,
 	userLocations,
 	userProfiles,
-	figures,
-	updateFigures,
+	setUserProfiles,
 	animations,
 	updateAnimations,
 	avatarMessages,
+	weather,
 	pinGif,
-	unpinGif
+	unpinGif,
+	pinImage,
+	unpinImage,
+	background,
+	pinBackground,
+	unpinBackground,
+	pinnedText,
+	unpinText
 }: IBoardProps) => {
+	const backgroundImg = background.name?.startsWith('http')
+		? background.name
+		: backgrounds[background.name!];
+
 	return (
-		<div className="board-container">
+		<div
+			className="board-container"
+			style={{
+				backgroundImage: `url(${backgroundImg})`,
+				backgroundPosition: 'center',
+				backgroundRepeat: 'no-repeat',
+				backgroundSize: 'cover'
+			}}
+		>
+			<div className="board-container-pin">
+				{background.name && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>
+				)}
+			</div>
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -160,6 +205,25 @@ export const Board = ({
 			</TransitionGroup>
 
 			<TransitionGroup>
+				{Object.values(pinnedText).map((text) => (
+					<CSSTransition
+						key={text.key}
+						timeout={5000}
+						classNames="gif-transition"
+					>
+						<BoardObject
+							{...text}
+							type="text"
+							onPin={() => {}}
+							onUnpin={() => {
+								unpinText(text.key || '');
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
+			<TransitionGroup>
 				{gifs.map((gif) => (
 					<CSSTransition
 						key={gif.key}
@@ -172,7 +236,8 @@ export const Board = ({
 							}
 						}}
 					>
-						<BoardGif
+						<BoardObject
+							type="gif"
 							{...gif}
 							onPin={() => {
 								pinGif(gif.key);
@@ -186,32 +251,34 @@ export const Board = ({
 			</TransitionGroup>
 
 			<TransitionGroup>
-				{figures.map((figure) => (
+				{images.map((image) => (
 					<CSSTransition
-						key={figure.key}
-						timeout={10000}
-						classNames="figure-transition"
+						key={image.key}
+						timeout={5000}
+						classNames="gif-transition"
 						onEntered={() => {
-							const index = figures.findIndex(
-								(_figure) => _figure.key === figure.key
-							);
-							updateFigures([
-								...figures.slice(0, index),
-								...figures.slice(index + 1)
-							]);
+							if (!image.isPinned) {
+								const index = images.findIndex(
+									(_image) => _image.key === image.key
+								);
+								updateImages([
+									...images.slice(0, index),
+									...images.slice(index + 1)
+								]);
+							}
 						}}
 					>
-						<div
-							style={{
-								top: window.innerHeight / 2 - 30,
-								left: 0,
-								position: 'absolute',
-								zIndex: 9999998,
-								userSelect: 'none'
+						<BoardObject
+							{...image}
+							type="image"
+							imgSrc={image.url}
+							onPin={() => {
+								pinImage(image.key);
 							}}
-						>
-							<img src={gryphon} style={{ width: 100 }} alt="gryphon" />
-						</div>
+							onUnpin={() => {
+								unpinImage(image.key);
+							}}
+						/>
 					</CSSTransition>
 				))}
 			</TransitionGroup>
@@ -240,7 +307,9 @@ export const Board = ({
 			<UserCursors
 				userLocations={userLocations}
 				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
 				avatarChatMessages={avatarMessages}
+				weather={weather}
 			/>
 		</div>
 	);

@@ -70,13 +70,21 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		const doc = await docRef.get();
 
 		if (doc.exists) {
-			docRef.collection('pinnedItems').doc(item.key).set(item);
+			if (item.type === 'background') {
+				docRef.collection('pinnedItems').doc('background').set(item);
+			} else if (
+				item.type === 'gif' ||
+				item.type === 'image' ||
+				item.type === 'text'
+			) {
+				docRef.collection('pinnedItems').doc(item.key).set(item);
+			} else if (item.type === 'text' && item.value) {
+				docRef.collection('pinnedItems').doc(item.key).set(item);
+			}
 		}
 	};
 
 	const unpinRoomItem = async (room: string, key: string) => {
-		console.log('want to unpin itemKey', key, 'in room ', room);
-
 		await db
 			.collection('chatrooms')
 			.doc(room)
