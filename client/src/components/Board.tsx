@@ -8,8 +8,8 @@ import {
 	IBoardImage,
 	IChatMessage,
 	IEmoji,
-	IFigure,
 	IGifs,
+	IPinnedItem,
 	IUserLocations,
 	IUserProfiles,
 	IWeather
@@ -17,12 +17,11 @@ import {
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 
-import { BoardImage } from './Gifs';
+import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
 import React from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
-import gryphon from '../assets/gryphon_walk.gif';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -35,10 +34,9 @@ interface IBoardProps {
 	updateImages: (images: IBoardImage[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
-	figures: IFigure[];
-	updateFigures: (figures: IFigure[]) => void;
 	userLocations: IUserLocations;
 	userProfiles: IUserProfiles;
+	setUserProfiles: React.Dispatch<React.SetStateAction<IUserProfiles>>;
 	animations: IAnimation[];
 	updateAnimations: (animations: IAnimation[]) => void;
 	avatarMessages: IAvatarChatMessages;
@@ -51,6 +49,8 @@ interface IBoardProps {
 	pinBackground: () => void;
 	unpinBackground: () => void;
 	background: IBackgroundState;
+	pinnedText: { [key: string]: IPinnedItem };
+	unpinText: (textKey: string) => void;
 }
 
 export const Board = ({
@@ -66,8 +66,7 @@ export const Board = ({
 	updateChatMessages,
 	userLocations,
 	userProfiles,
-	figures,
-	updateFigures,
+	setUserProfiles,
 	animations,
 	updateAnimations,
 	avatarMessages,
@@ -78,7 +77,9 @@ export const Board = ({
 	unpinImage,
 	background,
 	pinBackground,
-	unpinBackground
+	unpinBackground,
+	pinnedText,
+	unpinText
 }: IBoardProps) => {
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
@@ -200,6 +201,25 @@ export const Board = ({
 			</TransitionGroup>
 
 			<TransitionGroup>
+				{Object.values(pinnedText).map((text) => (
+					<CSSTransition
+						key={text.key}
+						timeout={5000}
+						classNames="gif-transition"
+					>
+						<BoardObject
+							{...text}
+							type="text"
+							onPin={() => {}}
+							onUnpin={() => {
+								unpinText(text.key || '');
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
+			<TransitionGroup>
 				{gifs.map((gif) => (
 					<CSSTransition
 						key={gif.key}
@@ -212,8 +232,8 @@ export const Board = ({
 							}
 						}}
 					>
-						<BoardImage
-							isGif
+						<BoardObject
+							type="gif"
 							{...gif}
 							onPin={() => {
 								pinGif(gif.key);
@@ -244,9 +264,9 @@ export const Board = ({
 							}
 						}}
 					>
-						<BoardImage
-							isGif={false}
+						<BoardObject
 							{...image}
+							type="image"
 							imgSrc={image.url}
 							onPin={() => {
 								pinImage(image.key);
@@ -255,37 +275,6 @@ export const Board = ({
 								unpinImage(image.key);
 							}}
 						/>
-					</CSSTransition>
-				))}
-			</TransitionGroup>
-
-			<TransitionGroup>
-				{figures.map((figure) => (
-					<CSSTransition
-						key={figure.key}
-						timeout={10000}
-						classNames="figure-transition"
-						onEntered={() => {
-							const index = figures.findIndex(
-								(_figure) => _figure.key === figure.key
-							);
-							updateFigures([
-								...figures.slice(0, index),
-								...figures.slice(index + 1)
-							]);
-						}}
-					>
-						<div
-							style={{
-								top: window.innerHeight / 2 - 30,
-								left: 0,
-								position: 'absolute',
-								zIndex: 9999998,
-								userSelect: 'none'
-							}}
-						>
-							<img src={gryphon} style={{ width: 100 }} alt="gryphon" />
-						</div>
 					</CSSTransition>
 				))}
 			</TransitionGroup>
@@ -314,6 +303,7 @@ export const Board = ({
 			<UserCursors
 				userLocations={userLocations}
 				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
 				avatarChatMessages={avatarMessages}
 				weather={weather}
 			/>

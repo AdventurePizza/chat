@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text';
 
 export interface IBackgroundState {
 	isPinned?: boolean;
@@ -9,8 +9,8 @@ export interface IBackgroundState {
 
 export interface IPinnedItem {
 	type: PinTypes;
-	top?: number;
-	left?: number;
+	top: number;
+	left: number;
 	key?: string;
 	data?: IGif;
 	[key: string]: any;
@@ -35,6 +35,7 @@ export interface IMessageEvent {
 		| 'sound'
 		| 'emoji'
 		| 'chat'
+		| 'chat-pin'
 		| 'gif'
 		| 'image'
 		| 'tower defense'
@@ -175,6 +176,7 @@ export interface IUserProfile {
 	message?: string;
 	isTyping?: boolean;
 	weather?: IWeather;
+	soundType?: string;
 	musicMetadata?: IMetadata;
 }
 
