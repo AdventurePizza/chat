@@ -1,4 +1,4 @@
-import { InputButton } from './InputButton';
+import { InputButton } from './shared/InputButton';
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 

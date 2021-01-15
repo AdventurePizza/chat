@@ -3,7 +3,8 @@ import {
 	IMetadata,
 	ITowerBuilding,
 	IUserLocations,
-	IUserProfiles
+	IUserProfiles,
+	IWeather
 } from '../types';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -80,6 +81,7 @@ interface IUserCursorsProps {
 	userProfiles: IUserProfiles;
 	isSelectingTower?: ITowerBuilding;
 	avatarChatMessages: IAvatarChatMessages;
+	weather: IWeather;
 }
 
 export const UserCursors = (props: IUserCursorsProps) => {
@@ -103,6 +105,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 						x={x}
 						y={y}
 						message={chatMessage}
+						weather={userProfile.weather}
 						{...userProfile}
 						isClickable
 					/>
@@ -120,6 +123,7 @@ interface IUserCursorProps {
 	isSelectingTower?: ITowerBuilding;
 	message?: string;
 	isTyping?: boolean;
+	weather?: IWeather;
 	musicMetadata?: IMetadata;
 	isClickable?: boolean;
 }
@@ -134,6 +138,7 @@ export const UserCursor = React.forwardRef(
 			isSelectingTower,
 			message,
 			isTyping,
+			weather,
 			musicMetadata,
 			isClickable
 		}: IUserCursorProps,
@@ -172,7 +177,7 @@ export const UserCursor = React.forwardRef(
 						top={y || 0}
 						left={x || 0}
 						key={isSelectingTower.key}
-						type="basic"
+						type={isSelectingTower.type}
 						cost={5}
 					/>
 				) : (
@@ -181,6 +186,16 @@ export const UserCursor = React.forwardRef(
 							display: 'flex'
 						}}
 					>
+						{/* {add weather state here} */}
+
+						{weather!.temp.length > 0 && (
+							<div>
+								<div>{weather!.temp} &#8457; </div>
+								<div>{weather!.condition}</div>{' '}
+							</div>
+						)}
+
+						{/* {add weather state here} */}
 						{musicMetadata && <MusicLink musicMetadata={musicMetadata} />}
 						<div
 							style={{

@@ -24,6 +24,7 @@ export interface IFirebaseContext {
 	pinRoomItem: (room: string, item: IPinnedItem) => void;
 	unpinRoomItem: (room: string, itemKey: string) => void;
 	getRoomPinnedItems: (room: string) => Promise<IPinnedItem[]>;
+	getAllRooms: () => Promise<IChatRoom[] | null>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -34,7 +35,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getRoom: () => Promise.resolve(null),
 	pinRoomItem: () => Promise.resolve(),
 	unpinRoomItem: () => {},
-	getRoomPinnedItems: () => Promise.resolve([])
+	getRoomPinnedItems: () => Promise.resolve([]),
+	getAllRooms: () => Promise.resolve([])
 });
 
 export const FirebaseProvider: React.FC = ({ children }) => {
@@ -70,13 +72,15 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		const doc = await docRef.get();
 
 		if (doc.exists) {
-			docRef.collection('pinnedItems').doc(item.key).set(item);
+			if (item.type === 'background') {
+				docRef.collection('pinnedItems').doc('background').set(item);
+			} else if (item.type === 'gif' || item.type === 'image') {
+				docRef.collection('pinnedItems').doc(item.key).set(item);
+			}
 		}
 	};
 
 	const unpinRoomItem = async (room: string, key: string) => {
-		console.log('want to unpin itemKey', key, 'in room ', room);
-
 		await db
 			.collection('chatrooms')
 			.doc(room)
@@ -97,6 +101,15 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	const getAllRooms = async () => {
+		return new Promise<IChatRoom[] | null>(async (resolve) => {
+			const docRef = db.collection('chatrooms')
+			const snapshot = await docRef.get();
+			const rooms = snapshot.docs.map((doc) => doc.data() as IChatRoom);
+			resolve(rooms);
+		});
+	};
+
 	return (
 		<FirebaseContext.Provider
 			value={{
@@ -104,7 +117,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getRoom,
 				pinRoomItem,
 				getRoomPinnedItems,
-				unpinRoomItem
+				unpinRoomItem,
+				getAllRooms
 			}}
 		>
 			{children}

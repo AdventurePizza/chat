@@ -1,6 +1,7 @@
 import { Drawer, IconButton } from '@material-ui/core';
 import { ITowerDefenseState, PanelItemEnum } from '../types';
 
+import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
 import { Gifs } from './Gifs';
@@ -9,8 +10,9 @@ import React from 'react';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
-import AnimationPanel from './AnimationPanel';
+import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
+import { RoomDirectoryPanel } from './RoomDirectoryPanel'
 
 export interface IPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -95,7 +97,9 @@ export const BottomPanel = ({
 					/>
 				);
 			case 'background':
-				return <BackgroundPanel sendBackground={onAction} />;
+				return (
+					<BackgroundPanel sendImage={(name, type) => onAction(type, name)} />
+				);
 			case 'animation':
 				return <AnimationPanel sendAnimation={onAction} />;
 			case 'whiteboard':
@@ -107,6 +111,12 @@ export const BottomPanel = ({
 						onChangeName={(name) => onAction('settings', 'name', name)}
 					/>
 				);
+			case 'weather':
+				return (
+					<Weather sendLocation={(location) => onAction('weather', location)} />
+				);
+			case 'roomDirectory':
+				return <RoomDirectoryPanel sendRoomDirectory={onAction} />;
 		}
 	};
 

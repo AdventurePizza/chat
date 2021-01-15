@@ -1,9 +1,12 @@
 import socketio, { Socket } from "socket.io";
 
+import axios from "axios";
 import express from "express";
 import fetch from "node-fetch";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
+
+const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
 const { getMetadata } = require("page-metadata-parser");
 const domino = require("domino");
@@ -23,6 +26,8 @@ const DEFAULT_IMAGE_BACKGROUND = undefined;
 const chatMessages: { [userId: string]: string[] } = {};
 const clientRooms: { [userId: string]: string } = {};
 
+const KELVIN_FIXED: number = 459.67;
+
 // export interface IBackgroundState {
 //   imageTimeout?: NodeJS.Timeout;
 //   currentBackground: string | undefined;
@@ -36,12 +41,12 @@ export interface IBackgroundState {
 
 export interface ITowerUnit {
   key: string;
-  type: "grunt";
+  type: string;
 }
 
 export interface ITowerBuilding {
   key: string;
-  type: "basic";
+  type: string;
   top: number;
   left: number;
 }
@@ -58,6 +63,11 @@ export interface ITowerDefenseState {
   [roomId: string]: ITowerDefenseStateRoom;
 }
 
+export interface IWeather {
+  temp: string;
+  condition: string;
+}
+
 let towerDefenseState: ITowerDefenseState = {};
 
 let backgroundState: IBackgroundState = {};
@@ -68,6 +78,7 @@ interface IMessageEvent {
     | "emoji"
     | "chat"
     | "gif"
+    | "image"
     | "tower defense"
     | "background"
     | "messages"
@@ -76,6 +87,7 @@ interface IMessageEvent {
     | "isTyping"
     | "username"
     | "settings-url"
+    | "weather"
     | "pin-item"
     | "unpin-item";
   value?: any;
@@ -143,7 +155,7 @@ export class Router {
             socket.emit("event", {
               key: "tower defense",
               value: "towers",
-              towers: towerDefenseState.towers,
+              towers: towerDefenseState[roomId].towers,
             });
           }
         }
@@ -211,9 +223,49 @@ export class Router {
         socket.emit("event", newMessage);
         break;
 
+      case "image":
+        const imageKey = uuidv4();
+        const newImageMessage = {
+          ...message,
+          imageKey,
+        };
+        socket.to(room).emit("event", newImageMessage);
+        socket.emit("event", newImageMessage);
+        break;
+
       case "pin-item":
+        if (message.type === "background") {
+          if (!backgroundState[room]) {
+            backgroundState[room] = { currentBackground: undefined };
+          }
+
+          if (backgroundState[room].imageTimeout) {
+            clearTimeout(backgroundState[room].imageTimeout!);
+          }
+        }
+        socket.to(room).emit("event", { ...message, isPinned: true });
+        break;
       case "unpin-item":
+        if (message.type === "background") {
+          if (!backgroundState[room]) {
+            backgroundState[room] = { currentBackground: undefined };
+          }
+          backgroundState[room].currentBackground = undefined;
+
+          if (backgroundState[room].imageTimeout) {
+            clearTimeout(backgroundState[room].imageTimeout!);
+          }
+          //   socket.to(room).emit("event", {
+          //     key: "background",
+          //     value: undefined,
+          //   });
+          // socket.emit('event', {
+          // 	key: 'background',
+          // 	value: backgroundName
+          // });
+        }
         socket.to(room).emit("event", message);
+        socket.emit("event", message);
         break;
 
       case "isTyping":
@@ -252,14 +304,6 @@ export class Router {
             type: message.type,
             towerKey: uuidv4(),
           });
-          //   io.emit("event", {
-          //     key: "tower defense",
-          //     value: "add tower",
-          //     x: message.x,
-          //     y: message.y,
-          //     type: message.type,
-          //     towerKey: uuidv4(),
-          //   });
 
           towerDefenseStateRoom.towers.push({
             key: uuidv4(),
@@ -276,12 +320,12 @@ export class Router {
             towerKey: message.towerKey,
             unitKey: message.unitKey,
           });
-          //   io.emit("event", {
-          //     key: "tower defense",
-          //     value: "hit unit",
-          //     towerKey: message.towerKey,
-          //     unitKey: message.unitKey,
-          //   });
+          socket.emit("event", {
+            key: "tower defense",
+            value: "hit unit",
+            towerKey: message.towerKey,
+            unitKey: message.unitKey,
+          });
         }
       case "background":
         let backgroundName = message.value;
@@ -301,10 +345,45 @@ export class Router {
         // socket.broadcast.emit("event", message);
         socket.to(clientRooms[socket.id]).emit("event", message);
         break;
+      case "weather":
+        axios
+          .get(
+            `http://api.openweathermap.org/data/2.5/weather?q=${message.value}&appid=${WEATHER_APIKEY}`
+          )
+          .then((res) => {
+            let temp = res.data.main.temp;
+            let condition = res.data.weather[0].main;
+
+            socket.to(room).emit("event", {
+              key: "weather",
+              value: {
+                temp: convertKelToFar(temp, KELVIN_FIXED),
+                condition: condition,
+              },
+              id: socket.id,
+            });
+
+            io.to(socket.id).emit("event", {
+              key: "weather",
+              value: {
+                temp: convertKelToFar(temp, KELVIN_FIXED),
+                condition: condition,
+              },
+              toSelf: true,
+            });
+            clientProfiles[socket.id].weather = {
+              temp: convertKelToFar(temp, KELVIN_FIXED),
+              condition: condition,
+            };
+          })
+          .catch((error) => {
+            console.error(error.response.data);
+          });
+
+        break;
       case "animation":
         socket.to(room).broadcast.emit("event", message);
         break;
-
     }
   };
 }
@@ -353,7 +432,12 @@ const profileOptions = {
 
 const selectedAvatars: { [avatar: string]: string } = {};
 const clientProfiles: {
-  [key: string]: { name: string; avatar: string; musicMetadata?: IMetadata };
+  [key: string]: {
+    name: string;
+    avatar: string;
+    musicMetadata?: IMetadata;
+    weather?: IWeather;
+  };
 } = {};
 
 const createProfile = (client: Socket) => {
@@ -389,6 +473,7 @@ const createProfile = (client: Socket) => {
   clientProfiles[client.id] = {
     name: username,
     avatar: newAvatar,
+    weather: { temp: "", condition: "" },
   };
 };
 
@@ -396,7 +481,7 @@ const spawnEnemy = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
   const enemy: ITowerUnit = {
     key: uuidv4(),
-    type: "grunt",
+    type: Math.random() < 0.5 ? "grunt" : "pepeNaruto",
   };
 
   towerDefenseStateRoom.units.push(enemy);
@@ -410,7 +495,6 @@ const spawnEnemy = (roomId: string) => {
 };
 
 const fireTowers = (roomId: string) => {
-  //   io.emit("event", { key: "tower defense", value: "fire towers" });
   io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
 };
 
@@ -491,6 +575,8 @@ const spawnRates: { [timeSeconds: number]: number } = {
   100: 0.7,
 };
 
+const BACKGROUND_TIMEOUT = 60000;
+
 const removeImageAfter1Min = (roomId: string) => {
   const imageTimeout = backgroundState[roomId].imageTimeout;
 
@@ -512,7 +598,13 @@ const removeImageAfter1Min = (roomId: string) => {
       key: "background",
       value: DEFAULT_IMAGE_BACKGROUND,
     });
-  }, 60000);
+  }, BACKGROUND_TIMEOUT);
+};
+
+const convertKelToFar = (temp: number, KELVIN_FIXED: number) => {
+  temp = Math.floor(temp * (9 / 5) - 459.67);
+
+  return temp.toString();
 };
 
 interface IMetadata {

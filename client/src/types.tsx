@@ -1,13 +1,19 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif';
+export type PinTypes = 'gif' | 'background' | 'image';
+
+export interface IBackgroundState {
+	isPinned?: boolean;
+	name: string | undefined;
+}
 
 export interface IPinnedItem {
 	type: PinTypes;
-	top: number;
-	left: number;
-	key: string;
-	data: IGif;
+	top?: number;
+	left?: number;
+	key?: string;
+	data?: IGif;
+	[key: string]: any;
 }
 
 export interface IChatRoom {
@@ -30,6 +36,7 @@ export interface IMessageEvent {
 		| 'emoji'
 		| 'chat'
 		| 'gif'
+		| 'image'
 		| 'tower defense'
 		| 'background'
 		| 'messages'
@@ -37,6 +44,7 @@ export interface IMessageEvent {
 		| 'animation'
 		| 'isTyping'
 		| 'username'
+		| 'weather'
 		| 'settings-url'
 		| 'pin-item'
 		| 'unpin-item';
@@ -116,6 +124,14 @@ export interface ITextAnimation {
 	snow: string;
 }
 
+export interface IBoardImage {
+	top: number;
+	left: number;
+	key: string;
+	url: string;
+	isPinned?: boolean;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -135,7 +151,9 @@ export enum PanelItemEnum {
 	'background' = 'background',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
-	'new-room' = 'new-room'
+	'weather' = 'weather',
+	'new-room' = 'new-room',
+	'roomDirectory' = 'roomDirectory'
 }
 
 export interface IUserLocations {
@@ -156,6 +174,7 @@ export interface IUserProfile {
 	avatar: string;
 	message?: string;
 	isTyping?: boolean;
+	weather?: IWeather;
 	musicMetadata?: IMetadata;
 }
 
@@ -194,4 +213,9 @@ export interface ITowerDefenseState {
 	selectedPlacementTower?: ITowerBuilding;
 	projectiles: ITowerProjectile[];
 	gold: number;
+}
+
+export interface IWeather {
+	temp: string;
+	condition: string;
 }
