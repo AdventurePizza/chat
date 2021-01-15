@@ -63,7 +63,7 @@ const BackgroundPanel = ({
 	useEffect(() => {
 		if (!isImagesEmpty) return;
 
-		searchSubmit('trending', setImages);
+		searchSubmit('photoshop', setImages);
 	}, [isImagesEmpty, setImages]); // Wanted empty deps but warning said to put them in.....
 
 	return (

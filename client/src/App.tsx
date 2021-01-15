@@ -22,6 +22,7 @@ import {
 	IUserProfile,
 	IUserProfiles,
 	IWeather,
+	UnfurlMetadata,
 	PanelItemEnum
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
@@ -63,6 +64,7 @@ import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
+import { unfurl } from 'unfurl.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const socketURL =
@@ -1304,6 +1306,63 @@ const getDistanceBetweenPoints = (
 const imageToUrl = (name: string) => {
 	return name.startsWith('http') ? name : backgrounds[name] || '';
 };
+
+export const BYPASS_CORS_BASE_URL = 'https://cors-anywhere-repo.herokuapp.com/'; // Downloaded and Hosted repo for no rateLimit
+//@ts-ignore
+export const getUnfurlData: (link: string) => Promise<UnfurlMetadata> = async (
+	link: string
+) => await unfurl(BYPASS_CORS_BASE_URL + link);
+
+export const firstLinkFrom = (text: string) => {
+	const words = text.split(' ');
+	const hasProtocol = words.find((word) => word.startsWith('www.'));
+	const hasSubdomain = words.find(
+		(word) => word.startsWith('http://') || word.startsWith('https://')
+	);
+	const hasCommonDomainExtension = words.find((word) => {
+		const wordNoProtocol = word.split('//')[0];
+		const wordNoPath = wordNoProtocol.slice(0, wordNoProtocol.indexOf('/'));
+		return commonDomainExtensions.find((extension) =>
+			wordNoPath.includes(extension)
+		);
+	});
+	return hasProtocol || hasSubdomain || hasCommonDomainExtension;
+};
+
+export const checkAddProtocolTo = (link: string) =>
+	link.startsWith('http') ? link : 'http://' + link;
+
+export const commonDomainExtensions = [
+	'.com',
+	'.uk',
+	'.ninja',
+	'.co',
+	'.net',
+	'.gg',
+	'.news',
+	'.gov',
+	'.email',
+	'.dev',
+	'.blog',
+	'.mail',
+	'.org',
+	'.icu',
+	'.ru',
+	'.info',
+	'.xyz',
+	'.top',
+	'.tk',
+	'.cn',
+	'.gg',
+	'.ga',
+	'.cf',
+	'.nl',
+	'.live',
+	'.buzz',
+	'.edu',
+	'.us',
+	'.ly'
+];
 
 const RouterHandler = () => {
 	return (
