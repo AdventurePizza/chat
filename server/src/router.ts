@@ -89,6 +89,7 @@ interface IMessageEvent {
     | "settings-url"
     | "weather"
     | "pin-item"
+    | "move-item"
     | "unpin-item";
   value?: any;
   [key: string]: any;
@@ -238,6 +239,10 @@ export class Router {
         socket.emit("event", newImageMessage);
         break;
 
+      case "move-item":
+        socket.to(room).emit("event", message);
+        break;
+
       case "pin-item":
         if (message.type === "background") {
           if (!backgroundState[room]) {
@@ -251,16 +256,14 @@ export class Router {
           socket.to(room).emit("event", { ...message, isPinned: true });
         } else if (message.type === "text") {
           const chatPinMessage = {
-            key: "pin-item",
-            type: "text",
+            ...message,
             userId: socket.id,
-            value: message.value,
-            itemKey: message.itemKey,
-            top: message.top,
-            left: message.left,
           };
           socket.to(room).emit("event", chatPinMessage);
           socket.emit("event", chatPinMessage);
+        } else {
+          socket.to(room).emit("event", message);
+          socket.emit("event", message);
         }
         break;
       case "unpin-item":
@@ -273,14 +276,6 @@ export class Router {
           if (backgroundState[room].imageTimeout) {
             clearTimeout(backgroundState[room].imageTimeout!);
           }
-          //   socket.to(room).emit("event", {
-          //     key: "background",
-          //     value: undefined,
-          //   });
-          // socket.emit('event', {
-          // 	key: 'background',
-          // 	value: backgroundName
-          // });
         }
         socket.to(room).emit("event", message);
         socket.emit("event", message);

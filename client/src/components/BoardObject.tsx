@@ -1,15 +1,15 @@
+import { MoveButton, PinButton } from './shared/PinButton';
 import React, { useState } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
 import { Paper } from '@material-ui/core';
-import { PinButton } from './shared/PinButton';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
 	container: {
 		position: 'absolute',
-		zIndex: 9999998,
+		zIndex: 9999995,
 		userSelect: 'none',
 		display: 'flex'
 	},
@@ -35,6 +35,7 @@ interface BoardObjectProps {
 
 	onPin: () => void;
 	onUnpin: () => void;
+	onMove: () => void;
 
 	top: number;
 	left: number;
@@ -48,6 +49,7 @@ export const BoardObject = ({
 	data,
 	onPin,
 	onUnpin,
+	onMove,
 	isPinned,
 	type,
 	imgSrc,
@@ -60,7 +62,8 @@ export const BoardObject = ({
 		<div
 			style={{
 				top,
-				left
+				left,
+				zIndex: isHovering ? 99999999 : 'auto'
 			}}
 			className={classes.container}
 		>
@@ -74,7 +77,7 @@ export const BoardObject = ({
 			>
 				{type === 'gif' && data && <Gif gif={data} width={180} noLink={true} />}
 				{type === 'image' && imgSrc && (
-					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
+					<img alt="user, -selected-img" src={imgSrc} style={{ width: 180 }} />
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 180 }}>
@@ -92,6 +95,7 @@ export const BoardObject = ({
 					onTouchEnd={() => setIsHovering(false)}
 				>
 					<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
+					{isPinned && <MoveButton onClick={onMove} />}
 				</div>
 			)}
 		</div>
