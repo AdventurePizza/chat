@@ -22,7 +22,8 @@ import {
 	IUserProfile,
 	IUserProfiles,
 	IWeather,
-	PanelItemEnum
+	PanelItemEnum,
+	PinTypes
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -92,8 +93,9 @@ function App() {
 		{}
 	);
 	const [movingBoardItem, setMovingBoardItem] = useState<
-		IPinnedItem | undefined
-	>(undefined);
+		| { type: PinTypes; itemKey: string; value?: any; isNew?: boolean }
+		| undefined
+	>();
 	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
 	const [background, setBackground] = useState<IBackgroundState>({
@@ -556,6 +558,63 @@ function App() {
 		[gifs, images, pinnedText]
 	);
 
+	const handleMoveItemMessage = useCallback(
+		(message: IMessageEvent) => {
+			const { type, top, left, itemKey } = message;
+			const relativeTop = top * window.innerHeight;
+			const relativeLeft = left * window.innerWidth;
+
+			switch (type) {
+				case 'image':
+					const imageIndex = images.findIndex((image) => image.key === itemKey);
+					const image = images[imageIndex];
+					if (image) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...image,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+					break;
+
+				case 'gif':
+					const gifIndex = gifs.findIndex((gif) => gif.key === itemKey);
+					const gif = gifs[gifIndex];
+					if (gif) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gif,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+					break;
+
+				case 'text':
+					const newPinnedText = { ...pinnedText };
+					if (newPinnedText[itemKey]) {
+						setPinnedText((pinnedText) => ({
+							...pinnedText,
+							[itemKey]: {
+								...pinnedText[itemKey],
+								top: relativeTop,
+								left: relativeLeft
+							}
+						}));
+					}
+					break;
+			}
+		},
+		[images, gifs, pinnedText]
+	);
+
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
@@ -663,6 +722,9 @@ function App() {
 				case 'unpin-item':
 					handlePinItemMessage(message, true);
 					break;
+				case 'move-item':
+					handleMoveItemMessage(message);
+					break;
 			}
 		};
 
@@ -715,6 +777,7 @@ function App() {
 		playAnimation,
 		roomId,
 		handlePinItemMessage,
+		handleMoveItemMessage,
 		addImage
 	]);
 
@@ -734,10 +797,9 @@ function App() {
 				if (chatPinValue) {
 					setMovingBoardItem({
 						type: 'text',
-						top: 0,
-						left: 0,
+						itemKey: uuidv4(),
 						value: chatPinValue,
-						key: uuidv4()
+						isNew: true
 					});
 				}
 
@@ -869,8 +931,8 @@ function App() {
 
 	const onClickApp = useCallback(
 		(event: React.MouseEvent) => {
-			const { x, y } = getRelativePos(event.clientX, event.clientY);
 			setTowerDefenseState((state) => {
+				const { x, y } = getRelativePos(event.clientX, event.clientY, 60, 60);
 				if (state.selectedPlacementTower) {
 					const newGold =
 						state.gold - BUILDING_COSTS[state.selectedPlacementTower.type];
@@ -903,25 +965,68 @@ function App() {
 				return state;
 			});
 
-			if (movingBoardItem && movingBoardItem.type === 'text') {
-				const { key, value } = movingBoardItem;
+			if (movingBoardItem) {
+				const { x, y } = getRelativePos(event.clientX, event.clientY, 90, 0);
+				if (movingBoardItem.isNew && movingBoardItem.type === 'text') {
+					const { itemKey, value } = movingBoardItem;
 
-				socket.emit('event', {
-					key: 'pin-item',
-					type: 'text',
-					value,
-					top: y,
-					left: x,
-					itemKey: key
-				});
+					socket.emit('event', {
+						key: 'pin-item',
+						type: movingBoardItem.type,
+						value,
+						top: y,
+						left: x,
+						itemKey,
+						isNew: true
+					});
 
-				firebaseContext.pinRoomItem(roomId || 'default', {
-					type: 'text',
-					top: y,
-					left: x,
-					key,
-					value
-				});
+					firebaseContext.pinRoomItem(roomId || 'default', {
+						type: 'text',
+						top: y,
+						left: x,
+						key: itemKey,
+						value
+					});
+				} else if (!movingBoardItem.isNew) {
+					const { itemKey, value } = movingBoardItem;
+
+					socket.emit('event', {
+						key: 'move-item',
+						type: movingBoardItem.type,
+						top: y,
+						left: x,
+						itemKey
+					});
+
+					const itemValues = {
+						top: event.clientY,
+						left: event.clientX - 90,
+						key: itemKey,
+						isPinned: true
+					};
+
+					if (movingBoardItem.type === 'image') {
+						setImages((images) => images.concat({ url: value, ...itemValues }));
+					} else if (movingBoardItem.type === 'gif') {
+						setGifs((gifs) => gifs.concat({ data: value, ...itemValues }));
+					} else if (movingBoardItem.type === 'text') {
+						setPinnedText((pinnedText) => ({
+							...pinnedText,
+							[itemKey]: {
+								text: value,
+								...itemValues,
+								type: 'text'
+							}
+						}));
+					}
+
+					firebaseContext.movePinnedRoomItem(roomId || 'default', {
+						type: movingBoardItem.type,
+						top: y,
+						left: x,
+						key: itemKey
+					});
+				}
 
 				setMovingBoardItem(undefined);
 			}
@@ -1126,6 +1231,38 @@ function App() {
 		});
 	};
 
+	const moveItem = (type: PinTypes, itemKey: string) => {
+		let index: number;
+
+		switch (type) {
+			case 'gif':
+				index = gifs.findIndex((gif) => gif.key === itemKey);
+				if (index !== -1) {
+					const gif = gifs[index];
+					setGifs([...gifs.slice(0, index), ...gifs.slice(index + 1)]);
+
+					setMovingBoardItem({ type, itemKey, value: gif.data });
+				}
+
+				break;
+			case 'image':
+				index = images.findIndex((img) => img.key === itemKey);
+				if (index !== -1) {
+					const image = images[index];
+					setImages([...images.slice(0, index), ...images.slice(index + 1)]);
+					setMovingBoardItem({ type, itemKey, value: image.url });
+				}
+				break;
+			case 'text':
+				const newPinnedText = { ...pinnedText };
+				delete newPinnedText[itemKey];
+
+				setPinnedText(newPinnedText);
+				setMovingBoardItem({ type, itemKey, value: pinnedText[itemKey].text });
+				break;
+		}
+	};
+
 	if (isRoomError) {
 		return <div>Invalid room {roomId}</div>;
 	}
@@ -1166,6 +1303,7 @@ function App() {
 				unpinBackground={unpinBackground}
 				pinnedText={pinnedText}
 				unpinText={unpinText}
+				moveItem={moveItem}
 			/>
 
 			<TowerDefense
@@ -1279,15 +1417,17 @@ const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	}
 };
 
-export const getRelativePos = (clientX: number, clientY: number) => {
+export const getRelativePos = (
+	clientX: number,
+	clientY: number,
+	width: number,
+	height: number
+) => {
 	const x = clientX;
 	const y = clientY;
 
-	const width = window.innerWidth;
-	const height = window.innerHeight;
-
-	const relativeX = (x - 60) / width;
-	const relativeY = (y - 60) / height;
+	const relativeX = (x - width) / window.innerWidth;
+	const relativeY = (y - height) / window.innerHeight;
 
 	return { x: relativeX, y: relativeY };
 };
