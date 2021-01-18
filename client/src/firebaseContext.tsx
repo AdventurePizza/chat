@@ -25,6 +25,7 @@ export interface IFirebaseContext {
 	unpinRoomItem: (room: string, itemKey: string) => void;
 	getRoomPinnedItems: (room: string) => Promise<IPinnedItem[]>;
 	getAllRooms: () => Promise<IChatRoom[] | null>;
+	movePinnedRoomItem: (room: string, item: IPinnedItem) => void;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -36,7 +37,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	pinRoomItem: () => Promise.resolve(),
 	unpinRoomItem: () => {},
 	getRoomPinnedItems: () => Promise.resolve([]),
-	getAllRooms: () => Promise.resolve([])
+	getAllRooms: () => Promise.resolve([]),
+	movePinnedRoomItem: () => {}
 });
 
 export const FirebaseProvider: React.FC = ({ children }) => {
@@ -80,8 +82,25 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				item.type === 'text'
 			) {
 				docRef.collection('pinnedItems').doc(item.key).set(item);
-			} else if (item.type === 'text' && item.value) {
-				docRef.collection('pinnedItems').doc(item.key).set(item);
+			}
+		}
+	};
+
+	const movePinnedRoomItem = async (room: string, item: IPinnedItem) => {
+		const docRef = db
+			.collection('chatrooms')
+			.doc(room)
+			.collection('pinnedItems')
+			.doc(item.key);
+		const doc = await docRef.get();
+
+		if (doc.exists) {
+			if (
+				item.type === 'gif' ||
+				item.type === 'image' ||
+				item.type === 'text'
+			) {
+				docRef.update({ top: item.top, left: item.left });
 			}
 		}
 	};
@@ -124,7 +143,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				pinRoomItem,
 				getRoomPinnedItems,
 				unpinRoomItem,
-				getAllRooms
+				getAllRooms,
+				movePinnedRoomItem
 			}}
 		>
 			{children}
