@@ -84,8 +84,9 @@ function App() {
 	const [isRoomError, setIsRoomError] = useState(false);
 
 	const firebaseContext = useContext(FirebaseContext);
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
+	const [modalState, setModalState] = useState<'new-room' | 'enter-room' | 'none' >('none');
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
@@ -111,7 +112,7 @@ function App() {
 	>(PanelItemEnum.chat);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
-	const [roomNameState, setRoomName] = useState<string>('');
+	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
 
@@ -141,7 +142,7 @@ function App() {
 		condition: ''
 	});
 
-	const [enterIsRoomModel, setIsEnterRoomModel] = useState<boolean>(false);
+	//const [enterIsRoomModal, setIsEnterRoomModal] = useState<boolean>(false);
 
 	const playEmoji = useCallback((type: string) => {
 		const { x, y } = generateRandomXY();
@@ -196,7 +197,7 @@ function App() {
 				);
 				break;
 			case 'new-room':
-				setIsModalOpen(true);
+				setModalState('new-room');
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -867,8 +868,8 @@ function App() {
 				break;
 			case 'roomDirectory':
 				const roomName = args[0] as string;
-				setRoomName(roomName)
-				setIsEnterRoomModel(true)
+				setRoomToEnter(roomName)
+				setModalState('enter-room')
 				break;
 			default:
 				break;
@@ -1252,26 +1253,21 @@ function App() {
 					isMovingBoardObject={!!movingBoardItem}
 				/>
 			)}
-
 			<Modal
-				onClose={() => setIsModalOpen(false)}
+				onClose={() => setModalState('none')}
 				className="modal-container"
-				open={isModalOpen}
+				open={modalState === 'new-room' || modalState === 'enter-room'}
 			>
-				<NewChatroom
-					onClickCancel={() => setIsModalOpen(false)}
+				<div >
+					{modalState === 'new-room' && <NewChatroom
+					onClickCancel={() => setModalState('none')}
 					onCreate={onCreateRoom}
-				/>
-			</Modal>
-			<Modal
-				onClose={() => setIsEnterRoomModel(false)}
-				className="modal-container"
-				open={enterIsRoomModel}
-			>
-				<EnterRoomModal
-					roomName={roomNameState}
-					onClickCancel={() => setIsEnterRoomModel(false)}
-					/>
+				/> }
+					{modalState === 'enter-room' && <EnterRoomModal
+					roomName={roomToEnter}
+					onClickCancel={() => setModalState('none')}
+					/> }
+				</div> 
 			</Modal>
 		</div>
 	);

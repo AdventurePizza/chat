@@ -7,8 +7,8 @@ import { IconButton } from '@material-ui/core';
 import { Cancel } from '@material-ui/icons';
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
-import * as JsSearch from 'js-search';
 import HomeIcon from '@material-ui/icons/Home';
+import { useHistory } from 'react-router-dom'
 
 const useStyles = makeStyles({
     title: {
@@ -79,14 +79,12 @@ const pickNItemsArray = ( arr : Array<Object> | null, n : number) : Array<Object
     }
 }
 
-
 export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps ) => {
     const [displayedRooms,setDisplayedRooms] = useState<IChatRoom[] | null>([]);
-    const [AllRooms, setAllRooms] = useState<IChatRoom[] | null>([]);
+    const [allRooms, setAllRooms] = useState<IChatRoom[] | null>([]);
     const firebaseContext = useContext(FirebaseContext);
-    const [searchText, setSearchText] = useState(''); 
-
-
+    const [searchText, setSearchText] = useState<string>(''); 
+    const history = useHistory();
     useEffect( () => {
         firebaseContext.getAllRooms().then((rooms) => {
             const pickedItems = pickNItemsArray(rooms as Array<Object>,10);
@@ -96,12 +94,17 @@ export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps )
     },[firebaseContext])
     
     const onSearchSubmit = async () => {
-        if (searchText.length !== 0) {
-            let search = new JsSearch.Search('name');
-            search.addIndex('name')
-            search.addDocuments(AllRooms as IChatRoom[]);
-            let results = search.search(searchText);
-            setDisplayedRooms(results as IChatRoom[]);
+        if (searchText.length >= 0) {
+            let foundRooms : IChatRoom[] = [];
+            allRooms?.forEach((room) => {
+               if ( room.name !== undefined && searchText.length > 2 && room.name.includes(searchText)) {
+                    foundRooms.push(room);
+               }
+               else if (room.name !== undefined && searchText.length <= 2 && room.name.startsWith(searchText)) {
+                    foundRooms.push(room);    
+               }
+            });
+            foundRooms.length > 10 ? setDisplayedRooms(foundRooms.slice(0,10)) : setDisplayedRooms(foundRooms);
         }
     };
 
@@ -128,7 +131,7 @@ export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps )
     //         </div>
     //     );
     // }
-
+    
     const displayRooms = displayedRooms?.map((room, index) => {
         return (
             <div key={index} className="room-icon"
@@ -152,7 +155,7 @@ export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps )
             <IconButton color="primary" onClick={onSearchSubmit}>
                 <SearchIcon />
             </IconButton>
-            <IconButton color="primary" href={'http://www.trychats.com/#/'}>
+            <IconButton color="primary" onClick={ () => history.push("/") } >
                 <HomeIcon />
             </IconButton>
             </div>
@@ -164,7 +167,7 @@ export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps )
 export const EnterRoomModal = ({roomName, onClickCancel} : IEnterRoomProps ) => {
     const classes = useStyles();
     const buttonClasses = buttonStyles();
-
+    const history = useHistory();
     return (
         <div className={classes.container}>
             <IconButton onClick={onClickCancel} className={classes.cancelButton}>
@@ -175,7 +178,7 @@ export const EnterRoomModal = ({roomName, onClickCancel} : IEnterRoomProps ) => 
         variant="contained"
         color="primary"
         className={buttonClasses.button}
-        href={`http://www.trychats.com/#/room/${roomName}`}
+        onClick= {() => history.push(`/room/${roomName}`) }
         >
         Enter
       </Button>
