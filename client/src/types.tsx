@@ -48,6 +48,7 @@ export interface IMessageEvent {
 		| 'weather'
 		| 'settings-url'
 		| 'pin-item'
+		| 'move-item'
 		| 'unpin-item';
 	value?: any;
 	[key: string]: any;

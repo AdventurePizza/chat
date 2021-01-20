@@ -12,7 +12,8 @@ import {
 	IPinnedItem,
 	IUserLocations,
 	IUserProfiles,
-	IWeather
+	IWeather,
+	PinTypes
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -51,6 +52,7 @@ interface IBoardProps {
 	background: IBackgroundState;
 	pinnedText: { [key: string]: IPinnedItem };
 	unpinText: (textKey: string) => void;
+	moveItem: (type: PinTypes, itemKey: string) => void;
 }
 
 export const Board = ({
@@ -79,7 +81,8 @@ export const Board = ({
 	pinBackground,
 	unpinBackground,
 	pinnedText,
-	unpinText
+	unpinText,
+	moveItem
 }: IBoardProps) => {
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
@@ -128,7 +131,7 @@ export const Board = ({
 								top: emoji.top,
 								left: emoji.left,
 								position: 'absolute',
-								zIndex: 9999999,
+								zIndex: 9999996,
 								userSelect: 'none'
 							}}
 						>
@@ -218,6 +221,7 @@ export const Board = ({
 							onUnpin={() => {
 								unpinText(text.key || '');
 							}}
+							onMove={() => moveItem('text', text.key || '')}
 						/>
 					</CSSTransition>
 				))}
@@ -245,6 +249,7 @@ export const Board = ({
 							onUnpin={() => {
 								unpinGif(gif.key);
 							}}
+							onMove={() => moveItem('gif', gif.key)}
 						/>
 					</CSSTransition>
 				))}
@@ -278,6 +283,7 @@ export const Board = ({
 							onUnpin={() => {
 								unpinImage(image.key);
 							}}
+							onMove={() => moveItem('image', image.key)}
 						/>
 					</CSSTransition>
 				))}
