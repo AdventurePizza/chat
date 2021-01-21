@@ -13,7 +13,6 @@ import {
 	IChatMessage,
 	IEmoji,
 	IEmojiDict,
-	IFigure,
 	IGifs,
 	IMessageEvent,
 	IPinnedItem,
