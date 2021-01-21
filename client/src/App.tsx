@@ -56,6 +56,7 @@ import { cymbalHit, sounds } from './components/Sounds';
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
+import { EnterRoomModal } from './components/RoomDirectoryPanel';
 import { FirebaseContext } from './firebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
@@ -86,8 +87,11 @@ function App() {
 	const [isRoomError, setIsRoomError] = useState(false);
 
 	const firebaseContext = useContext(FirebaseContext);
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
+	const [modalState, setModalState] = useState<
+		'new-room' | 'enter-room' | null
+	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
@@ -114,7 +118,7 @@ function App() {
 	>(PanelItemEnum.chat);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
-
+	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
 
@@ -190,13 +194,14 @@ function App() {
 			case 'background':
 			case 'whiteboard':
 			case 'weather':
+			case 'roomDirectory':
 			case 'settings':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
 			case 'new-room':
-				setIsModalOpen(true);
+				setModalState('new-room');
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -892,7 +897,6 @@ function App() {
 					value: animationType
 				});
 				break;
-
 			case 'whiteboard':
 				const strlineData = args[0] as string;
 				socket.emit('event', {
@@ -925,6 +929,11 @@ function App() {
 					key: 'weather',
 					value: location
 				});
+				break;
+			case 'roomDirectory':
+				const roomName = args[0] as string;
+				setRoomToEnter(roomName);
+				setModalState('enter-room');
 				break;
 			default:
 				break;
@@ -1018,6 +1027,7 @@ function App() {
 			const pinnedGifs: IGifs[] = [];
 			const pinnedImages: IBoardImage[] = [];
 			const pinnedText: { [key: string]: IPinnedItem } = {};
+			let background: string | undefined;
 
 			pinnedItems.forEach((item) => {
 				if (item.type === 'gif') {
@@ -1039,7 +1049,7 @@ function App() {
 						url: item.url
 					});
 				} else if (item.type === 'background') {
-					setBackground({ name: item.name, isPinned: true });
+					background = item.name;
 				} else if (item.type === 'text') {
 					pinnedText[item.key!] = {
 						...item,
@@ -1052,9 +1062,10 @@ function App() {
 				}
 			});
 
-			setGifs((gifs) => gifs.concat(...pinnedGifs));
-			setImages((images) => images.concat(...pinnedImages));
-			setPinnedText((text) => ({ ...text, ...pinnedText }));
+			setGifs(pinnedGifs);
+			setImages(pinnedImages);
+			setPinnedText(pinnedText);
+			setBackground({ name: background, isPinned: !!background });
 		});
 	}, [roomId, history, firebaseContext]);
 
@@ -1367,16 +1378,25 @@ function App() {
 					isMovingBoardObject={!!movingBoardItem}
 				/>
 			)}
-
 			<Modal
-				onClose={() => setIsModalOpen(false)}
+				onClose={() => setModalState(null)}
 				className="modal-container"
-				open={isModalOpen}
+				open={!!modalState}
 			>
-				<NewChatroom
-					onClickCancel={() => setIsModalOpen(false)}
-					onCreate={onCreateRoom}
-				/>
+				<>
+					{modalState === 'new-room' && (
+						<NewChatroom
+							onClickCancel={() => setModalState(null)}
+							onCreate={onCreateRoom}
+						/>
+					)}
+					{modalState === 'enter-room' && (
+						<EnterRoomModal
+							roomName={roomToEnter}
+							onClickCancel={() => setModalState(null)}
+						/>
+					)}
+				</>
 			</Modal>
 		</div>
 	);
