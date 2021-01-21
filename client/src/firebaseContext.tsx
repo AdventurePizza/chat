@@ -24,6 +24,7 @@ export interface IFirebaseContext {
 	pinRoomItem: (room: string, item: IPinnedItem) => void;
 	unpinRoomItem: (room: string, itemKey: string) => void;
 	getRoomPinnedItems: (room: string) => Promise<IPinnedItem[]>;
+	getAllRooms: () => Promise<IChatRoom[] | null>;
 	movePinnedRoomItem: (room: string, item: IPinnedItem) => void;
 }
 
@@ -36,6 +37,7 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	pinRoomItem: () => Promise.resolve(),
 	unpinRoomItem: () => {},
 	getRoomPinnedItems: () => Promise.resolve([]),
+	getAllRooms: () => Promise.resolve([]),
 	movePinnedRoomItem: () => {}
 });
 
@@ -124,6 +126,15 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	const getAllRooms = async () => {
+		return new Promise<IChatRoom[] | null>(async (resolve) => {
+			const docRef = db.collection('chatrooms');
+			const snapshot = await docRef.get();
+			const rooms = snapshot.docs.map((doc) => doc.data() as IChatRoom);
+			resolve(rooms);
+		});
+	};
+
 	return (
 		<FirebaseContext.Provider
 			value={{
@@ -132,6 +143,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				pinRoomItem,
 				getRoomPinnedItems,
 				unpinRoomItem,
+				getAllRooms,
 				movePinnedRoomItem
 			}}
 		>

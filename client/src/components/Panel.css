@@ -56,7 +56,8 @@
 	font-size: 3em;
 }
 
-.emoji-list, .emoji-settings-container {
+.emoji-list,
+.emoji-settings-container {
 	display: flex;
 	justify-content: center;
 	align-content: center;
@@ -182,7 +183,7 @@
 .animation-icon img {
 	width: 51px;
 	height: auto;
-	margin: 0 3px;
+	margin: 3px 3px;
 	display: flex;
 }
 
@@ -253,6 +254,59 @@
 
 .panel-you-container {
 	display: flex;
+}
+
+.panel-icon-roomDirectory {
+	width: 26px;
+	height: 26px;
+}
+
+.room-icon-list {
+	display: flex;
+	overflow: auto;
+	white-space: nowrap;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+.room-icon-list::before,
+.room-icon-list::after {
+	content: '';
+	flex: 1;
+}
+
+.room-icon {
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	background: transparent;
+}
+
+.room-icon p {
+	text-transform: capitalize;
+	font-family: 'Blinker';
+	font-size: 20px;
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 9px;
+	margin-bottom: 20px;
+	font-weight: 600;
+}
+
+.room-container {
+	width: 100vw;
+	padding-left: 10px;
+	padding-right: 10px;
+	overflow: hidden;
+	/* display: flex;
+	overflow: auto;
+	white-space: nowrap; */
+}
+
+#room-active-category {
+	background: #89dcff;
+	font-weight: 1000;
+	color: #000000;
 }
 
 @media only screen and (max-width: 500px) {

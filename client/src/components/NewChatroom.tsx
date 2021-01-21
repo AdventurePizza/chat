@@ -21,7 +21,11 @@ const useStyles = makeStyles({
 		},
 		backgroundColor: 'whitesmoke',
 		border: '5px solid #87D3F3',
-		position: 'relative'
+		position: 'relative',
+		'&:focus': {
+			outline: 'none',
+			boxShadow: 'none'
+		}
 	},
 	title: {
 		fontSize: 50,

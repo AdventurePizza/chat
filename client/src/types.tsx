@@ -160,7 +160,8 @@ export enum PanelItemEnum {
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
-	'new-room' = 'new-room'
+	'new-room' = 'new-room',
+	'roomDirectory' = 'roomDirectory'
 }
 
 export interface IUserLocations {
