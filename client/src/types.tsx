@@ -59,11 +59,17 @@ export interface IFigure {
 	type: 'gryphon';
 }
 
+export interface IEmojiDict {
+	name: string;
+	url?: string;
+	speed?: number; // Not Part of dictionary, intermediary for transmitting state to all users
+}
+
 export interface IEmoji {
 	top: number;
 	left: number;
 	key: string;
-	type: string;
+	dict: IEmojiDict;
 }
 
 export interface IChatMessage {

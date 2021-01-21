@@ -12,6 +12,7 @@ import {
 	IBoardImage,
 	IChatMessage,
 	IEmoji,
+	IEmojiDict,
 	IGifs,
 	IMessageEvent,
 	IPinnedItem,
@@ -143,11 +144,11 @@ function App() {
 		condition: ''
 	});
 
-	const playEmoji = useCallback((type: string) => {
+	const playEmoji = useCallback((dict: IEmojiDict) => {
 		const { x, y } = generateRandomXY();
 
 		setEmojis((emojis) =>
-			emojis.concat({ top: y, left: x, key: uuidv4(), type })
+			emojis.concat({ top: y, left: x, key: uuidv4(), dict })
 		);
 	}, []);
 
@@ -806,7 +807,7 @@ function App() {
 
 				break;
 			case 'emoji':
-				const emoji = args[0] as string;
+				const emoji = args[0] as IEmojiDict;
 				playEmoji(emoji);
 				socket.emit('event', {
 					key: 'emoji',
