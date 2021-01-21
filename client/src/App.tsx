@@ -56,6 +56,7 @@ import { cymbalHit, sounds } from './components/Sounds';
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
+import { EnterRoomModal } from './components/RoomDirectoryPanel';
 import { FirebaseContext } from './firebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
@@ -67,7 +68,6 @@ import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
-import { EnterRoomModal } from './components/RoomDirectoryPanel';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -89,7 +89,9 @@ function App() {
 	const firebaseContext = useContext(FirebaseContext);
 	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
-	const [modalState, setModalState] = useState<'new-room' | 'enter-room' | null >(null);
+	const [modalState, setModalState] = useState<
+		'new-room' | 'enter-room' | null
+	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
@@ -930,8 +932,8 @@ function App() {
 				break;
 			case 'roomDirectory':
 				const roomName = args[0] as string;
-				setRoomToEnter(roomName)
-				setModalState('enter-room')
+				setRoomToEnter(roomName);
+				setModalState('enter-room');
 				break;
 			default:
 				break;
@@ -1025,6 +1027,7 @@ function App() {
 			const pinnedGifs: IGifs[] = [];
 			const pinnedImages: IBoardImage[] = [];
 			const pinnedText: { [key: string]: IPinnedItem } = {};
+			let background: string | undefined;
 
 			pinnedItems.forEach((item) => {
 				if (item.type === 'gif') {
@@ -1046,7 +1049,7 @@ function App() {
 						url: item.url
 					});
 				} else if (item.type === 'background') {
-					setBackground({ name: item.name, isPinned: true });
+					background = item.name;
 				} else if (item.type === 'text') {
 					pinnedText[item.key!] = {
 						...item,
@@ -1059,9 +1062,10 @@ function App() {
 				}
 			});
 
-			setGifs((gifs) => gifs.concat(...pinnedGifs));
-			setImages((images) => images.concat(...pinnedImages));
-			setPinnedText((text) => ({ ...text, ...pinnedText }));
+			setGifs(pinnedGifs);
+			setImages(pinnedImages);
+			setPinnedText(pinnedText);
+			setBackground({ name: background, isPinned: !!background });
 		});
 	}, [roomId, history, firebaseContext]);
 
@@ -1377,18 +1381,22 @@ function App() {
 			<Modal
 				onClose={() => setModalState(null)}
 				className="modal-container"
-				open={modalState === 'new-room' || modalState === 'enter-room'}
+				open={!!modalState}
 			>
-				<div >
-					{modalState === 'new-room' && <NewChatroom
-					onClickCancel={() => setModalState(null)}
-					onCreate={onCreateRoom}
-				/> }
-					{modalState === 'enter-room' && <EnterRoomModal
-					roomName={roomToEnter}
-					onClickCancel={() => setModalState(null)}
-					/> }
-				</div> 
+				<>
+					{modalState === 'new-room' && (
+						<NewChatroom
+							onClickCancel={() => setModalState(null)}
+							onCreate={onCreateRoom}
+						/>
+					)}
+					{modalState === 'enter-room' && (
+						<EnterRoomModal
+							roomName={roomToEnter}
+							onClickCancel={() => setModalState(null)}
+						/>
+					)}
+				</>
 			</Modal>
 		</div>
 	);
