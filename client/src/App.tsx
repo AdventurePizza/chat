@@ -87,7 +87,7 @@ function App() {
 	const firebaseContext = useContext(FirebaseContext);
 	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
-	const [modalState, setModalState] = useState<'new-room' | 'enter-room' | 'none' >('none');
+	const [modalState, setModalState] = useState<'new-room' | 'enter-room' | null >(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
@@ -1392,18 +1392,18 @@ function App() {
 				/>
 			)}
 			<Modal
-				onClose={() => setModalState('none')}
+				onClose={() => setModalState(null)}
 				className="modal-container"
 				open={modalState === 'new-room' || modalState === 'enter-room'}
 			>
 				<div >
 					{modalState === 'new-room' && <NewChatroom
-					onClickCancel={() => setModalState('none')}
+					onClickCancel={() => setModalState(null)}
 					onCreate={onCreateRoom}
 				/> }
 					{modalState === 'enter-room' && <EnterRoomModal
 					roomName={roomToEnter}
-					onClickCancel={() => setModalState('none')}
+					onClickCancel={() => setModalState(null)}
 					/> }
 				</div> 
 			</Modal>

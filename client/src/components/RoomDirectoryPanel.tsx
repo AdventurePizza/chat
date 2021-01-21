@@ -8,7 +8,8 @@ import { Cancel } from '@material-ui/icons';
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
 import HomeIcon from '@material-ui/icons/Home';
-import { useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom';
+import _ from 'underscore';
 
 const useStyles = makeStyles({
     title: {
@@ -56,39 +57,24 @@ interface IEnterRoomProps {
     onClickCancel: () => void;
 }
 
-// interface IRoomIconProps {
-//     room: string;
-// }
-
-const pickNItemsArray = ( arr : Array<Object> | null, n : number) : Array<Object> | null => {
-    if (!arr) {
-        return null;
-    }
-    else {
-        let items : Array<Object> = [];
-        let arrCopy : Array<Object> = arr.slice(0);
-        for (let i=0; i < n && arrCopy.length >1 ; i++) {
-            let index = Math.floor(arrCopy.length * Math.random())
-            if (Object.keys(arrCopy[index]).length === 0 ){
-                index = index + 1;
-            }
-            items.push(arrCopy[index])
-            arrCopy.splice(index,1)
-        }
-        return items;
-    }
-}
-
 export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps ) => {
     const [displayedRooms,setDisplayedRooms] = useState<IChatRoom[] | null>([]);
     const [allRooms, setAllRooms] = useState<IChatRoom[] | null>([]);
     const firebaseContext = useContext(FirebaseContext);
     const [searchText, setSearchText] = useState<string>(''); 
     const history = useHistory();
+    
     useEffect( () => {
         firebaseContext.getAllRooms().then((rooms) => {
-            const pickedItems = pickNItemsArray(rooms as Array<Object>,10);
-            setDisplayedRooms(pickedItems as IChatRoom[]);
+            const shuffledRooms = _.shuffle(rooms as IChatRoom[]);
+            let slicedShuffledRooms = shuffledRooms.slice(0,11);
+            const mainRoomIndex = slicedShuffledRooms.findIndex(room => room.name === undefined );
+            if (mainRoomIndex === -1) {
+                slicedShuffledRooms = slicedShuffledRooms.slice(0,10);
+            } else {
+                slicedShuffledRooms.splice(mainRoomIndex,1);
+            }
+            setDisplayedRooms(slicedShuffledRooms);
             setAllRooms(rooms);
         })
     },[firebaseContext])
@@ -108,29 +94,6 @@ export const RoomDirectoryPanel = ({ sendRoomDirectory } : IRoomDirectoryProps )
         }
     };
 
-    // const RoomIcon = ({ room } : IRoomIconProps ) => {
-    //     const [isHovering, setIsHovering] = useState(false);
-    //     const normalIcon = () => <p>{room}</p>;
-    //     const hoveringIcon = () => (
-    //         <div className="display-hover-icon">
-    //             <span>{room}</span>
-    //         </div>
-    //     );
-
-    //     const iconToDisplay = isHovering ? normalIcon : hoveringIcon;
-
-    //     return (
-    //         <div className="room-icon"
-    //             onMouseEnter={() => setIsHovering(true)}
-    //             onMouseLeave={() => setIsHovering(false)}
-    //             onTouchStart={() => setIsHovering(true)}
-    //         >
-    //             <button style={{ background: "none", border: "none" }} onClick={() => sendRoomDirectory('roomDirectory', room)} >
-    //                 {iconToDisplay()}
-    //             </button>
-    //         </div>
-    //     );
-    // }
     
     const displayRooms = displayedRooms?.map((room, index) => {
         return (
