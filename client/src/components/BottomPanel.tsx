@@ -1,7 +1,7 @@
-import { Drawer, IconButton } from '@material-ui/core';
-import { ITowerDefenseState, PanelItemEnum } from '../types';
+import { Drawer } from '@material-ui/core';
+import { IEmojiDict, ITowerDefenseState, PanelItemEnum } from '../types';
 import React, { useState } from 'react';
-
+import EmojiPanel from './EmojiPanel';
 import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
@@ -39,8 +39,6 @@ export interface ISoundPairs {
 	type: string;
 	category: string;
 }
-
-const emojiList: string[] = ['😍', '😎', '👏', '👀', '✨', '🎅'];
 
 export const BottomPanel = ({
 	bottomPanelRef,
@@ -82,17 +80,12 @@ const PanelContent = ({
 	switch (type) {
 		case 'emoji':
 			return (
-				<>
-					{emojiList.map((emoji) => (
-						<div key={emoji} className="bottom-panel-emoji">
-							<IconButton onClick={() => onAction('emoji', emoji)}>
-								{emoji}
-							</IconButton>
-						</div>
-					))}
-				</>
+				<EmojiPanel
+					onClick={(data: IEmojiDict) => {
+						onAction('emoji', data);
+					}}
+				/>
 			);
-
 		case 'chat':
 			return (
 				<Chat
