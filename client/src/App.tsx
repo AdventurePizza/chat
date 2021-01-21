@@ -64,6 +64,7 @@ import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
+import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
 
 const socketURL =
@@ -987,45 +988,6 @@ function App() {
 						key: itemKey,
 						value
 					});
-				} else if (!movingBoardItem.isNew) {
-					const { itemKey, value } = movingBoardItem;
-
-					socket.emit('event', {
-						key: 'move-item',
-						type: movingBoardItem.type,
-						top: y,
-						left: x,
-						itemKey
-					});
-
-					const itemValues = {
-						top: event.clientY,
-						left: event.clientX - 90,
-						key: itemKey,
-						isPinned: true
-					};
-
-					if (movingBoardItem.type === 'image') {
-						setImages((images) => images.concat({ url: value, ...itemValues }));
-					} else if (movingBoardItem.type === 'gif') {
-						setGifs((gifs) => gifs.concat({ data: value, ...itemValues }));
-					} else if (movingBoardItem.type === 'text') {
-						setPinnedText((pinnedText) => ({
-							...pinnedText,
-							[itemKey]: {
-								text: value,
-								...itemValues,
-								type: 'text'
-							}
-						}));
-					}
-
-					firebaseContext.movePinnedRoomItem(roomId || 'default', {
-						type: movingBoardItem.type,
-						top: y,
-						left: x,
-						key: itemKey
-					});
 				}
 
 				setMovingBoardItem(undefined);
@@ -1231,36 +1193,58 @@ function App() {
 		});
 	};
 
-	const moveItem = (type: PinTypes, itemKey: string) => {
-		let index: number;
-
-		switch (type) {
-			case 'gif':
-				index = gifs.findIndex((gif) => gif.key === itemKey);
-				if (index !== -1) {
-					const gif = gifs[index];
-					setGifs([...gifs.slice(0, index), ...gifs.slice(index + 1)]);
-
-					setMovingBoardItem({ type, itemKey, value: gif.data });
-				}
-
-				break;
-			case 'image':
-				index = images.findIndex((img) => img.key === itemKey);
-				if (index !== -1) {
-					const image = images[index];
-					setImages([...images.slice(0, index), ...images.slice(index + 1)]);
-					setMovingBoardItem({ type, itemKey, value: image.url });
-				}
-				break;
-			case 'text':
-				const newPinnedText = { ...pinnedText };
-				delete newPinnedText[itemKey];
-
-				setPinnedText(newPinnedText);
-				setMovingBoardItem({ type, itemKey, value: pinnedText[itemKey].text });
-				break;
+	const moveItem = (type: PinTypes, id: string, left: number, top: number) => {
+		const { x, y } = getRelativePos(left, top, 0, 0);
+		if (type === 'text') {
+			setPinnedText(
+				update(pinnedText, {
+					[id]: {
+						$merge: { left, top }
+					}
+				})
+			);
+		} else if (type === 'gif') {
+			const gifIndex = gifs.findIndex((gif) => gif.key === id);
+			if (gifIndex !== -1) {
+				setGifs([
+					...gifs.slice(0, gifIndex),
+					{
+						...gifs[gifIndex],
+						top,
+						left
+					},
+					...gifs.slice(gifIndex + 1)
+				]);
+			}
+		} else if (type === 'image') {
+			const imageIndex = images.findIndex((image) => image.key === id);
+			if (imageIndex !== -1) {
+				setImages([
+					...images.slice(0, imageIndex),
+					{
+						...images[imageIndex],
+						top,
+						left
+					},
+					...images.slice(imageIndex + 1)
+				]);
+			}
 		}
+
+		socket.emit('event', {
+			key: 'move-item',
+			type,
+			top: y,
+			left: x,
+			itemKey: id
+		});
+
+		firebaseContext.movePinnedRoomItem(roomId || 'default', {
+			type,
+			top: y,
+			left: x,
+			key: id
+		});
 	};
 
 	if (isRoomError) {
