@@ -5,6 +5,7 @@ import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
 import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import { useDrag } from 'react-dnd';
 
 const useStyles = makeStyles({
 	container: {
@@ -28,6 +29,7 @@ const useStyles = makeStyles({
 });
 
 interface BoardObjectProps {
+	id: string;
 	type: 'gif' | 'image' | 'text';
 	data?: IGif;
 	imgSrc?: string;
@@ -35,7 +37,6 @@ interface BoardObjectProps {
 
 	onPin: () => void;
 	onUnpin: () => void;
-	onMove: () => void;
 
 	top: number;
 	left: number;
@@ -43,20 +44,32 @@ interface BoardObjectProps {
 	isPinned?: boolean;
 }
 
-export const BoardObject = ({
-	top,
-	left,
-	data,
-	onPin,
-	onUnpin,
-	onMove,
-	isPinned,
-	type,
-	imgSrc,
-	text
-}: BoardObjectProps) => {
+export const BoardObject = (props: BoardObjectProps) => {
+	const {
+		top,
+		left,
+		data,
+		onPin,
+		onUnpin,
+		isPinned,
+		type,
+		imgSrc,
+		text,
+		id
+	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
+
+	const [{ isDragging }, drag, preview] = useDrag({
+		item: { id, left, top, itemType: type, type: 'item' },
+		collect: (monitor) => ({
+			isDragging: monitor.isDragging()
+		})
+	});
+
+	if (isDragging) {
+		return <div ref={preview} />;
+	}
 
 	return (
 		<div
@@ -66,6 +79,7 @@ export const BoardObject = ({
 				zIndex: isHovering ? 99999999 : 'auto'
 			}}
 			className={classes.container}
+			ref={preview}
 		>
 			<Paper
 				elevation={5}
@@ -77,7 +91,7 @@ export const BoardObject = ({
 			>
 				{type === 'gif' && data && <Gif gif={data} width={180} noLink={true} />}
 				{type === 'image' && imgSrc && (
-					<img alt="user, -selected-img" src={imgSrc} style={{ width: 180 }} />
+					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 180 }}>
@@ -95,7 +109,8 @@ export const BoardObject = ({
 					onTouchEnd={() => setIsHovering(false)}
 				>
 					<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
-					{isPinned && <MoveButton onClick={onMove} />}
+					{/*@ts-ignore needs better typing for innerRef*/}
+					{isPinned && <MoveButton innerRef={drag} />}
 				</div>
 			)}
 		</div>
