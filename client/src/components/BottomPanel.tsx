@@ -13,7 +13,7 @@ import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
-import { RoomDirectoryPanel } from './RoomDirectoryPanel'
+import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 
 export interface IPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;

@@ -128,7 +128,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 
 	const getAllRooms = async () => {
 		return new Promise<IChatRoom[] | null>(async (resolve) => {
-			const docRef = db.collection('chatrooms')
+			const docRef = db.collection('chatrooms');
 			const snapshot = await docRef.get();
 			const rooms = snapshot.docs.map((doc) => doc.data() as IChatRoom);
 			resolve(rooms);
