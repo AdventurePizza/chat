@@ -17,6 +17,7 @@ import {
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
+import { XYCoord, useDrop } from 'react-dnd';
 
 import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
@@ -52,7 +53,12 @@ interface IBoardProps {
 	background: IBackgroundState;
 	pinnedText: { [key: string]: IPinnedItem };
 	unpinText: (textKey: string) => void;
-	moveItem: (type: PinTypes, itemKey: string) => void;
+	moveItem: (
+		type: PinTypes,
+		itemKey: string,
+		left: number,
+		top: number
+	) => void;
 }
 
 export const Board = ({
@@ -88,6 +94,17 @@ export const Board = ({
 		? background.name
 		: backgrounds[background.name!];
 
+	const [, drop] = useDrop({
+		accept: 'item',
+		drop(item: IPinnedItem, monitor) {
+			const delta = monitor.getDifferenceFromInitialOffset() as XYCoord;
+			const left = Math.round(item.left + delta.x);
+			const top = Math.round(item.top + delta.y);
+			moveItem(item.itemType, item.id, left, top);
+			return undefined;
+		}
+	});
+
 	return (
 		<div
 			className="board-container"
@@ -97,6 +114,7 @@ export const Board = ({
 				backgroundRepeat: 'no-repeat',
 				backgroundSize: 'cover'
 			}}
+			ref={drop}
 		>
 			<div className="board-container-pin">
 				{background.name && (
@@ -112,7 +130,7 @@ export const Board = ({
 				{emojis.map((emoji) => (
 					<CSSTransition
 						key={emoji.key}
-						timeout={1000}
+						timeout={emoji.dict.speed || 1000}
 						classNames="note-transition"
 						onEntered={() => {
 							const index = emojis.findIndex(
@@ -135,7 +153,11 @@ export const Board = ({
 								userSelect: 'none'
 							}}
 						>
-							{emoji.type}
+							{emoji.dict.url ? (
+								<img src={emoji.dict.url} alt={emoji.dict.name} width="24" />
+							) : (
+								emoji.dict.name
+							)}
 						</div>
 					</CSSTransition>
 				))}
@@ -202,7 +224,6 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
-
 			<TransitionGroup>
 				{Object.values(pinnedText).map((text) => (
 					<CSSTransition
@@ -212,12 +233,12 @@ export const Board = ({
 					>
 						<BoardObject
 							{...text}
+							id={text.key!}
 							type="text"
 							onPin={() => {}}
 							onUnpin={() => {
 								unpinText(text.key || '');
 							}}
-							onMove={() => moveItem('text', text.key || '')}
 						/>
 					</CSSTransition>
 				))}
@@ -238,6 +259,7 @@ export const Board = ({
 					>
 						<BoardObject
 							type="gif"
+							id={gif.key}
 							{...gif}
 							onPin={() => {
 								pinGif(gif.key);
@@ -245,7 +267,6 @@ export const Board = ({
 							onUnpin={() => {
 								unpinGif(gif.key);
 							}}
-							onMove={() => moveItem('gif', gif.key)}
 						/>
 					</CSSTransition>
 				))}
@@ -271,6 +292,7 @@ export const Board = ({
 					>
 						<BoardObject
 							{...image}
+							id={image.key}
 							type="image"
 							imgSrc={image.url}
 							onPin={() => {
@@ -279,7 +301,6 @@ export const Board = ({
 							onUnpin={() => {
 								unpinImage(image.key);
 							}}
-							onMove={() => moveItem('image', image.key)}
 						/>
 					</CSSTransition>
 				))}

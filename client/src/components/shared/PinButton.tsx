@@ -76,13 +76,14 @@ export const PinButtonImage = ({ style }: { style?: React.CSSProperties }) => {
 
 interface IMoveButtonProps {
 	onClick: () => void;
+	innerRef?: React.RefObject<HTMLDivElement>;
 }
 
-export const MoveButton = ({ onClick }: IMoveButtonProps) => {
+export const MoveButton = ({ onClick, innerRef }: IMoveButtonProps) => {
 	const classes = useStyles();
 
 	return (
-		<div className={classes.container}>
+		<div ref={innerRef} className={classes.container}>
 			<Tooltip title="move item">
 				<IconButton onClick={onClick}>
 					<OpenWithIcon className={classes.buttonIcon} />

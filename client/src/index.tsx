@@ -1,14 +1,18 @@
 import './index.css';
 
 import App from './App';
+import { DndProvider } from 'react-dnd';
 import { FirebaseProvider } from './firebaseContext';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
 	<FirebaseProvider>
-		<App />
+		<DndProvider backend={HTML5Backend}>
+			<App />
+		</DndProvider>
 	</FirebaseProvider>,
 	document.getElementById('root')
 );
