@@ -56,6 +56,16 @@
 	font-size: 3em;
 }
 
+.emoji-list, .emoji-settings-container {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+}
+
+.emoji-speed-slider {
+	margin: 2.5rem 3rem 0.5rem 3rem;
+}
+
 .bottom-panel-sound img {
 	width: 40px;
 	height: auto;
