@@ -1,6 +1,8 @@
 import { MoveButton, PinButton } from './shared/PinButton';
 import React, { useState } from 'react';
 
+import { IOpenGraph } from '../types';
+import { getUnfurlData, firstLinkFrom, checkAddProtocolTo } from '../App';
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
 import { Paper } from '@material-ui/core';
@@ -25,6 +27,30 @@ const useStyles = makeStyles({
 		padding: 5,
 		display: 'flex',
 		justifyContent: 'center'
+	},
+	unfurledContainer: {
+		display: 'flex',
+		flexDirection: 'column',
+		width: '200px'
+	},
+	userText: {
+		margin: '0px',
+		wordWrap: 'break-word'
+	},
+	title: {
+		fontSize: '14px',
+		fontWeight: 'bolder'
+	},
+	link: {
+		textDecoration: 'none',
+		fontWeight: 'bold',
+		lineHeight: '16px',
+		marginBottom: '3px',
+		color: '#206da8',
+		fontSize: '14px'
+	},
+	image: {
+		borderRadius: '6px'
 	}
 });
 
@@ -44,33 +70,42 @@ interface BoardObjectProps {
 	isPinned?: boolean;
 }
 
-export const BoardObject = (props: BoardObjectProps) => {
-	const {
-		top,
-		left,
-		data,
-		onPin,
-		onUnpin,
-		isPinned,
-		type,
-		imgSrc,
-		text,
-		id
-	} = props;
-	const [isHovering, setIsHovering] = useState(false);
+interface UnfurledTextProps {
+	userText: string;
+	unfurlOpenGraph: IOpenGraph;
+	linkFromText: string;
+}
+
+export const BoardObject = ({
+	top,
+	left,
+	data,
+	onPin,
+	onUnpin,
+	isPinned,
+	type,
+	imgSrc,
+	text
+}: BoardObjectProps) => {
 	const classes = useStyles();
+	const [isHovering, setIsHovering] = useState(false);
+	const [unfurlOpenGraph, setUnfurlOpenGraph] = useState<IOpenGraph>();
+	const linkFromText = type === 'text' && text ? firstLinkFrom(text) || '' : '';
+	const isTextALink = !!linkFromText;
 
-	const [{ isDragging }, drag, preview] = useDrag({
-		item: { id, left, top, itemType: type, type: 'item' },
-		collect: (monitor) => ({
-			isDragging: monitor.isDragging()
-		})
-	});
-
-	if (isDragging) {
-		return <div ref={preview} />;
-	}
-
+	useEffect(() => {
+		if (unfurlOpenGraph || !isTextALink) return;
+		const handleEffect = async () => {
+			try {
+				const unfurlDataRes = await getUnfurlData(linkFromText);
+				const openGraphData = unfurlDataRes.open_graph;
+				setUnfurlOpenGraph(openGraphData);
+			} catch (error) {
+				console.log('error: ' + error);
+			}
+		};
+		handleEffect();
+	}, [isTextALink, linkFromText, unfurlOpenGraph]); // Wanted empty but Warning said to put them in...
 	return (
 		<div
 			style={{
@@ -93,7 +128,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'image' && imgSrc && (
 					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
 				)}
-				{type === 'text' && text && (
+				{type === 'text' && text && unfurlOpenGraph ? (
+					<UnfurledText
+						unfurlOpenGraph={unfurlOpenGraph}
+						linkFromText={linkFromText}
+						userText={text}
+					/>
+				) : (
 					<div className={classes.text} style={{ width: 180 }}>
 						{text}
 					</div>
@@ -113,6 +154,44 @@ export const BoardObject = (props: BoardObjectProps) => {
 					{isPinned && <MoveButton innerRef={drag} />}
 				</div>
 			)}
+		</div>
+	);
+};
+
+const UnfurledText = ({
+	userText,
+	unfurlOpenGraph,
+	linkFromText
+}: UnfurledTextProps) => {
+	const classes = useStyles();
+	const { title, site_name, images } = unfurlOpenGraph;
+	const { url: image } = images![0];
+	const [leftText, rightText] = userText.split(linkFromText);
+	const protocolLink = checkAddProtocolTo(linkFromText);
+	return (
+		<div className={classes.unfurledContainer}>
+			<p className={classes.userText}>
+				{leftText}
+				<a
+					style={{ textDecoration: 'none', color: '#206da8' }}
+					href={protocolLink}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{linkFromText}
+				</a>
+				{rightText}
+			</p>
+			<b className={classes.title}>{site_name}</b>
+			<a
+				href={protocolLink}
+				target="_blank"
+				rel="noopener noreferrer"
+				className={classes.link}
+			>
+				{title}
+			</a>
+			<img className={classes.image} src={image} alt={title} />
 		</div>
 	);
 };
