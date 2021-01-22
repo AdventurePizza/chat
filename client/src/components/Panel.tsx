@@ -6,17 +6,17 @@ import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import animationIcon from '../assets/navbar/animation.png';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
+import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
 import weatherIcon from '../assets/navbar/weatherIcon.png';
-import animationIcon from '../assets/navbar/animation.png';
-import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -40,7 +40,10 @@ export const Panel = ({
 			anchor="left"
 			open={isOpen}
 		>
-			<div className="panel-container">
+			<div
+				className="panel-container"
+				style={window.innerHeight < 800 ? { minHeight: 'auto' } : {}}
+			>
 				<Tooltip title="close panel">
 					<IconButton style={{ marginTop: 20 }} onClick={onClose}>
 						<img
