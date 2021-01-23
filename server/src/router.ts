@@ -513,10 +513,13 @@ const fireTowers = (roomId: string) => {
 
 const GAME_LENGTH_SECONDS = 120;
 
-const startGame = (roomId: string) => {
-  //   io.emit("event", { key: "tower defense", value: "start" });
-  //   io.to(roomId).emit("event", { key: "tower defense", value: "start" });
+// assuming same enemies
+const enemySpawnRates = [6, 5, 4, 3, 2, 1];
 
+let waveCount = 0;
+const waveLengthSec = 20;
+
+const startGame = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
 
   towerDefenseStateRoom.isPlaying = true;
@@ -529,23 +532,9 @@ const startGame = (roomId: string) => {
   towerDefenseStateRoom.towerDefenseGameInterval = setInterval(() => {
     const { loopCounter } = towerDefenseStateRoom;
 
-    let spawnRate = 0;
+    const enemySpawnRate = enemySpawnRates[waveCount];
 
-    if (loopCounter < 10) {
-      spawnRate = spawnRates[10];
-    } else if (loopCounter < 25) {
-      spawnRate = spawnRates[25];
-    } else if (loopCounter < 45) {
-      spawnRate = spawnRates[45];
-    } else if (loopCounter < 60) {
-      spawnRate = spawnRates[60];
-    } else if (loopCounter < 80) {
-      spawnRate = spawnRates[80];
-    } else if (loopCounter < 120) {
-      spawnRate = spawnRates[100];
-    }
-
-    if (Math.random() < spawnRate) {
+    if (loopCounter % enemySpawnRate === 0) {
       spawnEnemy(roomId);
     }
 
@@ -555,6 +544,10 @@ const startGame = (roomId: string) => {
     }
 
     towerDefenseStateRoom.loopCounter++;
+
+    if (towerDefenseStateRoom.loopCounter % waveLengthSec === 0) {
+      waveCount++;
+    }
 
     if (towerDefenseStateRoom.loopCounter === GAME_LENGTH_SECONDS) {
       endGame(roomId);
@@ -576,16 +569,9 @@ const endGame = (roomId: string) => {
     loopCounter: 0,
   };
 
-  io.to(roomId).emit("event", { key: "tower defense", value: "end" });
-};
+  waveCount = 0;
 
-const spawnRates: { [timeSeconds: number]: number } = {
-  10: 0.2,
-  25: 0.3,
-  45: 0.4,
-  60: 0.5,
-  80: 0.6,
-  100: 0.7,
+  io.to(roomId).emit("event", { key: "tower defense", value: "end" });
 };
 
 const BACKGROUND_TIMEOUT = 60000;
