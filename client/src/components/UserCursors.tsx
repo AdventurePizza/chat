@@ -104,7 +104,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 				}
 				const userProfile = props.userProfiles[key];
 				const messages = props.avatarChatMessages[key];
-				console.log(userProfile);
+
 				let chatMessage;
 				if (Array.isArray(messages)) {
 					chatMessage = messages[messages.length - 1];

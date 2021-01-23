@@ -322,7 +322,6 @@ function App() {
 
 		const absoluteX = width * x;
 		const absoluteY = height * y;
-		console.log(absoluteY);
 		setUserLocations((userLocations) => {
 			const newUserLocations = {
 				...userLocations,
