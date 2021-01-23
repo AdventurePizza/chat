@@ -12,7 +12,9 @@ export interface IPinnedItem {
 	top: number;
 	left: number;
 	key?: string;
-	data?: IGif;
+  data?: IGif;
+  linkMetadata?: IMetadata;
+  textLink?: string;
 	[key: string]: any;
 }
 

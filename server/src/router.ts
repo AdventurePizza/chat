@@ -255,12 +255,16 @@ export class Router {
 
           socket.to(room).emit("event", { ...message, isPinned: true });
         } else if (message.type === "text") {
+          const textLink = firstLinkFrom(message.value as string);
+          const metadata = textLink ? await resolveUrl(textLink) : undefined;
           const chatPinMessage = {
             ...message,
             userId: socket.id,
+            linkMetadata : metadata,
+            textLink: textLink
           };
           socket.to(room).emit("event", chatPinMessage);
-          socket.emit("event", chatPinMessage);
+          socket.emit("event", { ...chatPinMessage, isSelf: true });
         } else {
           socket.to(room).emit("event", message);
           socket.emit("event", message);
@@ -648,3 +652,51 @@ const resolveUrl = async (url: string): Promise<IMetadata> => {
   }
   return Promise.resolve(metadata);
 };
+
+const firstLinkFrom = (text: string) => {
+	const words = text.split(' ');
+	const hasProtocol = words.find((word) => word.startsWith('www.'));
+	const hasSubdomain = words.find(
+		(word) => word.startsWith('http://') || word.startsWith('https://')
+	);
+	const hasCommonDomainExtension = words.find((word) => {
+		const wordNoProtocol = word.split('//')[0];
+		const wordNoPath = wordNoProtocol.slice(0, wordNoProtocol.indexOf('/'));
+		return commonDomainExtensions.find((extension) =>
+			wordNoPath.includes(extension)
+		);
+	});
+	return hasProtocol || hasSubdomain || hasCommonDomainExtension;
+};
+
+const commonDomainExtensions = [
+	'.com',
+	'.uk',
+	'.ninja',
+	'.co',
+	'.net',
+	'.gg',
+	'.news',
+	'.gov',
+	'.email',
+	'.dev',
+	'.blog',
+	'.mail',
+	'.org',
+	'.icu',
+	'.ru',
+	'.info',
+	'.xyz',
+	'.top',
+	'.tk',
+	'.cn',
+	'.gg',
+	'.ga',
+	'.cf',
+	'.nl',
+	'.live',
+	'.buzz',
+	'.edu',
+	'.us',
+	'.ly'
+];

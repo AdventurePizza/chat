@@ -23,8 +23,8 @@ import {
 	IUserProfile,
 	IUserProfiles,
 	IWeather,
-	UnfurlMetadata,
-	PanelItemEnum
+	PanelItemEnum,
+	PinTypes
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -66,7 +66,7 @@ import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
-import { unfurl } from 'unfurl.js';
+import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
 
 const socketURL =
@@ -157,8 +157,25 @@ function App() {
 	}, []);
 
 	const deleteProfileSoundType = () =>
-		setUserProfile((profile) => ({ ...profile, soundType: '' }));
+    setUserProfile((profile) => ({ ...profile, soundType: '' }));
+  
+  const addTextToDB = useCallback(
+		(message) => {
+			const { y, x, itemKey, linkMetadata, value, textLink } = message;
 
+			firebaseContext.pinRoomItem(roomId || 'default', {
+				type: 'text',
+				top: y,
+				left: x,
+				key: itemKey,
+				value,
+				linkMetadata,
+				textLink
+			});
+		},
+		[firebaseContext, roomId]
+	);
+  
 	const playSound = useCallback((soundType) => {
 		audio.current = new Audio(sounds[soundType]);
 
@@ -555,7 +572,9 @@ function App() {
 								key: message.itemKey,
 								top: message.top * window.innerHeight,
 								left: message.left * window.innerWidth,
-								isPinned: true
+                isPinned: true,
+                linkMetadata: message.linkMetadata,
+								textLink: message.textLink
 							}
 						}));
 					}
@@ -724,7 +743,8 @@ function App() {
 					}
 					break;
 				case 'pin-item':
-					handlePinItemMessage(message);
+          if (message.isSelf) addTextToDB(message);
+          handlePinItemMessage(message);
 					break;
 				case 'unpin-item':
 					handlePinItemMessage(message, true);
@@ -785,7 +805,8 @@ function App() {
 		roomId,
 		handlePinItemMessage,
 		handleMoveItemMessage,
-		addImage
+		addImage,
+		addTextToDB
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -991,19 +1012,19 @@ function App() {
 						isNew: true
 					});
 
-					firebaseContext.pinRoomItem(roomId || 'default', {
-						type: 'text',
-						top: y,
-						left: x,
-						key: itemKey,
-						value
-					});
+				// 	firebaseContext.pinRoomItem(roomId || 'default', {
+				// 		type: 'text',
+				// 		top: y,
+				// 		left: x,
+				// 		key: itemKey,
+				// 		value
+				// 	});
 				}
 
 				setMovingBoardItem(undefined);
 			}
 		},
-		[movingBoardItem, firebaseContext, roomId]
+		[movingBoardItem/*, firebaseContext, roomId*/]
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
@@ -1450,62 +1471,8 @@ const imageToUrl = (name: string) => {
 	return name.startsWith('http') ? name : backgrounds[name] || '';
 };
 
-export const BYPASS_CORS_BASE_URL = 'https://cors-anywhere-repo.herokuapp.com/'; // Downloaded and Hosted repo for no rateLimit
-//@ts-ignore
-export const getUnfurlData: (link: string) => Promise<UnfurlMetadata> = async (
-	link: string
-) => await unfurl(BYPASS_CORS_BASE_URL + link);
-
-export const firstLinkFrom = (text: string) => {
-	const words = text.split(' ');
-	const hasProtocol = words.find((word) => word.startsWith('www.'));
-	const hasSubdomain = words.find(
-		(word) => word.startsWith('http://') || word.startsWith('https://')
-	);
-	const hasCommonDomainExtension = words.find((word) => {
-		const wordNoProtocol = word.split('//')[0];
-		const wordNoPath = wordNoProtocol.slice(0, wordNoProtocol.indexOf('/'));
-		return commonDomainExtensions.find((extension) =>
-			wordNoPath.includes(extension)
-		);
-	});
-	return hasProtocol || hasSubdomain || hasCommonDomainExtension;
-};
-
 export const checkAddProtocolTo = (link: string) =>
 	link.startsWith('http') ? link : 'http://' + link;
-
-export const commonDomainExtensions = [
-	'.com',
-	'.uk',
-	'.ninja',
-	'.co',
-	'.net',
-	'.gg',
-	'.news',
-	'.gov',
-	'.email',
-	'.dev',
-	'.blog',
-	'.mail',
-	'.org',
-	'.icu',
-	'.ru',
-	'.info',
-	'.xyz',
-	'.top',
-	'.tk',
-	'.cn',
-	'.gg',
-	'.ga',
-	'.cf',
-	'.nl',
-	'.live',
-	'.buzz',
-	'.edu',
-	'.us',
-	'.ly'
-];
 
 const RouterHandler = () => {
 	return (

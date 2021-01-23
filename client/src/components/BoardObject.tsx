@@ -1,8 +1,8 @@
 import { MoveButton, PinButton } from './shared/PinButton';
 import React, { useState } from 'react';
 
-import { IOpenGraph } from '../types';
-import { getUnfurlData, firstLinkFrom, checkAddProtocolTo } from '../App';
+import { checkAddProtocolTo } from '../App';
+import { IMetadata } from '../types';
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
 import { Paper } from '@material-ui/core';
@@ -59,7 +59,9 @@ interface BoardObjectProps {
 	type: 'gif' | 'image' | 'text';
 	data?: IGif;
 	imgSrc?: string;
-	text?: string;
+  text?: string;
+  metadata?: IMetadata;
+	textLink?: string;
 
 	onPin: () => void;
 	onUnpin: () => void;
@@ -72,40 +74,39 @@ interface BoardObjectProps {
 
 interface UnfurledTextProps {
 	userText: string;
-	unfurlOpenGraph: IOpenGraph;
-	linkFromText: string;
+	textLink: string;
+	metadata: IMetadata;
 }
 
-export const BoardObject = ({
-	top,
-	left,
-	data,
-	onPin,
-	onUnpin,
-	isPinned,
-	type,
-	imgSrc,
-	text
-}: BoardObjectProps) => {
-	const classes = useStyles();
+export const BoardObject = (props: BoardObjectProps) => {
+	const {
+		top,
+		left,
+		data,
+		onPin,
+		onUnpin,
+		isPinned,
+		type,
+		imgSrc,
+    text,
+    metadata,
+		textLink,
+		id
+	} = props;
 	const [isHovering, setIsHovering] = useState(false);
-	const [unfurlOpenGraph, setUnfurlOpenGraph] = useState<IOpenGraph>();
-	const linkFromText = type === 'text' && text ? firstLinkFrom(text) || '' : '';
-	const isTextALink = !!linkFromText;
+	const classes = useStyles();
 
-	useEffect(() => {
-		if (unfurlOpenGraph || !isTextALink) return;
-		const handleEffect = async () => {
-			try {
-				const unfurlDataRes = await getUnfurlData(linkFromText);
-				const openGraphData = unfurlDataRes.open_graph;
-				setUnfurlOpenGraph(openGraphData);
-			} catch (error) {
-				console.log('error: ' + error);
-			}
-		};
-		handleEffect();
-	}, [isTextALink, linkFromText, unfurlOpenGraph]); // Wanted empty but Warning said to put them in...
+	const [{ isDragging }, drag, preview] = useDrag({
+		item: { id, left, top, itemType: type, type: 'item' },
+		collect: (monitor) => ({
+			isDragging: monitor.isDragging()
+		})
+  });
+  
+  if (isDragging) {
+		return <div ref={preview} />;
+	}
+
 	return (
 		<div
 			style={{
@@ -128,10 +129,10 @@ export const BoardObject = ({
 				{type === 'image' && imgSrc && (
 					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
 				)}
-				{type === 'text' && text && unfurlOpenGraph ? (
+				{type === 'text' && text && (metadata && textLink) ? (
 					<UnfurledText
-						unfurlOpenGraph={unfurlOpenGraph}
-						linkFromText={linkFromText}
+						metadata={metadata}
+						textLink={textLink}
 						userText={text}
 					/>
 				) : (
@@ -158,33 +159,32 @@ export const BoardObject = ({
 	);
 };
 
-const UnfurledText = ({
+export const UnfurledText = ({
 	userText,
-	unfurlOpenGraph,
-	linkFromText
+	metadata,
+	textLink
 }: UnfurledTextProps) => {
 	const classes = useStyles();
-	const { title, site_name, images } = unfurlOpenGraph;
-	const { url: image } = images![0];
-	const [leftText, rightText] = userText.split(linkFromText);
-	const protocolLink = checkAddProtocolTo(linkFromText);
+	const { title, provider: siteName, image } = metadata;
+	const [textLeft, textRight] = userText.split(textLink);
+	const LinkWithProtocol = checkAddProtocolTo(textLink);
 	return (
 		<div className={classes.unfurledContainer}>
 			<p className={classes.userText}>
-				{leftText}
+				{textLeft}
 				<a
 					style={{ textDecoration: 'none', color: '#206da8' }}
-					href={protocolLink}
+					href={LinkWithProtocol}
 					target="_blank"
 					rel="noopener noreferrer"
 				>
-					{linkFromText}
+					{textLink}
 				</a>
-				{rightText}
+				{textRight}
 			</p>
-			<b className={classes.title}>{site_name}</b>
+			<b className={classes.title}>{siteName}</b>
 			<a
-				href={protocolLink}
+				href={LinkWithProtocol}
 				target="_blank"
 				rel="noopener noreferrer"
 				className={classes.link}
