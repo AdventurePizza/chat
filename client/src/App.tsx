@@ -79,7 +79,7 @@ const socket = io(socketURL, { transports: ['websocket'] });
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
-
+const BOTTOM_PANEL_MARGIN_RATIO = 1.5
 function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
@@ -322,7 +322,7 @@ function App() {
 
 		const absoluteX = width * x;
 		const absoluteY = height * y;
-
+		console.log(absoluteY);
 		setUserLocations((userLocations) => {
 			const newUserLocations = {
 				...userLocations,
@@ -332,7 +332,6 @@ function App() {
 					y: absoluteY
 				}
 			};
-
 			return newUserLocations;
 		});
 
@@ -340,11 +339,13 @@ function App() {
 			...userProfiles,
 			[clientId]: {
 				...userProfiles[clientId],
-				...clientProfile
+				...clientProfile,
+				hideAvatar: absoluteY > height - BOTTOM_PANEL_MARGIN_RATIO * bottomPanelHeight,
 			}
 		}));
 	},
-	[]);
+		[bottomPanelHeight]);
+
 
 	const playTextAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {

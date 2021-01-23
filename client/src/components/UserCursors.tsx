@@ -104,6 +104,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 				}
 				const userProfile = props.userProfiles[key];
 				const messages = props.avatarChatMessages[key];
+				console.log(userProfile);
 				let chatMessage;
 				if (Array.isArray(messages)) {
 					chatMessage = messages[messages.length - 1];
@@ -133,6 +134,7 @@ export const UserCursors = (props: IUserCursorsProps) => {
 
 interface IUserCursorProps {
 	avatar: string;
+	hideAvatar?: boolean;
 	name: string;
 	x?: number;
 	y?: number;
@@ -216,6 +218,7 @@ export const UserCursor = React.forwardRef(
 
 interface IUserCursorContentProps {
 	avatar: string;
+	hideAvatar?: boolean;
 	name: string;
 	isTyping?: boolean;
 	weather?: IWeather;
@@ -226,6 +229,7 @@ interface IUserCursorContentProps {
 
 const UserCursorContent = ({
 	avatar,
+	hideAvatar,
 	name,
 	isTyping,
 	weather,
@@ -250,6 +254,8 @@ const UserCursorContent = ({
 			}, 200);
 		}
 	}, [message]);
+
+	if (hideAvatar) return null;
 
 	return (
 		<div
