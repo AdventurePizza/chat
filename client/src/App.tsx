@@ -79,7 +79,7 @@ const socket = io(socketURL, { transports: ['websocket'] });
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
-const BOTTOM_PANEL_MARGIN_RATIO = 1.5
+const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
 function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
@@ -115,7 +115,7 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-	>(PanelItemEnum.chat);
+	>(PanelItemEnum.roomDirectory);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
@@ -312,39 +312,41 @@ function App() {
 		window.addEventListener('mousemove', onMouseMove);
 	}, [onMouseMove]);
 
-	const onCursorMove = useCallback(function cursorMove(
-		clientId: string,
-		[x, y]: number[],
-		clientProfile: IUserProfile
-	) {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
+	const onCursorMove = useCallback(
+		function cursorMove(
+			clientId: string,
+			[x, y]: number[],
+			clientProfile: IUserProfile
+		) {
+			const width = window.innerWidth;
+			const height = window.innerHeight;
 
-		const absoluteX = width * x;
-		const absoluteY = height * y;
-		setUserLocations((userLocations) => {
-			const newUserLocations = {
-				...userLocations,
+			const absoluteX = width * x;
+			const absoluteY = height * y;
+			setUserLocations((userLocations) => {
+				const newUserLocations = {
+					...userLocations,
+					[clientId]: {
+						...userLocations[clientId],
+						x: absoluteX,
+						y: absoluteY
+					}
+				};
+				return newUserLocations;
+			});
+
+			setUserProfiles((userProfiles) => ({
+				...userProfiles,
 				[clientId]: {
-					...userLocations[clientId],
-					x: absoluteX,
-					y: absoluteY
+					...userProfiles[clientId],
+					...clientProfile,
+					hideAvatar:
+						absoluteY > height - BOTTOM_PANEL_MARGIN_RATIO * bottomPanelHeight
 				}
-			};
-			return newUserLocations;
-		});
-
-		setUserProfiles((userProfiles) => ({
-			...userProfiles,
-			[clientId]: {
-				...userProfiles[clientId],
-				...clientProfile,
-				hideAvatar: absoluteY > height - BOTTOM_PANEL_MARGIN_RATIO * bottomPanelHeight,
-			}
-		}));
-	},
-		[bottomPanelHeight]);
-
+			}));
+		},
+		[bottomPanelHeight]
+	);
 
 	const playTextAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {
@@ -934,6 +936,9 @@ function App() {
 				const roomName = args[0] as string;
 				setRoomToEnter(roomName);
 				setModalState('enter-room');
+				break;
+			case 'new-room':
+				setModalState('new-room');
 				break;
 			default:
 				break;

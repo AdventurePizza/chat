@@ -1,19 +1,20 @@
-import { Drawer } from '@material-ui/core';
 import { IEmojiDict, ITowerDefenseState, PanelItemEnum } from '../types';
 import React, { useState } from 'react';
-import EmojiPanel from './EmojiPanel';
+
 import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
+import { Drawer } from '@material-ui/core';
+import EmojiPanel from './EmojiPanel';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
+import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
-import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 
 export interface IPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -154,7 +155,12 @@ const PanelContent = ({
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
 		case 'roomDirectory':
-			return <RoomDirectoryPanel sendRoomDirectory={onAction} />;
+			return (
+				<RoomDirectoryPanel
+					sendRoomDirectory={onAction}
+					onClickNewRoom={() => onAction('new-room')}
+				/>
+			);
 		default:
 			return null;
 	}

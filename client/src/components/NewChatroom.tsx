@@ -157,12 +157,48 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 	);
 };
 
-export const NewRoomPanelButton = () => {
+interface INewRoomPanelButton {
+	isRow?: boolean;
+}
+
+export const NewRoomPanelButton = ({ isRow }: INewRoomPanelButton) => {
 	const classes = useStyles();
 	return (
-		<div className={classes.panelButtonContainer}>
-			<ControlPoint className={classes.plusIcon} />
-			<div className={classes.panelButtonText}>Room</div>
+		<div
+			className={classes.panelButtonContainer}
+			style={
+				isRow
+					? {
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+							marginTop: 5
+					  }
+					: undefined
+			}
+		>
+			<ControlPoint
+				className={classes.plusIcon}
+				style={
+					isRow
+						? {
+								fontSize: 25
+						  }
+						: undefined
+				}
+			/>
+			<div
+				style={
+					isRow
+						? {
+								fontSize: 15
+						  }
+						: undefined
+				}
+				className={classes.panelButtonText}
+			>
+				Room
+			</div>
 		</div>
 	);
 };
