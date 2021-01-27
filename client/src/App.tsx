@@ -157,16 +157,16 @@ function App() {
 	}, []);
 
 	const deleteProfileSoundType = () =>
-    setUserProfile((profile) => ({ ...profile, soundType: '' }));
-  
-  const addTextToDB = useCallback(
+		setUserProfile((profile) => ({ ...profile, soundType: '' }));
+
+	const addTextToDB = useCallback(
 		(message) => {
-			const { y, x, itemKey, linkMetadata, value, textLink } = message;
+			const { top, left, itemKey, linkMetadata, value, textLink } = message;
 
 			firebaseContext.pinRoomItem(roomId || 'default', {
 				type: 'text',
-				top: y,
-				left: x,
+				top,
+				left,
 				key: itemKey,
 				value,
 				linkMetadata,
@@ -175,7 +175,7 @@ function App() {
 		},
 		[firebaseContext, roomId]
 	);
-  
+
 	const playSound = useCallback((soundType) => {
 		audio.current = new Audio(sounds[soundType]);
 
@@ -572,8 +572,8 @@ function App() {
 								key: message.itemKey,
 								top: message.top * window.innerHeight,
 								left: message.left * window.innerWidth,
-                isPinned: true,
-                linkMetadata: message.linkMetadata,
+								isPinned: true,
+								linkMetadata: message.linkMetadata,
 								textLink: message.textLink
 							}
 						}));
@@ -743,8 +743,8 @@ function App() {
 					}
 					break;
 				case 'pin-item':
-          if (message.isSelf) addTextToDB(message);
-          handlePinItemMessage(message);
+					if (message.isSelf) addTextToDB(message);
+					handlePinItemMessage(message);
 					break;
 				case 'unpin-item':
 					handlePinItemMessage(message, true);
@@ -1011,20 +1011,12 @@ function App() {
 						itemKey,
 						isNew: true
 					});
-
-				// 	firebaseContext.pinRoomItem(roomId || 'default', {
-				// 		type: 'text',
-				// 		top: y,
-				// 		left: x,
-				// 		key: itemKey,
-				// 		value
-				// 	});
 				}
 
 				setMovingBoardItem(undefined);
 			}
 		},
-		[movingBoardItem/*, firebaseContext, roomId*/]
+		[movingBoardItem]
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
