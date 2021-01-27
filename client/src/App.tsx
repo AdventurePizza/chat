@@ -196,6 +196,7 @@ function App() {
 			case 'weather':
 			case 'roomDirectory':
 			case 'settings':
+			case 'email':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -939,6 +940,14 @@ function App() {
 				break;
 			case 'new-room':
 				setModalState('new-room');
+				break;
+			case 'send-email':
+				socket.emit('event', {
+					key: 'send-email',
+					to: args[0],
+					message: args[1],
+					url: window.location.href
+				});
 				break;
 			default:
 				break;

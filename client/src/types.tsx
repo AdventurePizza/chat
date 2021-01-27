@@ -32,24 +32,24 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
-	| 'sound'
-	| 'emoji'
-	| 'chat'
-	| 'chat-pin'
-	| 'gif'
-	| 'image'
-	| 'tower defense'
-	| 'background'
-	| 'messages'
-	| 'whiteboard'
-	| 'animation'
-	| 'isTyping'
-	| 'username'
-	| 'weather'
-	| 'settings-url'
-	| 'pin-item'
-	| 'move-item'
-	| 'unpin-item';
+		| 'sound'
+		| 'emoji'
+		| 'chat'
+		| 'chat-pin'
+		| 'gif'
+		| 'image'
+		| 'tower defense'
+		| 'background'
+		| 'messages'
+		| 'whiteboard'
+		| 'animation'
+		| 'isTyping'
+		| 'username'
+		| 'weather'
+		| 'settings-url'
+		| 'pin-item'
+		| 'move-item'
+		| 'unpin-item';
 	value?: any;
 	[key: string]: any;
 }
@@ -149,9 +149,10 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'email' = 'email',
+	'new-room' = 'new-room',
+	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	'sound' = 'sound',
-	'emoji' = 'emoji',
 	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
@@ -160,8 +161,8 @@ export enum PanelItemEnum {
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
-	'new-room' = 'new-room',
-	'roomDirectory' = 'roomDirectory'
+	'sound' = 'sound',
+	'emoji' = 'emoji'
 }
 
 export interface IUserLocations {
