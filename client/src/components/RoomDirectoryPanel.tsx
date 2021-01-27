@@ -7,6 +7,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import { IChatRoom } from '../types';
 import { IconButton } from '@material-ui/core';
 import InputBase from '@material-ui/core/InputBase';
+import { NewRoomPanelButton } from './NewChatroom';
 import SearchIcon from '@material-ui/icons/Search';
 import _ from 'underscore';
 import { makeStyles } from '@material-ui/core/styles';
@@ -54,6 +55,7 @@ const buttonStyles = makeStyles((theme) => ({
 
 interface IRoomDirectoryProps {
 	sendRoomDirectory: (roomDirectory: string, roomName: string) => void;
+	onClickNewRoom: () => void;
 }
 
 interface IEnterRoomProps {
@@ -62,7 +64,8 @@ interface IEnterRoomProps {
 }
 
 export const RoomDirectoryPanel = ({
-	sendRoomDirectory
+	sendRoomDirectory,
+	onClickNewRoom
 }: IRoomDirectoryProps) => {
 	const [displayedRooms, setDisplayedRooms] = useState<IChatRoom[] | null>([]);
 	const [allRooms, setAllRooms] = useState<IChatRoom[] | null>([]);
@@ -138,6 +141,9 @@ export const RoomDirectoryPanel = ({
 				</IconButton>
 				<IconButton color="primary" onClick={() => history.push('/')}>
 					<HomeIcon />
+				</IconButton>
+				<IconButton color="primary" onClick={onClickNewRoom}>
+					<NewRoomPanelButton isRow />
 				</IconButton>
 			</div>
 			<div className="room-icon-list"> {displayRooms} </div>

@@ -937,6 +937,9 @@ function App() {
 				setRoomToEnter(roomName);
 				setModalState('enter-room');
 				break;
+			case 'new-room':
+				setModalState('new-room');
+				break;
 			default:
 				break;
 		}
