@@ -32,24 +32,24 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
-		| 'sound'
-		| 'emoji'
-		| 'chat'
-		| 'chat-pin'
-		| 'gif'
-		| 'image'
-		| 'tower defense'
-		| 'background'
-		| 'messages'
-		| 'whiteboard'
-		| 'animation'
-		| 'isTyping'
-		| 'username'
-		| 'weather'
-		| 'settings-url'
-		| 'pin-item'
-		| 'move-item'
-		| 'unpin-item';
+	| 'sound'
+	| 'emoji'
+	| 'chat'
+	| 'chat-pin'
+	| 'gif'
+	| 'image'
+	| 'tower defense'
+	| 'background'
+	| 'messages'
+	| 'whiteboard'
+	| 'animation'
+	| 'isTyping'
+	| 'username'
+	| 'weather'
+	| 'settings-url'
+	| 'pin-item'
+	| 'move-item'
+	| 'unpin-item';
 	value?: any;
 	[key: string]: any;
 }
@@ -180,6 +180,7 @@ export interface IMetadata {
 export interface IUserProfile {
 	name: string;
 	avatar: string;
+	hideAvatar?: boolean;
 	message?: string;
 	isTyping?: boolean;
 	weather?: IWeather;
