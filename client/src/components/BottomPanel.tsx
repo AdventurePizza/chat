@@ -5,6 +5,7 @@ import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
+import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
 import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
@@ -159,6 +160,12 @@ const PanelContent = ({
 				<RoomDirectoryPanel
 					sendRoomDirectory={onAction}
 					onClickNewRoom={() => onAction('new-room')}
+				/>
+			);
+		case 'email':
+			return (
+				<EmailPanel
+					sendEmail={(email, message) => onAction('send-email', email, message)}
 				/>
 			);
 		default:
