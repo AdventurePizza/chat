@@ -2,6 +2,7 @@ import './Panel.css';
 
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
+import { EmailButton } from './EmailPanel';
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
 import React from 'react';
@@ -109,7 +110,8 @@ const panelIconSrcMap: {
 const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
-	'new-room': <NewRoomPanelButton />
+	'new-room': <NewRoomPanelButton />,
+	email: <EmailButton />
 };
 
 interface IPanelItemProps {
