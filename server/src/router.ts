@@ -512,7 +512,7 @@ const spawnEnemy = (roomId: string) => {
   });
 };
 
-const fireTowers = (roomId: string, towerTypes: String[]) => {
+const fireTowers = (roomId: string, towerTypes: string[]) => {
   io.to(roomId).emit("event", { key: "tower defense", value: "fire towers", towerTypes: towerTypes });
 };
 
@@ -543,7 +543,7 @@ const startGame = (roomId: string) => {
       spawnEnemy(roomId);
     }
 
-    let towerTypes: String[] = []
+    let towerTypes: string[] = []
 
     // fire every 4 seconds
     if (loopCounter % 4 === 0) {

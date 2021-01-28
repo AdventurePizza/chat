@@ -361,9 +361,9 @@ function App() {
 		}
 	}, []);
 
-	const fireTowers = useCallback((towerTypes: String[]) => {
-		towerTypes.forEach((type) => {
-			towerDefenseState.towers.filter((tower) => tower.type === type).forEach((tower) => {
+	const fireTowers = useCallback((towerTypes: string[]) => {
+		towerDefenseState.towers.forEach((tower) => {
+			if (towerTypes.includes(tower.type)) {
 				// only hit first enemy
 				for (let i = 0; i < towerDefenseState.units.length; i++) {
 					const unit = towerDefenseState.units[i];
@@ -392,9 +392,8 @@ function App() {
 						}
 					}
 				}
-			});
+			}
 		});
-		
 	}, [towerDefenseState]);
 
 	const handleTowerDefenseEvents = useCallback(
