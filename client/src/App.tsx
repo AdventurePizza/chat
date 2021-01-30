@@ -1,5 +1,4 @@
 import './App.css';
-
 import {
 	BUILDING_COSTS,
 	ENEMY_VALUES,
@@ -64,6 +63,12 @@ import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+
+const api_key = "sk-jvRKXqLmNsdePKgF4aDcJYhfR927QYAZFuCdFkx1";  //process.env.OPENAI_TEST_API_KEY;
+const OpenAI = require('openai-api');
+const openai = new OpenAI(api_key);
+
+process.env.OPENAI_TEST_API_KEY = api_key;
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -185,13 +190,47 @@ function App() {
 		}
 	};
 
+	const openAIChat = useCallback((message: string) => {
+		console.log("Sending request to AI");
+		(async () => {
+			const gptResponse = await openai.complete({
+				engine: 'davinci',
+				prompt: 'this is a test',
+				maxTokens: 5,
+				temperature: 0.9,
+				topP: 1,
+				presencePenalty: 0,
+				frequencyPenalty: 0,
+				bestOf: 1,
+				n: 1,
+				stream: false,
+				stop: ['\n', "testing"]
+			});
+			console.log("test message");
+			console.log(gptResponse.data);
+		})();
+				  
+		(async () => {
+			const gptResponse = await openai.search({
+				engine: 'davinci',
+				documents: ["White House", "hospital", "school"],
+				query: "the president"
+			});
+					
+			console.log(gptResponse.data);
+		})();
+	},[]);
+
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
+		console.log("Hi");
+		openAIChat(value);
 		setAvatarMessages((messages) => ({
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
 		}));
-	}, []);
+	}, [openAIChat]);
+
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
