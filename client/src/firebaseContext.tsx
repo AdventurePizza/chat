@@ -24,6 +24,8 @@ export interface IFirebaseContext {
 	pinRoomItem: (room: string, item: IPinnedItem) => void;
 	unpinRoomItem: (room: string, itemKey: string) => void;
 	getRoomPinnedItems: (room: string) => Promise<IPinnedItem[]>;
+	getAllRooms: () => Promise<IChatRoom[] | null>;
+	movePinnedRoomItem: (room: string, item: IPinnedItem) => void;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -34,7 +36,9 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getRoom: () => Promise.resolve(null),
 	pinRoomItem: () => Promise.resolve(),
 	unpinRoomItem: () => {},
-	getRoomPinnedItems: () => Promise.resolve([])
+	getRoomPinnedItems: () => Promise.resolve([]),
+	getAllRooms: () => Promise.resolve([]),
+	movePinnedRoomItem: () => {}
 });
 
 export const FirebaseProvider: React.FC = ({ children }) => {
@@ -72,8 +76,31 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		if (doc.exists) {
 			if (item.type === 'background') {
 				docRef.collection('pinnedItems').doc('background').set(item);
-			} else if (item.type === 'gif' || item.type === 'image') {
+			} else if (
+				item.type === 'gif' ||
+				item.type === 'image' ||
+				item.type === 'text'
+			) {
 				docRef.collection('pinnedItems').doc(item.key).set(item);
+			}
+		}
+	};
+
+	const movePinnedRoomItem = async (room: string, item: IPinnedItem) => {
+		const docRef = db
+			.collection('chatrooms')
+			.doc(room)
+			.collection('pinnedItems')
+			.doc(item.key);
+		const doc = await docRef.get();
+
+		if (doc.exists) {
+			if (
+				item.type === 'gif' ||
+				item.type === 'image' ||
+				item.type === 'text'
+			) {
+				docRef.update({ top: item.top, left: item.left });
 			}
 		}
 	};
@@ -99,6 +126,15 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		});
 	};
 
+	const getAllRooms = async () => {
+		return new Promise<IChatRoom[] | null>(async (resolve) => {
+			const docRef = db.collection('chatrooms');
+			const snapshot = await docRef.get();
+			const rooms = snapshot.docs.map((doc) => doc.data() as IChatRoom);
+			resolve(rooms);
+		});
+	};
+
 	return (
 		<FirebaseContext.Provider
 			value={{
@@ -106,7 +142,9 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getRoom,
 				pinRoomItem,
 				getRoomPinnedItems,
-				unpinRoomItem
+				unpinRoomItem,
+				getAllRooms,
+				movePinnedRoomItem
 			}}
 		>
 			{children}

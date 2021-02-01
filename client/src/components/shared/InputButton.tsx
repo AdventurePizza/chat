@@ -1,9 +1,10 @@
-import { Button, InputBase } from '@material-ui/core';
 import React, { useState } from 'react';
 
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
+import { InputBase } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
+import { StyledButton } from './StyledButton';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
@@ -26,15 +27,6 @@ const useStyles = makeStyles({
 	divider: {
 		height: 28,
 		margin: 4
-	},
-	submitButton: {
-		backgroundColor: '#87D3F3',
-		color: 'white',
-		'&:hover': {
-			backgroundColor: '#b0e2f6',
-			color: 'white'
-		},
-		borderRadius: 30
 	}
 });
 
@@ -89,13 +81,7 @@ export const InputButton = ({
 					className={classes.iconButton}
 					aria-label="directions"
 				>
-					<Button
-						onClick={onClickSubmit}
-						className={classes.submitButton}
-						variant="contained"
-					>
-						{buttonText}
-					</Button>
+					<StyledButton onClick={onClickSubmit}>{buttonText}</StyledButton>
 				</IconButton>
 			</Paper>
 		</div>

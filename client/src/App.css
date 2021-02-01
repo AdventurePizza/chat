@@ -1,3 +1,8 @@
+:root {
+	--background: #212121;
+	--primary: #89dcff;
+}
+
 .open-panel-button {
 	position: absolute;
 	top: 20px;

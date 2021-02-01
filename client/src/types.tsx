@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text';
 
 export interface IBackgroundState {
 	isPinned?: boolean;
@@ -9,8 +9,8 @@ export interface IBackgroundState {
 
 export interface IPinnedItem {
 	type: PinTypes;
-	top?: number;
-	left?: number;
+	top: number;
+	left: number;
 	key?: string;
 	data?: IGif;
 	[key: string]: any;
@@ -35,6 +35,7 @@ export interface IMessageEvent {
 		| 'sound'
 		| 'emoji'
 		| 'chat'
+		| 'chat-pin'
 		| 'gif'
 		| 'image'
 		| 'tower defense'
@@ -47,6 +48,7 @@ export interface IMessageEvent {
 		| 'weather'
 		| 'settings-url'
 		| 'pin-item'
+		| 'move-item'
 		| 'unpin-item';
 	value?: any;
 	[key: string]: any;
@@ -57,11 +59,17 @@ export interface IFigure {
 	type: 'gryphon';
 }
 
+export interface IEmojiDict {
+	name: string;
+	url?: string;
+	speed?: number; // Not Part of dictionary, intermediary for transmitting state to all users
+}
+
 export interface IEmoji {
 	top: number;
 	left: number;
 	key: string;
-	type: string;
+	dict: IEmojiDict;
 }
 
 export interface IChatMessage {
@@ -141,9 +149,10 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'email' = 'email',
+	'new-room' = 'new-room',
+	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	'sound' = 'sound',
-	'emoji' = 'emoji',
 	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
@@ -152,7 +161,8 @@ export enum PanelItemEnum {
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
-	'new-room' = 'new-room'
+	'sound' = 'sound',
+	'emoji' = 'emoji'
 }
 
 export interface IUserLocations {
@@ -171,9 +181,11 @@ export interface IMetadata {
 export interface IUserProfile {
 	name: string;
 	avatar: string;
+	hideAvatar?: boolean;
 	message?: string;
 	isTyping?: boolean;
 	weather?: IWeather;
+	soundType?: string;
 	musicMetadata?: IMetadata;
 }
 

@@ -63,7 +63,7 @@
 	top: 0;
 	left: 0;
 	transition: transform 0.2s ease-in-out;
-	z-index: 99999998;
+	z-index: 99999997;
 }
 .user-connection-cursor * {
 }
@@ -131,6 +131,18 @@
 	top: 10px;
 }
 .avatar-message-transition-exit {
+	opacity: 0;
+	transition: opacity 1s;
+}
+
+.sound-text-transition-enter-active {
+	text-align: center;
+	opacity: 1;
+	transition: opacity 1s, transform 1s;
+}
+
+.sound-text-transition-exit {
+	text-align: center;
 	opacity: 0;
 	transition: opacity 1s;
 }

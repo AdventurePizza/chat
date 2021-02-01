@@ -4,6 +4,7 @@ import axios from "axios";
 import express from "express";
 import fetch from "node-fetch";
 import http from "http";
+import { sendEmail } from "./email";
 import { v4 as uuidv4 } from "uuid";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
@@ -89,6 +90,8 @@ interface IMessageEvent {
     | "settings-url"
     | "weather"
     | "pin-item"
+    | "move-item"
+    | "send-email"
     | "unpin-item";
   value?: any;
   [key: string]: any;
@@ -193,7 +196,12 @@ export class Router {
     switch (message.key) {
       case "sound":
         // socket.broadcast.emit("event", message);
-        socket.to(room).broadcast.emit("event", message);
+        // socket.to(room).broadcast.emit("event", message);
+        socket.to(room).emit("event", {
+          key: "sound",
+          userId: socket.id,
+          value: message.value,
+        });
         break;
 
       case "emoji":
@@ -233,6 +241,13 @@ export class Router {
         socket.emit("event", newImageMessage);
         break;
 
+      case "move-item":
+        socket.to(room).emit("event", message);
+        break;
+      case "send-email":
+        sendEmail(message.to, message.message, message.url);
+        break;
+
       case "pin-item":
         if (message.type === "background") {
           if (!backgroundState[room]) {
@@ -242,8 +257,19 @@ export class Router {
           if (backgroundState[room].imageTimeout) {
             clearTimeout(backgroundState[room].imageTimeout!);
           }
+
+          socket.to(room).emit("event", { ...message, isPinned: true });
+        } else if (message.type === "text") {
+          const chatPinMessage = {
+            ...message,
+            userId: socket.id,
+          };
+          socket.to(room).emit("event", chatPinMessage);
+          socket.emit("event", chatPinMessage);
+        } else {
+          socket.to(room).emit("event", message);
+          socket.emit("event", message);
         }
-        socket.to(room).emit("event", { ...message, isPinned: true });
         break;
       case "unpin-item":
         if (message.type === "background") {
@@ -255,14 +281,6 @@ export class Router {
           if (backgroundState[room].imageTimeout) {
             clearTimeout(backgroundState[room].imageTimeout!);
           }
-          //   socket.to(room).emit("event", {
-          //     key: "background",
-          //     value: undefined,
-          //   });
-          // socket.emit('event', {
-          // 	key: 'background',
-          // 	value: backgroundName
-          // });
         }
         socket.to(room).emit("event", message);
         socket.emit("event", message);
@@ -500,10 +518,13 @@ const fireTowers = (roomId: string) => {
 
 const GAME_LENGTH_SECONDS = 120;
 
-const startGame = (roomId: string) => {
-  //   io.emit("event", { key: "tower defense", value: "start" });
-  //   io.to(roomId).emit("event", { key: "tower defense", value: "start" });
+// assuming same enemies
+const enemySpawnRates = [6, 5, 4, 3, 2, 1];
 
+let waveCount = 0;
+const waveLengthSec = 20;
+
+const startGame = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
 
   towerDefenseStateRoom.isPlaying = true;
@@ -516,23 +537,9 @@ const startGame = (roomId: string) => {
   towerDefenseStateRoom.towerDefenseGameInterval = setInterval(() => {
     const { loopCounter } = towerDefenseStateRoom;
 
-    let spawnRate = 0;
+    const enemySpawnRate = enemySpawnRates[waveCount];
 
-    if (loopCounter < 10) {
-      spawnRate = spawnRates[10];
-    } else if (loopCounter < 25) {
-      spawnRate = spawnRates[25];
-    } else if (loopCounter < 45) {
-      spawnRate = spawnRates[45];
-    } else if (loopCounter < 60) {
-      spawnRate = spawnRates[60];
-    } else if (loopCounter < 80) {
-      spawnRate = spawnRates[80];
-    } else if (loopCounter < 120) {
-      spawnRate = spawnRates[100];
-    }
-
-    if (Math.random() < spawnRate) {
+    if (loopCounter % enemySpawnRate === 0) {
       spawnEnemy(roomId);
     }
 
@@ -542,6 +549,10 @@ const startGame = (roomId: string) => {
     }
 
     towerDefenseStateRoom.loopCounter++;
+
+    if (towerDefenseStateRoom.loopCounter % waveLengthSec === 0) {
+      waveCount++;
+    }
 
     if (towerDefenseStateRoom.loopCounter === GAME_LENGTH_SECONDS) {
       endGame(roomId);
@@ -563,16 +574,9 @@ const endGame = (roomId: string) => {
     loopCounter: 0,
   };
 
-  io.to(roomId).emit("event", { key: "tower defense", value: "end" });
-};
+  waveCount = 0;
 
-const spawnRates: { [timeSeconds: number]: number } = {
-  10: 0.2,
-  25: 0.3,
-  45: 0.4,
-  60: 0.5,
-  80: 0.6,
-  100: 0.7,
+  io.to(roomId).emit("event", { key: "tower defense", value: "end" });
 };
 
 const BACKGROUND_TIMEOUT = 60000;

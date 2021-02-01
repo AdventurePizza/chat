@@ -11,9 +11,10 @@ import {
 	IBoardImage,
 	IChatMessage,
 	IEmoji,
-	IFigure,
+	IEmojiDict,
 	IGifs,
 	IMessageEvent,
+	IPinnedItem,
 	ITowerBuilding,
 	ITowerDefenseState,
 	ITowerUnit,
@@ -21,7 +22,8 @@ import {
 	IUserProfile,
 	IUserProfiles,
 	IWeather,
-	PanelItemEnum
+	PanelItemEnum,
+	PinTypes
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -53,6 +55,7 @@ import { cymbalHit, sounds } from './components/Sounds';
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
+import { EnterRoomModal } from './components/RoomDirectoryPanel';
 import { FirebaseContext } from './firebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
@@ -62,6 +65,7 @@ import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
+import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
 
 const api_key = "sk-jvRKXqLmNsdePKgF4aDcJYhfR927QYAZFuCdFkx1";  //process.env.OPENAI_TEST_API_KEY;
@@ -80,7 +84,7 @@ const socket = io(socketURL, { transports: ['websocket'] });
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
-
+const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
 function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
@@ -88,11 +92,21 @@ function App() {
 	const [isRoomError, setIsRoomError] = useState(false);
 
 	const firebaseContext = useContext(FirebaseContext);
-	const [isModalOpen, setIsModalOpen] = useState(false);
+	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
+	const [modalState, setModalState] = useState<
+		'new-room' | 'enter-room' | null
+	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [pinnedText, setPinnedText] = useState<{ [key: string]: IPinnedItem }>(
+		{}
+	);
+	const [movingBoardItem, setMovingBoardItem] = useState<
+		| { type: PinTypes; itemKey: string; value?: any; isNew?: boolean }
+		| undefined
+	>();
 	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
 	const [background, setBackground] = useState<IBackgroundState>({
@@ -106,10 +120,10 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-	>(PanelItemEnum.chat);
+	>(PanelItemEnum.roomDirectory);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
-
+	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
 	const audioNotification = useRef<HTMLAudioElement>();
 
@@ -129,26 +143,28 @@ function App() {
 	const [userProfile, setUserProfile] = useState<IUserProfile>({
 		name: '',
 		avatar: '',
-		weather: { temp: '', condition: '' }
+		weather: { temp: '', condition: '' },
+		soundType: ''
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
-
-	const [figures, setFigures] = useState<IFigure[]>([]);
 
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
 		condition: ''
 	});
 
-	const playEmoji = useCallback((type: string) => {
+	const playEmoji = useCallback((dict: IEmojiDict) => {
 		const { x, y } = generateRandomXY();
 
 		setEmojis((emojis) =>
-			emojis.concat({ top: y, left: x, key: uuidv4(), type })
+			emojis.concat({ top: y, left: x, key: uuidv4(), dict })
 		);
 	}, []);
 
-	const playSound = useCallback((soundType, isPreviewSound) => {
+	const deleteProfileSoundType = () =>
+		setUserProfile((profile) => ({ ...profile, soundType: '' }));
+
+	const playSound = useCallback((soundType) => {
 		audio.current = new Audio(sounds[soundType]);
 
 		if (!audio || !audio.current) return;
@@ -156,10 +172,17 @@ function App() {
 		const randomX = Math.random() * window.innerWidth;
 		const randomY = Math.random() * window.innerHeight;
 
-		if (!isPreviewSound)
-			setMusicNotes((notes) =>
-				notes.concat({ top: randomY, left: randomX, key: uuidv4() })
-			);
+		setMusicNotes((notes) =>
+			notes.concat({ top: randomY, left: randomX, key: uuidv4() })
+		);
+
+		audio.current.currentTime = 0;
+		audio.current.play();
+	}, []);
+
+	const playPreviewSound = useCallback((soundType) => {
+		audio.current = new Audio(sounds[soundType]);
+		if (!audio || !audio.current) return;
 
 		audio.current.currentTime = 0;
 		audio.current.play();
@@ -176,13 +199,15 @@ function App() {
 			case 'background':
 			case 'whiteboard':
 			case 'weather':
+			case 'roomDirectory':
 			case 'settings':
+			case 'email':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
 			case 'new-room':
-				setIsModalOpen(true);
+				setModalState('new-room');
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -195,7 +220,7 @@ function App() {
 		(async () => {
 			const gptResponse = await openai.complete({
 				engine: 'davinci',
-				prompt: 'this is a test',
+				prompt: 'I love eating',
 				maxTokens: 5,
 				temperature: 0.9,
 				topP: 1,
@@ -206,7 +231,6 @@ function App() {
 				stream: false,
 				stop: ['\n', "testing"]
 			});
-			console.log("test message");
 			console.log(gptResponse.data);
 		})();
 				  
@@ -223,7 +247,6 @@ function App() {
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
-		console.log("Hi");
 		openAIChat(value);
 		setAvatarMessages((messages) => ({
 			...messages,
@@ -327,39 +350,41 @@ function App() {
 		window.addEventListener('mousemove', onMouseMove);
 	}, [onMouseMove]);
 
-	const onCursorMove = useCallback(function cursorMove(
-		clientId: string,
-		[x, y]: number[],
-		clientProfile: IUserProfile
-	) {
-		const width = window.innerWidth;
-		const height = window.innerHeight;
+	const onCursorMove = useCallback(
+		function cursorMove(
+			clientId: string,
+			[x, y]: number[],
+			clientProfile: IUserProfile
+		) {
+			const width = window.innerWidth;
+			const height = window.innerHeight;
 
-		const absoluteX = width * x;
-		const absoluteY = height * y;
+			const absoluteX = width * x;
+			const absoluteY = height * y;
+			setUserLocations((userLocations) => {
+				const newUserLocations = {
+					...userLocations,
+					[clientId]: {
+						...userLocations[clientId],
+						x: absoluteX,
+						y: absoluteY
+					}
+				};
+				return newUserLocations;
+			});
 
-		setUserLocations((userLocations) => {
-			const newUserLocations = {
-				...userLocations,
+			setUserProfiles((userProfiles) => ({
+				...userProfiles,
 				[clientId]: {
-					...userLocations[clientId],
-					x: absoluteX,
-					y: absoluteY
+					...userProfiles[clientId],
+					...clientProfile,
+					hideAvatar:
+						absoluteY > height - BOTTOM_PANEL_MARGIN_RATIO * bottomPanelHeight
 				}
-			};
-
-			return newUserLocations;
-		});
-
-		setUserProfiles((userProfiles) => ({
-			...userProfiles,
-			[clientId]: {
-				...userProfiles[clientId],
-				...clientProfile
-			}
-		}));
-	},
-	[]);
+			}));
+		},
+		[bottomPanelHeight]
+	);
 
 	const playTextAnimation = useCallback((animationType: string) => {
 		if (animationType === 'start game') {
@@ -522,7 +547,6 @@ function App() {
 								...gifs.slice(gifIndex + 1)
 							]);
 						} else {
-							console.log('want to pin gif ', gif);
 							setGifs([
 								...gifs.slice(0, gifIndex),
 								{ ...gif, isPinned: true },
@@ -556,17 +580,102 @@ function App() {
 					} else {
 						setBackground({ name: message.name, isPinned: true });
 					}
+					break;
+				case 'text':
+					if (isUnpin) {
+						const newPinnedText = { ...pinnedText };
+						delete newPinnedText[itemKey];
+						setPinnedText(newPinnedText);
+					} else {
+						setPinnedText((pinnedText) => ({
+							...pinnedText,
+							[message.itemKey]: {
+								type: 'text',
+								text: message.value,
+								key: message.itemKey,
+								top: message.top * window.innerHeight,
+								left: message.left * window.innerWidth,
+								isPinned: true
+							}
+						}));
+					}
+					break;
 			}
 		},
-		[gifs, images]
+		[gifs, images, pinnedText]
+	);
+
+	const handleMoveItemMessage = useCallback(
+		(message: IMessageEvent) => {
+			const { type, top, left, itemKey } = message;
+			const relativeTop = top * window.innerHeight;
+			const relativeLeft = left * window.innerWidth;
+
+			switch (type) {
+				case 'image':
+					const imageIndex = images.findIndex((image) => image.key === itemKey);
+					const image = images[imageIndex];
+					if (image) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...image,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+					break;
+
+				case 'gif':
+					const gifIndex = gifs.findIndex((gif) => gif.key === itemKey);
+					const gif = gifs[gifIndex];
+					if (gif) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gif,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+					break;
+
+				case 'text':
+					const newPinnedText = { ...pinnedText };
+					if (newPinnedText[itemKey]) {
+						setPinnedText((pinnedText) => ({
+							...pinnedText,
+							[itemKey]: {
+								...pinnedText[itemKey],
+								top: relativeTop,
+								left: relativeLeft
+							}
+						}));
+					}
+					break;
+			}
+		},
+		[images, gifs, pinnedText]
 	);
 
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'sound':
-					console.log(message.value);
-					playSound(message.value, false);
+					if (message.value) {
+						playSound(message.value);
+						setUserProfiles((profiles) => ({
+							...profiles,
+							[message.userId]: {
+								...profiles[message.userId],
+								soundType: message.value
+							}
+						}));
+					}
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -599,6 +708,7 @@ function App() {
 					}));
 					break;
 				case 'messages':
+					openAIChat(message.value);
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 				case 'whiteboard':
@@ -660,6 +770,9 @@ function App() {
 				case 'unpin-item':
 					handlePinItemMessage(message, true);
 					break;
+				case 'move-item':
+					handleMoveItemMessage(message);
+					break;
 			}
 		};
 
@@ -712,7 +825,9 @@ function App() {
 		playAnimation,
 		roomId,
 		handlePinItemMessage,
-		addImage
+		handleMoveItemMessage,
+		addImage,
+		openAIChat
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -725,8 +840,21 @@ function App() {
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				break;
+			case 'chat-pin':
+				const chatPinValue = args[0] as string;
+
+				if (chatPinValue) {
+					setMovingBoardItem({
+						type: 'text',
+						itemKey: uuidv4(),
+						value: chatPinValue,
+						isNew: true
+					});
+				}
+
+				break;
 			case 'emoji':
-				const emoji = args[0] as string;
+				const emoji = args[0] as IEmojiDict;
 				playEmoji(emoji);
 				socket.emit('event', {
 					key: 'emoji',
@@ -736,7 +864,8 @@ function App() {
 			case 'sound':
 				const soundType = args[0] as string;
 
-				playSound(soundType, false);
+				playSound(soundType);
+				setUserProfile((profile) => ({ ...profile, soundType: soundType }));
 
 				socket.emit('event', {
 					key: 'sound',
@@ -744,8 +873,8 @@ function App() {
 				});
 				break;
 			case 'previewSound':
-				const previwedSoundType = args[0] as string;
-				playSound(previwedSoundType, true);
+				const previewedSoundType = args[0] as string;
+				playPreviewSound(previewedSoundType);
 				break;
 			case 'gif':
 				const gif = args[0] as string;
@@ -810,7 +939,6 @@ function App() {
 					value: animationType
 				});
 				break;
-
 			case 'whiteboard':
 				const strlineData = args[0] as string;
 				socket.emit('event', {
@@ -844,6 +972,22 @@ function App() {
 					value: location
 				});
 				break;
+			case 'roomDirectory':
+				const roomName = args[0] as string;
+				setRoomToEnter(roomName);
+				setModalState('enter-room');
+				break;
+			case 'new-room':
+				setModalState('new-room');
+				break;
+			case 'send-email':
+				socket.emit('event', {
+					key: 'send-email',
+					to: args[0],
+					message: args[1],
+					url: window.location.href
+				});
+				break;
 			default:
 				break;
 		}
@@ -852,11 +996,10 @@ function App() {
 	const onClickApp = useCallback(
 		(event: React.MouseEvent) => {
 			setTowerDefenseState((state) => {
+				const { x, y } = getRelativePos(event.clientX, event.clientY, 60, 60);
 				if (state.selectedPlacementTower) {
-					const { x, y } = getRelativePos(event.clientX, event.clientY);
 					const newGold =
-						towerDefenseState.gold -
-						BUILDING_COSTS[state.selectedPlacementTower.type];
+						state.gold - BUILDING_COSTS[state.selectedPlacementTower.type];
 					if (newGold >= 0) {
 						socket.emit('event', {
 							key: 'tower defense',
@@ -885,8 +1028,35 @@ function App() {
 				}
 				return state;
 			});
+
+			if (movingBoardItem) {
+				const { x, y } = getRelativePos(event.clientX, event.clientY, 90, 0);
+				if (movingBoardItem.isNew && movingBoardItem.type === 'text') {
+					const { itemKey, value } = movingBoardItem;
+
+					socket.emit('event', {
+						key: 'pin-item',
+						type: movingBoardItem.type,
+						value,
+						top: y,
+						left: x,
+						itemKey,
+						isNew: true
+					});
+
+					firebaseContext.pinRoomItem(roomId || 'default', {
+						type: 'text',
+						top: y,
+						left: x,
+						key: itemKey,
+						value
+					});
+				}
+
+				setMovingBoardItem(undefined);
+			}
 		},
-		[towerDefenseState]
+		[movingBoardItem, firebaseContext, roomId]
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
@@ -909,6 +1079,8 @@ function App() {
 		firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 			const pinnedGifs: IGifs[] = [];
 			const pinnedImages: IBoardImage[] = [];
+			const pinnedText: { [key: string]: IPinnedItem } = {};
+			let background: string | undefined;
 
 			pinnedItems.forEach((item) => {
 				if (item.type === 'gif') {
@@ -930,12 +1102,23 @@ function App() {
 						url: item.url
 					});
 				} else if (item.type === 'background') {
-					setBackground({ name: item.name, isPinned: true });
+					background = item.name;
+				} else if (item.type === 'text') {
+					pinnedText[item.key!] = {
+						...item,
+						top: item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						key: item.key!,
+						text: item.value
+					};
 				}
 			});
 
-			setGifs((gifs) => gifs.concat(...pinnedGifs));
-			setImages((images) => images.concat(...pinnedImages));
+			setGifs(pinnedGifs);
+			setImages(pinnedImages);
+			setPinnedText(pinnedText);
+			setBackground({ name: background, isPinned: !!background });
 		});
 	}, [roomId, history, firebaseContext]);
 
@@ -997,7 +1180,9 @@ function App() {
 		if (!background.isPinned) {
 			firebaseContext.pinRoomItem(room, {
 				name: background.name,
-				type: 'background'
+				type: 'background',
+				top: 0,
+				left: 0
 			});
 			setBackground((background) => ({ ...background, isPinned: true }));
 
@@ -1057,6 +1242,76 @@ function App() {
 		}
 	};
 
+	const unpinText = (key: string) => {
+		const newPinnedText = { ...pinnedText };
+
+		delete newPinnedText[key];
+
+		setPinnedText(newPinnedText);
+
+		firebaseContext.unpinRoomItem(roomId || 'default', key);
+
+		socket.emit('event', {
+			key: 'unpin-item',
+			type: 'text',
+			itemKey: key
+		});
+	};
+
+	const moveItem = (type: PinTypes, id: string, left: number, top: number) => {
+		const { x, y } = getRelativePos(left, top, 0, 0);
+		if (type === 'text') {
+			setPinnedText(
+				update(pinnedText, {
+					[id]: {
+						$merge: { left, top }
+					}
+				})
+			);
+		} else if (type === 'gif') {
+			const gifIndex = gifs.findIndex((gif) => gif.key === id);
+			if (gifIndex !== -1) {
+				setGifs([
+					...gifs.slice(0, gifIndex),
+					{
+						...gifs[gifIndex],
+						top,
+						left
+					},
+					...gifs.slice(gifIndex + 1)
+				]);
+			}
+		} else if (type === 'image') {
+			const imageIndex = images.findIndex((image) => image.key === id);
+			if (imageIndex !== -1) {
+				setImages([
+					...images.slice(0, imageIndex),
+					{
+						...images[imageIndex],
+						top,
+						left
+					},
+					...images.slice(imageIndex + 1)
+				]);
+			}
+		}
+
+		socket.emit('event', {
+			key: 'move-item',
+			type,
+			top: y,
+			left: x,
+			itemKey: id
+		});
+
+		firebaseContext.movePinnedRoomItem(roomId || 'default', {
+			type,
+			top: y,
+			left: x,
+			key: id
+		});
+	};
+
 	if (isRoomError) {
 		return <div>Invalid room {roomId}</div>;
 	}
@@ -1083,8 +1338,7 @@ function App() {
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
 				userProfiles={userProfiles}
-				figures={figures}
-				updateFigures={setFigures}
+				setUserProfiles={setUserProfiles}
 				animations={animations}
 				updateAnimations={setAnimations}
 				avatarMessages={avatarMessages}
@@ -1096,6 +1350,9 @@ function App() {
 				unpinImage={unpinImage}
 				pinBackground={pinBackground}
 				unpinBackground={unpinBackground}
+				pinnedText={pinnedText}
+				unpinText={unpinText}
+				moveItem={moveItem}
 			/>
 
 			<TowerDefense
@@ -1146,7 +1403,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, and allen`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, and ishaan`}
 				placement="left"
 			>
 				<div className="adventure-logo">
@@ -1169,19 +1426,30 @@ function App() {
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
+					deleteSoundType={deleteProfileSoundType}
 					isSelectingTower={towerDefenseState.selectedPlacementTower}
+					isMovingBoardObject={!!movingBoardItem}
 				/>
 			)}
-
 			<Modal
-				onClose={() => setIsModalOpen(false)}
+				onClose={() => setModalState(null)}
 				className="modal-container"
-				open={isModalOpen}
+				open={!!modalState}
 			>
-				<NewChatroom
-					onClickCancel={() => setIsModalOpen(false)}
-					onCreate={onCreateRoom}
-				/>
+				<>
+					{modalState === 'new-room' && (
+						<NewChatroom
+							onClickCancel={() => setModalState(null)}
+							onCreate={onCreateRoom}
+						/>
+					)}
+					{modalState === 'enter-room' && (
+						<EnterRoomModal
+							roomName={roomToEnter}
+							onClickCancel={() => setModalState(null)}
+						/>
+					)}
+				</>
 			</Modal>
 		</div>
 	);
@@ -1207,15 +1475,17 @@ const generateRandomXY = (centered?: boolean, gif?: boolean) => {
 	}
 };
 
-export const getRelativePos = (clientX: number, clientY: number) => {
+export const getRelativePos = (
+	clientX: number,
+	clientY: number,
+	width: number,
+	height: number
+) => {
 	const x = clientX;
 	const y = clientY;
 
-	const width = window.innerWidth;
-	const height = window.innerHeight;
-
-	const relativeX = (x - 60) / width;
-	const relativeY = (y - 60) / height;
+	const relativeX = (x - width) / window.innerWidth;
+	const relativeY = (y - height) / window.innerHeight;
 
 	return { x: relativeX, y: relativeY };
 };

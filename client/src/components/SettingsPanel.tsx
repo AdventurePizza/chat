@@ -10,7 +10,7 @@ const useStyles = makeStyles({
 		display: 'flex',
 		alignItems: 'center',
 		overflowX: 'auto',
-		background: '#212121',
+		background: 'var(--background)',
 		width: '100%',
 		justifyContent: 'center',
 		height: 100

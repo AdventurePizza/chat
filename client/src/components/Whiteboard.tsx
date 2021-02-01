@@ -47,8 +47,13 @@ export function Whiteboard({
 		let mouseY = e.clientY;
 		if (isDrawing) {
 			const { x, y } = position.current;
-			const { x: relPrevX, y: relPrevY } = getRelativePos(x, y);
-			const { x: relCurrentX, y: relCurrentY } = getRelativePos(mouseX, mouseY);
+			const { x: relPrevX, y: relPrevY } = getRelativePos(x, y, 0, 0);
+			const { x: relCurrentX, y: relCurrentY } = getRelativePos(
+				mouseX,
+				mouseY,
+				0,
+				0
+			);
 
 			drawLine(false, canvasRef, x, y, mouseX, mouseY, brushColor, false);
 			const lineData: ILineData = {
@@ -79,8 +84,13 @@ export function Whiteboard({
 		let mouseY = e.touches[0].clientY;
 		if (isDrawing) {
 			const { x, y } = position.current;
-			const { x: relPrevX, y: relPrevY } = getRelativePos(x, y);
-			const { x: relCurrentX, y: relCurrentY } = getRelativePos(mouseX, mouseY);
+			const { x: relPrevX, y: relPrevY } = getRelativePos(x, y, 0, 0);
+			const { x: relCurrentX, y: relCurrentY } = getRelativePos(
+				mouseX,
+				mouseY,
+				0,
+				0
+			);
 
 			drawLine(false, canvasRef, x, y, mouseX, mouseY, brushColor, false);
 			const lineData: ILineData = {
