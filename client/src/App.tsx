@@ -68,12 +68,6 @@ import io from 'socket.io-client';
 import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
 
-const api_key = "sk-jvRKXqLmNsdePKgF4aDcJYhfR927QYAZFuCdFkx1";  //process.env.OPENAI_TEST_API_KEY;
-const OpenAI = require('openai-api');
-const openai = new OpenAI(api_key);
-
-process.env.OPENAI_TEST_API_KEY = api_key;
-
 const socketURL =
 	window.location.hostname === 'localhost'
 		? 'ws://localhost:8000'
@@ -215,44 +209,14 @@ function App() {
 		}
 	};
 
-	const openAIChat = useCallback((message: string) => {
-		console.log("Sending request to AI");
-		(async () => {
-			const gptResponse = await openai.complete({
-				engine: 'davinci',
-				prompt: 'I love eating',
-				maxTokens: 5,
-				temperature: 0.9,
-				topP: 1,
-				presencePenalty: 0,
-				frequencyPenalty: 0,
-				bestOf: 1,
-				n: 1,
-				stream: false,
-				stop: ['\n', "testing"]
-			});
-			console.log(gptResponse.data);
-		})();
-				  
-		(async () => {
-			const gptResponse = await openai.search({
-				engine: 'davinci',
-				documents: ["White House", "hospital", "school"],
-				query: "the president"
-			});
-					
-			console.log(gptResponse.data);
-		})();
-	},[]);
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
-		openAIChat(value);
 		setAvatarMessages((messages) => ({
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
 		}));
-	}, [openAIChat]);
+	}, []);
 
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -708,7 +672,6 @@ function App() {
 					}));
 					break;
 				case 'messages':
-					openAIChat(message.value);
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 				case 'whiteboard':
@@ -827,7 +790,6 @@ function App() {
 		handlePinItemMessage,
 		handleMoveItemMessage,
 		addImage,
-		openAIChat
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {

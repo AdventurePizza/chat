@@ -24,6 +24,7 @@ import { PinButton } from './shared/PinButton';
 import React from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
+import {OpenAI} from './OpenAI';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -334,6 +335,8 @@ export const Board = ({
 				avatarChatMessages={avatarMessages}
 				weather={weather}
 			/>
+
+			<OpenAI/>
 		</div>
 	);
 };
