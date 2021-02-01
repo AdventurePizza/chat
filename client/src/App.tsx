@@ -361,33 +361,35 @@ function App() {
 		}
 	}, []);
 
-	const fireTowers = useCallback(() => {
+	const fireTowers = useCallback((towerTypes: string[]) => {
 		towerDefenseState.towers.forEach((tower) => {
-			// only hit first enemy
-			for (let i = 0; i < towerDefenseState.units.length; i++) {
-				const unit = towerDefenseState.units[i];
-
-				const { ref } = unit;
-				if (ref && ref.current) {
-					const rect = ref.current.getBoundingClientRect();
-
-					const distance = getDistanceBetweenPoints(
-						tower.left,
-						tower.top,
-						rect.left,
-						rect.top
-					);
-
-					const relativeDistance = distance / window.innerWidth;
-
-					if (relativeDistance < 0.4) {
-						socket.emit('event', {
-							key: 'tower defense',
-							value: 'fire tower',
-							towerKey: tower.key,
-							unitKey: unit.key
-						});
-						break;
+			if (towerTypes.includes(tower.type)) {
+				// only hit first enemy
+				for (let i = 0; i < towerDefenseState.units.length; i++) {
+					const unit = towerDefenseState.units[i];
+	
+					const { ref } = unit;
+					if (ref && ref.current) {
+						const rect = ref.current.getBoundingClientRect();
+	
+						const distance = getDistanceBetweenPoints(
+							tower.left,
+							tower.top,
+							rect.left,
+							rect.top
+						);
+	
+						const relativeDistance = distance / window.innerWidth;
+	
+						if (relativeDistance < 0.4) {
+							socket.emit('event', {
+								key: 'tower defense',
+								value: 'fire tower',
+								towerKey: tower.key,
+								unitKey: unit.key
+							});
+							break;
+						}
 					}
 				}
 			}
@@ -444,7 +446,7 @@ function App() {
 			}
 
 			if (message.value === 'fire towers') {
-				fireTowers();
+				fireTowers(message.towerTypes);
 			}
 
 			if (message.value === 'hit unit') {
