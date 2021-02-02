@@ -24,7 +24,8 @@ const useStyles = makeStyles({
 	text: {
 		padding: 5,
 		display: 'flex',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		whiteSpace: 'pre-line' //allows it to display multiple lines!
 	}
 });
 
@@ -91,10 +92,10 @@ export const BoardObject = (props: BoardObjectProps) => {
 			>
 				{type === 'gif' && data && <Gif gif={data} width={180} noLink={true} />}
 				{type === 'image' && imgSrc && (
-					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
+					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }}/>
 				)}
 				{type === 'text' && text && (
-					<div className={classes.text} style={{ width: 180 }}>
+					<div className={classes.text} style={{ width: 180}}>
 						{text}
 					</div>
 				)}
