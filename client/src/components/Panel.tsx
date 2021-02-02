@@ -17,6 +17,7 @@ import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
 import weatherIcon from '../assets/navbar/weatherIcon.png';
+import poemIcon from '../assets/navbar/poemIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -103,7 +104,8 @@ const panelIconSrcMap: {
 	whiteboard: pencilIcon,
 	weather: weatherIcon,
 	animation: animationIcon,
-	roomDirectory: roomDirectoryIcon
+	roomDirectory: roomDirectoryIcon,
+	poem: poemIcon
 };
 
 const panelIconComponentMap: {

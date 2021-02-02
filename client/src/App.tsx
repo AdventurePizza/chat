@@ -196,6 +196,7 @@ function App() {
 			case 'weather':
 			case 'roomDirectory':
 			case 'settings':
+			case 'poem':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);

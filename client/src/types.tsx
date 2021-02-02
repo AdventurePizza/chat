@@ -49,7 +49,8 @@ export interface IMessageEvent {
 	| 'settings-url'
 	| 'pin-item'
 	| 'move-item'
-	| 'unpin-item';
+	| 'unpin-item'
+	| 'poem';
 	value?: any;
 	[key: string]: any;
 }
@@ -161,7 +162,8 @@ export enum PanelItemEnum {
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'new-room' = 'new-room',
-	'roomDirectory' = 'roomDirectory'
+	'roomDirectory' = 'roomDirectory',
+	'poem' = 'poem'
 }
 
 export interface IUserLocations {
@@ -228,4 +230,9 @@ export interface ITowerDefenseState {
 export interface IWeather {
 	temp: string;
 	condition: string;
+}
+
+export interface IPoem{
+	key: string;
+	value: string;
 }
