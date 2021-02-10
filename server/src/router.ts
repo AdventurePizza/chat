@@ -4,6 +4,7 @@ import axios from "axios";
 import express from "express";
 import fetch from "node-fetch";
 import http from "http";
+import { sendEmail } from "./email";
 import { v4 as uuidv4 } from "uuid";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
@@ -90,6 +91,7 @@ interface IMessageEvent {
     | "weather"
     | "pin-item"
     | "move-item"
+    | "send-email"
     | "unpin-item";
   value?: any;
   [key: string]: any;
@@ -241,6 +243,9 @@ export class Router {
 
       case "move-item":
         socket.to(room).emit("event", message);
+        break;
+      case "send-email":
+        sendEmail(message.to, message.message, message.url);
         break;
 
       case "pin-item":
@@ -507,8 +512,8 @@ const spawnEnemy = (roomId: string) => {
   });
 };
 
-const fireTowers = (roomId: string) => {
-  io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
+const fireTowers = (roomId: string, towerTypes: string[]) => {
+  io.to(roomId).emit("event", { key: "tower defense", value: "fire towers", towerTypes: towerTypes });
 };
 
 const GAME_LENGTH_SECONDS = 120;
@@ -538,10 +543,19 @@ const startGame = (roomId: string) => {
       spawnEnemy(roomId);
     }
 
+    let towerTypes: string[] = []
+
     // fire every 4 seconds
     if (loopCounter % 4 === 0) {
-      fireTowers(roomId);
+      towerTypes.push('basic')
     }
+
+    // fire every 3 seconds
+    if (loopCounter % 3 === 0) {
+      towerTypes.push('bowman')
+    }
+
+    if (towerTypes.length > 0) fireTowers(roomId, towerTypes)
 
     towerDefenseStateRoom.loopCounter++;
 
