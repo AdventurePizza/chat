@@ -512,8 +512,8 @@ const spawnEnemy = (roomId: string) => {
   });
 };
 
-const fireTowers = (roomId: string) => {
-  io.to(roomId).emit("event", { key: "tower defense", value: "fire towers" });
+const fireTowers = (roomId: string, towerTypes: string[]) => {
+  io.to(roomId).emit("event", { key: "tower defense", value: "fire towers", towerTypes: towerTypes });
 };
 
 const GAME_LENGTH_SECONDS = 120;
@@ -543,10 +543,19 @@ const startGame = (roomId: string) => {
       spawnEnemy(roomId);
     }
 
+    let towerTypes: string[] = []
+
     // fire every 4 seconds
     if (loopCounter % 4 === 0) {
-      fireTowers(roomId);
+      towerTypes.push('basic')
     }
+
+    // fire every 3 seconds
+    if (loopCounter % 3 === 0) {
+      towerTypes.push('bowman')
+    }
+
+    if (towerTypes.length > 0) fireTowers(roomId, towerTypes)
 
     towerDefenseStateRoom.loopCounter++;
 
