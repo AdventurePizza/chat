@@ -32,25 +32,25 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
-	| 'sound'
-	| 'emoji'
-	| 'chat'
-	| 'chat-pin'
-	| 'gif'
-	| 'image'
-	| 'tower defense'
-	| 'background'
-	| 'messages'
-	| 'whiteboard'
-	| 'animation'
-	| 'isTyping'
-	| 'username'
-	| 'weather'
-	| 'settings-url'
-	| 'pin-item'
-	| 'move-item'
-	| 'unpin-item'
-	| 'poem';
+		| 'sound'
+		| 'emoji'
+		| 'chat'
+		| 'chat-pin'
+		| 'gif'
+		| 'image'
+		| 'tower defense'
+		| 'background'
+		| 'messages'
+		| 'whiteboard'
+		| 'animation'
+		| 'isTyping'
+		| 'username'
+		| 'weather'
+		| 'settings-url'
+		| 'pin-item'
+		| 'move-item'
+		| 'unpin-item'
+		| 'poem';
 	value?: any;
 	[key: string]: any;
 }
@@ -233,7 +233,7 @@ export interface IWeather {
 	condition: string;
 }
 
-export interface IPoem{
+export interface IPoem {
 	key: string;
 	value: string;
 }
