@@ -32,7 +32,6 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
-<<<<<<< HEAD
 	| 'sound'
 	| 'emoji'
 	| 'chat'
@@ -52,26 +51,6 @@ export interface IMessageEvent {
 	| 'move-item'
 	| 'unpin-item'
 	| 'poem';
-=======
-		| 'sound'
-		| 'emoji'
-		| 'chat'
-		| 'chat-pin'
-		| 'gif'
-		| 'image'
-		| 'tower defense'
-		| 'background'
-		| 'messages'
-		| 'whiteboard'
-		| 'animation'
-		| 'isTyping'
-		| 'username'
-		| 'weather'
-		| 'settings-url'
-		| 'pin-item'
-		| 'move-item'
-		| 'unpin-item';
->>>>>>> a39c8f30a9209ca4e086ab16594674d798187311
 	value?: any;
 	[key: string]: any;
 }
@@ -183,14 +162,9 @@ export enum PanelItemEnum {
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
-<<<<<<< HEAD
-	'new-room' = 'new-room',
-	'roomDirectory' = 'roomDirectory',
-	'poem' = 'poem'
-=======
+	'poem' = 'poem',
 	'sound' = 'sound',
 	'emoji' = 'emoji'
->>>>>>> a39c8f30a9209ca4e086ab16594674d798187311
 }
 
 export interface IUserLocations {
