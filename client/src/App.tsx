@@ -196,11 +196,8 @@ function App() {
 			case 'weather':
 			case 'roomDirectory':
 			case 'settings':
-<<<<<<< HEAD
 			case 'poem':
-=======
 			case 'email':
->>>>>>> a39c8f30a9209ca4e086ab16594674d798187311
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);

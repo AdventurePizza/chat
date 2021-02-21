@@ -16,11 +16,7 @@ import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
-<<<<<<< HEAD
-import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import {Poem} from './Poem';
-=======
->>>>>>> a39c8f30a9209ca4e086ab16594674d798187311
 
 export interface IPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
