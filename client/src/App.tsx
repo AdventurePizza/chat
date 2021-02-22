@@ -111,6 +111,7 @@ function App() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [bottomPanelHeight, setBottomPanelHeight] = useState(0);
 	const [chatMessages, setChatMessages] = useState<IChatMessage[]>([]);
+	const [messageForAI, setMessageForAI] = useState<string>("Hello");
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
@@ -212,6 +213,7 @@ function App() {
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
+		setMessageForAI(value);
 		setAvatarMessages((messages) => ({
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
@@ -800,6 +802,7 @@ function App() {
 					key: 'chat',
 					value: chatValue
 				});
+				setMessageForAI(chatValue);
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				break;
 			case 'chat-pin':
@@ -1315,6 +1318,7 @@ function App() {
 				pinnedText={pinnedText}
 				unpinText={unpinText}
 				moveItem={moveItem}
+				messageForAI={messageForAI}
 			/>
 
 			<TowerDefense

@@ -60,6 +60,7 @@ interface IBoardProps {
 		left: number,
 		top: number
 	) => void;
+	messageForAI?: string,
 }
 
 export const Board = ({
@@ -89,7 +90,8 @@ export const Board = ({
 	unpinBackground,
 	pinnedText,
 	unpinText,
-	moveItem
+	moveItem,
+	messageForAI,
 }: IBoardProps) => {
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
@@ -105,7 +107,6 @@ export const Board = ({
 			return undefined;
 		}
 	});
-
 	return (
 		<div
 			className="board-container"
@@ -336,7 +337,7 @@ export const Board = ({
 				weather={weather}
 			/>
 
-			<OpenAI/>
+			<OpenAI message={messageForAI}/>
 		</div>
 	);
 };
