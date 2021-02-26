@@ -196,6 +196,7 @@ function App() {
 			case 'weather':
 			case 'roomDirectory':
 			case 'settings':
+			case 'poem':
 			case 'email':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -361,40 +362,43 @@ function App() {
 		}
 	}, []);
 
-	const fireTowers = useCallback((towerTypes: string[]) => {
-		towerDefenseState.towers.forEach((tower) => {
-			if (towerTypes.includes(tower.type)) {
-				// only hit first enemy
-				for (let i = 0; i < towerDefenseState.units.length; i++) {
-					const unit = towerDefenseState.units[i];
-	
-					const { ref } = unit;
-					if (ref && ref.current) {
-						const rect = ref.current.getBoundingClientRect();
-	
-						const distance = getDistanceBetweenPoints(
-							tower.left,
-							tower.top,
-							rect.left,
-							rect.top
-						);
-	
-						const relativeDistance = distance / window.innerWidth;
-	
-						if (relativeDistance < 0.4) {
-							socket.emit('event', {
-								key: 'tower defense',
-								value: 'fire tower',
-								towerKey: tower.key,
-								unitKey: unit.key
-							});
-							break;
+	const fireTowers = useCallback(
+		(towerTypes: string[]) => {
+			towerDefenseState.towers.forEach((tower) => {
+				if (towerTypes.includes(tower.type)) {
+					// only hit first enemy
+					for (let i = 0; i < towerDefenseState.units.length; i++) {
+						const unit = towerDefenseState.units[i];
+
+						const { ref } = unit;
+						if (ref && ref.current) {
+							const rect = ref.current.getBoundingClientRect();
+
+							const distance = getDistanceBetweenPoints(
+								tower.left,
+								tower.top,
+								rect.left,
+								rect.top
+							);
+
+							const relativeDistance = distance / window.innerWidth;
+
+							if (relativeDistance < 0.4) {
+								socket.emit('event', {
+									key: 'tower defense',
+									value: 'fire tower',
+									towerKey: tower.key,
+									unitKey: unit.key
+								});
+								break;
+							}
 						}
 					}
 				}
-			}
-		});
-	}, [towerDefenseState]);
+			});
+		},
+		[towerDefenseState]
+	);
 
 	const handleTowerDefenseEvents = useCallback(
 		(message: IMessageEvent) => {
@@ -1366,7 +1370,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, and ishaan`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
 				placement="left"
 			>
 				<div className="adventure-logo">

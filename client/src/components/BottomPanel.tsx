@@ -16,6 +16,7 @@ import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
+import { Poem } from './Poem';
 
 export interface IPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -154,6 +155,18 @@ const PanelContent = ({
 		case 'weather':
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
+			);
+		case 'poem':
+			return (
+				<Poem
+					sendMessage={(message) => {
+						onAction('chat', message);
+					}}
+					pinMessage={(message) => {
+						onAction('chat-pin', message);
+					}}
+					updateIsTyping={updateIsTyping}
+				/>
 			);
 		case 'roomDirectory':
 			return (
