@@ -2,8 +2,6 @@ import React, { useRef, useState } from 'react';
 
 import { PinButton } from './shared/PinButton';
 import { StyledButton } from './shared/StyledButton';
-import { TextareaAutosize, TextField } from '@material-ui/core';
-//import {textarea} from
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
