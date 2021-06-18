@@ -68,6 +68,8 @@ import { backgrounds } from './components/BackgroundImages';
 import io from 'socket.io-client';
 import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
+import { MetamaskSection } from './components/MetamaskSection';
+import { AppStateContextProvider } from './contexts/appState';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -198,6 +200,7 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
+			case 'marketplace':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -1284,141 +1287,146 @@ function App() {
 	}
 
 	return (
-		<div
-			className="app"
-			style={{
-				height: window.innerHeight - bottomPanelHeight
-			}}
-			onClick={onClickApp}
-		>
-			<Board
-				background={background}
-				musicNotes={musicNotes}
-				updateNotes={setMusicNotes}
-				emojis={emojis}
-				updateEmojis={setEmojis}
-				gifs={gifs}
-				updateGifs={setGifs}
-				images={images}
-				updateImages={setImages}
-				chatMessages={chatMessages}
-				updateChatMessages={setChatMessages}
-				userLocations={userLocations}
-				userProfiles={userProfiles}
-				setUserProfiles={setUserProfiles}
-				animations={animations}
-				updateAnimations={setAnimations}
-				avatarMessages={avatarMessages}
-				weather={weather}
-				updateWeather={setWeather}
-				pinGif={pinGif}
-				unpinGif={unpinGif}
-				pinImage={pinImage}
-				unpinImage={unpinImage}
-				pinBackground={pinBackground}
-				unpinBackground={unpinBackground}
-				pinnedText={pinnedText}
-				unpinText={unpinText}
-				moveItem={moveItem}
-			/>
-
-			<TowerDefense
-				state={towerDefenseState}
-				updateUnits={(units) =>
-					setTowerDefenseState((state) => ({ ...state, units }))
-				}
-				updateProjectiles={(projectiles) =>
-					setTowerDefenseState((state) => ({ ...state, projectiles }))
-				}
-				updateGold={(gold) =>
-					setTowerDefenseState((state) => ({ ...state, gold }))
-				}
-			/>
-
-			<Whiteboard
-				onWhiteboardPanel={onWhiteboardPanel}
-				canvasRef={canvasRef}
-				brushColor={brushColor}
-				onAction={actionHandler}
-			/>
-
-			<div className="open-panel-button">
-				{!isPanelOpen && (
-					<Tooltip title="open panel">
-						<IconButton
-							onClick={() => {
-								setIsPanelOpen(true);
-							}}
-						>
-							<ChevronRight />
-						</IconButton>
-					</Tooltip>
-				)}
-			</div>
-			<Panel
-				onClick={onClickPanelItem}
-				isOpen={isPanelOpen}
-				onClose={() => {
-					setIsPanelOpen(false);
+		<AppStateContextProvider>
+			<div
+				className="app"
+				style={{
+					height: window.innerHeight - bottomPanelHeight
 				}}
-				selectedItem={selectedPanelItem}
-				avatar={
-					userProfile && userProfile.avatar
-						? avatarMap[userProfile.avatar]
-						: undefined
-				}
-			/>
-
-			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
-				placement="left"
+				onClick={onClickApp}
 			>
-				<div className="adventure-logo">
-					<div>adventure</div>
-					<div>corp</div>
-				</div>
-			</Tooltip>
-
-			<BottomPanel
-				bottomPanelRef={bottomPanelRef}
-				towerDefenseState={towerDefenseState}
-				setBrushColor={(color: string) => setBrushColor(color)}
-				type={selectedPanelItem}
-				isOpen={Boolean(selectedPanelItem)}
-				onAction={actionHandler}
-				updateIsTyping={onIsTyping}
-			/>
-
-			{userProfile && (
-				<UserCursor
-					ref={userCursorRef}
-					{...userProfile}
-					deleteSoundType={deleteProfileSoundType}
-					isSelectingTower={towerDefenseState.selectedPlacementTower}
-					isMovingBoardObject={!!movingBoardItem}
+				<MetamaskSection />
+				<Board
+					background={background}
+					musicNotes={musicNotes}
+					updateNotes={setMusicNotes}
+					emojis={emojis}
+					updateEmojis={setEmojis}
+					gifs={gifs}
+					updateGifs={setGifs}
+					images={images}
+					updateImages={setImages}
+					chatMessages={chatMessages}
+					updateChatMessages={setChatMessages}
+					userLocations={userLocations}
+					userProfiles={userProfiles}
+					setUserProfiles={setUserProfiles}
+					animations={animations}
+					updateAnimations={setAnimations}
+					avatarMessages={avatarMessages}
+					weather={weather}
+					updateWeather={setWeather}
+					pinGif={pinGif}
+					unpinGif={unpinGif}
+					pinImage={pinImage}
+					unpinImage={unpinImage}
+					pinBackground={pinBackground}
+					unpinBackground={unpinBackground}
+					pinnedText={pinnedText}
+					unpinText={unpinText}
+					moveItem={moveItem}
 				/>
-			)}
-			<Modal
-				onClose={() => setModalState(null)}
-				className="modal-container"
-				open={!!modalState}
-			>
-				<>
-					{modalState === 'new-room' && (
-						<NewChatroom
-							onClickCancel={() => setModalState(null)}
-							onCreate={onCreateRoom}
-						/>
+
+				<TowerDefense
+					state={towerDefenseState}
+					updateUnits={(units) =>
+						setTowerDefenseState((state) => ({ ...state, units }))
+					}
+					updateProjectiles={(projectiles) =>
+						setTowerDefenseState((state) => ({ ...state, projectiles }))
+					}
+					updateGold={(gold) =>
+						setTowerDefenseState((state) => ({ ...state, gold }))
+					}
+				/>
+
+				<Whiteboard
+					onWhiteboardPanel={onWhiteboardPanel}
+					canvasRef={canvasRef}
+					brushColor={brushColor}
+					onAction={actionHandler}
+				/>
+
+				<div className="open-panel-button">
+					{!isPanelOpen && (
+						<Tooltip title="open panel">
+							<IconButton
+								onClick={() => {
+									setIsPanelOpen(true);
+								}}
+							>
+								<ChevronRight />
+							</IconButton>
+						</Tooltip>
 					)}
-					{modalState === 'enter-room' && (
-						<EnterRoomModal
-							roomName={roomToEnter}
-							onClickCancel={() => setModalState(null)}
-						/>
-					)}
-				</>
-			</Modal>
-		</div>
+				</div>
+				<Panel
+					onClick={onClickPanelItem}
+					isOpen={isPanelOpen}
+					onClose={() => {
+						setIsPanelOpen(false);
+					}}
+					selectedItem={selectedPanelItem}
+					avatar={
+						userProfile && userProfile.avatar
+							? avatarMap[userProfile.avatar]
+							: undefined
+					}
+				/>
+
+				<Tooltip
+					title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+					placement="left"
+				>
+					<div className="adventure-logo">
+						<div>adventure</div>
+						<div>corp</div>
+					</div>
+				</Tooltip>
+
+				<AppStateContextProvider>
+					<BottomPanel
+						bottomPanelRef={bottomPanelRef}
+						towerDefenseState={towerDefenseState}
+						setBrushColor={(color: string) => setBrushColor(color)}
+						type={selectedPanelItem}
+						isOpen={Boolean(selectedPanelItem)}
+						onAction={actionHandler}
+						updateIsTyping={onIsTyping}
+					/>
+				</AppStateContextProvider>
+
+				{userProfile && (
+					<UserCursor
+						ref={userCursorRef}
+						{...userProfile}
+						deleteSoundType={deleteProfileSoundType}
+						isSelectingTower={towerDefenseState.selectedPlacementTower}
+						isMovingBoardObject={!!movingBoardItem}
+					/>
+				)}
+				<Modal
+					onClose={() => setModalState(null)}
+					className="modal-container"
+					open={!!modalState}
+				>
+					<>
+						{modalState === 'new-room' && (
+							<NewChatroom
+								onClickCancel={() => setModalState(null)}
+								onCreate={onCreateRoom}
+							/>
+						)}
+						{modalState === 'enter-room' && (
+							<EnterRoomModal
+								roomName={roomToEnter}
+								onClickCancel={() => setModalState(null)}
+							/>
+						)}
+					</>
+				</Modal>
+			</div>
+		</AppStateContextProvider>
 	);
 }
 
