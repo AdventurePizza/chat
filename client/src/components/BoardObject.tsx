@@ -24,7 +24,8 @@ const useStyles = makeStyles({
 	text: {
 		padding: 5,
 		display: 'flex',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		whiteSpace: 'pre-line' //allows it to display multiple lines!
 	}
 });
 
