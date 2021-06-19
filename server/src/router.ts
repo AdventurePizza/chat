@@ -6,13 +6,17 @@ import fetch from "node-fetch";
 import http from "http";
 import { sendEmail } from "./email";
 import { v4 as uuidv4 } from "uuid";
+import authRouter from "./auth";
+import usersRouter from "./users";
+import cors from "cors";
+import * as jwt from "jsonwebtoken";
+import roomRouter from "./room";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
+const expressjwt = require("express-jwt");
 const { getMetadata } = require("page-metadata-parser");
 const domino = require("domino");
-
-const IS_DEBUG = false;
 
 const port = process.env.PORT || 8000;
 
@@ -97,14 +101,54 @@ interface IMessageEvent {
   [key: string]: any;
 }
 
+const authenticatedUsers: {
+  [wsId: string]: {
+    isVerified: boolean;
+    publicAddress: string;
+  };
+} = {};
+
 export class Router {
   constructor() {
     httpServer.listen(port, () => {
       console.log("server listening on port", port);
     });
 
+    app.use(cors());
+    app.use(express.json());
+    app.use("/users", usersRouter);
+    app.use("/auth", authRouter);
+    app.use(
+      "/room",
+      expressjwt({
+        //@ts-ignore
+        secret: Buffer.from(process.env.JWT_SECRET, "base64"),
+        algorithms: ["HS256"],
+        credentialsRequired: false,
+      }),
+      roomRouter
+    );
+
     io.on("connect", (socket: Socket) => {
-      IS_DEBUG && console.log("connected user");
+      socket.on("authenticate", ({ token }: { token?: string }) => {
+        if (!token) return;
+
+        jwt.verify(
+          token,
+          //@ts-ignore
+          Buffer.from(process.env.JWT_SECRET, "base64"),
+          // process.env.JWT_SECRET,
+          (err, decoded) => {
+            if (!err) {
+              authenticatedUsers[socket.id] = {
+                isVerified: true,
+                //@ts-ignore
+                publicAddress: decoded.payload.publicAddress,
+              };
+            } else console.log(err);
+          }
+        );
+      });
 
       createProfile(socket);
 
@@ -135,12 +179,12 @@ export class Router {
           socket.join(roomId);
           clientRooms[socket.id] = roomId;
 
-          socket.emit("event", {
-            key: "background",
-            value: backgroundState[roomId]
-              ? backgroundState[roomId].currentBackground
-              : undefined,
-          });
+          if (backgroundState[roomId]) {
+            socket.emit("event", {
+              key: "background",
+              value: backgroundState[roomId].currentBackground,
+            });
+          }
 
           const towerDefenseStateRoom = towerDefenseState[roomId];
 
@@ -172,6 +216,7 @@ export class Router {
         delete clientProfiles[socket.id];
         delete selectedAvatars[socket.id];
         delete chatMessages[socket.id];
+        delete authenticatedUsers[socket.id];
       });
 
       socket.on("cursor move", (data) => {
@@ -513,7 +558,11 @@ const spawnEnemy = (roomId: string) => {
 };
 
 const fireTowers = (roomId: string, towerTypes: string[]) => {
-  io.to(roomId).emit("event", { key: "tower defense", value: "fire towers", towerTypes: towerTypes });
+  io.to(roomId).emit("event", {
+    key: "tower defense",
+    value: "fire towers",
+    towerTypes: towerTypes,
+  });
 };
 
 const GAME_LENGTH_SECONDS = 120;
@@ -543,19 +592,19 @@ const startGame = (roomId: string) => {
       spawnEnemy(roomId);
     }
 
-    let towerTypes: string[] = []
+    let towerTypes: string[] = [];
 
     // fire every 4 seconds
     if (loopCounter % 4 === 0) {
-      towerTypes.push('basic')
+      towerTypes.push("basic");
     }
 
     // fire every 3 seconds
     if (loopCounter % 3 === 0) {
-      towerTypes.push('bowman')
+      towerTypes.push("bowman");
     }
 
-    if (towerTypes.length > 0) fireTowers(roomId, towerTypes)
+    if (towerTypes.length > 0) fireTowers(roomId, towerTypes);
 
     towerDefenseStateRoom.loopCounter++;
 
@@ -648,3 +697,15 @@ const resolveUrl = async (url: string): Promise<IMetadata> => {
   }
   return Promise.resolve(metadata);
 };
+
+// typing for jwt which puts payload on req.user
+declare global {
+  namespace Express {
+    export interface Request {
+      user: any;
+    }
+    export interface Response {
+      user: any;
+    }
+  }
+}

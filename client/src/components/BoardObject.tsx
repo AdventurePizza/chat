@@ -6,6 +6,9 @@ import { IGif } from '@giphy/js-types';
 import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
+import { IOrder } from '../types';
+import { Order } from './NFT/Order';
+import { CustomToken as NFT } from '../typechain/CustomToken';
 
 const useStyles = makeStyles({
 	container: {
@@ -31,7 +34,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text';
+	type: 'gif' | 'image' | 'text' | 'NFT';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -43,6 +46,12 @@ interface BoardObjectProps {
 	left: number;
 
 	isPinned?: boolean;
+	order?: IOrder;
+
+	addNewContract?: (nftAddress: string) => Promise<NFT | undefined>;
+
+	onBuy?: (nftId: string) => void;
+	onCancel?: (nftId: string) => void;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -56,7 +65,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 		type,
 		imgSrc,
 		text,
-		id
+		id,
+		order,
+		addNewContract,
+		onBuy,
+		onCancel
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -98,6 +111,14 @@ export const BoardObject = (props: BoardObjectProps) => {
 					<div className={classes.text} style={{ width: 180 }}>
 						{text}
 					</div>
+				)}
+				{type === 'NFT' && order && (
+					<Order
+						onBuy={() => (onBuy ? onBuy(id) : undefined)}
+						onCancel={() => (onCancel ? onCancel(id) : undefined)}
+						addNewContract={addNewContract}
+						order={order}
+					/>
 				)}
 			</Paper>
 
