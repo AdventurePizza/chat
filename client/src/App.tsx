@@ -57,7 +57,7 @@ import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
 import { EnterRoomModal } from './components/RoomDirectoryPanel';
-import { FirebaseContext } from './firebaseContext';
+import { FirebaseContext } from './contexts/FirebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
@@ -65,34 +65,35 @@ import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
-import io from 'socket.io-client';
 import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
 import { MetamaskSection } from './components/MetamaskSection';
-import { AppStateContextProvider } from './contexts/appState';
-
-const socketURL =
-	window.location.hostname === 'localhost'
-		? 'ws://localhost:8000'
-		: 'wss://trychats.herokuapp.com';
-
-const socket = io(socketURL, { transports: ['websocket'] });
+import { AppStateContext } from './contexts/AppStateContext';
+import { ErrorModal } from './components/ErrorModal';
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
 function App() {
+	const { socket } = useContext(AppStateContext);
+
+	const [hasFetchedRoomPinnedItems, setHasFetchedRoomPinnedItems] = useState(
+		false
+	);
+
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 
-	const [isRoomError, setIsRoomError] = useState(false);
+	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
+	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
+		null
+	);
 
 	const firebaseContext = useContext(FirebaseContext);
-	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [modalState, setModalState] = useState<
-		'new-room' | 'enter-room' | null
+		'new-room' | 'enter-room' | 'error' | null
 	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -150,6 +151,10 @@ function App() {
 		condition: ''
 	});
 
+	useEffect(() => {
+		setHasFetchedRoomPinnedItems(false);
+	}, [roomId]);
+
 	const playEmoji = useCallback((dict: IEmojiDict) => {
 		const { x, y } = generateRandomXY();
 
@@ -157,6 +162,12 @@ function App() {
 			emojis.concat({ top: y, left: x, key: uuidv4(), dict })
 		);
 	}, []);
+
+	useEffect(() => {
+		if (modalErrorMessage) {
+			setModalState('error');
+		}
+	}, [modalErrorMessage]);
 
 	const deleteProfileSoundType = () =>
 		setUserProfile((profile) => ({ ...profile, soundType: '' }));
@@ -257,7 +268,7 @@ function App() {
 			_.throttle((position: [number, number]) => {
 				socket.emit('cursor move', { x: position[0], y: position[1] });
 			}, 200),
-		[]
+		[socket]
 	);
 
 	const onMouseMove = useCallback(
@@ -400,7 +411,7 @@ function App() {
 				}
 			});
 		},
-		[towerDefenseState]
+		[towerDefenseState, socket]
 	);
 
 	const handleTowerDefenseEvents = useCallback(
@@ -797,7 +808,8 @@ function App() {
 		roomId,
 		handlePinItemMessage,
 		handleMoveItemMessage,
-		addImage
+		addImage,
+		socket
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -964,7 +976,7 @@ function App() {
 	};
 
 	const onClickApp = useCallback(
-		(event: React.MouseEvent) => {
+		async (event: React.MouseEvent) => {
 			setTowerDefenseState((state) => {
 				const { x, y } = getRelativePos(event.clientX, event.clientY, 60, 60);
 				if (state.selectedPlacementTower) {
@@ -1004,156 +1016,197 @@ function App() {
 				if (movingBoardItem.isNew && movingBoardItem.type === 'text') {
 					const { itemKey, value } = movingBoardItem;
 
-					socket.emit('event', {
-						key: 'pin-item',
-						type: movingBoardItem.type,
-						value,
-						top: y,
-						left: x,
-						itemKey,
-						isNew: true
-					});
+					const pinResult = await firebaseContext.pinRoomItem(
+						roomId || 'default',
+						{
+							type: 'text',
+							top: y,
+							left: x,
+							key: itemKey,
+							value
+						}
+					);
 
-					firebaseContext.pinRoomItem(roomId || 'default', {
-						type: 'text',
-						top: y,
-						left: x,
-						key: itemKey,
-						value
-					});
+					if (pinResult.isSuccessful) {
+						socket.emit('event', {
+							key: 'pin-item',
+							type: movingBoardItem.type,
+							value,
+							top: y,
+							left: x,
+							itemKey,
+							isNew: true
+						});
+					} else if (pinResult.message) {
+						setModalErrorMessage(pinResult.message);
+					}
 				}
 
 				setMovingBoardItem(undefined);
 			}
 		},
-		[movingBoardItem, firebaseContext, roomId]
+		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = (roomName: string) => {
-		return firebaseContext.createRoom(roomName);
+	const onCreateRoom = async (roomName: string, isAccessLocked: boolean) => {
+		const result = await firebaseContext.createRoom(roomName, isAccessLocked);
+
+		if (result.isSuccessful) {
+			setModalState(null);
+			history.push(`/room/${roomName}`);
+		}
+
+		return result;
 	};
 
 	useEffect(() => {
 		const room = roomId || 'default';
 
-		firebaseContext.getRoom(room).then((result) => {
-			if (result === null) {
-				setIsRoomError(true);
-			} else {
-				setIsRoomError(false);
-			}
-		});
-
-		firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
-			const pinnedGifs: IGifs[] = [];
-			const pinnedImages: IBoardImage[] = [];
-			const pinnedText: { [key: string]: IPinnedItem } = {};
-			let background: string | undefined;
-
-			pinnedItems.forEach((item) => {
-				if (item.type === 'gif') {
-					pinnedGifs.push({
-						...item,
-						top: item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						key: item.key!,
-						data: item.data!
-					});
-				} else if (item.type === 'image') {
-					pinnedImages.push({
-						...item,
-						top: item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						key: item.key!,
-						url: item.url
-					});
-				} else if (item.type === 'background') {
-					background = item.name;
-				} else if (item.type === 'text') {
-					pinnedText[item.key!] = {
-						...item,
-						top: item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						key: item.key!,
-						text: item.value
-					};
+		if (isInvalidRoom === undefined) {
+			firebaseContext.getRoom(room).then((result) => {
+				if (result === null) {
+					setIsInvalidRoom(true);
+				} else {
+					setIsInvalidRoom(false);
 				}
 			});
+		}
 
-			setGifs(pinnedGifs);
-			setImages(pinnedImages);
-			setPinnedText(pinnedText);
-			setBackground({ name: background, isPinned: !!background });
-		});
-	}, [roomId, history, firebaseContext]);
+		if (!hasFetchedRoomPinnedItems) {
+			setHasFetchedRoomPinnedItems(true);
 
-	const pinGif = (gifKey: string) => {
+			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
+				if (!pinnedItems.data) return;
+
+				const pinnedGifs: IGifs[] = [];
+				const pinnedImages: IBoardImage[] = [];
+				const pinnedText: { [key: string]: IPinnedItem } = {};
+				let background: string | undefined;
+
+				pinnedItems.data.forEach((item) => {
+					if (item.type === 'gif') {
+						pinnedGifs.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							data: item.data!
+						});
+					} else if (item.type === 'image') {
+						pinnedImages.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							url: item.url
+						});
+					} else if (item.type === 'background') {
+						background = item.name;
+					} else if (item.type === 'text') {
+						pinnedText[item.key!] = {
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							text: item.value
+						};
+					}
+				});
+
+				setGifs(pinnedGifs);
+				setImages(pinnedImages);
+				setPinnedText(pinnedText);
+				setBackground({ name: background, isPinned: !!background });
+			});
+		}
+	}, [
+		hasFetchedRoomPinnedItems,
+		isInvalidRoom,
+		roomId,
+		// firebaseContext.getRoomPinnedItems,
+		// firebaseContext.getRoom,
+		firebaseContext
+	]);
+
+	const pinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
 		const room = roomId || 'default';
 
 		if (gif && !gif.isPinned) {
-			firebaseContext.pinRoomItem(room, {
+			const result = await firebaseContext.pinRoomItem(room, {
 				...gif,
 				type: 'gif',
 				left: gif.left / window.innerWidth,
 				top: gif.top / window.innerHeight
 			});
-			setGifs([
-				...gifs.slice(0, gifIndex),
-				{ ...gif, isPinned: true },
-				...gifs.slice(gifIndex + 1)
-			]);
 
-			socket.emit('event', {
-				key: 'pin-item',
-				type: 'gif',
-				itemKey: gifKey
-			});
+			if (result.isSuccessful) {
+				setGifs([
+					...gifs.slice(0, gifIndex),
+					{ ...gif, isPinned: true },
+					...gifs.slice(gifIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'gif',
+					itemKey: gifKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
 		}
 	};
 
-	const pinImage = (imageKey: string) => {
+	const pinImage = async (imageKey: string) => {
 		const imageIndex = images.findIndex((image) => image.key === imageKey);
 		const image = images[imageIndex];
 		const room = roomId || 'default';
 
 		if (image && !image.isPinned) {
-			firebaseContext.pinRoomItem(room, {
+			const result = await firebaseContext.pinRoomItem(room, {
 				...image,
 				type: 'image',
 				left: image.left / window.innerWidth,
 				top: image.top / window.innerHeight
 			});
-			setImages([
-				...images.slice(0, imageIndex),
-				{ ...image, isPinned: true },
-				...images.slice(imageIndex + 1)
-			]);
 
-			socket.emit('event', {
-				key: 'pin-item',
-				type: 'image',
-				itemKey: imageKey
-			});
+			if (result.isSuccessful) {
+				setImages([
+					...images.slice(0, imageIndex),
+					{ ...image, isPinned: true },
+					...images.slice(imageIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'image',
+					itemKey: imageKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
 		}
 	};
 
-	const pinBackground = () => {
+	const pinBackground = async () => {
 		const room = roomId || 'default';
 
-		if (!background.isPinned) {
-			firebaseContext.pinRoomItem(room, {
-				name: background.name,
-				type: 'background',
-				top: 0,
-				left: 0
-			});
+		// if (!background.isPinned) {
+		const result = await firebaseContext.pinRoomItem(room, {
+			name: background.name,
+			type: 'background',
+			top: 0,
+			left: 0
+		});
+
+		if (result.isSuccessful) {
 			setBackground((background) => ({ ...background, isPinned: true }));
 
 			socket.emit('event', {
@@ -1161,75 +1214,130 @@ function App() {
 				type: 'background',
 				name: background.name
 			});
+		} else if (result.message) {
+			setModalErrorMessage(result.message);
 		}
+		// }
 	};
 
-	const unpinBackground = () => {
+	const unpinBackground = async () => {
 		const room = roomId || 'default';
 
 		if (background.isPinned) {
-			firebaseContext.unpinRoomItem(room, 'background');
-			setBackground({ name: '', isPinned: false });
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				'background'
+			);
 
-			socket.emit('event', {
-				key: 'unpin-item',
-				type: 'background'
-			});
+			if (isSuccessful) {
+				setBackground({ name: '', isPinned: false });
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'background'
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
 		}
 	};
 
-	const unpinGif = (gifKey: string) => {
+	const unpinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
 		const room = roomId || 'default';
 
 		if (gif && gif.isPinned) {
-			firebaseContext.unpinRoomItem(room, gif.key);
-			setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				gif.key
+			);
+			if (isSuccessful) {
+				setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
 
-			socket.emit('event', {
-				key: 'unpin-item',
-				type: 'gif',
-				itemKey: gifKey
-			});
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'gif',
+					itemKey: gifKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
 		}
 	};
 
-	const unpinImage = (imageKey: string) => {
+	const unpinImage = async (imageKey: string) => {
 		const index = images.findIndex((image) => image.key === imageKey);
 		const image = images[index];
 		const room = roomId || 'default';
 
 		if (image && image.isPinned) {
-			firebaseContext.unpinRoomItem(room, image.key);
-			setImages([...images.slice(0, index), ...images.slice(index + 1)]);
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				image.key
+			);
+			if (isSuccessful) {
+				setImages([...images.slice(0, index), ...images.slice(index + 1)]);
 
-			socket.emit('event', {
-				key: 'unpin-item',
-				type: 'image',
-				itemKey: imageKey
-			});
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'image',
+					itemKey: imageKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
 		}
 	};
 
-	const unpinText = (key: string) => {
-		const newPinnedText = { ...pinnedText };
+	const unpinText = async (key: string) => {
+		const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+			roomId || 'default',
+			key
+		);
 
-		delete newPinnedText[key];
+		if (isSuccessful) {
+			const newPinnedText = { ...pinnedText };
 
-		setPinnedText(newPinnedText);
+			delete newPinnedText[key];
 
-		firebaseContext.unpinRoomItem(roomId || 'default', key);
+			setPinnedText(newPinnedText);
 
-		socket.emit('event', {
-			key: 'unpin-item',
-			type: 'text',
-			itemKey: key
-		});
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'text',
+				itemKey: key
+			});
+		} else if (message) {
+			setModalErrorMessage(message);
+		}
 	};
 
-	const moveItem = (type: PinTypes, id: string, left: number, top: number) => {
+	const moveItem = async (
+		type: PinTypes,
+		id: string,
+		left: number,
+		top: number
+	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
+
+		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+			roomId || 'default',
+			{
+				type,
+				top: y,
+				left: x,
+				key: id
+			}
+		);
+
+		if (!isSuccessful) {
+			if (message) {
+				setModalErrorMessage(message);
+			}
+			return;
+		}
+
 		if (type === 'text') {
 			setPinnedText(
 				update(pinnedText, {
@@ -1273,160 +1381,158 @@ function App() {
 			left: x,
 			itemKey: id
 		});
-
-		firebaseContext.movePinnedRoomItem(roomId || 'default', {
-			type,
-			top: y,
-			left: x,
-			key: id
-		});
 	};
 
-	if (isRoomError) {
+	if (isInvalidRoom) {
 		return <div>Invalid room {roomId}</div>;
 	}
 
 	return (
-		<AppStateContextProvider>
-			<div
-				className="app"
-				style={{
-					height: window.innerHeight - bottomPanelHeight
-				}}
-				onClick={onClickApp}
-			>
-				<MetamaskSection />
-				<Board
-					background={background}
-					musicNotes={musicNotes}
-					updateNotes={setMusicNotes}
-					emojis={emojis}
-					updateEmojis={setEmojis}
-					gifs={gifs}
-					updateGifs={setGifs}
-					images={images}
-					updateImages={setImages}
-					chatMessages={chatMessages}
-					updateChatMessages={setChatMessages}
-					userLocations={userLocations}
-					userProfiles={userProfiles}
-					setUserProfiles={setUserProfiles}
-					animations={animations}
-					updateAnimations={setAnimations}
-					avatarMessages={avatarMessages}
-					weather={weather}
-					updateWeather={setWeather}
-					pinGif={pinGif}
-					unpinGif={unpinGif}
-					pinImage={pinImage}
-					unpinImage={unpinImage}
-					pinBackground={pinBackground}
-					unpinBackground={unpinBackground}
-					pinnedText={pinnedText}
-					unpinText={unpinText}
-					moveItem={moveItem}
-				/>
+		<div
+			className="app"
+			style={{
+				height: window.innerHeight - bottomPanelHeight
+			}}
+			onClick={onClickApp}
+		>
+			<MetamaskSection />
+			<Board
+				background={background}
+				musicNotes={musicNotes}
+				updateNotes={setMusicNotes}
+				emojis={emojis}
+				updateEmojis={setEmojis}
+				gifs={gifs}
+				updateGifs={setGifs}
+				images={images}
+				updateImages={setImages}
+				chatMessages={chatMessages}
+				updateChatMessages={setChatMessages}
+				userLocations={userLocations}
+				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
+				animations={animations}
+				updateAnimations={setAnimations}
+				avatarMessages={avatarMessages}
+				weather={weather}
+				updateWeather={setWeather}
+				pinGif={pinGif}
+				unpinGif={unpinGif}
+				pinImage={pinImage}
+				unpinImage={unpinImage}
+				pinBackground={pinBackground}
+				unpinBackground={unpinBackground}
+				pinnedText={pinnedText}
+				unpinText={unpinText}
+				moveItem={moveItem}
+			/>
 
-				<TowerDefense
-					state={towerDefenseState}
-					updateUnits={(units) =>
-						setTowerDefenseState((state) => ({ ...state, units }))
-					}
-					updateProjectiles={(projectiles) =>
-						setTowerDefenseState((state) => ({ ...state, projectiles }))
-					}
-					updateGold={(gold) =>
-						setTowerDefenseState((state) => ({ ...state, gold }))
-					}
-				/>
+			<TowerDefense
+				state={towerDefenseState}
+				updateUnits={(units) =>
+					setTowerDefenseState((state) => ({ ...state, units }))
+				}
+				updateProjectiles={(projectiles) =>
+					setTowerDefenseState((state) => ({ ...state, projectiles }))
+				}
+				updateGold={(gold) =>
+					setTowerDefenseState((state) => ({ ...state, gold }))
+				}
+			/>
 
-				<Whiteboard
-					onWhiteboardPanel={onWhiteboardPanel}
-					canvasRef={canvasRef}
-					brushColor={brushColor}
-					onAction={actionHandler}
-				/>
+			<Whiteboard
+				onWhiteboardPanel={onWhiteboardPanel}
+				canvasRef={canvasRef}
+				brushColor={brushColor}
+				onAction={actionHandler}
+			/>
 
-				<div className="open-panel-button">
-					{!isPanelOpen && (
-						<Tooltip title="open panel">
-							<IconButton
-								onClick={() => {
-									setIsPanelOpen(true);
-								}}
-							>
-								<ChevronRight />
-							</IconButton>
-						</Tooltip>
-					)}
-				</div>
-				<Panel
-					onClick={onClickPanelItem}
-					isOpen={isPanelOpen}
-					onClose={() => {
-						setIsPanelOpen(false);
-					}}
-					selectedItem={selectedPanelItem}
-					avatar={
-						userProfile && userProfile.avatar
-							? avatarMap[userProfile.avatar]
-							: undefined
-					}
-				/>
-
-				<Tooltip
-					title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
-					placement="left"
-				>
-					<div className="adventure-logo">
-						<div>adventure</div>
-						<div>corp</div>
-					</div>
-				</Tooltip>
-
-				<AppStateContextProvider>
-					<BottomPanel
-						bottomPanelRef={bottomPanelRef}
-						towerDefenseState={towerDefenseState}
-						setBrushColor={(color: string) => setBrushColor(color)}
-						type={selectedPanelItem}
-						isOpen={Boolean(selectedPanelItem)}
-						onAction={actionHandler}
-						updateIsTyping={onIsTyping}
-					/>
-				</AppStateContextProvider>
-
-				{userProfile && (
-					<UserCursor
-						ref={userCursorRef}
-						{...userProfile}
-						deleteSoundType={deleteProfileSoundType}
-						isSelectingTower={towerDefenseState.selectedPlacementTower}
-						isMovingBoardObject={!!movingBoardItem}
-					/>
+			<div className="open-panel-button">
+				{!isPanelOpen && (
+					<Tooltip title="open panel">
+						<IconButton
+							onClick={() => {
+								setIsPanelOpen(true);
+							}}
+						>
+							<ChevronRight />
+						</IconButton>
+					</Tooltip>
 				)}
-				<Modal
-					onClose={() => setModalState(null)}
-					className="modal-container"
-					open={!!modalState}
-				>
-					<>
-						{modalState === 'new-room' && (
-							<NewChatroom
-								onClickCancel={() => setModalState(null)}
-								onCreate={onCreateRoom}
-							/>
-						)}
-						{modalState === 'enter-room' && (
-							<EnterRoomModal
-								roomName={roomToEnter}
-								onClickCancel={() => setModalState(null)}
-							/>
-						)}
-					</>
-				</Modal>
 			</div>
-		</AppStateContextProvider>
+			<Panel
+				onClick={onClickPanelItem}
+				isOpen={isPanelOpen}
+				onClose={() => {
+					setIsPanelOpen(false);
+				}}
+				selectedItem={selectedPanelItem}
+				avatar={
+					userProfile && userProfile.avatar
+						? avatarMap[userProfile.avatar]
+						: undefined
+				}
+			/>
+
+			<Tooltip
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				placement="left"
+			>
+				<div className="adventure-logo">
+					<div>adventure</div>
+					<div>corp</div>
+				</div>
+			</Tooltip>
+
+			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
+				towerDefenseState={towerDefenseState}
+				setBrushColor={(color: string) => setBrushColor(color)}
+				type={selectedPanelItem}
+				isOpen={Boolean(selectedPanelItem)}
+				onAction={actionHandler}
+				updateIsTyping={onIsTyping}
+			/>
+
+			{userProfile && (
+				<UserCursor
+					ref={userCursorRef}
+					{...userProfile}
+					deleteSoundType={deleteProfileSoundType}
+					isSelectingTower={towerDefenseState.selectedPlacementTower}
+					isMovingBoardObject={!!movingBoardItem}
+				/>
+			)}
+			<Modal
+				onClose={() => setModalState(null)}
+				className="modal-container"
+				open={!!modalState}
+			>
+				<>
+					{modalState === 'new-room' && (
+						<NewChatroom
+							onClickCancel={() => setModalState(null)}
+							onCreate={onCreateRoom}
+						/>
+					)}
+					{modalState === 'enter-room' && (
+						<EnterRoomModal
+							roomName={roomToEnter}
+							onClickCancel={() => setModalState(null)}
+						/>
+					)}
+					{modalState === 'error' && modalErrorMessage && (
+						<ErrorModal
+							onClickCancel={() => {
+								setModalState(null);
+								setModalErrorMessage(null);
+							}}
+							message={modalErrorMessage}
+						/>
+					)}
+				</>
+			</Modal>
+		</div>
 	);
 }
 

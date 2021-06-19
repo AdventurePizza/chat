@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
 import { InputBase } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
 import { StyledButton } from './StyledButton';
@@ -76,13 +75,13 @@ export const InputButton = ({
 					onChange={onChangeInputValue}
 				/>
 				<Divider className={classes.divider} orientation="vertical" />
-				<IconButton
+				{/* <IconButton
 					color="primary"
 					className={classes.iconButton}
 					aria-label="directions"
-				>
-					<StyledButton onClick={onClickSubmit}>{buttonText}</StyledButton>
-				</IconButton>
+				> */}
+				<StyledButton onClick={onClickSubmit}>{buttonText}</StyledButton>
+				{/* </IconButton> */}
 			</Paper>
 		</div>
 	);

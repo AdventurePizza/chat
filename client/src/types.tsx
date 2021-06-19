@@ -18,6 +18,8 @@ export interface IPinnedItem {
 
 export interface IChatRoom {
 	name: string;
+	isLocked?: boolean;
+	lockedOwnerAddress?: string;
 }
 
 export type AnimationTypes = 'start game' | 'info' | 'end game';
@@ -236,4 +238,9 @@ export interface IWeather {
 export interface IPoem {
 	key: string;
 	value: string;
+}
+
+export interface IFetchResponseBase {
+	message?: string;
+	isSuccessful: boolean;
 }

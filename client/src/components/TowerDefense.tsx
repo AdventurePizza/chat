@@ -88,7 +88,6 @@ export const TowerDefense = (props: ITowerDefenseProps) => {
 							);
 
 							if (toDeleteUnitIndex !== -1) {
-								console.log(ENEMY_VALUES[units[toDeleteUnitIndex].type]);
 								updateGold(gold + ENEMY_VALUES[units[toDeleteUnitIndex].type]);
 								updateUnits([
 									...units.slice(0, toDeleteUnitIndex),

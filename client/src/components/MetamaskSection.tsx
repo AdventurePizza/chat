@@ -1,13 +1,14 @@
 import React, { useContext } from 'react';
 
-import { makeStyles, Button, Paper } from '@material-ui/core';
-import { AppStateContext } from '../contexts/appState';
+import { makeStyles, Paper } from '@material-ui/core';
+import { AuthContext } from '../contexts/AuthProvider';
+import { MetamaskButton } from './MetamaskButton';
 
 const useStyles = makeStyles((theme) => ({
 	metamaskRoot: {
 		position: 'absolute',
-		top: 0,
-		right: 0,
+		top: 10,
+		right: 10,
 		zIndex: 100
 	},
 	avatarRoot: {
@@ -22,29 +23,18 @@ const useStyles = makeStyles((theme) => ({
 
 export const MetamaskSection = () => {
 	const classes = useStyles();
-	const { isLoggedIn, connectMetamask } = useContext(AppStateContext);
+	const { isLoggedIn } = useContext(AuthContext);
 
 	return (
 		<div className={classes.metamaskRoot}>
-			{!isLoggedIn && (
-				<Button
-					variant="contained"
-					onClick={() => {
-						console.log('connect called');
-						connectMetamask();
-					}}
-				>
-					connect metamask
-				</Button>
-			)}
+			{!isLoggedIn && <MetamaskButton />}
 			{isLoggedIn && <Avatar />}
 		</div>
 	);
 };
 
 const Avatar = () => {
-	const { balance, accountId, network } = useContext(AppStateContext);
-	console.log(balance);
+	const { balance, accountId, network } = useContext(AuthContext);
 	const classes = useStyles();
 	const slicedAccountAddress = accountId
 		? accountId.slice(0, 4) + '...' + accountId.slice(-3)
