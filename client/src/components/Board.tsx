@@ -9,6 +9,7 @@ import {
 	IChatMessage,
 	IEmoji,
 	IGifs,
+	IOrder,
 	IPinnedItem,
 	IUserLocations,
 	IUserProfiles,
@@ -24,6 +25,9 @@ import { PinButton } from './shared/PinButton';
 import React from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
+import { ISubmit } from './NFT/OrderInput';
+import { LoadingNFT } from './NFT/NFTPanel';
+import { CustomToken as NFT } from '../typechain/CustomToken';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -59,6 +63,14 @@ interface IBoardProps {
 		left: number,
 		top: number
 	) => void;
+	NFTs: Array<IOrder & IPinnedItem>;
+	loadingNFT?: ISubmit;
+	updateNFTs: (nfts: Array<IOrder & IPinnedItem>) => void;
+	pinNFT: (nftId: string) => void;
+	unpinNFT: (nftId: string) => void;
+	addNewContract: (nftAddress: string) => Promise<NFT | undefined>;
+	onBuy: (nftId: string) => void;
+	onCancel: (nftId: string) => void;
 }
 
 export const Board = ({
@@ -88,7 +100,15 @@ export const Board = ({
 	unpinBackground,
 	pinnedText,
 	unpinText,
-	moveItem
+	moveItem,
+	NFTs,
+	loadingNFT,
+	updateNFTs,
+	pinNFT,
+	unpinNFT,
+	addNewContract,
+	onBuy,
+	onCancel
 }: IBoardProps) => {
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
@@ -100,6 +120,7 @@ export const Board = ({
 			const delta = monitor.getDifferenceFromInitialOffset() as XYCoord;
 			const left = Math.round(item.left + delta.x);
 			const top = Math.round(item.top + delta.y);
+			console.log(item);
 			moveItem(item.itemType, item.id, left, top);
 			return undefined;
 		}
@@ -326,6 +347,45 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+
+			<TransitionGroup>
+				{NFTs.map((nft) => (
+					<CSSTransition
+						key={nft.key}
+						timeout={5000}
+						classNames="gif-transition"
+						onEntered={() => {
+							if (!nft.isPinned) {
+								const index = NFTs.findIndex((_nft) => _nft.key === nft.key);
+								updateNFTs([...NFTs.slice(0, index), ...NFTs.slice(index + 1)]);
+							}
+						}}
+					>
+						<BoardObject
+							{...nft}
+							id={nft.key!}
+							type="NFT"
+							onPin={() => {
+								pinNFT(nft.key!);
+							}}
+							onUnpin={() => {
+								unpinNFT(nft.key!);
+							}}
+							addNewContract={addNewContract}
+							onBuy={onBuy}
+							onCancel={onCancel}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+
+			{/* <TransitionGroup> */}
+			{loadingNFT && (
+				<CSSTransition timeout={3000} classNames="gif-transition">
+					<LoadingNFT submission={loadingNFT} />
+				</CSSTransition>
+			)}
+			{/* </TransitionGroup> */}
 
 			<UserCursors
 				userLocations={userLocations}

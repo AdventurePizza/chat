@@ -1,4 +1,4 @@
-import { IChatRoom, IFetchResponseBase, IPinnedItem } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem } from '../types';
 
 import React, { useCallback, useContext } from 'react';
 import { AuthContext } from './AuthProvider';
@@ -15,7 +15,9 @@ export interface IFirebaseContext {
 	unpinRoomItem: (room: string, itemKey: string) => Promise<IFetchResponseBase>;
 	getRoomPinnedItems: (
 		room: string
-	) => Promise<IFetchResponseBase & { data?: IPinnedItem[] }>;
+	) => Promise<
+		IFetchResponseBase & { data?: IPinnedItem[] | Array<IOrder & IPinnedItem> }
+	>;
 	getAllRooms: () => Promise<IFetchResponseBase & { data?: IChatRoom[] }>;
 	movePinnedRoomItem: (
 		room: string,

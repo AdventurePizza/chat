@@ -16,7 +16,7 @@ const useStyles = makeStyles({
 	message: {
 		color: 'red'
 	},
-	container: {
+	errorModalRoot: {
 		width: 'fit-content',
 		maxWidth: window.innerWidth * 0.8,
 		borderRadius: 20,
@@ -35,7 +35,8 @@ const useStyles = makeStyles({
 		'&:focus': {
 			outline: 'none',
 			boxShadow: 'none'
-		}
+		},
+		zIndex: 9999
 	},
 	cancelButton: {
 		position: 'absolute',
@@ -47,7 +48,7 @@ const useStyles = makeStyles({
 export const ErrorModal = ({ message, onClickCancel }: IErrorModalProps) => {
 	const classes = useStyles();
 	return (
-		<div className={classes.container}>
+		<div className={classes.errorModalRoot}>
 			<IconButton onClick={onClickCancel} className={classes.cancelButton}>
 				<Cancel />
 			</IconButton>

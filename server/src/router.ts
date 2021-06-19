@@ -140,13 +140,11 @@ export class Router {
           // process.env.JWT_SECRET,
           (err, decoded) => {
             if (!err) {
-              console.log("verified jwt through ws");
               authenticatedUsers[socket.id] = {
                 isVerified: true,
                 //@ts-ignore
                 publicAddress: decoded.payload.publicAddress,
               };
-              console.log("authenticated users is now ", authenticatedUsers);
             } else console.log(err);
           }
         );

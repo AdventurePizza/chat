@@ -58,8 +58,13 @@ roomRouter.post("/:roomId/pin", async (req, res) => {
   if (doc.exists) {
     if (item.type === "background") {
       await docRef.collection("pinnedItems").doc("background").set(item);
+    } else if (item.type === "NFT") {
+      await docRef.collection("pinnedItems").doc(item.order.id).set(item);
     } else {
-      await docRef.collection("pinnedItems").doc(item.key!).set(item);
+      await docRef
+        .collection("pinnedItems")
+        .doc(item.key! || item.id)
+        .set(item);
     }
 
     res.status(200).end();
@@ -111,7 +116,7 @@ roomRouter.patch("/:roomId/pin/:itemId", async (req, res) => {
   const docRef = await collection
     .doc(roomId)
     .collection("pinnedItems")
-    .doc(item.key!);
+    .doc(item.key! || item.order.id);
   const doc = await docRef.get();
 
   if (!doc.exists) {

@@ -19,6 +19,7 @@ import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
 import weatherIcon from '../assets/navbar/weatherIcon.png';
 import poemIcon from '../assets/navbar/poemIcon.png';
+import { NFTIcon } from './NFT/NFTPanel';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -114,7 +115,8 @@ const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
 	'new-room': <NewRoomPanelButton />,
-	email: <EmailButton />
+	email: <EmailButton />,
+	NFT: <NFTIcon />
 };
 
 interface IPanelItemProps {

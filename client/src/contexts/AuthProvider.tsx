@@ -1,16 +1,16 @@
 import * as ethers from 'ethers';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import Web3 from 'web3';
 
 declare let ethereum: any;
-let web3: Web3;
 
 const chainIDMap: { [key: string]: string } = {
 	'1': 'ethereum',
 	'3': 'ropsten',
-	'137': 'matic'
+	'137': 'matic',
+	'31337': 'local'
 };
 
 const msgParams = (nonce: string) => [
@@ -47,6 +47,13 @@ interface IAuthProviderProps {
 	socket: SocketIOClient.Socket;
 }
 
+let web3: Web3;
+try {
+	web3 = new Web3(ethereum);
+} catch (e) {
+	console.log('Please use the metamask extension');
+}
+
 export const AuthProvider = (props: IAuthProviderProps) => {
 	const [hasTriedAutoSignIn, setHasTriedAutoSignIn] = useState(false);
 
@@ -58,8 +65,6 @@ export const AuthProvider = (props: IAuthProviderProps) => {
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 	// for logged in acct
 	const [accountId, setAccountId] = useState<string>();
-
-	const web3 = useMemo(() => new Web3(ethereum), []);
 
 	const handleAccountsChanged = useCallback(
 		async (accounts: string[]) => {
@@ -77,12 +82,12 @@ export const AuthProvider = (props: IAuthProviderProps) => {
 
 			setAccountId(newAccount);
 		},
-		[accountId, web3.eth]
+		[accountId]
 	);
 
 	const handleChainChange = useCallback(
 		async (
-			chainId: number
+			chainId: number | string
 		): Promise<{
 			error?: string;
 			accountId?: string;
@@ -92,7 +97,12 @@ export const AuthProvider = (props: IAuthProviderProps) => {
 				let error;
 				let accountId;
 
-				const network = chainIDMap[chainId] || 'Unknown';
+				// handle case chainId is given hexadecimal
+				if (typeof chainId === 'string') {
+					chainId = parseInt(chainId, 16);
+				}
+
+				let network = chainIDMap[chainId] || 'Unknown';
 
 				web3.eth.getAccounts().then(async (accounts) => {
 					if (!accounts || !accounts.length) {
@@ -104,15 +114,17 @@ export const AuthProvider = (props: IAuthProviderProps) => {
 						const balance = await web3.eth.getBalance(accounts[0]);
 						setBalance(balance);
 						resolve({ accountId, network });
+						setNetwork(network);
 					}
 				});
 			});
 		},
-		[web3.eth]
+		[]
 	);
 
 	const connectMetamask = useCallback(() => {
 		return new Promise<string | null>(async (resolve) => {
+			if (!window.ethereum) return null;
 			const chainId = await ethereum.request({ method: 'eth_chainId' });
 			handleChainChange(chainId);
 
@@ -172,12 +184,12 @@ export const AuthProvider = (props: IAuthProviderProps) => {
 				});
 
 				const chainId = await web3.eth.net.getId();
-
-				const { network } = await handleChainChange(chainId);
-				setNetwork(network || '');
+				await handleChainChange(chainId);
+				// const { network } = await handleChainChange(chainId);
+				// setNetwork(network || '');
 			});
 		},
-		[onLogin, handleChainChange, web3.eth]
+		[onLogin, handleChainChange]
 	);
 
 	const autoSignIn = useCallback(async () => {
