@@ -2,18 +2,32 @@ import './index.css';
 
 import App from './App';
 import { DndProvider } from 'react-dnd';
-import { FirebaseProvider } from './firebaseContext';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import reportWebVitals from './reportWebVitals';
+import { AuthProvider } from './contexts/AuthProvider';
+import { FirebaseProvider } from './contexts/FirebaseContext';
+import { AppStateProvider } from './contexts/AppStateContext';
+import io from 'socket.io-client';
+
+const socketURL =
+	window.location.hostname === 'localhost'
+		? 'ws://localhost:8000'
+		: 'wss://trychats.herokuapp.com';
+
+const socket = io(socketURL, { transports: ['websocket'] });
 
 ReactDOM.render(
-	<FirebaseProvider>
-		<DndProvider backend={HTML5Backend}>
-			<App />
-		</DndProvider>
-	</FirebaseProvider>,
+	<DndProvider backend={HTML5Backend}>
+		<AuthProvider socket={socket}>
+			<FirebaseProvider>
+				<AppStateProvider socket={socket}>
+					<App />
+				</AppStateProvider>
+			</FirebaseProvider>
+		</AuthProvider>
+	</DndProvider>,
 	document.getElementById('root')
 );
 
