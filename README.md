@@ -30,13 +30,13 @@ In the server directory run `npm run start:dev`
 
 add your panel type where panel types are declared in `client/src/types.tsx`
 
-panel items are rendered in the `PanelItem` component in  `Panel.tsx`. Add your component to the switch statement
+panel items are rendered in the `PanelItem` component in  `Panel.tsx`. Add your component to the mappings panelIconSrcMap or panelIconComponentMap with the same type as declared in `types.tsx`.
 
 determine what happens when someone clicks the panel item through `App.tsx`'s `onClickPanelItem`, once again add to the switch statement.
 
 ## rendering items in the bottom panel
 
-`BottomPanel.tsx` renders its content based off the panel item types previously declared, add to the switch statement `renderPanelContent` like before.
+`BottomPanel.tsx` renders its content based off the panel item types previously declared, add to the switch statement `renderPanelContent`.
 
 The bottom panel's open state is determined by `App.tsx`, specifically through the state variable `selectedPanelItem`. It should be set in `onClickPanelItem`, mimic the emoji panel. 
 

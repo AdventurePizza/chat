@@ -1,9 +1,13 @@
 import { Cancel, ControlPoint } from '@material-ui/icons';
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import IconButton from '@material-ui/core/IconButton';
 import { InputButton } from './shared/InputButton';
 import { makeStyles } from '@material-ui/core/styles';
+import { Switch, Tooltip } from '@material-ui/core';
+import { AuthContext } from '../contexts/AuthProvider';
+import { MetamaskButton } from './MetamaskButton';
+import { IFetchResponseBase } from '../types';
 
 const useStyles = makeStyles({
 	container: {
@@ -93,6 +97,14 @@ const useStyles = makeStyles({
 		fontSize: 18,
 		marginTop: 10,
 		color: 'lightgreen'
+	},
+	loginContainer: {
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
+		'& > button': {
+			marginTop: 10
+		}
 	}
 });
 
@@ -103,26 +115,50 @@ export interface INewChatroomCreateResponse {
 
 interface INewChatroomProps {
 	onClickCancel: () => void;
-	onCreate: (roomName: string) => Promise<INewChatroomCreateResponse>;
+	onCreate: (
+		roomName: string,
+		isLocked: boolean
+	) => Promise<IFetchResponseBase>;
 }
 
 export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 	const classes = useStyles();
+	const { isLoggedIn } = useContext(AuthContext);
+	// const isLoggedIn = false;
 
+	const [isAccessLocked, setIsAccessLocked] = useState(false);
 	const [inputValue, setInputValue] = useState('');
 	const [errorMsg, setErrorMsg] = useState('');
+	const [hasAttemptedLock, setHasAttemptedLock] = useState(false);
 	const [successMsg, setSuccessMsg] = useState<
 		INewChatroomCreateResponse | undefined
 	>();
 
+	useEffect(() => {
+		if (isAccessLocked && !isLoggedIn) {
+			setHasAttemptedLock(true);
+			setTimeout(() => {
+				setIsAccessLocked(false);
+			}, 1000);
+		} else if (isLoggedIn) {
+			setHasAttemptedLock(false);
+		}
+	}, [isLoggedIn, isAccessLocked]);
+
 	const onClickCreate = async (inputValue: string) => {
-		const { name, message } = await onCreate(inputValue);
+		if (isAccessLocked && !isLoggedIn)
+			return alert('Cannot create locked room without connecting to metamask');
+
+		const { message } = await onCreate(inputValue, isAccessLocked);
+
 		if (message === 'success') {
 			setErrorMsg('');
-			setSuccessMsg({ name, message });
+			setSuccessMsg({ name: inputValue, message });
 		} else {
 			setSuccessMsg(undefined);
-			setErrorMsg(message);
+			if (message) {
+				setErrorMsg(message);
+			}
 		}
 	};
 
@@ -139,6 +175,35 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 				updateValue={setInputValue}
 				placeholder="enter name"
 			/>
+
+			<div>
+				<span>edit access: </span>
+				<span>open</span>
+				<Tooltip title="Prevent others from editing your room">
+					<span>
+						<Switch
+							// disabled={!isLoggedIn}
+							checked={isAccessLocked}
+							onClick={() => setIsAccessLocked(!isAccessLocked)}
+						/>
+					</span>
+				</Tooltip>
+				<span>locked</span>
+			</div>
+
+			{hasAttemptedLock && (
+				<div
+					className={classes.loginContainer}
+					// style={
+					// 	hasAttemptedLock
+					// 		? { visibility: 'visible' }
+					// 		: { visibility: 'hidden' }
+					// }
+				>
+					<div>connect with metamask to restrict edit access</div>
+					<MetamaskButton />
+				</div>
+			)}
 
 			<div className={classes.previewText}>
 				www.trychats.com/#/room/{inputValue}

@@ -1,4 +1,9 @@
-import { IEmojiDict, ITowerDefenseState, PanelItemEnum } from '../types';
+import {
+	IChatRoom,
+	IEmojiDict,
+	ITowerDefenseState,
+	PanelItemEnum
+} from '../types';
 import React, { useState } from 'react';
 
 import AnimationPanel from './AnimationPanel';
@@ -17,8 +22,10 @@ import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
+import { NFTPanel } from './NFT/NFTPanel';
+import { ISubmit } from './NFT/OrderInput';
 
-export interface IPanelProps {
+export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
 	isOpen: boolean;
 	type?: PanelItemEnum;
@@ -26,6 +33,9 @@ export interface IPanelProps {
 	onAction: (key: string, ...args: any[]) => void;
 	towerDefenseState: ITowerDefenseState;
 	updateIsTyping: (isTyping: boolean) => void;
+	onNFTError: (message: string) => void;
+	onNFTSuccess: (submssion: ISubmit) => void;
+	roomData?: IChatRoom;
 }
 
 export interface IPanelContentProps {
@@ -36,6 +46,9 @@ export interface IPanelContentProps {
 	updateIsTyping: (isTyping: boolean) => void;
 	images: IImagesState[];
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
+	onNFTError: (message: string) => void;
+	onNFTSuccess: (submssion: ISubmit) => void;
+	roomData?: IChatRoom;
 }
 
 export interface ISoundPairs {
@@ -51,8 +64,11 @@ export const BottomPanel = ({
 	setBrushColor,
 	onAction,
 	towerDefenseState,
-	updateIsTyping
-}: IPanelProps) => {
+	updateIsTyping,
+	onNFTError,
+	onNFTSuccess,
+	roomData
+}: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 
 	return (
@@ -66,6 +82,9 @@ export const BottomPanel = ({
 					updateIsTyping={updateIsTyping}
 					images={images}
 					setImages={setImages}
+					onNFTError={onNFTError}
+					onNFTSuccess={onNFTSuccess}
+					roomData={roomData}
 				/>
 			</div>
 		</Drawer>
@@ -79,7 +98,10 @@ const PanelContent = ({
 	towerDefenseState,
 	updateIsTyping,
 	images,
-	setImages
+	setImages,
+	onNFTError,
+	onNFTSuccess,
+	roomData
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -179,6 +201,15 @@ const PanelContent = ({
 			return (
 				<EmailPanel
 					sendEmail={(email, message) => onAction('send-email', email, message)}
+				/>
+			);
+
+		case 'NFT':
+			return (
+				<NFTPanel
+					roomData={roomData}
+					onError={onNFTError}
+					onSuccess={onNFTSuccess}
 				/>
 			);
 		default:
