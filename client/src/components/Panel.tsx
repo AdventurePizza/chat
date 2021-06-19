@@ -19,6 +19,7 @@ import soundIcon from '../assets/navbar/soundIcon.png';
 import towerIcon from '../assets/navbar/towerIcon.png';
 import weatherIcon from '../assets/navbar/weatherIcon.png';
 import poemIcon from '../assets/navbar/poemIcon.png';
+import { NFTIcon } from './NFT/NFTPanel';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -60,11 +61,12 @@ export const Panel = ({
 					style={{
 						backgroundColor:
 							selectedItem === 'settings' ? '#87D3F3' : undefined,
-						width: '100%'
+						width: '100%',
+						textAlign: 'center'
 					}}
 				>
 					<IconButton onClick={() => onClick('settings')}>
-						<div className="panel-avatar-container">
+						<div>
 							<img src={avatar} alt="user avatar" className="panel-avatar" />
 
 							<div className="panel-you-container">
@@ -113,7 +115,8 @@ const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
 	'new-room': <NewRoomPanelButton />,
-	email: <EmailButton />
+	email: <EmailButton />,
+	NFT: <NFTIcon />
 };
 
 interface IPanelItemProps {

@@ -1,4 +1,8 @@
 import './App.css';
+import * as ethers from 'ethers';
+import abiNFT from './abis/NFT.abi.json';
+
+import { CustomToken as NFT } from './typechain/CustomToken';
 
 import {
 	BUILDING_COSTS,
@@ -11,6 +15,7 @@ import {
 	IBackgroundState,
 	IBoardImage,
 	IChatMessage,
+	IChatRoom,
 	IEmoji,
 	IEmojiDict,
 	IGifs,
@@ -24,7 +29,8 @@ import {
 	IUserProfiles,
 	IWeather,
 	PanelItemEnum,
-	PinTypes
+	PinTypes,
+	IOrder
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -53,11 +59,13 @@ import {
 } from './components/Animation';
 import { cymbalHit, sounds } from './components/Sounds';
 
+import io from 'socket.io-client';
+
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
 import { ChevronRight } from '@material-ui/icons';
 import { EnterRoomModal } from './components/RoomDirectoryPanel';
-import { FirebaseContext } from './firebaseContext';
+import { FirebaseContext } from './contexts/FirebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
@@ -65,36 +73,90 @@ import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
-import io from 'socket.io-client';
 import update from 'immutability-helper';
 import { v4 as uuidv4 } from 'uuid';
-
-const socketURL =
-	window.location.hostname === 'localhost'
-		? 'ws://localhost:8000'
-		: 'wss://trychats.herokuapp.com';
-
-const socket = io(socketURL, { transports: ['websocket'] });
+import { MetamaskSection } from './components/MetamaskSection';
+import { AppStateContext } from './contexts/AppStateContext';
+import { ErrorModal } from './components/ErrorModal';
+import { ISubmit } from './components/NFT/OrderInput';
+import { AuthContext } from './contexts/AuthProvider';
+import { config, network as configNetwork } from './config';
+import { Marketplace } from './typechain/Marketplace';
+import abiMarketplace from './abis/Marketplace.abi.json';
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
+
+const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
+	transports: ['websocket']
+});
+
 function App() {
+	const { socket } = useContext(AppStateContext);
+	const {
+		network,
+		isLoggedIn,
+		accountId,
+		provider
+		// signIn,
+		// balance
+	} = useContext(AuthContext);
+	//eslint-disable-next-line
+	const [contractMarketplace, setContractMarketplace] = useState<Marketplace>();
+
+	useEffect(() => {
+		if (provider && isLoggedIn) {
+			initMarketplaceContract(provider);
+		}
+	}, [provider, isLoggedIn]);
+
+	const initMarketplaceContract = async (
+		provider: ethers.providers.Web3Provider
+	) => {
+		try {
+			const newContractMarketplace = new ethers.Contract(
+				config[configNetwork].contractAddressMarketplace,
+				abiMarketplace,
+				provider.getSigner()
+			) as Marketplace;
+
+			setContractMarketplace(newContractMarketplace);
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+	const [roomData, setRoomData] = useState<IChatRoom>();
+	// todo allow buy, cancel order
+	//eslint-disable-next-line
+	const [contractsNFT, setContractsNFT] = useState<{
+		[contractAddress: string]: NFT;
+	}>({});
+
+	const [hasFetchedRoomPinnedItems, setHasFetchedRoomPinnedItems] = useState(
+		false
+	);
+
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 
-	const [isRoomError, setIsRoomError] = useState(false);
+	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
+	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
+		null
+	);
 
 	const firebaseContext = useContext(FirebaseContext);
-	//const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [modalState, setModalState] = useState<
-		'new-room' | 'enter-room' | null
+		'new-room' | 'enter-room' | 'error' | null
 	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
 	const [gifs, setGifs] = useState<IGifs[]>([]);
+	const [NFTs, setNFTs] = useState<Array<IOrder & IPinnedItem>>([]);
+	const [loadingNFT, setLoadingNFT] = useState<ISubmit>();
 	const [pinnedText, setPinnedText] = useState<{ [key: string]: IPinnedItem }>(
 		{}
 	);
@@ -148,6 +210,10 @@ function App() {
 		condition: ''
 	});
 
+	useEffect(() => {
+		setHasFetchedRoomPinnedItems(false);
+	}, [roomId]);
+
 	const playEmoji = useCallback((dict: IEmojiDict) => {
 		const { x, y } = generateRandomXY();
 
@@ -155,6 +221,85 @@ function App() {
 			emojis.concat({ top: y, left: x, key: uuidv4(), dict })
 		);
 	}, []);
+
+	useEffect(() => {
+		if (modalErrorMessage) {
+			setModalState('error');
+		}
+	}, [modalErrorMessage]);
+
+	const addNewContract = async (
+		nftAddress: string
+	): Promise<NFT | undefined> => {
+		if (!provider) return undefined;
+
+		const contractNFT = new ethers.Contract(
+			nftAddress,
+			abiNFT,
+			provider.getSigner()
+		) as NFT;
+
+		setContractsNFT((contractsNFT) => ({
+			...contractsNFT,
+			[nftAddress]: contractNFT
+		}));
+
+		return contractNFT;
+	};
+
+	useEffect(() => {
+		if (isLoggedIn && network && network !== configNetwork) {
+			setModalErrorMessage(
+				`Please connect metamask to the ${configNetwork} network`
+			);
+		}
+	}, [network, isLoggedIn]);
+
+	useEffect(() => {
+		async function onAddOrder(order: IOrder) {
+			if (order.ownerAddress.toLowerCase() === accountId?.toLowerCase()) {
+				const { x, y } = generateRandomXY(true, true);
+				const { x: relativeX, y: relativeY } = getRelativePos(x, y, 0, 0);
+				const { isSuccessful, message } = await firebaseContext.pinRoomItem(
+					roomId || 'default',
+					{
+						type: 'NFT',
+						top: relativeY,
+						left: relativeX,
+						order
+					}
+				);
+
+				if (isSuccessful) {
+					setNFTs((nfts) =>
+						nfts.concat({ ...order, top: y, left: x, type: 'NFT' })
+					);
+
+					socket.emit('event', {
+						key: 'pin-item',
+						type: 'NFT',
+						top: y,
+						left: x,
+						itemKey: (order as IOrder & IPinnedItem).key!,
+						isNew: true
+					});
+					setLoadingNFT(undefined);
+				} else if (message) {
+					setModalErrorMessage(message);
+				}
+			}
+		}
+
+		marketplaceSocket.on('add-order', onAddOrder);
+
+		return () => {
+			marketplaceSocket.off('add-order', onAddOrder);
+		};
+	}, [firebaseContext, accountId, roomId, socket]);
+
+	const onNFTSuccess = (submission: ISubmit) => {
+		setLoadingNFT(submission);
+	};
 
 	const deleteProfileSoundType = () =>
 		setUserProfile((profile) => ({ ...profile, soundType: '' }));
@@ -198,6 +343,7 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
+			case 'NFT':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -254,7 +400,7 @@ function App() {
 			_.throttle((position: [number, number]) => {
 				socket.emit('cursor move', { x: position[0], y: position[1] });
 			}, 200),
-		[]
+		[socket]
 	);
 
 	const onMouseMove = useCallback(
@@ -397,7 +543,7 @@ function App() {
 				}
 			});
 		},
-		[towerDefenseState]
+		[towerDefenseState, socket]
 	);
 
 	const handleTowerDefenseEvents = useCallback(
@@ -569,9 +715,27 @@ function App() {
 						}));
 					}
 					break;
+				case 'NFT':
+					const nftIndex = NFTs.findIndex((nft) => nft.key === itemKey);
+					const nft = NFTs[nftIndex];
+					if (nft) {
+						if (isUnpin) {
+							setNFTs([
+								...NFTs.slice(0, nftIndex),
+								...NFTs.slice(nftIndex + 1)
+							]);
+						} else {
+							setNFTs([
+								...NFTs.slice(0, nftIndex),
+								{ ...nft, isPinned: true },
+								...NFTs.slice(nftIndex + 1)
+							]);
+						}
+					}
+					break;
 			}
 		},
-		[gifs, images, pinnedText]
+		[gifs, images, pinnedText, NFTs]
 	);
 
 	const handleMoveItemMessage = useCallback(
@@ -626,10 +790,159 @@ function App() {
 						}));
 					}
 					break;
+				case 'NFT':
+					const nftIndex = NFTs.findIndex((nft) => nft.key === itemKey);
+					const nft = NFTs[nftIndex];
+					if (nft) {
+						setNFTs([
+							...NFTs.slice(0, nftIndex),
+							{
+								...nft,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...NFTs.slice(nftIndex + 1)
+						]);
+					}
+					break;
 			}
 		},
-		[images, gifs, pinnedText]
+		[images, NFTs, gifs, pinnedText]
 	);
+
+	// const onBuy = async (orderId: string) => {
+	// 	if (!accountId) await signIn();
+
+	// 	if (!provider || !contractMarketplace)
+	// 		return console.log(
+	// 			'no provider or contract marketplace: ',
+	// 			provider,
+	// 			contractMarketplace
+	// 		);
+
+	// 	const orderIndex = NFTs.findIndex((nft) => nft.key === orderId);
+
+	// 	if (orderIndex === -1) return console.log('no order for id ', orderId);
+
+	// 	const order = NFTs[orderIndex];
+
+	// 	const { tokenId, priceEth, contractAddress, isPartnered } = order;
+
+	// 	if (balance && parseFloat(balance) < parseFloat(priceEth))
+	// 		return alert('balance too low');
+
+	// 	let contractNFT = contractsNFT[contractAddress];
+
+	// 	if (!contractNFT) {
+	// 		const contractResult = await addNewContract(contractAddress);
+
+	// 		if (!contractResult) return;
+
+	// 		contractNFT = contractResult;
+	// 	}
+
+	// 	try {
+	// 		const buyOrder = isPartnered
+	// 			? await contractMarketplace.buyOrderPartnered(
+	// 					contractAddress,
+	// 					tokenId,
+	// 					config.userAddresses.adventureNetworks,
+	// 					{
+	// 						value: ethers.utils.parseEther(priceEth)
+	// 					}
+	// 			  )
+	// 			: await contractMarketplace.buyOrder(contractAddress, tokenId, {
+	// 					value: ethers.utils.parseEther(priceEth)
+	// 			  });
+
+	// 		buyOrder.wait().then(() => {
+	// 			// const newNFTs = { ...NFTs };
+	// 			// delete newNFTs[];
+	// 			// setOrders(newOrders);
+	// 			// getSetBalance(provider);
+	// 			setNFTs([...NFTs.slice(0, orderIndex), ...NFTs.slice(orderIndex + 1)]);
+	// 			alert(
+	// 				'successfully bought NFT, it has been transferred to your account'
+	// 			);
+	// 		});
+	// 	} catch (e) {
+	// 		if (e && e.data && e.data.message) {
+	// 			const indexOfRevert = e.data.message.indexOf('revert');
+	// 			if (indexOfRevert !== -1) {
+	// 				alert(
+	// 					'error buying order: ' +
+	// 						e.data.message.substring(indexOfRevert + 'revert'.length)
+	// 				);
+	// 			}
+	// 		} else {
+	// 			alert('error buying order');
+	// 		}
+	// 	}
+	// };
+
+	// const onCancel = async (orderId: string) => {
+	// 	if (!isLoggedIn) await signIn();
+
+	// 	if (!provider || !contractMarketplace)
+	// 		return console.log(
+	// 			'no provider or contract marketplace: ',
+	// 			provider,
+	// 			contractMarketplace
+	// 		);
+
+	// 	const orderIndex = NFTs.findIndex((nft) => nft.key === orderId);
+
+	// 	if (orderIndex === -1) return console.log('no order for id ', orderId);
+
+	// 	const order = NFTs[orderIndex];
+
+	// 	console.log('oncancel order = ', order);
+
+	// 	const { tokenId, contractAddress } = order;
+
+	// 	let contractNFT = contractsNFT[contractAddress];
+
+	// 	if (!contractNFT) {
+	// 		const contractResult = await addNewContract(contractAddress);
+
+	// 		if (!contractResult) return;
+
+	// 		contractNFT = contractResult;
+	// 	}
+
+	// 	console.log('going to cancel order');
+	// 	try {
+	// 		const cancelOrder = await contractMarketplace.cancelOrder(
+	// 			contractAddress,
+	// 			tokenId,
+	// 			{
+	// 				gasLimit: 100000
+	// 			}
+	// 		);
+
+	// 		cancelOrder.wait().then(() => {
+	// 			// const newOrders = { ...orders };
+	// 			// delete newOrders[order.id];
+	// 			// setOrders(newOrders);
+	// 			// getSetBalance(provider);
+
+	// 			setNFTs([...NFTs.slice(0, orderIndex), ...NFTs.slice(orderIndex + 1)]);
+	// 			alert('successfully canceled order');
+	// 		});
+	// 	} catch (e) {
+	// 		if (e && e.data && e.data.message) {
+	// 			const indexOfRevert = e.data.message.indexOf('revert');
+	// 			if (indexOfRevert !== -1) {
+	// 				alert(
+	// 					'error canceling order: ' +
+	// 						e.data.message.substring(indexOfRevert + 'revert'.length)
+	// 				);
+	// 			}
+	// 		} else {
+	// 			alert('error canceling order');
+	// 		}
+	// 	}
+	// };
 
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
@@ -794,7 +1107,8 @@ function App() {
 		roomId,
 		handlePinItemMessage,
 		handleMoveItemMessage,
-		addImage
+		addImage,
+		socket
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -961,7 +1275,7 @@ function App() {
 	};
 
 	const onClickApp = useCallback(
-		(event: React.MouseEvent) => {
+		async (event: React.MouseEvent) => {
 			setTowerDefenseState((state) => {
 				const { x, y } = getRelativePos(event.clientX, event.clientY, 60, 60);
 				if (state.selectedPlacementTower) {
@@ -1001,156 +1315,251 @@ function App() {
 				if (movingBoardItem.isNew && movingBoardItem.type === 'text') {
 					const { itemKey, value } = movingBoardItem;
 
-					socket.emit('event', {
-						key: 'pin-item',
-						type: movingBoardItem.type,
-						value,
-						top: y,
-						left: x,
-						itemKey,
-						isNew: true
-					});
+					const pinResult = await firebaseContext.pinRoomItem(
+						roomId || 'default',
+						{
+							type: 'text',
+							top: y,
+							left: x,
+							key: itemKey,
+							value
+						}
+					);
 
-					firebaseContext.pinRoomItem(roomId || 'default', {
-						type: 'text',
-						top: y,
-						left: x,
-						key: itemKey,
-						value
-					});
+					if (pinResult.isSuccessful) {
+						socket.emit('event', {
+							key: 'pin-item',
+							type: movingBoardItem.type,
+							value,
+							top: y,
+							left: x,
+							itemKey,
+							isNew: true
+						});
+					} else if (pinResult.message) {
+						setModalErrorMessage(pinResult.message);
+					}
 				}
 
 				setMovingBoardItem(undefined);
 			}
 		},
-		[movingBoardItem, firebaseContext, roomId]
+		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = (roomName: string) => {
-		return firebaseContext.createRoom(roomName);
+	const onCreateRoom = async (roomName: string, isAccessLocked: boolean) => {
+		const result = await firebaseContext.createRoom(roomName, isAccessLocked);
+
+		if (result.isSuccessful) {
+			setModalState(null);
+			history.push(`/room/${roomName}`);
+		}
+
+		return result;
 	};
 
 	useEffect(() => {
 		const room = roomId || 'default';
 
+		// if (isInvalidRoom === undefined) {
 		firebaseContext.getRoom(room).then((result) => {
-			if (result === null) {
-				setIsRoomError(true);
+			if (result.isSuccessful) {
+				setIsInvalidRoom(false);
+				setRoomData(result.data);
 			} else {
-				setIsRoomError(false);
-			}
-		});
-
-		firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
-			const pinnedGifs: IGifs[] = [];
-			const pinnedImages: IBoardImage[] = [];
-			const pinnedText: { [key: string]: IPinnedItem } = {};
-			let background: string | undefined;
-
-			pinnedItems.forEach((item) => {
-				if (item.type === 'gif') {
-					pinnedGifs.push({
-						...item,
-						top: item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						key: item.key!,
-						data: item.data!
-					});
-				} else if (item.type === 'image') {
-					pinnedImages.push({
-						...item,
-						top: item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						key: item.key!,
-						url: item.url
-					});
-				} else if (item.type === 'background') {
-					background = item.name;
-				} else if (item.type === 'text') {
-					pinnedText[item.key!] = {
-						...item,
-						top: item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						key: item.key!,
-						text: item.value
-					};
+				setIsInvalidRoom(true);
+				if (result.message) {
+					setModalErrorMessage(result.message);
 				}
-			});
-
-			setGifs(pinnedGifs);
-			setImages(pinnedImages);
-			setPinnedText(pinnedText);
-			setBackground({ name: background, isPinned: !!background });
+			}
+			// if (result.data === null) {
+			// 	setIsInvalidRoom(true);
+			// } else {
+			// 	setIsInvalidRoom(false);
+			// }
 		});
-	}, [roomId, history, firebaseContext]);
+		// }
 
-	const pinGif = (gifKey: string) => {
+		if (!hasFetchedRoomPinnedItems) {
+			setHasFetchedRoomPinnedItems(true);
+
+			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
+				if (!pinnedItems.data) return;
+
+				const pinnedGifs: IGifs[] = [];
+				const pinnedImages: IBoardImage[] = [];
+				const pinnedText: { [key: string]: IPinnedItem } = {};
+				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
+
+				let background: string | undefined;
+
+				pinnedItems.data.forEach((item) => {
+					if (item.type === 'gif') {
+						pinnedGifs.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							data: item.data!
+						});
+					} else if (item.type === 'image') {
+						pinnedImages.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							url: item.url
+						});
+					} else if (item.type === 'background') {
+						background = item.name;
+					} else if (item.type === 'text') {
+						pinnedText[item.key!] = {
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							text: item.value
+						};
+					} else if (item.type === 'NFT') {
+						if (item.order && item.order.id) {
+							pinnedNFTs.push({
+								...(item as IPinnedItem & IOrder),
+								top: item.top! * window.innerHeight,
+								left: item.left! * window.innerWidth,
+								isPinned: true,
+								key: item.order.id,
+								text: item.value
+							});
+						}
+					}
+				});
+
+				setGifs(pinnedGifs);
+				setImages(pinnedImages);
+				setPinnedText(pinnedText);
+				setBackground({ name: background, isPinned: !!background });
+				setNFTs(pinnedNFTs);
+			});
+		}
+	}, [
+		hasFetchedRoomPinnedItems,
+		// isInvalidRoom,
+		roomId,
+		// firebaseContext.getRoomPinnedItems,
+		// firebaseContext.getRoom,
+		firebaseContext
+	]);
+
+	const pinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
 		const room = roomId || 'default';
 
 		if (gif && !gif.isPinned) {
-			firebaseContext.pinRoomItem(room, {
+			const result = await firebaseContext.pinRoomItem(room, {
 				...gif,
 				type: 'gif',
 				left: gif.left / window.innerWidth,
 				top: gif.top / window.innerHeight
 			});
-			setGifs([
-				...gifs.slice(0, gifIndex),
-				{ ...gif, isPinned: true },
-				...gifs.slice(gifIndex + 1)
-			]);
 
-			socket.emit('event', {
-				key: 'pin-item',
-				type: 'gif',
-				itemKey: gifKey
-			});
+			if (result.isSuccessful) {
+				setGifs([
+					...gifs.slice(0, gifIndex),
+					{ ...gif, isPinned: true },
+					...gifs.slice(gifIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'gif',
+					itemKey: gifKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
 		}
 	};
 
-	const pinImage = (imageKey: string) => {
+	const pinNFT = async (nftId: string) => {
+		const nftIndex = NFTs.findIndex((nft) => nft.key === nftId);
+		const nft = NFTs[nftIndex];
+		const room = roomId || 'default';
+
+		if (nft && !nft.isPinned) {
+			const result = await firebaseContext.pinRoomItem(room, {
+				...nft,
+				type: 'NFT',
+				left: nft.left / window.innerWidth,
+				top: nft.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setNFTs([
+					...NFTs.slice(0, nftIndex),
+					{ ...nft, isPinned: true },
+					...NFTs.slice(nftIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'NFT',
+					itemKey: nftId
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const pinImage = async (imageKey: string) => {
 		const imageIndex = images.findIndex((image) => image.key === imageKey);
 		const image = images[imageIndex];
 		const room = roomId || 'default';
 
 		if (image && !image.isPinned) {
-			firebaseContext.pinRoomItem(room, {
+			const result = await firebaseContext.pinRoomItem(room, {
 				...image,
 				type: 'image',
 				left: image.left / window.innerWidth,
 				top: image.top / window.innerHeight
 			});
-			setImages([
-				...images.slice(0, imageIndex),
-				{ ...image, isPinned: true },
-				...images.slice(imageIndex + 1)
-			]);
 
-			socket.emit('event', {
-				key: 'pin-item',
-				type: 'image',
-				itemKey: imageKey
-			});
+			if (result.isSuccessful) {
+				setImages([
+					...images.slice(0, imageIndex),
+					{ ...image, isPinned: true },
+					...images.slice(imageIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'image',
+					itemKey: imageKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
 		}
 	};
 
-	const pinBackground = () => {
+	const pinBackground = async () => {
 		const room = roomId || 'default';
 
-		if (!background.isPinned) {
-			firebaseContext.pinRoomItem(room, {
-				name: background.name,
-				type: 'background',
-				top: 0,
-				left: 0
-			});
+		// if (!background.isPinned) {
+		const result = await firebaseContext.pinRoomItem(room, {
+			name: background.name,
+			type: 'background',
+			top: 0,
+			left: 0
+		});
+
+		if (result.isSuccessful) {
 			setBackground((background) => ({ ...background, isPinned: true }));
 
 			socket.emit('event', {
@@ -1158,75 +1567,155 @@ function App() {
 				type: 'background',
 				name: background.name
 			});
+		} else if (result.message) {
+			setModalErrorMessage(result.message);
 		}
+		// }
 	};
 
-	const unpinBackground = () => {
+	const unpinBackground = async () => {
 		const room = roomId || 'default';
 
 		if (background.isPinned) {
-			firebaseContext.unpinRoomItem(room, 'background');
-			setBackground({ name: '', isPinned: false });
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				'background'
+			);
 
-			socket.emit('event', {
-				key: 'unpin-item',
-				type: 'background'
-			});
+			if (isSuccessful) {
+				setBackground({ name: '', isPinned: false });
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'background'
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
 		}
 	};
 
-	const unpinGif = (gifKey: string) => {
+	const unpinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
 		const room = roomId || 'default';
 
 		if (gif && gif.isPinned) {
-			firebaseContext.unpinRoomItem(room, gif.key);
-			setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				gif.key
+			);
+			if (isSuccessful) {
+				setGifs([...gifs.slice(0, gifIndex), ...gifs.slice(gifIndex + 1)]);
 
-			socket.emit('event', {
-				key: 'unpin-item',
-				type: 'gif',
-				itemKey: gifKey
-			});
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'gif',
+					itemKey: gifKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
 		}
 	};
 
-	const unpinImage = (imageKey: string) => {
+	const unpinNFT = async (nftId: string) => {
+		const index = NFTs.findIndex((nft) => nft.key === nftId);
+		const nft = NFTs[index];
+		const room = roomId || 'default';
+
+		if (nft && nft.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				nft.key!
+			);
+
+			if (isSuccessful) {
+				setNFTs([...NFTs.slice(0, index), ...NFTs.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'NFT',
+					itemKey: nftId
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
+	const unpinImage = async (imageKey: string) => {
 		const index = images.findIndex((image) => image.key === imageKey);
 		const image = images[index];
 		const room = roomId || 'default';
 
 		if (image && image.isPinned) {
-			firebaseContext.unpinRoomItem(room, image.key);
-			setImages([...images.slice(0, index), ...images.slice(index + 1)]);
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				image.key
+			);
+			if (isSuccessful) {
+				setImages([...images.slice(0, index), ...images.slice(index + 1)]);
 
-			socket.emit('event', {
-				key: 'unpin-item',
-				type: 'image',
-				itemKey: imageKey
-			});
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'image',
+					itemKey: imageKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
 		}
 	};
 
-	const unpinText = (key: string) => {
-		const newPinnedText = { ...pinnedText };
+	const unpinText = async (key: string) => {
+		const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+			roomId || 'default',
+			key
+		);
 
-		delete newPinnedText[key];
+		if (isSuccessful) {
+			const newPinnedText = { ...pinnedText };
 
-		setPinnedText(newPinnedText);
+			delete newPinnedText[key];
 
-		firebaseContext.unpinRoomItem(roomId || 'default', key);
+			setPinnedText(newPinnedText);
 
-		socket.emit('event', {
-			key: 'unpin-item',
-			type: 'text',
-			itemKey: key
-		});
+			socket.emit('event', {
+				key: 'unpin-item',
+				type: 'text',
+				itemKey: key
+			});
+		} else if (message) {
+			setModalErrorMessage(message);
+		}
 	};
 
-	const moveItem = (type: PinTypes, id: string, left: number, top: number) => {
+	const moveItem = async (
+		type: PinTypes,
+		id: string,
+		left: number,
+		top: number
+	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
+
+		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+			roomId || 'default',
+			{
+				type,
+				top: y,
+				left: x,
+				key: id
+			}
+		);
+
+		if (!isSuccessful) {
+			if (message) {
+				setModalErrorMessage(message);
+			}
+			return;
+		}
+
 		if (type === 'text') {
 			setPinnedText(
 				update(pinnedText, {
@@ -1261,6 +1750,19 @@ function App() {
 					...images.slice(imageIndex + 1)
 				]);
 			}
+		} else if (type === 'NFT') {
+			const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+			if (nftIndex !== -1) {
+				setNFTs([
+					...NFTs.slice(0, nftIndex),
+					{
+						...NFTs[nftIndex],
+						top,
+						left
+					},
+					...NFTs.slice(nftIndex + 1)
+				]);
+			}
 		}
 
 		socket.emit('event', {
@@ -1270,16 +1772,9 @@ function App() {
 			left: x,
 			itemKey: id
 		});
-
-		firebaseContext.movePinnedRoomItem(roomId || 'default', {
-			type,
-			top: y,
-			left: x,
-			key: id
-		});
 	};
 
-	if (isRoomError) {
+	if (isInvalidRoom) {
 		return <div>Invalid room {roomId}</div>;
 	}
 
@@ -1291,6 +1786,7 @@ function App() {
 			}}
 			onClick={onClickApp}
 		>
+			<MetamaskSection />
 			<Board
 				background={background}
 				musicNotes={musicNotes}
@@ -1320,6 +1816,14 @@ function App() {
 				pinnedText={pinnedText}
 				unpinText={unpinText}
 				moveItem={moveItem}
+				NFTs={NFTs}
+				updateNFTs={setNFTs}
+				pinNFT={pinNFT}
+				unpinNFT={unpinNFT}
+				addNewContract={addNewContract}
+				loadingNFT={loadingNFT}
+				onBuy={() => {}}
+				onCancel={() => {}}
 			/>
 
 			<TowerDefense
@@ -1373,10 +1877,15 @@ function App() {
 				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
 				placement="left"
 			>
-				<div className="adventure-logo">
+				<a
+					href="https://adventurenetworks.net"
+					target="_blank"
+					rel="noreferrer"
+					className="adventure-logo"
+				>
 					<div>adventure</div>
-					<div>corp</div>
-				</div>
+					<div>networks</div>
+				</a>
 			</Tooltip>
 
 			<BottomPanel
@@ -1387,6 +1896,9 @@ function App() {
 				isOpen={Boolean(selectedPanelItem)}
 				onAction={actionHandler}
 				updateIsTyping={onIsTyping}
+				onNFTError={setModalErrorMessage}
+				onNFTSuccess={onNFTSuccess}
+				roomData={roomData}
 			/>
 
 			{userProfile && (
@@ -1414,6 +1926,15 @@ function App() {
 						<EnterRoomModal
 							roomName={roomToEnter}
 							onClickCancel={() => setModalState(null)}
+						/>
+					)}
+					{modalState === 'error' && modalErrorMessage && (
+						<ErrorModal
+							onClickCancel={() => {
+								setModalState(null);
+								setModalErrorMessage(null);
+							}}
+							message={modalErrorMessage}
 						/>
 					)}
 				</>

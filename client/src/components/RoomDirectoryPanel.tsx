@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 
 import Button from '@material-ui/core/Button';
 import { Cancel } from '@material-ui/icons';
-import { FirebaseContext } from '../firebaseContext';
 import HomeIcon from '@material-ui/icons/Home';
 import { IChatRoom } from '../types';
 import { IconButton } from '@material-ui/core';
@@ -12,6 +11,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import _ from 'underscore';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
+import { AppStateContext } from '../contexts/AppStateContext';
 
 const useStyles = makeStyles({
 	title: {
@@ -69,26 +69,26 @@ export const RoomDirectoryPanel = ({
 }: IRoomDirectoryProps) => {
 	const [displayedRooms, setDisplayedRooms] = useState<IChatRoom[] | null>([]);
 	const [allRooms, setAllRooms] = useState<IChatRoom[] | null>([]);
-	const firebaseContext = useContext(FirebaseContext);
+	const { rooms } = useContext(AppStateContext);
 	const [searchText, setSearchText] = useState<string>('');
 	const history = useHistory();
 
 	useEffect(() => {
-		firebaseContext.getAllRooms().then((rooms) => {
-			const shuffledRooms = _.shuffle(rooms as IChatRoom[]);
-			let slicedShuffledRooms = shuffledRooms.slice(0, 11);
-			const mainRoomIndex = slicedShuffledRooms.findIndex(
-				(room) => room.name === 'default'
-			);
-			if (mainRoomIndex === -1) {
-				slicedShuffledRooms = slicedShuffledRooms.slice(0, 10);
-			} else {
-				slicedShuffledRooms.splice(mainRoomIndex, 1);
-			}
-			setDisplayedRooms(slicedShuffledRooms);
-			setAllRooms(rooms);
-		});
-	}, [firebaseContext]);
+		if (!rooms) return;
+
+		const shuffledRooms = _.shuffle(rooms);
+		let slicedShuffledRooms = shuffledRooms.slice(0, 11);
+		const mainRoomIndex = slicedShuffledRooms.findIndex(
+			(room) => room.name === 'default'
+		);
+		if (mainRoomIndex === -1) {
+			slicedShuffledRooms = slicedShuffledRooms.slice(0, 10);
+		} else {
+			slicedShuffledRooms.splice(mainRoomIndex, 1);
+		}
+		setDisplayedRooms(slicedShuffledRooms);
+		setAllRooms(rooms);
+	}, [rooms]);
 
 	const onSearchSubmit = async () => {
 		if (searchText.length >= 0) {
@@ -168,7 +168,10 @@ export const EnterRoomModal = ({
 				variant="contained"
 				color="primary"
 				className={buttonClasses.button}
-				onClick={() => history.push(`/room/${roomName}`)}
+				onClick={() => {
+					history.push(`/room/${roomName}`);
+					onClickCancel();
+				}}
 			>
 				Enter
 			</Button>

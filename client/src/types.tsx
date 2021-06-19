@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT';
 
 export interface IBackgroundState {
 	isPinned?: boolean;
@@ -18,6 +18,8 @@ export interface IPinnedItem {
 
 export interface IChatRoom {
 	name: string;
+	isLocked?: boolean;
+	lockedOwnerAddress?: string;
 }
 
 export type AnimationTypes = 'start game' | 'info' | 'end game';
@@ -150,6 +152,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'NFT' = 'NFT',
 	'email' = 'email',
 	'new-room' = 'new-room',
 	'roomDirectory' = 'roomDirectory',
@@ -237,3 +240,26 @@ export interface IPoem {
 	key: string;
 	value: string;
 }
+
+export interface IFetchResponseBase {
+	message?: string;
+	isSuccessful: boolean;
+}
+
+export interface IOrder {
+	ownerAddress: string;
+	priceEth: string;
+	tokenId: number;
+	id: string;
+	contractAddress: string;
+	isPartnered: boolean;
+}
+
+export interface INFTMetadata {
+	image: string;
+	name: string;
+	contractName: string;
+	lockedId?: string;
+}
+
+export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
