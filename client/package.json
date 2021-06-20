@@ -3,6 +3,7 @@
 	"version": "1.28.0",
 	"private": true,
 	"dependencies": {
+		"@dhaiwat10/react-link-preview": "^1.7.2",
 		"@giphy/js-fetch-api": "^2.0.1",
 		"@giphy/js-types": "^3.0.0",
 		"@giphy/react-components": "^2.0.1",
