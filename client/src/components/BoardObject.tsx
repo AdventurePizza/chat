@@ -9,6 +9,8 @@ import { useDrag } from 'react-dnd';
 import { IOrder } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
+import { LinkPreview } from '@dhaiwat10/react-link-preview';
+
 
 const useStyles = makeStyles({
 	container: {
@@ -84,6 +86,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 	if (isDragging) {
 		return <div ref={preview} />;
 	}
+	
+	const noLinkPrev = <div className={classes.text} style={{ width: 180 }}>{text}</div>;
 
 	return (
 		<div
@@ -109,7 +113,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 180 }}>
-						{text}
+						<div>{text && <LinkPreview url= {text!} width='180px' height='180px' fallback= {noLinkPrev} showLoader= {false} />}</div>
 					</div>
 				)}
 				{type === 'NFT' && order && (

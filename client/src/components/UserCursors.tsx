@@ -30,6 +30,7 @@ import mario from '../assets/mario.gif';
 import musicNote from '../assets/musical-note.svg';
 import nyancat from '../assets/nyancat_big.gif';
 import yoshi from '../assets/yoshi.gif';
+import { LinkPreview } from '@dhaiwat10/react-link-preview';
 
 export const avatarMap: { [key: string]: string } = {
 	mario: mario,
@@ -257,6 +258,8 @@ const UserCursorContent = ({
 
 	if (hideAvatar) return null;
 
+	const noLinkPrev = <div className="avatar-message">{message}</div>;
+
 	return (
 		<div
 			style={{
@@ -302,7 +305,8 @@ const UserCursorContent = ({
 					key={message}
 					in={inProp}
 				>
-					<div className="avatar-message">{message}</div>
+					<div className="avatar-message">{message && <LinkPreview url= {message!} width='180px' height= '180px' fallback= {noLinkPrev} showLoader= {false} />}</div>
+
 				</CSSTransition>
 				{isTyping && (
 					<Icon className={classes.chatIcon}>
