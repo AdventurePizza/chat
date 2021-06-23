@@ -5,11 +5,13 @@ import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 import { EmailButton } from './EmailPanel';
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
+import { Image } from '@material-ui/icons';
+
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import animationIcon from '../assets/navbar/animation.png';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
-import cameraRollIcon from '../assets/navbar/camera_roll.png';
+// import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
@@ -103,7 +105,7 @@ const panelIconSrcMap: {
 	gifs: gifIcon,
 	chat: chatIcon,
 	tower: towerIcon,
-	background: cameraRollIcon,
+	// background: cameraRollIcon,
 	whiteboard: pencilIcon,
 	weather: weatherIcon,
 	animation: animationIcon,
@@ -116,7 +118,8 @@ const panelIconComponentMap: {
 } = {
 	'new-room': <NewRoomPanelButton />,
 	email: <EmailButton />,
-	NFT: <NFTIcon />
+	NFT: <NFTIcon />,
+	background: <Image style={{ fontSize: 32 }} />
 };
 
 interface IPanelItemProps {
