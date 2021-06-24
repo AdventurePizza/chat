@@ -112,8 +112,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
 				)}
 				{type === 'text' && text && (
-					<div className={classes.text} style={{ width: 180 }}>
-						<div>{text && <LinkPreview url= {text!} width='180px' height='180px' fallback= {noLinkPrev} showLoader= {false} />}</div>
+					<div className={classes.text} style={{ width: 200 }}>
+						<div>{text && <LinkPreview url= {text!}fallback= {noLinkPrev} descriptionLength= {50} imageHeight= {100} showLoader= {false} />}</div>
 					</div>
 				)}
 				{type === 'NFT' && order && (
