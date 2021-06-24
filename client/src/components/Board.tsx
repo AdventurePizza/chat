@@ -22,12 +22,15 @@ import { XYCoord, useDrop } from 'react-dnd';
 
 import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
-import React from 'react';
+import React, { useState } from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
+// import { Button } from '@material-ui/core';
+import introKoop from '../assets/intro/koopa_troopa_mario_kart.gif';
+import introShark from '../assets/intro/leftshark.gif';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -110,6 +113,20 @@ export const Board = ({
 	onBuy,
 	onCancel
 }: IBoardProps) => {
+	const [isIntroFinished, setIsIntroFinished] = useState(false);
+
+	const renderIntro = () => {
+		if (isIntroFinished) {
+			return (
+				<button className="board-intro">
+					<span>create new room</span>
+					<img alt="shark" src={introShark} style={{ width: 100 }} />
+				</button>
+			);
+		}
+
+		return <button>hello</button>;
+	};
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
 		: backgrounds[background.name!];
@@ -245,6 +262,34 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+
+			<TransitionGroup>
+				<CSSTransition
+					appear
+					timeout={5000}
+					classNames="room-button-transition"
+					onEnter={() => {
+						console.log('enter');
+						setTimeout(() => {
+							setIsIntroFinished(true);
+						}, 5000);
+					}}
+					// onExit={() => {
+					// 	console.log('exit');
+					// }}
+					// onExited={() => {
+					// 	console.log('exited');
+					// }}
+				>
+					<div className="room-button">
+						{renderIntro()}
+						{/* <Button variant="outlined" color="primary">
+							hello
+						</Button> */}
+					</div>
+				</CSSTransition>
+			</TransitionGroup>
+
 			<TransitionGroup>
 				{Object.values(pinnedText).map((text) => (
 					<CSSTransition
