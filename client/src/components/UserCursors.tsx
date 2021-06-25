@@ -305,7 +305,7 @@ const UserCursorContent = ({
 					key={message}
 					in={inProp}
 				>
-					<div className="avatar-message">{message && <LinkPreview url= {message!} width='180px' height= '180px' fallback= {noLinkPrev} showLoader= {false} />}</div>
+					<div className="avatar-message">{message && <LinkPreview url= {message!} width='200px' descriptionLength= {50} imageHeight= {100} fallback= {noLinkPrev} showLoader= {false} />}</div>
 
 				</CSSTransition>
 				{isTyping && (
