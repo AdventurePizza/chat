@@ -1,3 +1,4 @@
+import { makeStyles } from '@material-ui/core';
 import {
 	IChatRoom,
 	IEmojiDict,
@@ -5,6 +6,7 @@ import {
 	PanelItemEnum
 } from '../types';
 import React, { useState } from 'react';
+// import { Profile } from '../routes/Profile';
 
 import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
@@ -57,6 +59,13 @@ export interface ISoundPairs {
 	category: string;
 }
 
+const useStyles = makeStyles((theme) => ({
+	drawerRoot: {
+		width: 'calc(100vw - 85px)',
+		marginLeft: 85
+	}
+}));
+
 export const BottomPanel = ({
 	bottomPanelRef,
 	isOpen,
@@ -70,9 +79,18 @@ export const BottomPanel = ({
 	roomData
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
+	const classes = useStyles();
 
 	return (
-		<Drawer variant="persistent" anchor="bottom" open={isOpen}>
+		<Drawer
+			variant="persistent"
+			anchor="bottom"
+			open={isOpen}
+			// className="bottom-panel-drawer"
+			classes={{
+				paper: classes.drawerRoot
+			}}
+		>
 			<div ref={bottomPanelRef} className="bottom-panel-container">
 				<PanelContent
 					type={type}
@@ -169,6 +187,7 @@ const PanelContent = ({
 			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':
 			return (
+				// <Profile />
 				<SettingsPanel
 					onSubmitUrl={(url) => onAction('settings', 'url', url)}
 					onChangeName={(name) => onAction('settings', 'name', name)}

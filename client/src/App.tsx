@@ -1824,6 +1824,7 @@ function App() {
 				loadingNFT={loadingNFT}
 				onBuy={() => {}}
 				onCancel={() => {}}
+				onClickNewRoom={() => setModalState('new-room')}
 			/>
 
 			<TowerDefense

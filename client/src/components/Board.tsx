@@ -28,8 +28,6 @@ import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
-// import { Button } from '@material-ui/core';
-// import introKoop from '../assets/intro/koopa_troopa_mario_kart.gif';
 import introShark from '../assets/intro/leftshark.gif';
 
 interface IBoardProps {
@@ -74,6 +72,7 @@ interface IBoardProps {
 	addNewContract: (nftAddress: string) => Promise<NFT | undefined>;
 	onBuy: (nftId: string) => void;
 	onCancel: (nftId: string) => void;
+	onClickNewRoom: () => void;
 }
 
 export const Board = ({
@@ -111,22 +110,28 @@ export const Board = ({
 	unpinNFT,
 	addNewContract,
 	onBuy,
-	onCancel
+	onCancel,
+	onClickNewRoom
 }: IBoardProps) => {
-	const [isIntroFinished, setIsIntroFinished] = useState(false);
+	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
+		'begin'
+	);
 
 	const renderIntro = () => {
-		if (isIntroFinished) {
+		if (introState === 'appear') {
 			return (
-				<button className="board-intro">
+				<button onClick={onClickNewRoom} className="board-intro">
 					<span>create new room</span>
 					<img alt="shark" src={introShark} style={{ width: 100 }} />
 				</button>
 			);
+		} else if (introState === 'begin') {
+			return <button>hello</button>;
+		} else {
+			return null;
 		}
-
-		return <button>hello</button>;
 	};
+
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
 		: backgrounds[background.name!];
@@ -269,24 +274,16 @@ export const Board = ({
 					timeout={5000}
 					classNames="room-button-transition"
 					onEnter={() => {
-						console.log('enter');
 						setTimeout(() => {
-							setIsIntroFinished(true);
+							setIntroState('appear');
 						}, 5000);
+
+						setTimeout(() => {
+							setIntroState('end');
+						}, 20000);
 					}}
-					// onExit={() => {
-					// 	console.log('exit');
-					// }}
-					// onExited={() => {
-					// 	console.log('exited');
-					// }}
 				>
-					<div className="room-button">
-						{renderIntro()}
-						{/* <Button variant="outlined" color="primary">
-							hello
-						</Button> */}
-					</div>
+					<div className="room-button">{renderIntro()}</div>
 				</CSSTransition>
 			</TransitionGroup>
 
