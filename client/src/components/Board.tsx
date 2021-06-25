@@ -29,7 +29,7 @@ import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 // import { Button } from '@material-ui/core';
-import introKoop from '../assets/intro/koopa_troopa_mario_kart.gif';
+// import introKoop from '../assets/intro/koopa_troopa_mario_kart.gif';
 import introShark from '../assets/intro/leftshark.gif';
 
 interface IBoardProps {

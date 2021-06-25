@@ -5,7 +5,7 @@ import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 import { EmailButton } from './EmailPanel';
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
-import { Image } from '@material-ui/icons';
+import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
 
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -16,11 +16,11 @@ import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
-import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
-import soundIcon from '../assets/navbar/soundIcon.png';
-import towerIcon from '../assets/navbar/towerIcon.png';
-import weatherIcon from '../assets/navbar/weatherIcon.png';
-import poemIcon from '../assets/navbar/poemIcon.png';
+// import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
+// import soundIcon from '../assets/navbar/soundIcon.png';
+// import towerIcon from '../assets/navbar/towerIcon.png';
+// import weatherIcon from '../assets/navbar/weatherIcon.png';
+// import poemIcon from '../assets/navbar/poemIcon.png';
 import { NFTIcon } from './NFT/NFTPanel';
 
 interface IPanelProps {
@@ -100,17 +100,16 @@ export const Panel = ({
 const panelIconSrcMap: {
 	[key: string]: string;
 } = {
-	sound: soundIcon,
+	// sound: soundIcon,
 	emoji: emojiIcon,
 	gifs: gifIcon,
 	chat: chatIcon,
-	tower: towerIcon,
+	// tower: towerIcon,
 	// background: cameraRollIcon,
 	whiteboard: pencilIcon,
-	weather: weatherIcon,
-	animation: animationIcon,
-	roomDirectory: roomDirectoryIcon,
-	poem: poemIcon
+	// weather: weatherIcon,
+	animation: animationIcon
+	// poem: poemIcon
 };
 
 const panelIconComponentMap: {
@@ -119,7 +118,9 @@ const panelIconComponentMap: {
 	'new-room': <NewRoomPanelButton />,
 	email: <EmailButton />,
 	NFT: <NFTIcon />,
-	background: <Image style={{ fontSize: 32 }} />
+	background: <Image style={{ fontSize: 32 }} />,
+	tower: <SportsEsports style={{ fontSize: 36 }} />,
+	roomDirectory: <MeetingRoom style={{ fontSize: 36 }} />
 };
 
 interface IPanelItemProps {
