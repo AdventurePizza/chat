@@ -128,7 +128,7 @@ export function Whiteboard({
 	return (
 		<canvas
 			ref={canvasRef}
-			style={onWhiteboardPanel ? canvasStyles : {}}
+			style={onWhiteboardPanel ? canvasStyles : canvasStylesUnselected}
 			onTouchMove={handleTouchMove}
 			onTouchEnd={handleTouchEnd}
 			onTouchStart={handleTouchStart}
@@ -147,6 +147,16 @@ const canvasStyles: React.CSSProperties = {
 	position: 'absolute',
 	top: 0,
 	right: 0
+};
+
+const canvasStylesUnselected: React.CSSProperties = {
+	width: window.innerWidth,
+	height: window.innerHeight,
+	backgroundColor: 'transparent',
+	position: 'absolute',
+	top: 0,
+	right: 0,
+	pointerEvents: 'none'
 };
 
 export function drawLine(
