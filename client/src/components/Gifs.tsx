@@ -11,7 +11,8 @@ import React, { useContext } from 'react';
 
 import { IGif } from '@giphy/js-types';
 
-const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
+// const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
+const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 interface IGifsProps {
 	//Gif data IGif
 	sendGif: (gif: IGif) => void;
