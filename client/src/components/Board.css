@@ -74,6 +74,37 @@
 	height: auto;
 }
 
+.room-button {
+	position: absolute;
+	top: 0;
+	left: 50vw;
+}
+
+/* .room-button-transition-enter,
+.room-button-transition-appear {
+	transform: translateY(50vh);
+	transition: transform 10s;
+} */
+
+/* .room-button-transition-enter-active, */
+.room-button-transition-appear-active {
+	transform: translateY(50vh);
+	transition: transform 5s;
+}
+
+.room-button-transition-appear-done {
+	transform: translateY(50vh);
+}
+
+/* .room-button-transition-exit {
+	opacity: 0;
+	transition: opacity 5s;
+	transform: translateY(-50px);
+}
+.room-button-transition-enter-done {
+	transform: translateY(-50px);
+} */
+
 .gif-transition-enter {
 	opacity: 0;
 }
@@ -146,4 +177,15 @@
 	text-align: center;
 	opacity: 0;
 	transition: opacity 1s;
+}
+
+.board-intro {
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+}
+
+.board-intro img {
+	margin-top: 5px;
+	margin-bottom: 2px;
 }

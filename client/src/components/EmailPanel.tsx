@@ -62,7 +62,7 @@ export const EmailButton = () => {
 	return (
 		<div className={classes.buttonContainer}>
 			<Email />
-			<div>send</div>
+			<div>invite</div>
 		</div>
 	);
 };

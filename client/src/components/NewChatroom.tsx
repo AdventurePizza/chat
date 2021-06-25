@@ -262,7 +262,7 @@ export const NewRoomPanelButton = ({ isRow }: INewRoomPanelButton) => {
 				}
 				className={classes.panelButtonText}
 			>
-				Room
+				room
 			</div>
 		</div>
 	);

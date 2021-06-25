@@ -22,12 +22,13 @@ import { XYCoord, useDrop } from 'react-dnd';
 
 import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
-import React from 'react';
+import React, { useState } from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
+import introShark from '../assets/intro/leftshark.gif';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -71,6 +72,7 @@ interface IBoardProps {
 	addNewContract: (nftAddress: string) => Promise<NFT | undefined>;
 	onBuy: (nftId: string) => void;
 	onCancel: (nftId: string) => void;
+	onClickNewRoom: () => void;
 }
 
 export const Board = ({
@@ -108,8 +110,28 @@ export const Board = ({
 	unpinNFT,
 	addNewContract,
 	onBuy,
-	onCancel
+	onCancel,
+	onClickNewRoom
 }: IBoardProps) => {
+	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
+		'begin'
+	);
+
+	const renderIntro = () => {
+		if (introState === 'appear') {
+			return (
+				<button onClick={onClickNewRoom} className="board-intro">
+					<span>create new room</span>
+					<img alt="shark" src={introShark} style={{ width: 100 }} />
+				</button>
+			);
+		} else if (introState === 'begin') {
+			return <button>hello</button>;
+		} else {
+			return null;
+		}
+	};
+
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
 		: backgrounds[background.name!];
@@ -245,6 +267,26 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+
+			<TransitionGroup>
+				<CSSTransition
+					appear
+					timeout={5000}
+					classNames="room-button-transition"
+					onEnter={() => {
+						setTimeout(() => {
+							setIntroState('appear');
+						}, 5000);
+
+						setTimeout(() => {
+							setIntroState('end');
+						}, 20000);
+					}}
+				>
+					<div className="room-button">{renderIntro()}</div>
+				</CSSTransition>
+			</TransitionGroup>
+
 			<TransitionGroup>
 				{Object.values(pinnedText).map((text) => (
 					<CSSTransition
