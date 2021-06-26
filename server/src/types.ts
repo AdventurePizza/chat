@@ -7,7 +7,11 @@ declare global {
       FIREBASE_CONFIG_BASE64: string;
       JWT_SECRET: string;
       INFURA_SECRET: string;
-      //   IS_LOCAL: boolean;
+      TWITTER_API_KEY: string;
+      TWITTER_API_SECRET_KEY: string;
+      TWITTER_BEARER_TOKEN: string;
+      TWITTER_ACCESS_TOKEN: string;
+      TWITTER_TOKEN_SECRET: string;
     }
   }
 }

@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { IChatRoom, IPinnedItem } from "./types";
 import db from "./firebase";
+import { twitterClient } from "./twitter";
 
 const collection = db.collection("chatrooms");
 
@@ -39,6 +40,16 @@ roomRouter.post("/:roomId", async (req, res) => {
   await collection
     .doc(roomId)
     .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined });
+
+  twitterClient.post(
+    "statuses/update",
+    {
+      status: `New room created, ${roomId}, https://trychats.com/#/room/${roomId}`,
+    },
+    function (error, tweet) {
+      if (error) console.log("error sending tweet: ", error);
+    }
+  );
 
   res.status(200).end();
 });
@@ -145,11 +156,12 @@ const getLockedOwnerAddress = async (
 
   const docData = doc.data() as IChatRoom;
 
-  if (docData.lockedOwnerAddress) {
+  if (docData.lockedOwnerAddress && docData.isLocked) {
     lockedRooms[roomId] = { ownerAddress: docData.lockedOwnerAddress };
+    return docData.lockedOwnerAddress;
   }
 
-  return docData.lockedOwnerAddress ?? null;
+  return null;
 };
 
 export default roomRouter;

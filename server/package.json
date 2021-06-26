@@ -19,6 +19,7 @@
     "@types/node": "^14.14.7",
     "@types/node-fetch": "^2.5.7",
     "@types/socket.io": "^2.1.11",
+    "@types/twitter": "^1.7.0",
     "@types/uuid": "^8.3.0",
     "nodemon": "^2.0.6",
     "ts-node": "^9.0.0",
@@ -38,6 +39,7 @@
     "node-mailjet": "^3.3.1",
     "page-metadata-parser": "^1.1.4",
     "socket.io": "^3.0.1",
+    "twitter": "^1.7.1",
     "uuid": "^8.3.2"
   }
 }
