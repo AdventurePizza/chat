@@ -84,6 +84,9 @@ import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 
+import { MapsContext  } from './contexts/MapsContext';
+
+
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
@@ -339,6 +342,7 @@ function App() {
 			case 'background':
 			case 'whiteboard':
 			case 'weather':
+			case 'maps':
 			case 'roomDirectory':
 			case 'settings':
 			case 'poem':
@@ -1993,18 +1997,25 @@ const imageToUrl = (name: string) => {
 };
 
 const RouterHandler = () => {
+	const [lat, setLat] = useState(45.5555);
+  	const [lng, setLng] = useState(-71.5555);
+	const [isMapShowing, setIsMapShowing] = useState(false);
+
 	return (
-		<Router>
-			<Switch>
-				<Route path="/room/:roomId">
-					<App />
-				</Route>
-				<Route exact path="/">
-					<App />
-				</Route>
-				<Redirect from="*" to="/" />
-			</Switch>
-		</Router>
+		<MapsContext.Provider value={{lat, setLat, lng, setLng, isMapShowing, setIsMapShowing}}>
+			<Router>
+				<Switch>
+					<Route path="/room/:roomId">
+						<App />
+					</Route>
+					<Route exact path="/">
+						<App />
+					</Route>
+					<Redirect from="*" to="/" />
+				</Switch>
+			</Router>
+		</MapsContext.Provider>
+
 	);
 };
 export default RouterHandler;

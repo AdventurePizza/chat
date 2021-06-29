@@ -167,7 +167,8 @@ export enum PanelItemEnum {
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'sound' = 'sound',
-	'emoji' = 'emoji'
+	'emoji' = 'emoji',
+	"maps" = "maps"
 }
 
 export interface IUserLocations {

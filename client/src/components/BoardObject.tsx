@@ -94,7 +94,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 			style={{
 				top,
 				left,
-				zIndex: isHovering ? 99999999 : 'auto'
+				/* zIndex: isHovering ? 99999999 : 'auto' */
+				zIndex: isHovering ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}

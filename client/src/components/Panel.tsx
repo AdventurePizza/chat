@@ -22,6 +22,8 @@ import pencilIcon from '../assets/navbar/pencil.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import { NFTIcon } from './NFT/NFTPanel';
+import mapsIcon from '../assets/navbar/mapsIcon.png';
+
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -108,8 +110,10 @@ const panelIconSrcMap: {
 	// background: cameraRollIcon,
 	whiteboard: pencilIcon,
 	// weather: weatherIcon,
-	animation: animationIcon
+	animation: animationIcon,
 	// poem: poemIcon
+	maps: mapsIcon
+
 };
 
 const panelIconComponentMap: {
