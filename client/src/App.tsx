@@ -213,6 +213,10 @@ function App() {
 		condition: ''
 	});
 
+	const [lat, setLat] = useState(33.9192);
+  	const [lng, setLng] = useState(-118.4165);
+	const [isMapShowing, setIsMapShowing] = useState(false);
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -1783,6 +1787,7 @@ function App() {
 	}
 
 	return (
+		<MapsContext.Provider value={{lat, setLat, lng, setLng, isMapShowing, setIsMapShowing}}>
 		<div
 			className="app"
 			style={{
@@ -1945,6 +1950,8 @@ function App() {
 				</>
 			</Modal>
 		</div>
+		</MapsContext.Provider>
+
 	);
 }
 
@@ -1997,25 +2004,18 @@ const imageToUrl = (name: string) => {
 };
 
 const RouterHandler = () => {
-	const [lat, setLat] = useState(45.5555);
-  	const [lng, setLng] = useState(-71.5555);
-	const [isMapShowing, setIsMapShowing] = useState(false);
-
 	return (
-		<MapsContext.Provider value={{lat, setLat, lng, setLng, isMapShowing, setIsMapShowing}}>
-			<Router>
-				<Switch>
-					<Route path="/room/:roomId">
-						<App />
-					</Route>
-					<Route exact path="/">
-						<App />
-					</Route>
-					<Redirect from="*" to="/" />
-				</Switch>
-			</Router>
-		</MapsContext.Provider>
-
+		<Router>
+			<Switch>
+				<Route path="/room/:roomId">
+					<App />
+				</Route>
+				<Route exact path="/">
+					<App />
+				</Route>
+				<Redirect from="*" to="/" />
+			</Switch>
+		</Router>
 	);
 };
 export default RouterHandler;

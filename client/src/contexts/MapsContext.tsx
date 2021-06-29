@@ -10,9 +10,9 @@ export type MapsContent = {
 }
 
 export const MapsContext = createContext<MapsContent>({
-    lat: 45.5555, // set a default value
+    lat: 33.9192, // set a default value
     setLat: () => {},
-    lng: -71.5555,
+    lng: -118.4165,
     setLng: () => {},
     isMapShowing: false,
     setIsMapShowing: () => {}
