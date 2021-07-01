@@ -27,6 +27,7 @@ import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 
+
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
 	isOpen: boolean;
@@ -230,6 +231,16 @@ const PanelContent = ({
 					onError={onNFTError}
 					onSuccess={onNFTSuccess}
 				/>
+			);
+		case 'browseNFT':
+			return (
+				<iframe
+					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
+				  width='100%'
+				  height='100vh'
+				  frameBorder='0'
+				  allowFullScreen>
+		    </iframe>
 			);
 		default:
 			return null;

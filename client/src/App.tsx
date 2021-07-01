@@ -343,6 +343,7 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
+			case "browseNFT":
 			case 'NFT':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -1360,6 +1361,8 @@ function App() {
 		return result;
 	};
 
+	const onBrowseNFTPanel = selectedPanelItem === PanelItemEnum.browseNFT;
+
 	useEffect(() => {
 		const room = roomId || 'default';
 
@@ -1902,7 +1905,7 @@ function App() {
 				roomData={roomData}
 			/>
 
-			{userProfile && (
+			{userProfile && !onBrowseNFTPanel &&(
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
