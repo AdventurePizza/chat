@@ -78,6 +78,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MetamaskSection } from './components/MetamaskSection';
 import { AppStateContext } from './contexts/AppStateContext';
 import { ErrorModal } from './components/ErrorModal';
+import { SuccessModal } from './components/SuccessModal';
 import { ISubmit } from './components/NFT/OrderInput';
 import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
@@ -102,7 +103,8 @@ function App() {
 		network,
 		isLoggedIn,
 		accountId,
-		provider
+		provider,
+		signIn
 		// signIn,
 		// balance
 	} = useContext(AuthContext);
@@ -149,11 +151,14 @@ function App() {
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
+	const [modalSuccessMessage, setModalSuccessMessage] = useState<string | null>(
+		null
+	);
 
 	const firebaseContext = useContext(FirebaseContext);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [modalState, setModalState] = useState<
-		'new-room' | 'enter-room' | 'error' | null
+		'new-room' | 'enter-room' | 'error' | 'success' | null
 	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -237,6 +242,12 @@ function App() {
 			setModalState('error');
 		}
 	}, [modalErrorMessage]);
+
+	useEffect(() => {
+		if (modalSuccessMessage) {
+			setModalState('success');
+		}
+	}, [modalSuccessMessage]);
 
 	const addNewContract = async (
 		nftAddress: string
@@ -354,6 +365,7 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
+			case 'browseNFT':
 			case 'NFT':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -1387,6 +1399,8 @@ function App() {
 		return result;
 	};
 
+	const onBrowseNFTPanel = selectedPanelItem === PanelItemEnum.browseNFT;
+
 	useEffect(() => {
 		const room = roomId || 'default';
 
@@ -1801,6 +1815,24 @@ function App() {
 		});
 	};
 
+	const onClickPresent = async () => {
+		if (!isLoggedIn) {
+			await signIn();
+		}
+
+		firebaseContext
+			.acquireTokens('trychats')
+			.then(({ isSuccessful, message }) => {
+				if (!isSuccessful) {
+					setModalErrorMessage(message || 'Error acquiring tokens');
+				} else {
+					setModalSuccessMessage(
+						'Successfully acquired 10000 $TRYCHATS tokens'
+					);
+				}
+			});
+	};
+
 	if (isInvalidRoom) {
 		return <div>Invalid room {roomId}</div>;
 	}
@@ -1854,6 +1886,7 @@ function App() {
 				onBuy={() => {}}
 				onCancel={() => {}}
 				onClickNewRoom={() => setModalState('new-room')}
+				onClickPresent={onClickPresent}
 			/>
 
 			<TowerDefense
@@ -1931,7 +1964,7 @@ function App() {
 				roomData={roomData}
 			/>
 
-			{userProfile && (
+			{userProfile && !onBrowseNFTPanel &&(
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
@@ -1965,6 +1998,15 @@ function App() {
 								setModalErrorMessage(null);
 							}}
 							message={modalErrorMessage}
+						/>
+					)}
+					{modalState === 'success' && modalSuccessMessage && (
+						<SuccessModal
+							onClickCancel={() => {
+								setModalState(null);
+								setModalSuccessMessage(null);
+							}}
+							message={modalSuccessMessage}
 						/>
 					)}
 				</>

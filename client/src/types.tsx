@@ -153,6 +153,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'email' = 'email',
 	'new-room' = 'new-room',

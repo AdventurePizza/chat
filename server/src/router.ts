@@ -11,6 +11,7 @@ import usersRouter from "./users";
 import cors from "cors";
 import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
+import tokenRouter from "./token";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -128,6 +129,16 @@ export class Router {
         credentialsRequired: false,
       }),
       roomRouter
+    );
+    app.use(
+      "/token",
+      expressjwt({
+        //@ts-ignore
+        secret: Buffer.from(process.env.JWT_SECRET, "base64"),
+        algorithms: ["HS256"],
+        credentialsRequired: false,
+      }),
+      tokenRouter
     );
 
     io.on("connect", (socket: Socket) => {
