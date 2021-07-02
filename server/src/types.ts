@@ -13,6 +13,7 @@ declare global {
       TWITTER_BEARER_TOKEN: string;
       TWITTER_ACCESS_TOKEN: string;
       TWITTER_TOKEN_SECRET: string;
+      NODE_ENV: string;
     }
   }
 }

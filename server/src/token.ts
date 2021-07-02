@@ -13,6 +13,10 @@ const tokenRouter = express.Router();
 tokenRouter.post("/:tokenId", async (req, res) => {
   const { tokenId } = req.params as { tokenId: string };
 
+  if (process.env.NODE_ENV === "development") {
+    return res.status(200).end();
+  }
+
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
   if (!address) {
@@ -56,14 +60,20 @@ interface IClaimDoc {
   [tokenId: string]: boolean;
 }
 
-// matic mainnet
-const provider = new ethers.providers.JsonRpcProvider(
-  "https://rpc-mainnet.maticvigil.com/v1/3cd8c7560296ba08d4c7a0f0039927e09b385123"
-);
+let provider: ethers.providers.JsonRpcProvider;
+let wallet: ethers.Wallet;
+let contractTRYCHATS: ethers.Contract;
 
-export const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+if (process.env.NODE_ENV !== "development") {
+  // matic mainnet
+  provider = new ethers.providers.JsonRpcProvider(
+    "https://rpc-mainnet.maticvigil.com/v1/3cd8c7560296ba08d4c7a0f0039927e09b385123"
+  );
 
-const contractTRYCHATS = new ethers.Contract(
-  "0x770dc23a0a69195d7bd2aa5b73a279b533326e03",
-  erc20abi
-).connect(wallet) as TRYCHATS;
+  wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+  contractTRYCHATS = new ethers.Contract(
+    "0x770dc23a0a69195d7bd2aa5b73a279b533326e03",
+    erc20abi
+  ).connect(wallet) as TRYCHATS;
+}
