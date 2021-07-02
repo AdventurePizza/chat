@@ -10,6 +10,7 @@ import { IOrder } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
+import { Map } from "./Maps";
 
 
 const useStyles = makeStyles({
@@ -36,7 +37,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT';
+	type: 'gif' | 'image' | 'text' | 'NFT' | 'map';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -125,6 +126,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 						order={order}
 					/>
 				)}
+				{type === 'map' && data && <Map />}
 			</Paper>
 
 			{isHovering && (

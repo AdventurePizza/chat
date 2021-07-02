@@ -213,8 +213,11 @@ function App() {
 		condition: ''
 	});
 
-	const [lat, setLat] = useState(33.9192);
-  	const [lng, setLng] = useState(-118.4165);
+	const [coordinates, setCoordinates] = useState({
+		lat: 33.91925555555555,
+		lng: -118.41655555555555
+	})
+	const [zoom, setZoom] = useState(12);
 	const [isMapShowing, setIsMapShowing] = useState(false);
 
 	useEffect(() => {
@@ -955,6 +958,22 @@ function App() {
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
+				case 'map' :
+					if(typeof message.isMapShowing === "boolean"){
+						setIsMapShowing(message.isMapShowing);
+					}
+					if(typeof message.zoom === "number"){
+						setZoom(message.zoom);
+					}
+					if(message.coordinates){
+						console.log('got map event', message);
+						const newCoordinates = {
+							lat: message.coordinates.lat,
+							lng: message.coordinates.lng
+						}
+						setCoordinates(newCoordinates);
+					}
+					break;
 				case 'sound':
 					if (message.value) {
 						playSound(message.value);
@@ -1787,7 +1806,8 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{lat, setLat, lng, setLng, isMapShowing, setIsMapShowing}}>
+		<MapsContext.Provider value={{coordinates, setCoordinates, zoom, setZoom, isMapShowing, setIsMapShowing}}>
+			
 		<div
 			className="app"
 			style={{

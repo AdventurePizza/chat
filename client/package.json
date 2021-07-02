@@ -69,6 +69,7 @@
 		]
 	},
 	"devDependencies": {
+		"@types/config": "0.0.38",
 		"@types/google-map-react": "^2.1.1",
 		"@types/react-places-autocomplete": "^7.2.7",
 		"@types/react-router-dom": "^5.1.7",

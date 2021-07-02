@@ -3,7 +3,7 @@ import PlacesAutocomplete, {
     geocodeByAddress,
     getLatLng,
   } from 'react-places-autocomplete';
-import "./Weather.css"
+import "./MapsPanel.css"
 
 import { MapsContext } from "../contexts/MapsContext";
 
@@ -11,32 +11,41 @@ import {
 	FormControlLabel,
 	Switch
 } from '@material-ui/core';
+import { AppStateContext } from "../contexts/AppStateContext";
 
 
 export const MapsPanel = () => {
 	const [address, setAddress] = useState("");
-	/* const [coordinates, setCoordinates] = useState({
-		lat: 0,
-		lng: 0
-	}) */
 
-    const {lat, setLat, lng, setLng, isMapShowing, setIsMapShowing} = useContext(MapsContext);
+    const {coordinates, setCoordinates, isMapShowing, setIsMapShowing} = useContext(MapsContext);
+    const { socket } = useContext(AppStateContext);
 
     const handleSelect = async (value : string)  => {
         const results =  await geocodeByAddress(value);
         const latLng = await getLatLng(results[0]);
         setAddress(value);
-        /* setCoordinates(latLng); */
-        setLat(latLng.lat);
-        setLng(latLng.lng);
+        setCoordinates(latLng);
+        setIsMapShowing(true);
+
+        socket.emit('event', {
+            key: 'map',
+            coordinates: coordinates
+        });
     }
 
 	return (
-		<div className="location-input-container">
+		<div className="maps-panel-container">
 			<div style={{ display: 'flex' }}>
 					<FormControlLabel
 						checked={isMapShowing}
-						onChange={() => setIsMapShowing(!isMapShowing)}
+						onChange={() => {
+                            const newVal = !isMapShowing;
+                            setIsMapShowing(newVal);
+                            socket.emit('event', {
+                                key: 'map',
+                                isMapShowing: newVal
+                            });
+                        }}
 						control={<Switch color="primary" />}
 						label="show map"
 					/>
@@ -48,25 +57,29 @@ export const MapsPanel = () => {
                 onSelect={handleSelect}
                 >
                 {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
-                    <div>
-                        <p>Latitude: {/* coordinates. */lat}</p>
-                        <p>Longitude: {/* coordinates. */lng}</p>
+                    <div className="maps-input-container"> 
+                        <input {...getInputProps({placeholder: "Type address"})} />
+                        <div className="map-options-container">
+                            { suggestions.length > 0 && (
+                                <div className="map-input-options">
+                                {suggestions.map((suggestion, index) => {
+                                    const style = {
+                                        color: "#fff",
+                                        backgroundColor: suggestion.active ? "rgb(135 211 243)" : "rgb(33 33 33)",
+                                        padding: "2px 5px"
+                                    }
 
+                                        return (
+                                            <div {...getSuggestionItemProps(suggestion, { style })} key={index}>
+                                                {suggestion.description}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
 
-                        <input {...getInputProps({placeholder: "Type address"})}/>
-                        <div>
-                            {suggestions.map((suggestion, index) => {
-                                const style = {
-                                    backgroundColor: suggestion.active ? "#41b6e6" : "#fff"
-                                }
-
-                                return (
-                                    <div {...getSuggestionItemProps(suggestion, { style })} key={index}>
-                                        {suggestion.description}
-                                    </div>
-                                );
-                            })}
                         </div>
+                        
                     </div>
                 )}
             </PlacesAutocomplete>
