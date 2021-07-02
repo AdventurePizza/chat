@@ -13,7 +13,7 @@ const tokenRouter = express.Router();
 tokenRouter.post("/:tokenId", async (req, res) => {
   const { tokenId } = req.params as { tokenId: string };
 
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV !== "production") {
     return res.status(200).end();
   }
 
@@ -64,7 +64,7 @@ let provider: ethers.providers.JsonRpcProvider;
 let wallet: ethers.Wallet;
 let contractTRYCHATS: ethers.Contract;
 
-if (process.env.NODE_ENV !== "development") {
+if (process.env.NODE_ENV === "production") {
   // matic mainnet
   provider = new ethers.providers.JsonRpcProvider(
     "https://rpc-mainnet.maticvigil.com/v1/3cd8c7560296ba08d4c7a0f0039927e09b385123"
