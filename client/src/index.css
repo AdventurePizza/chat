@@ -36,3 +36,8 @@ code {
 ::-webkit-scrollbar-thumb:hover {
 	background-color: #a8bbbf;
 }
+
+@font-face {
+	font-family: 'Milkstore';
+	src: url(./assets/fonts/Milkstore01-Clean.ttf);
+}

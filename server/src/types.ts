@@ -1,4 +1,5 @@
 import { IGif } from "@giphy/js-types";
+import { Response } from "express";
 
 declare global {
   namespace NodeJS {
@@ -31,3 +32,8 @@ export interface IChatRoom {
   isLocked?: boolean;
   lockedOwnerAddress?: string;
 }
+
+export const error = (res: Response, message: string) => {
+  res.statusMessage = message;
+  return res.status(400).end();
+};
