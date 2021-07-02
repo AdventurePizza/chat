@@ -1699,22 +1699,7 @@ function App() {
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
 
-		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-			roomId || 'default',
-			{
-				type,
-				top: y,
-				left: x,
-				key: id
-			}
-		);
 
-		if (!isSuccessful) {
-			if (message) {
-				setModalErrorMessage(message);
-			}
-			return;
-		}
 
 		if (type === 'text') {
 			setPinnedText(
@@ -1765,6 +1750,23 @@ function App() {
 			}
 		}
 
+		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+			roomId || 'default',
+			{
+				type,
+				top: y,
+				left: x,
+				key: id
+			}
+		);
+
+		if (!isSuccessful) {
+			if (message) {
+				setModalErrorMessage(message);
+			}
+			return;
+		}
+		
 		socket.emit('event', {
 			key: 'move-item',
 			type,
