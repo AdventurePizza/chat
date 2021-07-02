@@ -22,6 +22,7 @@ import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
+import { MapsPanel } from './MapsPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
@@ -198,6 +199,10 @@ const PanelContent = ({
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
+			case 'maps':
+				return (
+					<MapsPanel />
+				);
 		case 'poem':
 			return (
 				<Poem

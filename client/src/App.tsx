@@ -85,6 +85,9 @@ import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 
+import { MapsContext  } from './contexts/MapsContext';
+
+
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
@@ -214,6 +217,13 @@ function App() {
 		temp: '',
 		condition: ''
 	});
+
+	const [coordinates, setCoordinates] = useState({
+		lat: 33.91925555555555,
+		lng: -118.41655555555555
+	})
+	const [zoom, setZoom] = useState(12);
+	const [isMapShowing, setIsMapShowing] = useState(false);
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -350,11 +360,12 @@ function App() {
 			case 'background':
 			case 'whiteboard':
 			case 'weather':
+			case 'maps':
 			case 'roomDirectory':
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case "browseNFT":
+			case 'browseNFT':
 			case 'NFT':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -959,6 +970,22 @@ function App() {
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
+				case 'map' :
+					if(typeof message.isMapShowing === "boolean"){
+						setIsMapShowing(message.isMapShowing);
+					}
+					if(typeof message.zoom === "number"){
+						setZoom(message.zoom);
+					}
+					if(message.coordinates){
+						console.log('got map event', message);
+						const newCoordinates = {
+							lat: message.coordinates.lat,
+							lng: message.coordinates.lng
+						}
+						setCoordinates(newCoordinates);
+					}
+					break;
 				case 'sound':
 					if (message.value) {
 						playSound(message.value);
@@ -1811,6 +1838,8 @@ function App() {
 	}
 
 	return (
+		<MapsContext.Provider value={{coordinates, setCoordinates, zoom, setZoom, isMapShowing, setIsMapShowing}}>
+			
 		<div
 			className="app"
 			style={{
@@ -1983,6 +2012,8 @@ function App() {
 				</>
 			</Modal>
 		</div>
+		</MapsContext.Provider>
+
 	);
 }
 

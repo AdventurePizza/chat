@@ -29,6 +29,9 @@ import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import introShark from '../assets/intro/leftshark.gif';
+import { useContext } from 'react';
+import { MapsContext } from '../contexts/MapsContext';
+import { Map } from "./Maps";
 import present from '../assets/intro/present.gif';
 
 interface IBoardProps {
@@ -170,6 +173,8 @@ export const Board = ({
 			return undefined;
 		}
 	});
+
+	const { isMapShowing } = useContext(MapsContext);
 
 	return (
 		<div
@@ -468,6 +473,8 @@ export const Board = ({
 				</CSSTransition>
 			)}
 			{/* </TransitionGroup> */}
+
+			{ isMapShowing ? <Map /> : null }
 
 			<UserCursors
 				userLocations={userLocations}

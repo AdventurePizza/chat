@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
 
 export interface IBackgroundState {
 	isPinned?: boolean;
@@ -48,6 +48,7 @@ export interface IMessageEvent {
 		| 'isTyping'
 		| 'username'
 		| 'weather'
+		| 'map'
 		| 'settings-url'
 		| 'pin-item'
 		| 'move-item'
@@ -168,7 +169,8 @@ export enum PanelItemEnum {
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'sound' = 'sound',
-	'emoji' = 'emoji'
+	'emoji' = 'emoji',
+	"maps" = "maps"
 }
 
 export interface IUserLocations {
