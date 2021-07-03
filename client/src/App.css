@@ -41,3 +41,8 @@ body {
 	align-items: center;
 	z-index: 99999999;
 }
+
+iframe {
+  height: 100vh;
+  width: 100%;
+}

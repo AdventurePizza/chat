@@ -185,7 +185,27 @@
 	padding: 10px;
 }
 
+.board-present {
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+	align-items: center;
+	font-family: 'Milkstore';
+	font-size: 1.2rem;
+}
+
+.board-present > *:first-child {
+	margin-bottom: 10px;
+}
+
 .board-intro img {
 	margin-top: 5px;
 	margin-bottom: 2px;
+}
+
+.room-present {
+	position: absolute;
+	top: 0;
+	left: 25vw;
+	z-index: 99999999999;
 }

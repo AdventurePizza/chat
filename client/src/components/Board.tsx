@@ -29,6 +29,10 @@ import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import introShark from '../assets/intro/leftshark.gif';
+import { useContext } from 'react';
+import { MapsContext } from '../contexts/MapsContext';
+import { Map } from "./Maps";
+import present from '../assets/intro/present.gif';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -73,6 +77,7 @@ interface IBoardProps {
 	onBuy: (nftId: string) => void;
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
+	onClickPresent: () => void;
 }
 
 export const Board = ({
@@ -111,11 +116,32 @@ export const Board = ({
 	addNewContract,
 	onBuy,
 	onCancel,
-	onClickNewRoom
+	onClickNewRoom,
+	onClickPresent
 }: IBoardProps) => {
 	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 		'begin'
 	);
+	const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
+		'begin'
+	);
+
+	const renderPresent = () => {
+		if (presentState === 'appear' || presentState === 'begin') {
+			return (
+				<button onClick={onClickPresent} className="board-present">
+					<span>trychats tokens for you</span>
+					<img alt="present" src={present} style={{ width: 100 }} />
+				</button>
+			);
+		}
+		// else if (introState === 'begin') {
+		// 	return <button>hello</button>;
+		// }
+		else {
+			return null;
+		}
+	};
 
 	const renderIntro = () => {
 		if (introState === 'appear') {
@@ -147,6 +173,8 @@ export const Board = ({
 			return undefined;
 		}
 	});
+
+	const { isMapShowing } = useContext(MapsContext);
 
 	return (
 		<div
@@ -284,6 +312,23 @@ export const Board = ({
 					}}
 				>
 					<div className="room-button">{renderIntro()}</div>
+				</CSSTransition>
+
+				<CSSTransition
+					appear
+					timeout={5000}
+					classNames="room-button-transition"
+					onEnter={() => {
+						setTimeout(() => {
+							setPresentState('appear');
+						}, 5000);
+
+						setTimeout(() => {
+							setPresentState('end');
+						}, 20000);
+					}}
+				>
+					<div className="room-present">{renderPresent()}</div>
 				</CSSTransition>
 			</TransitionGroup>
 
@@ -428,6 +473,8 @@ export const Board = ({
 				</CSSTransition>
 			)}
 			{/* </TransitionGroup> */}
+
+			{ isMapShowing ? <Map /> : null }
 
 			<UserCursors
 				userLocations={userLocations}

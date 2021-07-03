@@ -22,10 +22,12 @@ import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
+import { MapsPanel } from './MapsPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
+
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -197,6 +199,10 @@ const PanelContent = ({
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
+			case 'maps':
+				return (
+					<MapsPanel />
+				);
 		case 'poem':
 			return (
 				<Poem
@@ -230,6 +236,16 @@ const PanelContent = ({
 					onError={onNFTError}
 					onSuccess={onNFTSuccess}
 				/>
+			);
+		case 'browseNFT':
+			return (
+				<iframe
+					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
+				  width='100%'
+				  height='100vh'
+				  frameBorder='0'
+				  allowFullScreen>
+		    </iframe>
 			);
 		default:
 			return null;
