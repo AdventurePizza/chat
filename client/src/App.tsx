@@ -1736,11 +1736,11 @@ function App() {
 		type: PinTypes,
 		id: string,
 		left: number,
-		top: number
+		top: number,
+		deltaX: number,
+		deltaY: number
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
-
-
 
 		if (type === 'text') {
 			setPinnedText(
@@ -1790,7 +1790,6 @@ function App() {
 				]);
 			}
 		}
-
 		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
 			roomId || 'default',
 			{
@@ -1801,13 +1800,64 @@ function App() {
 			}
 		);
 
+		//reverse the changes in client in case has no permission to edit
 		if (!isSuccessful) {
 			if (message) {
 				setModalErrorMessage(message);
 			}
+			left -= deltaX;
+			top -= deltaY;
+
+			if (type === 'text') {
+				setPinnedText(
+					update(pinnedText, {
+						[id]: {
+							$merge: { left, top }
+						}
+					})
+				);
+			} else if (type === 'gif') {
+				const gifIndex = gifs.findIndex((gif) => gif.key === id);
+				if (gifIndex !== -1) {
+					setGifs([
+						...gifs.slice(0, gifIndex),
+						{
+							...gifs[gifIndex],
+							top,
+							left
+						},
+						...gifs.slice(gifIndex + 1)
+					]);
+				}
+			} else if (type === 'image') {
+				const imageIndex = images.findIndex((image) => image.key === id);
+				if (imageIndex !== -1) {
+					setImages([
+						...images.slice(0, imageIndex),
+						{
+							...images[imageIndex],
+							top,
+							left
+						},
+						...images.slice(imageIndex + 1)
+					]);
+				}
+			} else if (type === 'NFT') {
+				const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+				if (nftIndex !== -1) {
+					setNFTs([
+						...NFTs.slice(0, nftIndex),
+						{
+							...NFTs[nftIndex],
+							top,
+							left
+						},
+						...NFTs.slice(nftIndex + 1)
+					]);
+				}
+			}
 			return;
 		}
-		
 		socket.emit('event', {
 			key: 'move-item',
 			type,
@@ -1841,7 +1891,7 @@ function App() {
 
 	return (
 		<MapsContext.Provider value={{coordinates, setCoordinates, zoom, setZoom, isMapShowing, setIsMapShowing}}>
-			
+
 		<div
 			className="app"
 			style={{

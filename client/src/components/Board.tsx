@@ -66,7 +66,9 @@ interface IBoardProps {
 		type: PinTypes,
 		itemKey: string,
 		left: number,
-		top: number
+		top: number,
+		deltaX: number,
+		deltaY: number
 	) => void;
 	NFTs: Array<IOrder & IPinnedItem>;
 	loadingNFT?: ISubmit;
@@ -169,7 +171,7 @@ export const Board = ({
 			const left = Math.round(item.left + delta.x);
 			const top = Math.round(item.top + delta.y);
 			console.log(item);
-			moveItem(item.itemType, item.id, left, top);
+			moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
 			return undefined;
 		}
 	});
