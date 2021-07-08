@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
 
 export interface IBackgroundState {
 	isPinned?: boolean;

@@ -84,8 +84,10 @@ import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
-
 import { MapsContext  } from './contexts/MapsContext';
+import { useHotkeys } from 'react-hotkeys-hook';
+const clipboardy = require('clipboardy');
+
 
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
@@ -1328,6 +1330,18 @@ function App() {
 				break;
 		}
 	};
+
+	useHotkeys('ctrl+v', () => {
+		if (clipboardy.read()) {
+				clipboardy.read().then((value:string) => 			setMovingBoardItem({
+								type: 'text',
+								itemKey: uuidv4(),
+								value: value,
+								isNew: true
+							}) );
+
+		}
+	});
 
 	const onClickApp = useCallback(
 		async (event: React.MouseEvent) => {
