@@ -474,6 +474,17 @@ export const Board = ({
 			)}
 			{/* </TransitionGroup> */}
 
+			<div className="board-container-pin">
+				{isMapShowing && (
+					<PinButton
+						isPinned={false}
+						onPin={()=>{}}
+						onUnpin={()=>{}}
+						placeholder="background"
+					/>	
+				)}
+			</div>
+
 			{ isMapShowing ? <Map /> : null }
 
 			<UserCursors

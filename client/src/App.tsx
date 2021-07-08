@@ -221,7 +221,17 @@ function App() {
 	const [coordinates, setCoordinates] = useState({
 		lat: 33.91925555555555,
 		lng: -118.41655555555555
-	})
+	});
+	const [markerCoordinates, setMarkerCoordinates] = useState({
+		lat: 33.91925555555555,
+		lng: -118.41655555555555
+	});
+
+	interface ICoordinates {
+		lat: number, 
+		lng: number
+	};
+	const [markers, setMarkers] = useState<ICoordinates[]>([]);
 	const [zoom, setZoom] = useState(12);
 	const [isMapShowing, setIsMapShowing] = useState(false);
 
@@ -984,6 +994,12 @@ function App() {
 							lng: message.coordinates.lng
 						}
 						setCoordinates(newCoordinates);
+					}
+					if(message.markerCoordinates){
+						setMarkerCoordinates(message.markerCoordinates);
+					}
+					if(message.markers){
+						setMarkers(message.markers);
 					}
 					break;
 				case 'sound':
@@ -1838,7 +1854,7 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{coordinates, setCoordinates, zoom, setZoom, isMapShowing, setIsMapShowing}}>
+		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
 			
 		<div
 			className="app"
