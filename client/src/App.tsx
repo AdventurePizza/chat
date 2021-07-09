@@ -32,7 +32,6 @@ import {
 	PinTypes,
 	IOrder,
 	IMap,
-	IFetchResponseBase
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -88,7 +87,6 @@ import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 import { MapsContext  } from './contexts/MapsContext';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { isTemplateExpression } from 'typescript';
 const clipboardy = require('clipboardy');
 
 

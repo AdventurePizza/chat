@@ -68,7 +68,6 @@ roomRouter.post("/:roomId/pin", async (req, res) => {
 
   if (doc.exists) {
     if (item.type === "background") {
-      console.log(item);
       await docRef.collection("pinnedItems").doc("background").set(item);
     } else if (item.type === "NFT") {
       await docRef.collection("pinnedItems").doc(item.order.id).set(item);

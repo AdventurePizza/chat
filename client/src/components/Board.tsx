@@ -33,7 +33,6 @@ import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from "./Maps";
 import present from '../assets/intro/present.gif';
-import { useEffect } from 'react';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -176,9 +175,6 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
-	useEffect(() => {
-		console.log(background);
-	}, [background])
 
 	return (
 		<div

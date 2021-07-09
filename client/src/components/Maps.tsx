@@ -1,6 +1,6 @@
 import GoogleMapReact from 'google-map-react';
 import React from 'react';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { MapsContext } from "../contexts/MapsContext";
 import { AppStateContext } from "../contexts/AppStateContext";
 import "./Marker.css";
@@ -25,7 +25,7 @@ interface IMapProps {
 }
 
 export const Map = ({mapData}: IMapProps) => {
-    const { coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, zoom, setZoom } = useContext(MapsContext);
+    const { coordinates, setCoordinates, markerCoordinates, zoom, setZoom } = useContext(MapsContext);
     const { socket } = useContext(AppStateContext);
     const { markers, setMarkers} = useContext(MapsContext);
 
@@ -47,7 +47,6 @@ export const Map = ({mapData}: IMapProps) => {
                 lng: event.latLng.lng()
             });
             const newMarkers = [...markers];
-            console.log(newMarkers);
             setMarkers(newMarkers);
             socket.emit('event', {
                 key: 'map',

@@ -3,7 +3,7 @@ import { IGif } from '@giphy/js-types';
 export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
 
 export interface IBackgroundState {
-	type: 'image' | 'map' | undefined;
+	type?: 'image' | 'map';
 	name?: string;
 	isPinned?: boolean;
 	mapData?: IMap;
