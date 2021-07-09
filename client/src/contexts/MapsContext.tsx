@@ -6,10 +6,10 @@ interface ICoordinates {
 }
 
 export type MapsContent = {
-    coordinates: { lat: number, lng: number }
-    setCoordinates: (coordinates: {lat: number, lng: number}) => void
-    markerCoordinates: { lat: number, lng: number }
-    setMarkerCoordinates: (coordinates: {lat: number, lng: number}) => void
+    coordinates: ICoordinates
+    setCoordinates: (coordinates: ICoordinates) => void
+    markerCoordinates: ICoordinates
+    setMarkerCoordinates: (coordinates: ICoordinates) => void
     markers: Array<ICoordinates>,
     setMarkers: (markers: Array<ICoordinates>) => void
     zoom: number

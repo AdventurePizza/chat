@@ -3,8 +3,10 @@ import { IGif } from '@giphy/js-types';
 export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
 
 export interface IBackgroundState {
+	type: 'image' | 'map' | undefined;
+	name?: string;
 	isPinned?: boolean;
-	name: string | undefined;
+	mapData?: IMap;
 }
 
 export interface IPinnedItem {
@@ -13,6 +15,7 @@ export interface IPinnedItem {
 	left: number;
 	key?: string;
 	data?: IGif;
+	mapData?: IMap;
 	[key: string]: any;
 }
 
@@ -256,6 +259,13 @@ export interface IOrder {
 	id: string;
 	contractAddress: string;
 	isPartnered: boolean;
+}
+
+export interface IMap {
+	coordinates: { lat: number, lng: number }
+    markerCoordinates: { lat: number, lng: number }
+    markers: Array<{ lat: number, lng: number }>,
+    zoom: number
 }
 
 export interface INFTMetadata {

@@ -4,7 +4,7 @@ import { useContext, useState } from 'react';
 import { MapsContext } from "../contexts/MapsContext";
 import { AppStateContext } from "../contexts/AppStateContext";
 import "./Marker.css";
-import { PinButton } from "./shared/PinButton";
+import { IMap } from "../types"
 
 interface IMarkerProps {
     lat: number;
@@ -20,11 +20,14 @@ const Marker = ({lat, lng}: IMarkerProps) => {
     )
 }
 
-export const Map = () => {
+interface IMapProps {
+    mapData? : IMap
+}
+
+export const Map = ({mapData}: IMapProps) => {
     const { coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, zoom, setZoom } = useContext(MapsContext);
     const { socket } = useContext(AppStateContext);
     const { markers, setMarkers} = useContext(MapsContext);
-    /* const [markers, setMarkers] = useState<IMarkerProps[]>([]); */
 
     const updateCoordinates = (newCoordinates: {lat: number, lng: number}, newZoom: number) => {
         setCoordinates(newCoordinates);
@@ -37,7 +40,7 @@ export const Map = () => {
         
     }
 
-    const apiIsLoaded = (map: any /* google.maps.MapTypeId.ROADMAP */, maps: any) => {
+    const apiIsLoaded = (map: any, maps: any) => {
         map.addListener('dblclick', (event: any) => {
             markers.push({
                 lat: event.latLng.lat(),
@@ -54,13 +57,25 @@ export const Map = () => {
       };
 
     return (
-        <div style={{width: "100%", height: "100%", position: "relative"}}>
-            <PinButton
-                isPinned={true}
-                onPin={() => {}}
-                onUnpin={() => {}}
-                placeholder="background"
-            />
+        <div style={{width: "100%", height: "100%", position: "relative", top: "0", left: "0"}}>
+            {mapData && (
+                <GoogleMapReact
+                bootstrapURLKeys={{ key: "AIzaSyArAlGMMvreircH6LgluU4xHTBDJR7KBzs"}}
+                center={ mapData.coordinates }
+                zoom= { mapData.zoom }
+                onChange={({center, zoom, bounds, marginBounds }) => {
+                    updateCoordinates(center, zoom);
+                }}
+                yesIWantToUseGoogleMapApiInternals
+                onGoogleApiLoaded={({ map, maps }) => apiIsLoaded(map, maps)}
+                options={{
+                    disableDoubleClickZoom: true
+                }}
+            >
+                <Marker lat={mapData.markerCoordinates.lat} lng={mapData.markerCoordinates.lng} />
+                {mapData.markers.map((marker, index) => <Marker lat={marker.lat} lng={marker.lng} key={index} />)}
+            </GoogleMapReact>
+            )}
             <GoogleMapReact
                 bootstrapURLKeys={{ key: "AIzaSyArAlGMMvreircH6LgluU4xHTBDJR7KBzs"}}
                 center={ coordinates }
@@ -74,8 +89,8 @@ export const Map = () => {
                     disableDoubleClickZoom: true
                 }}
             >
-                <Marker lat={markerCoordinates.lat} lng={markerCoordinates.lng}/>
-                {markers.map((marker, index) => <Marker lat={marker.lat} lng={marker.lng} key={index}/>)}
+                <Marker lat={markerCoordinates.lat} lng={markerCoordinates.lng} />
+                {markers.map((marker, index) => <Marker lat={marker.lat} lng={marker.lng} key={index} />)}
             </GoogleMapReact>
         </div>
     )

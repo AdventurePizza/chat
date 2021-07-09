@@ -33,6 +33,7 @@ import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from "./Maps";
 import present from '../assets/intro/present.gif';
+import { useEffect } from 'react';
 
 interface IBoardProps {
 	musicNotes: IMusicNoteProps[];
@@ -175,6 +176,9 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
+	useEffect(() => {
+		console.log(background);
+	}, [background])
 
 	return (
 		<div
@@ -187,16 +191,9 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			<div className="board-container-pin">
-				{background.name && (
-					<PinButton
-						isPinned={background.isPinned}
-						onPin={pinBackground}
-						onUnpin={unpinBackground}
-						placeholder="background"
-					/>
-				)}
-			</div>
+			{background.type === "map" && (
+				<Map mapData={background.mapData}/>
+			)}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -475,11 +472,21 @@ export const Board = ({
 			{/* </TransitionGroup> */}
 
 			<div className="board-container-pin">
-				{isMapShowing && (
+				{(isMapShowing || background.name || background.mapData) && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>	
+				)}
+			</div>
+			<div className="board-container-pin">
+				{(isMapShowing && background.type !== "map") && (
 					<PinButton
 						isPinned={false}
-						onPin={()=>{}}
-						onUnpin={()=>{}}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
 						placeholder="background"
 					/>	
 				)}
