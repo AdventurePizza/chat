@@ -189,16 +189,9 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			<div className="board-container-pin">
-				{background.name && (
-					<PinButton
-						isPinned={background.isPinned}
-						onPin={pinBackground}
-						onUnpin={unpinBackground}
-						placeholder="background"
-					/>
-				)}
-			</div>
+			{background.type === "map" && (
+				<Map mapData={background.mapData}/>
+			)}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -475,6 +468,27 @@ export const Board = ({
 				</CSSTransition>
 			)}
 			{/* </TransitionGroup> */}
+
+			<div className="board-container-pin">
+				{(isMapShowing || background.name || background.mapData) && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>	
+				)}
+			</div>
+			<div className="board-container-pin">
+				{(isMapShowing && background.type !== "map") && (
+					<PinButton
+						isPinned={false}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>	
+				)}
+			</div>
 
 			{ isMapShowing ? <Map /> : null }
 

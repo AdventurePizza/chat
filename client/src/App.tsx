@@ -30,7 +30,8 @@ import {
 	IWeather,
 	PanelItemEnum,
 	PinTypes,
-	IOrder
+	IOrder,
+	IMap,
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -87,6 +88,8 @@ import abiMarketplace from './abis/Marketplace.abi.json';
 import { MapsContext  } from './contexts/MapsContext';
 import { useHotkeys } from 'react-hotkeys-hook';
 const clipboardy = require('clipboardy');
+
+
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -175,7 +178,7 @@ function App() {
 	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
 	const [background, setBackground] = useState<IBackgroundState>({
-		name: undefined
+		type: undefined
 	});
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
@@ -221,7 +224,17 @@ function App() {
 	const [coordinates, setCoordinates] = useState({
 		lat: 33.91925555555555,
 		lng: -118.41655555555555
-	})
+	});
+	const [markerCoordinates, setMarkerCoordinates] = useState({
+		lat: 33.91925555555555,
+		lng: -118.41655555555555
+	});
+
+	interface ICoordinates {
+		lat: number, 
+		lng: number
+	};
+	const [markers, setMarkers] = useState<ICoordinates[]>([]);
 	const [zoom, setZoom] = useState(12);
 	const [isMapShowing, setIsMapShowing] = useState(false);
 
@@ -714,9 +727,10 @@ function App() {
 					break;
 				case 'background':
 					if (isUnpin) {
-						setBackground({ name: '', isPinned: false });
+						setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
 					} else {
-						setBackground({ name: message.name, isPinned: true });
+						console.log(message);
+						setBackground({ name: message.name, isPinned: true, type: message.subType, mapData: message.mapData });
 					}
 					break;
 				case 'text':
@@ -978,12 +992,17 @@ function App() {
 						setZoom(message.zoom);
 					}
 					if(message.coordinates){
-						console.log('got map event', message);
 						const newCoordinates = {
 							lat: message.coordinates.lat,
 							lng: message.coordinates.lng
 						}
 						setCoordinates(newCoordinates);
+					}
+					if(message.markerCoordinates){
+						setMarkerCoordinates(message.markerCoordinates);
+					}
+					if(message.markers){
+						setMarkers(message.markers);
 					}
 					break;
 				case 'sound':
@@ -1025,7 +1044,9 @@ function App() {
 					setBackground((background) => ({
 						...background,
 						name: message.value,
-						isPinned: message.isPinned
+						isPinned: message.isPinned,
+						type: message.type,
+						mapData: message.mapData
 					}));
 					break;
 				case 'messages':
@@ -1446,7 +1467,9 @@ function App() {
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 
-				let background: string | undefined;
+				let backgroundType: 'image' | 'map' | undefined;
+				let backgroundImg: string | undefined;
+				let backgroundMap: IMap | undefined;
 
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
@@ -1468,7 +1491,9 @@ function App() {
 							url: item.url
 						});
 					} else if (item.type === 'background') {
-						background = item.name;
+							backgroundType = item.subType;
+							backgroundImg = item.name;
+							backgroundMap = item.mapData;
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1495,7 +1520,7 @@ function App() {
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setPinnedText(pinnedText);
-				setBackground({ name: background, isPinned: !!background });
+				setBackground({ name: backgroundImg, isPinned: !!backgroundImg || !!backgroundMap, mapData: backgroundMap, type: backgroundType });
 				setNFTs(pinnedNFTs);
 			});
 		}
@@ -1602,23 +1627,54 @@ function App() {
 	};
 
 	const pinBackground = async () => {
+		/* if(background.isPinned===true){
+			unpinBackground();
+		} */
 		const room = roomId || 'default';
 
-		// if (!background.isPinned) {
+		let backgroundType: 'image' | 'map' | undefined;
+		if(isMapShowing){
+			backgroundType = 'map';
+		} else if(background.name) {
+			backgroundType = 'image';
+		}
+
+		let backgroundName: string | undefined;
+		if(backgroundType==="image") {
+			backgroundName = background.name;
+		} else {
+			backgroundName = ''
+		}
+
+
+		let mapCoordinates: IMap | undefined = {coordinates, markerCoordinates, markers, zoom };
+		if(backgroundType!=="map"){
+			mapCoordinates = undefined
+		}
+
 		const result = await firebaseContext.pinRoomItem(room, {
-			name: background.name,
+			name: backgroundName,
 			type: 'background',
 			top: 0,
-			left: 0
+			left: 0,
+			subType: backgroundType,
+			mapData: mapCoordinates
 		});
-
+		
 		if (result.isSuccessful) {
-			setBackground((background) => ({ ...background, isPinned: true }));
-
+			setBackground((background) => ({ name: backgroundName, isPinned: true, type: backgroundType, mapData:  mapCoordinates}));
+			
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
-				name: background.name
+				name: backgroundName,
+				subType: backgroundType,
+				mapData: mapCoordinates
+			});
+			setIsMapShowing(false);
+			socket.emit('event', {
+				key: 'map',
+				isMapShowing: false
 			});
 		} else if (result.message) {
 			setModalErrorMessage(result.message);
@@ -1636,7 +1692,7 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				setBackground({ name: '', isPinned: false });
+				setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
 
 				socket.emit('event', {
 					key: 'unpin-item',
@@ -1902,8 +1958,8 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{coordinates, setCoordinates, zoom, setZoom, isMapShowing, setIsMapShowing}}>
-
+		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
+			
 		<div
 			className="app"
 			style={{

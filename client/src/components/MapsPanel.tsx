@@ -17,7 +17,7 @@ import { AppStateContext } from "../contexts/AppStateContext";
 export const MapsPanel = () => {
 	const [address, setAddress] = useState("");
 
-    const {coordinates, setCoordinates, isMapShowing, setIsMapShowing} = useContext(MapsContext);
+    const {coordinates, setCoordinates, setMarkerCoordinates, isMapShowing, setIsMapShowing} = useContext(MapsContext);
     const { socket } = useContext(AppStateContext);
 
     const handleSelect = async (value : string)  => {
@@ -25,11 +25,14 @@ export const MapsPanel = () => {
         const latLng = await getLatLng(results[0]);
         setAddress(value);
         setCoordinates(latLng);
+        setMarkerCoordinates(latLng);
         setIsMapShowing(true);
+
 
         socket.emit('event', {
             key: 'map',
-            coordinates: coordinates
+            coordinates: coordinates,
+            markerCoordinates: latLng
         });
     }
 
