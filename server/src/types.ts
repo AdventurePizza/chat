@@ -1,4 +1,5 @@
 import { IGif } from "@giphy/js-types";
+import { Response } from "express";
 
 declare global {
   namespace NodeJS {
@@ -12,6 +13,7 @@ declare global {
       TWITTER_BEARER_TOKEN: string;
       TWITTER_ACCESS_TOKEN: string;
       TWITTER_TOKEN_SECRET: string;
+      NODE_ENV: string;
     }
   }
 }
@@ -31,3 +33,8 @@ export interface IChatRoom {
   isLocked?: boolean;
   lockedOwnerAddress?: string;
 }
+
+export const error = (res: Response, message: string) => {
+  res.statusMessage = message;
+  return res.status(400).end();
+};

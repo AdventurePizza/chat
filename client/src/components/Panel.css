@@ -254,6 +254,11 @@
 	height: 33px;
 }
 
+.panel-icon-maps {
+	width: 33px;
+	height: 33px;
+}
+
 .panel-icon-image-container {
 	height: 60px;
 	display: flex;

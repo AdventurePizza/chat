@@ -30,7 +30,8 @@ import {
 	IWeather,
 	PanelItemEnum,
 	PinTypes,
-	IOrder
+	IOrder,
+	IMap,
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -78,11 +79,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { MetamaskSection } from './components/MetamaskSection';
 import { AppStateContext } from './contexts/AppStateContext';
 import { ErrorModal } from './components/ErrorModal';
+import { SuccessModal } from './components/SuccessModal';
 import { ISubmit } from './components/NFT/OrderInput';
 import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
+import { MapsContext  } from './contexts/MapsContext';
+import { useHotkeys } from 'react-hotkeys-hook';
+const clipboardy = require('clipboardy');
+
+
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -99,7 +106,8 @@ function App() {
 		network,
 		isLoggedIn,
 		accountId,
-		provider
+		provider,
+		signIn
 		// signIn,
 		// balance
 	} = useContext(AuthContext);
@@ -146,11 +154,14 @@ function App() {
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
+	const [modalSuccessMessage, setModalSuccessMessage] = useState<string | null>(
+		null
+	);
 
 	const firebaseContext = useContext(FirebaseContext);
 	const [isPanelOpen, setIsPanelOpen] = useState(true);
 	const [modalState, setModalState] = useState<
-		'new-room' | 'enter-room' | 'error' | null
+		'new-room' | 'enter-room' | 'error' | 'success' | null
 	>(null);
 	const [musicNotes, setMusicNotes] = useState<IMusicNoteProps[]>([]);
 	const [emojis, setEmojis] = useState<IEmoji[]>([]);
@@ -167,7 +178,7 @@ function App() {
 	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
 	const [background, setBackground] = useState<IBackgroundState>({
-		name: undefined
+		type: undefined
 	});
 	const [videoId, setVideoId] = useState<string>("");
 
@@ -211,6 +222,23 @@ function App() {
 		condition: ''
 	});
 
+	const [coordinates, setCoordinates] = useState({
+		lat: 33.91925555555555,
+		lng: -118.41655555555555
+	});
+	const [markerCoordinates, setMarkerCoordinates] = useState({
+		lat: 33.91925555555555,
+		lng: -118.41655555555555
+	});
+
+	interface ICoordinates {
+		lat: number, 
+		lng: number
+	};
+	const [markers, setMarkers] = useState<ICoordinates[]>([]);
+	const [zoom, setZoom] = useState(12);
+	const [isMapShowing, setIsMapShowing] = useState(false);
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -228,6 +256,12 @@ function App() {
 			setModalState('error');
 		}
 	}, [modalErrorMessage]);
+
+	useEffect(() => {
+		if (modalSuccessMessage) {
+			setModalState('success');
+		}
+	}, [modalSuccessMessage]);
 
 	const addNewContract = async (
 		nftAddress: string
@@ -340,10 +374,12 @@ function App() {
 			case 'background':
 			case 'whiteboard':
 			case 'weather':
+			case 'maps':
 			case 'roomDirectory':
 			case 'settings':
 			case 'poem':
 			case 'email':
+			case 'browseNFT':
 			case 'NFT':
 			case 'youtube':
 				setSelectedPanelItem(
@@ -693,9 +729,10 @@ function App() {
 					break;
 				case 'background':
 					if (isUnpin) {
-						setBackground({ name: '', isPinned: false });
+						setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
 					} else {
-						setBackground({ name: message.name, isPinned: true });
+						console.log(message);
+						setBackground({ name: message.name, isPinned: true, type: message.subType, mapData: message.mapData });
 					}
 					break;
 				case 'text':
@@ -949,6 +986,27 @@ function App() {
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
+				case 'map' :
+					if(typeof message.isMapShowing === "boolean"){
+						setIsMapShowing(message.isMapShowing);
+					}
+					if(typeof message.zoom === "number"){
+						setZoom(message.zoom);
+					}
+					if(message.coordinates){
+						const newCoordinates = {
+							lat: message.coordinates.lat,
+							lng: message.coordinates.lng
+						}
+						setCoordinates(newCoordinates);
+					}
+					if(message.markerCoordinates){
+						setMarkerCoordinates(message.markerCoordinates);
+					}
+					if(message.markers){
+						setMarkers(message.markers);
+					}
+					break;
 				case 'sound':
 					if (message.value) {
 						playSound(message.value);
@@ -993,7 +1051,9 @@ function App() {
 					setBackground((background) => ({
 						...background,
 						name: message.value,
-						isPinned: message.isPinned
+						isPinned: message.isPinned,
+						type: message.type,
+						mapData: message.mapData
 					}));
 					break;
 				case 'messages':
@@ -1288,6 +1348,18 @@ function App() {
 		}
 	};
 
+	useHotkeys('ctrl+v', () => {
+		if (clipboardy.read()) {
+				clipboardy.read().then((value:string) => 			setMovingBoardItem({
+								type: 'text',
+								itemKey: uuidv4(),
+								value: value,
+								isNew: true
+							}) );
+
+		}
+	});
+
 	const onClickApp = useCallback(
 		async (event: React.MouseEvent) => {
 			setTowerDefenseState((state) => {
@@ -1374,6 +1446,8 @@ function App() {
 		return result;
 	};
 
+	const onBrowseNFTPanel = selectedPanelItem === PanelItemEnum.browseNFT;
+
 	useEffect(() => {
 		const room = roomId || 'default';
 
@@ -1407,7 +1481,9 @@ function App() {
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 
-				let background: string | undefined;
+				let backgroundType: 'image' | 'map' | undefined;
+				let backgroundImg: string | undefined;
+				let backgroundMap: IMap | undefined;
 
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
@@ -1429,7 +1505,9 @@ function App() {
 							url: item.url
 						});
 					} else if (item.type === 'background') {
-						background = item.name;
+							backgroundType = item.subType;
+							backgroundImg = item.name;
+							backgroundMap = item.mapData;
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1456,7 +1534,7 @@ function App() {
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setPinnedText(pinnedText);
-				setBackground({ name: background, isPinned: !!background });
+				setBackground({ name: backgroundImg, isPinned: !!backgroundImg || !!backgroundMap, mapData: backgroundMap, type: backgroundType });
 				setNFTs(pinnedNFTs);
 			});
 		}
@@ -1563,22 +1641,58 @@ function App() {
 	};
 
 	const pinBackground = async () => {
+		/* if(background.isPinned===true){
+			unpinBackground();
+		} */
 		const room = roomId || 'default';
 
-		// if (!background.isPinned) {
+		let backgroundType: 'image' | 'map' | undefined;
+		if(isMapShowing){
+			backgroundType = 'map';
+		} else if(background.name) {
+			backgroundType = 'image';
+		}
+
+		let backgroundName: string | undefined;
+		if(backgroundType==="image") {
+			backgroundName = background.name;
+		} else {
+			backgroundName = ''
+		}
+
+
+		let mapCoordinates: IMap | undefined = {coordinates, markerCoordinates, markers, zoom };
+		if(backgroundType!=="map"){
+			mapCoordinates = undefined
+		}
+
 		const result = await firebaseContext.pinRoomItem(room, {
-			name: background.name,
+			name: backgroundName,
 			type: 'background',
 			top: 0,
-			left: 0
+			left: 0,
+			subType: backgroundType,
+			mapData: mapCoordinates
 		});
-
+		
 		if (result.isSuccessful) {
+<<<<<<< HEAD
 			setBackground((background) => ({ ...background, isPinned: true }));
+=======
+			setBackground((background) => ({ name: backgroundName, isPinned: true, type: backgroundType, mapData:  mapCoordinates}));
+			
+>>>>>>> cc69c97f17151c7c72449c7a546a1b54862f60f8
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
-				name: background.name
+				name: backgroundName,
+				subType: backgroundType,
+				mapData: mapCoordinates
+			});
+			setIsMapShowing(false);
+			socket.emit('event', {
+				key: 'map',
+				isMapShowing: false
 			});
 		} else if (result.message) {
 			setModalErrorMessage(result.message);
@@ -1596,7 +1710,7 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				setBackground({ name: '', isPinned: false });
+				setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
 
 				socket.emit('event', {
 					key: 'unpin-item',
@@ -1708,26 +1822,11 @@ function App() {
 		type: PinTypes,
 		id: string,
 		left: number,
-		top: number
+		top: number,
+		deltaX: number,
+		deltaY: number
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
-
-		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-			roomId || 'default',
-			{
-				type,
-				top: y,
-				left: x,
-				key: id
-			}
-		);
-
-		if (!isSuccessful) {
-			if (message) {
-				setModalErrorMessage(message);
-			}
-			return;
-		}
 
 		if (type === 'text') {
 			setPinnedText(
@@ -1777,7 +1876,74 @@ function App() {
 				]);
 			}
 		}
+		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+			roomId || 'default',
+			{
+				type,
+				top: y,
+				left: x,
+				key: id
+			}
+		);
 
+		//reverse the changes in client in case has no permission to edit
+		if (!isSuccessful) {
+			if (message) {
+				setModalErrorMessage(message);
+			}
+			left -= deltaX;
+			top -= deltaY;
+
+			if (type === 'text') {
+				setPinnedText(
+					update(pinnedText, {
+						[id]: {
+							$merge: { left, top }
+						}
+					})
+				);
+			} else if (type === 'gif') {
+				const gifIndex = gifs.findIndex((gif) => gif.key === id);
+				if (gifIndex !== -1) {
+					setGifs([
+						...gifs.slice(0, gifIndex),
+						{
+							...gifs[gifIndex],
+							top,
+							left
+						},
+						...gifs.slice(gifIndex + 1)
+					]);
+				}
+			} else if (type === 'image') {
+				const imageIndex = images.findIndex((image) => image.key === id);
+				if (imageIndex !== -1) {
+					setImages([
+						...images.slice(0, imageIndex),
+						{
+							...images[imageIndex],
+							top,
+							left
+						},
+						...images.slice(imageIndex + 1)
+					]);
+				}
+			} else if (type === 'NFT') {
+				const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+				if (nftIndex !== -1) {
+					setNFTs([
+						...NFTs.slice(0, nftIndex),
+						{
+							...NFTs[nftIndex],
+							top,
+							left
+						},
+						...NFTs.slice(nftIndex + 1)
+					]);
+				}
+			}
+			return;
+		}
 		socket.emit('event', {
 			key: 'move-item',
 			type,
@@ -1787,11 +1953,31 @@ function App() {
 		});
 	};
 
+	const onClickPresent = async () => {
+		if (!isLoggedIn) {
+			await signIn();
+		}
+
+		firebaseContext
+			.acquireTokens('trychats')
+			.then(({ isSuccessful, message }) => {
+				if (!isSuccessful) {
+					setModalErrorMessage(message || 'Error acquiring tokens');
+				} else {
+					setModalSuccessMessage(
+						'Successfully acquired 10000 $TRYCHATS tokens'
+					);
+				}
+			});
+	};
+
 	if (isInvalidRoom) {
 		return <div>Invalid room {roomId}</div>;
 	}
 
 	return (
+		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
+			
 		<div
 			className="app"
 			style={{
@@ -1839,6 +2025,7 @@ function App() {
 				onBuy={() => {}}
 				onCancel={() => {}}
 				onClickNewRoom={() => setModalState('new-room')}
+				onClickPresent={onClickPresent}
 			/>
 
 			<TowerDefense
@@ -1916,7 +2103,7 @@ function App() {
 				roomData={roomData}
 			/>
 
-			{userProfile && (
+			{userProfile && !onBrowseNFTPanel &&(
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
@@ -1952,9 +2139,20 @@ function App() {
 							message={modalErrorMessage}
 						/>
 					)}
+					{modalState === 'success' && modalSuccessMessage && (
+						<SuccessModal
+							onClickCancel={() => {
+								setModalState(null);
+								setModalSuccessMessage(null);
+							}}
+							message={modalSuccessMessage}
+						/>
+					)}
 				</>
 			</Modal>
 		</div>
+		</MapsContext.Provider>
+
 	);
 }
 

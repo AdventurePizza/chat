@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { IChatRoom, IPinnedItem } from "./types";
+import { IChatRoom, IPinnedItem, error } from "./types";
 import db from "./firebase";
 import { twitterClient } from "./twitter";
 
@@ -165,11 +165,6 @@ const getLockedOwnerAddress = async (
 };
 
 export default roomRouter;
-
-const error = (res: Response, message: string) => {
-  res.statusMessage = message;
-  return res.status(400).end();
-};
 
 const verifyLockedOwner = async (
   req: Request,

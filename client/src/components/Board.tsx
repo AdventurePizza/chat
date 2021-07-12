@@ -30,6 +30,10 @@ import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import introShark from '../assets/intro/leftshark.gif';
+import { useContext } from 'react';
+import { MapsContext } from '../contexts/MapsContext';
+import { Map } from "./Maps";
+import present from '../assets/intro/present.gif';
 
 interface IBoardProps {
 	videoId: string;
@@ -64,7 +68,9 @@ interface IBoardProps {
 		type: PinTypes,
 		itemKey: string,
 		left: number,
-		top: number
+		top: number,
+		deltaX: number,
+		deltaY: number
 	) => void;
 	NFTs: Array<IOrder & IPinnedItem>;
 	loadingNFT?: ISubmit;
@@ -75,6 +81,7 @@ interface IBoardProps {
 	onBuy: (nftId: string) => void;
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
+	onClickPresent: () => void;
 }
 
 export const Board = ({
@@ -114,11 +121,32 @@ export const Board = ({
 	addNewContract,
 	onBuy,
 	onCancel,
-	onClickNewRoom
+	onClickNewRoom,
+	onClickPresent
 }: IBoardProps) => {
 	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 		'begin'
 	);
+	const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
+		'begin'
+	);
+
+	const renderPresent = () => {
+		if (presentState === 'appear' || presentState === 'begin') {
+			return (
+				<button onClick={onClickPresent} className="board-present">
+					<span>trychats tokens for you</span>
+					<img alt="present" src={present} style={{ width: 100 }} />
+				</button>
+			);
+		}
+		// else if (introState === 'begin') {
+		// 	return <button>hello</button>;
+		// }
+		else {
+			return null;
+		}
+	};
 
 	const renderIntro = () => {
 		if (introState === 'appear') {
@@ -146,10 +174,12 @@ export const Board = ({
 			const left = Math.round(item.left + delta.x);
 			const top = Math.round(item.top + delta.y);
 			console.log(item);
-			moveItem(item.itemType, item.id, left, top);
+			moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
 			return undefined;
 		}
 	});
+
+	const { isMapShowing } = useContext(MapsContext);
 
 	return (
 		<div
@@ -185,6 +215,9 @@ export const Board = ({
 					/>
 				)}
 			</div>
+			{background.type === "map" && (
+				<Map mapData={background.mapData}/>
+			)}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -300,6 +333,23 @@ export const Board = ({
 					}}
 				>
 					<div className="room-button">{renderIntro()}</div>
+				</CSSTransition>
+
+				<CSSTransition
+					appear
+					timeout={5000}
+					classNames="room-button-transition"
+					onEnter={() => {
+						setTimeout(() => {
+							setPresentState('appear');
+						}, 5000);
+
+						setTimeout(() => {
+							setPresentState('end');
+						}, 20000);
+					}}
+				>
+					<div className="room-present">{renderPresent()}</div>
 				</CSSTransition>
 			</TransitionGroup>
 
@@ -444,6 +494,29 @@ export const Board = ({
 				</CSSTransition>
 			)}
 			{/* </TransitionGroup> */}
+
+			<div className="board-container-pin">
+				{(isMapShowing || background.name || background.mapData) && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>	
+				)}
+			</div>
+			<div className="board-container-pin">
+				{(isMapShowing && background.type !== "map") && (
+					<PinButton
+						isPinned={false}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>	
+				)}
+			</div>
+
+			{ isMapShowing ? <Map /> : null }
 
 			<UserCursors
 				userLocations={userLocations}

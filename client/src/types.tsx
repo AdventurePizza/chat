@@ -1,10 +1,12 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
 
 export interface IBackgroundState {
+	type?: 'image' | 'map';
+	name?: string;
 	isPinned?: boolean;
-	name: string | undefined;
+	mapData?: IMap;
 }
 
 export interface IPinnedItem {
@@ -13,6 +15,7 @@ export interface IPinnedItem {
 	left: number;
 	key?: string;
 	data?: IGif;
+	mapData?: IMap;
 	[key: string]: any;
 }
 
@@ -49,6 +52,7 @@ export interface IMessageEvent {
 		| 'isTyping'
 		| 'username'
 		| 'weather'
+		| 'map'
 		| 'settings-url'
 		| 'pin-item'
 		| 'move-item'
@@ -153,6 +157,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
+	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'email' = 'email',
 	'new-room' = 'new-room',
@@ -170,6 +175,7 @@ export enum PanelItemEnum {
 	'sound' = 'sound',
 	'emoji' = 'emoji',
 	'youtube' = 'youtube',
+	"maps" = "maps"
 }
 
 export interface IUserLocations {
@@ -255,6 +261,13 @@ export interface IOrder {
 	id: string;
 	contractAddress: string;
 	isPartnered: boolean;
+}
+
+export interface IMap {
+	coordinates: { lat: number, lng: number }
+    markerCoordinates: { lat: number, lng: number }
+    markers: Array<{ lat: number, lng: number }>,
+    zoom: number
 }
 
 export interface INFTMetadata {

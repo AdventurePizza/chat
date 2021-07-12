@@ -23,6 +23,7 @@ export interface IFirebaseContext {
 		room: string,
 		item: IPinnedItem
 	) => Promise<IFetchResponseBase>;
+	acquireTokens: (tokenId: string) => Promise<IFetchResponseBase>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -32,7 +33,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	unpinRoomItem: () => Promise.resolve({ isSuccessful: false }),
 	getRoomPinnedItems: () => Promise.resolve({ isSuccessful: false }),
 	getAllRooms: () => Promise.resolve({ isSuccessful: false }),
-	movePinnedRoomItem: () => Promise.resolve({ isSuccessful: false })
+	movePinnedRoomItem: () => Promise.resolve({ isSuccessful: false }),
+	acquireTokens: () => Promise.resolve({ isSuccessful: false })
 });
 
 const fetchBase =
@@ -59,6 +61,21 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			});
 		},
 		[jwt, isLoggedIn]
+	);
+
+	const acquireTokens = useCallback(
+		async (tokenId: string): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/token/${tokenId}`, {
+				method: 'POST'
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
 	);
 
 	const getRoom = useCallback(
@@ -208,7 +225,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getRoomPinnedItems,
 				unpinRoomItem,
 				getAllRooms,
-				movePinnedRoomItem
+				movePinnedRoomItem,
+				acquireTokens
 			}}
 		>
 			{children}
