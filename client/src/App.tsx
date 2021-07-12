@@ -169,6 +169,7 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		name: undefined
 	});
+	const [videoId, setVideoId] = useState<string>("");
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -344,6 +345,7 @@ function App() {
 			case 'poem':
 			case 'email':
 			case 'NFT':
+			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -959,6 +961,10 @@ function App() {
 						}));
 					}
 					break;
+				case 'youtube':
+					setBackground({name: '', isPinned: false});
+					setVideoId(message.value);
+					break;
 				case 'emoji':
 					if (message.value) {
 						playEmoji(message.value);
@@ -983,6 +989,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
+					setVideoId("");
 					setBackground((background) => ({
 						...background,
 						name: message.value,
@@ -1267,6 +1274,13 @@ function App() {
 					to: args[0],
 					message: args[1],
 					url: window.location.href
+				});
+				break;
+			case 'youtube':
+				const videoId = args[0] as string;
+				socket.emit('event', {
+					key: 'youtube',
+					value: videoId
 				});
 				break;
 			default:
@@ -1561,7 +1575,6 @@ function App() {
 
 		if (result.isSuccessful) {
 			setBackground((background) => ({ ...background, isPinned: true }));
-
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
@@ -1788,6 +1801,7 @@ function App() {
 		>
 			<MetamaskSection />
 			<Board
+				videoId={videoId}
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}

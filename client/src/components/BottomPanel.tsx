@@ -20,6 +20,7 @@ import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
+import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import WhiteboardPanel from './WhiteboardPanel';
@@ -47,7 +48,11 @@ export interface IPanelContentProps {
 	towerDefenseState: ITowerDefenseState;
 	updateIsTyping: (isTyping: boolean) => void;
 	images: IImagesState[];
+	queriedVideos: Array<any>;
+	lastQuery: string;
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
+	setQueriedVideos: React.Dispatch<React.SetStateAction<Array<any>>>;
+	setLastQuery: React.Dispatch<React.SetStateAction<string>>;
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
@@ -79,6 +84,8 @@ export const BottomPanel = ({
 	roomData
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
+	const [videos, setQueriedVideos] = useState<Array<any>>([]);
+	const [lastQuery, setLastQuery] = useState<string>("");
 	const classes = useStyles();
 
 	return (
@@ -99,7 +106,11 @@ export const BottomPanel = ({
 					towerDefenseState={towerDefenseState}
 					updateIsTyping={updateIsTyping}
 					images={images}
+					queriedVideos={videos}
+					lastQuery={lastQuery}
 					setImages={setImages}
+					setQueriedVideos={setQueriedVideos}
+					setLastQuery={setLastQuery}
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
@@ -116,7 +127,11 @@ const PanelContent = ({
 	towerDefenseState,
 	updateIsTyping,
 	images,
+	queriedVideos,
+	lastQuery,
 	setImages,
+	setQueriedVideos,
+	setLastQuery,
 	onNFTError,
 	onNFTSuccess,
 	roomData
@@ -229,6 +244,16 @@ const PanelContent = ({
 					roomData={roomData}
 					onError={onNFTError}
 					onSuccess={onNFTSuccess}
+				/>
+			);
+		case 'youtube':
+			return (
+				<YouTubeMusicPanel
+					sendVideo={(id) => onAction('youtube', id)}
+					queriedVideos={queriedVideos}
+					setQueriedVideos={setQueriedVideos}
+					lastQuery={lastQuery}
+					setLastQuery={setLastQuery}
 				/>
 			);
 		default:

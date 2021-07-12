@@ -23,6 +23,7 @@ import { XYCoord, useDrop } from 'react-dnd';
 import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
 import React, { useState } from 'react';
+import ReactPlayer from 'react-player';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
@@ -31,6 +32,7 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 import introShark from '../assets/intro/leftshark.gif';
 
 interface IBoardProps {
+	videoId: string;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
 	emojis: IEmoji[];
@@ -76,6 +78,7 @@ interface IBoardProps {
 }
 
 export const Board = ({
+	videoId,
 	musicNotes,
 	updateNotes,
 	emojis,
@@ -159,6 +162,19 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
+			<div className="youtube-background">
+				{(videoId !== "") ? (
+					<ReactPlayer width="100%" height="100%"
+						url={`https://www.youtube.com/watch?v=${videoId}`}
+						playing={true}	// Autoplay video
+						volume={0.4}
+						style={{
+							position: "fixed",
+							zIndex: -100	// puts video at the very back so it doesn't disturb the rest of the components
+						}}
+					/>) : null
+				}
+			</div>
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton

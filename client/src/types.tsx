@@ -35,6 +35,7 @@ export interface IAvatarChatMessages {
 export interface IMessageEvent {
 	key:
 		| 'sound'
+		| 'youtube'
 		| 'emoji'
 		| 'chat'
 		| 'chat-pin'
@@ -167,7 +168,8 @@ export enum PanelItemEnum {
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'sound' = 'sound',
-	'emoji' = 'emoji'
+	'emoji' = 'emoji',
+	'youtube' = 'youtube',
 }
 
 export interface IUserLocations {

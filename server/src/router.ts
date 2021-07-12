@@ -80,6 +80,7 @@ let backgroundState: IBackgroundState = {};
 interface IMessageEvent {
   key:
     | "sound"
+    | "youtube"
     | "emoji"
     | "chat"
     | "gif"
@@ -402,6 +403,10 @@ export class Router {
         socket.to(roomId).emit("event", message);
         socket.emit("event", message);
         removeImageAfter1Min(clientRooms[socket.id]);
+        break;
+
+      case "youtube":
+        socket.emit("event", message);
         break;
 
       case "whiteboard":
