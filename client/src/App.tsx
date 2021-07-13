@@ -1676,12 +1676,8 @@ function App() {
 		});
 		
 		if (result.isSuccessful) {
-<<<<<<< HEAD
-			setBackground((background) => ({ ...background, isPinned: true }));
-=======
 			setBackground((background) => ({ name: backgroundName, isPinned: true, type: backgroundType, mapData:  mapCoordinates}));
 			
->>>>>>> cc69c97f17151c7c72449c7a546a1b54862f60f8
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
