@@ -225,10 +225,6 @@ function App() {
 		lat: 33.91925555555555,
 		lng: -118.41655555555555
 	});
-	const [markerCoordinates, setMarkerCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	});
 
 	interface ICoordinates {
 		lat: number, 
@@ -998,10 +994,8 @@ function App() {
 						}
 						setCoordinates(newCoordinates);
 					}
-					if(message.markerCoordinates){
-						setMarkerCoordinates(message.markerCoordinates);
-					}
 					if(message.markers){
+						console.log(message.markers);
 						setMarkers(message.markers);
 					}
 					break;
@@ -1627,9 +1621,6 @@ function App() {
 	};
 
 	const pinBackground = async () => {
-		/* if(background.isPinned===true){
-			unpinBackground();
-		} */
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
@@ -1647,7 +1638,7 @@ function App() {
 		}
 
 
-		let mapCoordinates: IMap | undefined = {coordinates, markerCoordinates, markers, zoom };
+		let mapCoordinates: IMap | undefined = {coordinates, markers, zoom };
 		if(backgroundType!=="map"){
 			mapCoordinates = undefined
 		}
@@ -1671,11 +1662,11 @@ function App() {
 				subType: backgroundType,
 				mapData: mapCoordinates
 			});
-			setIsMapShowing(false);
+			/* setIsMapShowing(false);
 			socket.emit('event', {
 				key: 'map',
 				isMapShowing: false
-			});
+			}); */
 		} else if (result.message) {
 			setModalErrorMessage(result.message);
 		}
@@ -1958,7 +1949,7 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
+		<MapsContext.Provider value={{coordinates, setCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
 			
 		<div
 			className="app"

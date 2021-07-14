@@ -263,8 +263,7 @@ export interface IOrder {
 
 export interface IMap {
 	coordinates: { lat: number, lng: number }
-    markerCoordinates: { lat: number, lng: number }
-    markers: Array<{ lat: number, lng: number }>,
+    markers: Array<{ lat: number, lng: number, text?: string }>,
     zoom: number
 }
 

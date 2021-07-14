@@ -17,22 +17,30 @@ import { AppStateContext } from "../contexts/AppStateContext";
 export const MapsPanel = () => {
 	const [address, setAddress] = useState("");
 
-    const {coordinates, setCoordinates, setMarkerCoordinates, isMapShowing, setIsMapShowing} = useContext(MapsContext);
+    const {coordinates, setCoordinates, isMapShowing, setIsMapShowing} = useContext(MapsContext);
     const { socket } = useContext(AppStateContext);
+    const { markers, setMarkers } = useContext(MapsContext);
 
     const handleSelect = async (value : string)  => {
         const results =  await geocodeByAddress(value);
         const latLng = await getLatLng(results[0]);
         setAddress(value);
         setCoordinates(latLng);
-        setMarkerCoordinates(latLng);
         setIsMapShowing(true);
+
+        markers.push({
+            lat: latLng.lat,
+            lng: latLng.lng,
+            text: value
+        });
+        const newMarkers = [...markers];
+        setMarkers(newMarkers);
 
 
         socket.emit('event', {
             key: 'map',
             coordinates: coordinates,
-            markerCoordinates: latLng
+            markers: newMarkers
         });
     }
 
