@@ -83,10 +83,7 @@ export const Map = ({mapData}: IMapProps) => {
     const apiIsLoaded = (map: any, maps: any ) => {
         /* console.log("maploaded"); */
         map.addListener('dblclick', (event: any) => {
-            /* console.log(passedMarkers); */
             /* console.log(markers); */
-            /* let retMarkers = getMarkers(); */
-            /* console.log("returned markers: ", retMarkers); */
             markers.push({
                 lat: event.latLng.lat(),
                 lng: event.latLng.lng()
