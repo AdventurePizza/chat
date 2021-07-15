@@ -10,6 +10,11 @@ const roomRouter = express.Router();
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
+  if (process.env.NODE_ENV !== "production") {
+    res.status(200).send({
+      name: "default",
+    });
+  }
 
   const doc = await collection.doc(roomId).get();
 

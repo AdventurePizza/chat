@@ -31,7 +31,7 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 import introShark from '../assets/intro/leftshark.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
-import { Map } from "./Maps";
+import { Map } from './Maps';
 import present from '../assets/intro/present.gif';
 
 interface IBoardProps {
@@ -177,6 +177,7 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
+	console.log('board is map showing ? ', isMapShowing);
 
 	return (
 		<div
@@ -189,9 +190,7 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			{background.type === "map" && (
-				<Map mapData={background.mapData}/>
-			)}
+			{background.type === 'map' && <Map mapData={background.mapData} />}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -476,21 +475,21 @@ export const Board = ({
 						onPin={pinBackground}
 						onUnpin={unpinBackground}
 						placeholder="background"
-					/>	
+					/>
 				)}
 			</div>
 			<div className="board-container-pin">
-				{(isMapShowing && background.type !== "map") && (
+				{isMapShowing && background.type !== 'map' && (
 					<PinButton
 						isPinned={false}
 						onPin={pinBackground}
 						onUnpin={unpinBackground}
 						placeholder="background"
-					/>	
+					/>
 				)}
 			</div>
 
-			{ isMapShowing ? <Map /> : null }
+			{isMapShowing ? <Map /> : null}
 
 			<UserCursors
 				userLocations={userLocations}

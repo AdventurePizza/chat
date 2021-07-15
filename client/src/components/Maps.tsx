@@ -20,30 +20,20 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 
 	const onUpdateName = () => {
 		updateMarkerText(index, inputVal);
-		// markers[index].text = inputVal;
-		// const newMarkers = [...markers];
-		// setMarkers(newMarkers);
+		setInputVal('');
 		// socket.emit('event', {
 		// 	key: 'map',
 		// 	markers: newMarkers
 		// });
-		// setInputVal('');
 	};
 
 	const onMarkerDelete = () => {
 		deleteMarker(index);
-		// markers.splice(index, 1);
-		// const newMarkers = [...markers];
-		// setMarkers(newMarkers);
 		// socket.emit('event', {
 		// 	key: 'map',
 		// 	markers: newMarkers
 		// });
 	};
-
-	/* useEffect(() => {
-        console.log("Markers", markers);
-    }, [markers]); */
 
 	return (
 		<>
@@ -101,7 +91,6 @@ export const Map = ({ mapData }: IMapProps) => {
 	};
 
 	const apiIsLoaded = (map: any, maps: any) => {
-		/* console.log("maploaded"); */
 		map.addListener('dblclick', (event: any) => {
 			addMarker({
 				lat: event.latLng.lat(),
@@ -127,10 +116,6 @@ export const Map = ({ mapData }: IMapProps) => {
 		});
 	};
 
-	useEffect(() => {
-		console.log('MapContext Markers: ', markers);
-	}, [markers]);
-
 	return (
 		<div
 			style={{
@@ -146,7 +131,6 @@ export const Map = ({ mapData }: IMapProps) => {
 				center={!mapData ? coordinates : mapData.coordinates}
 				zoom={!mapData ? zoom : mapData.zoom}
 				onChange={({ center, zoom, bounds, marginBounds }) => {
-					// updateCoordinates(center, zoom);
 					onChangeCoordinates(center, zoom);
 				}}
 				yesIWantToUseGoogleMapApiInternals

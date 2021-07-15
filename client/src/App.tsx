@@ -85,8 +85,8 @@ import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
-import { MapsContext, MapsProvider } from './contexts/MapsContext';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { MapsContext } from './contexts/MapsContext';
 const clipboardy = require('clipboardy');
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
@@ -100,6 +100,16 @@ const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
 
 function App() {
 	const { socket } = useContext(AppStateContext);
+	const {
+		updateCoordinates,
+		coordinates,
+		markers,
+		isMapShowing,
+		zoom,
+		updateZoom,
+		updateIsMapShowing,
+		updateMarkerText
+	} = useContext(MapsContext);
 	const {
 		network,
 		isLoggedIn,
@@ -219,18 +229,18 @@ function App() {
 		condition: ''
 	});
 
-	const [coordinates, setCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	});
+	// const [coordinates, setCoordinates] = useState({
+	// 	lat: 33.91925555555555,
+	// 	lng: -118.41655555555555
+	// });
 
-	interface ICoordinates {
-		lat: number;
-		lng: number;
-	}
-	const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	const [zoom, setZoom] = useState(12);
-	const [isMapShowing, setIsMapShowing] = useState(false);
+	// interface ICoordinates {
+	// 	lat: number;
+	// 	lng: number;
+	// }
+	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
+	// const [zoom, setZoom] = useState(12);
+	// const [isMapShowing, setIsMapShowing] = useState(false);
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -990,23 +1000,25 @@ function App() {
 			switch (message.key) {
 				case 'map':
 					console.log('got map message', message);
-					if (typeof message.isMapShowing === 'boolean') {
-						setIsMapShowing(message.isMapShowing);
+					if (message.isMapShowing !== undefined) {
+						updateIsMapShowing(message.isMapShowing);
+						// setIsMapShowing(message.isMapShowing);
 					}
-					if (typeof message.zoom === 'number') {
-						setZoom(message.zoom);
+					if (message.zoom !== undefined) {
+						// setZoom(message.zoom);
+						updateZoom(message.zoom);
 					}
 					if (message.coordinates) {
 						const newCoordinates = {
 							lat: message.coordinates.lat,
 							lng: message.coordinates.lng
 						};
-						setCoordinates(newCoordinates);
+						updateCoordinates(newCoordinates);
 					}
 					if (message.markers) {
 						console.log('adding marker');
 						console.log(message.markers);
-						setMarkers(message.markers);
+						// setMarkers(message.markers);
 					}
 					break;
 				case 'sound':
@@ -1172,7 +1184,10 @@ function App() {
 		handlePinItemMessage,
 		handleMoveItemMessage,
 		addImage,
-		socket
+		socket,
+		updateIsMapShowing,
+		updateZoom,
+		updateCoordinates
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1974,180 +1989,178 @@ function App() {
 	}
 
 	return (
-		<MapsProvider>
-			<div
-				className="app"
-				style={{
-					height: window.innerHeight - bottomPanelHeight
-				}}
-				onClick={onClickApp}
-			>
-				<MetamaskSection />
-				<Board
-					background={background}
-					musicNotes={musicNotes}
-					updateNotes={setMusicNotes}
-					emojis={emojis}
-					updateEmojis={setEmojis}
-					gifs={gifs}
-					updateGifs={setGifs}
-					images={images}
-					updateImages={setImages}
-					chatMessages={chatMessages}
-					updateChatMessages={setChatMessages}
-					userLocations={userLocations}
-					userProfiles={userProfiles}
-					setUserProfiles={setUserProfiles}
-					animations={animations}
-					updateAnimations={setAnimations}
-					avatarMessages={avatarMessages}
-					weather={weather}
-					updateWeather={setWeather}
-					pinGif={pinGif}
-					unpinGif={unpinGif}
-					pinImage={pinImage}
-					unpinImage={unpinImage}
-					pinBackground={pinBackground}
-					unpinBackground={unpinBackground}
-					pinnedText={pinnedText}
-					unpinText={unpinText}
-					moveItem={moveItem}
-					NFTs={NFTs}
-					updateNFTs={setNFTs}
-					pinNFT={pinNFT}
-					unpinNFT={unpinNFT}
-					addNewContract={addNewContract}
-					loadingNFT={loadingNFT}
-					onBuy={() => {}}
-					onCancel={() => {}}
-					onClickNewRoom={() => setModalState('new-room')}
-					onClickPresent={onClickPresent}
-				/>
+		<div
+			className="app"
+			style={{
+				height: window.innerHeight - bottomPanelHeight
+			}}
+			onClick={onClickApp}
+		>
+			<MetamaskSection />
+			<Board
+				background={background}
+				musicNotes={musicNotes}
+				updateNotes={setMusicNotes}
+				emojis={emojis}
+				updateEmojis={setEmojis}
+				gifs={gifs}
+				updateGifs={setGifs}
+				images={images}
+				updateImages={setImages}
+				chatMessages={chatMessages}
+				updateChatMessages={setChatMessages}
+				userLocations={userLocations}
+				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
+				animations={animations}
+				updateAnimations={setAnimations}
+				avatarMessages={avatarMessages}
+				weather={weather}
+				updateWeather={setWeather}
+				pinGif={pinGif}
+				unpinGif={unpinGif}
+				pinImage={pinImage}
+				unpinImage={unpinImage}
+				pinBackground={pinBackground}
+				unpinBackground={unpinBackground}
+				pinnedText={pinnedText}
+				unpinText={unpinText}
+				moveItem={moveItem}
+				NFTs={NFTs}
+				updateNFTs={setNFTs}
+				pinNFT={pinNFT}
+				unpinNFT={unpinNFT}
+				addNewContract={addNewContract}
+				loadingNFT={loadingNFT}
+				onBuy={() => {}}
+				onCancel={() => {}}
+				onClickNewRoom={() => setModalState('new-room')}
+				onClickPresent={onClickPresent}
+			/>
 
-				<TowerDefense
-					state={towerDefenseState}
-					updateUnits={(units) =>
-						setTowerDefenseState((state) => ({ ...state, units }))
-					}
-					updateProjectiles={(projectiles) =>
-						setTowerDefenseState((state) => ({ ...state, projectiles }))
-					}
-					updateGold={(gold) =>
-						setTowerDefenseState((state) => ({ ...state, gold }))
-					}
-				/>
+			<TowerDefense
+				state={towerDefenseState}
+				updateUnits={(units) =>
+					setTowerDefenseState((state) => ({ ...state, units }))
+				}
+				updateProjectiles={(projectiles) =>
+					setTowerDefenseState((state) => ({ ...state, projectiles }))
+				}
+				updateGold={(gold) =>
+					setTowerDefenseState((state) => ({ ...state, gold }))
+				}
+			/>
 
-				<Whiteboard
-					onWhiteboardPanel={onWhiteboardPanel}
-					canvasRef={canvasRef}
-					brushColor={brushColor}
-					onAction={actionHandler}
-				/>
+			<Whiteboard
+				onWhiteboardPanel={onWhiteboardPanel}
+				canvasRef={canvasRef}
+				brushColor={brushColor}
+				onAction={actionHandler}
+			/>
 
-				<div className="open-panel-button">
-					{!isPanelOpen && (
-						<Tooltip title="open panel">
-							<IconButton
-								onClick={() => {
-									setIsPanelOpen(true);
-								}}
-							>
-								<ChevronRight />
-							</IconButton>
-						</Tooltip>
-					)}
-				</div>
-				<Panel
-					onClick={onClickPanelItem}
-					isOpen={isPanelOpen}
-					onClose={() => {
-						setIsPanelOpen(false);
-					}}
-					selectedItem={selectedPanelItem}
-					avatar={
-						userProfile && userProfile.avatar
-							? avatarMap[userProfile.avatar]
-							: undefined
-					}
-				/>
-
-				<Tooltip
-					title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
-					placement="left"
-				>
-					<a
-						href="https://adventurenetworks.net"
-						target="_blank"
-						rel="noreferrer"
-						className="adventure-logo"
-					>
-						<div>adventure</div>
-						<div>networks</div>
-					</a>
-				</Tooltip>
-
-				<BottomPanel
-					bottomPanelRef={bottomPanelRef}
-					towerDefenseState={towerDefenseState}
-					setBrushColor={(color: string) => setBrushColor(color)}
-					type={selectedPanelItem}
-					isOpen={Boolean(selectedPanelItem)}
-					onAction={actionHandler}
-					updateIsTyping={onIsTyping}
-					onNFTError={setModalErrorMessage}
-					onNFTSuccess={onNFTSuccess}
-					roomData={roomData}
-				/>
-
-				{userProfile && !onBrowseNFTPanel && (
-					<UserCursor
-						ref={userCursorRef}
-						{...userProfile}
-						deleteSoundType={deleteProfileSoundType}
-						isSelectingTower={towerDefenseState.selectedPlacementTower}
-						isMovingBoardObject={!!movingBoardItem}
-					/>
+			<div className="open-panel-button">
+				{!isPanelOpen && (
+					<Tooltip title="open panel">
+						<IconButton
+							onClick={() => {
+								setIsPanelOpen(true);
+							}}
+						>
+							<ChevronRight />
+						</IconButton>
+					</Tooltip>
 				)}
-				<Modal
-					onClose={() => setModalState(null)}
-					className="modal-container"
-					open={!!modalState}
-				>
-					<>
-						{modalState === 'new-room' && (
-							<NewChatroom
-								onClickCancel={() => setModalState(null)}
-								onCreate={onCreateRoom}
-							/>
-						)}
-						{modalState === 'enter-room' && (
-							<EnterRoomModal
-								roomName={roomToEnter}
-								onClickCancel={() => setModalState(null)}
-							/>
-						)}
-						{modalState === 'error' && modalErrorMessage && (
-							<ErrorModal
-								onClickCancel={() => {
-									setModalState(null);
-									setModalErrorMessage(null);
-								}}
-								message={modalErrorMessage}
-							/>
-						)}
-						{modalState === 'success' && modalSuccessMessage && (
-							<SuccessModal
-								onClickCancel={() => {
-									setModalState(null);
-									setModalSuccessMessage(null);
-								}}
-								message={modalSuccessMessage}
-							/>
-						)}
-					</>
-				</Modal>
 			</div>
-		</MapsProvider>
+			<Panel
+				onClick={onClickPanelItem}
+				isOpen={isPanelOpen}
+				onClose={() => {
+					setIsPanelOpen(false);
+				}}
+				selectedItem={selectedPanelItem}
+				avatar={
+					userProfile && userProfile.avatar
+						? avatarMap[userProfile.avatar]
+						: undefined
+				}
+			/>
+
+			<Tooltip
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				placement="left"
+			>
+				<a
+					href="https://adventurenetworks.net"
+					target="_blank"
+					rel="noreferrer"
+					className="adventure-logo"
+				>
+					<div>adventure</div>
+					<div>networks</div>
+				</a>
+			</Tooltip>
+
+			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
+				towerDefenseState={towerDefenseState}
+				setBrushColor={(color: string) => setBrushColor(color)}
+				type={selectedPanelItem}
+				isOpen={Boolean(selectedPanelItem)}
+				onAction={actionHandler}
+				updateIsTyping={onIsTyping}
+				onNFTError={setModalErrorMessage}
+				onNFTSuccess={onNFTSuccess}
+				roomData={roomData}
+			/>
+
+			{userProfile && !onBrowseNFTPanel && (
+				<UserCursor
+					ref={userCursorRef}
+					{...userProfile}
+					deleteSoundType={deleteProfileSoundType}
+					isSelectingTower={towerDefenseState.selectedPlacementTower}
+					isMovingBoardObject={!!movingBoardItem}
+				/>
+			)}
+			<Modal
+				onClose={() => setModalState(null)}
+				className="modal-container"
+				open={!!modalState}
+			>
+				<>
+					{modalState === 'new-room' && (
+						<NewChatroom
+							onClickCancel={() => setModalState(null)}
+							onCreate={onCreateRoom}
+						/>
+					)}
+					{modalState === 'enter-room' && (
+						<EnterRoomModal
+							roomName={roomToEnter}
+							onClickCancel={() => setModalState(null)}
+						/>
+					)}
+					{modalState === 'error' && modalErrorMessage && (
+						<ErrorModal
+							onClickCancel={() => {
+								setModalState(null);
+								setModalErrorMessage(null);
+							}}
+							message={modalErrorMessage}
+						/>
+					)}
+					{modalState === 'success' && modalSuccessMessage && (
+						<SuccessModal
+							onClickCancel={() => {
+								setModalState(null);
+								setModalSuccessMessage(null);
+							}}
+							message={modalSuccessMessage}
+						/>
+					)}
+				</>
+			</Modal>
+		</div>
 	);
 }
 
