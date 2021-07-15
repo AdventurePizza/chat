@@ -41,7 +41,7 @@ import React, {
 	useEffect,
 	useMemo,
 	useRef,
-	useState
+	useState,
 } from 'react';
 import {
 	Redirect,
@@ -108,7 +108,10 @@ function App() {
 		zoom,
 		updateZoom,
 		updateIsMapShowing,
-		updateMarkerText
+		updateMarkerText,
+		addMarker,
+		deleteMarker,
+		resetMap
 	} = useContext(MapsContext);
 	const {
 		network,
@@ -157,6 +160,11 @@ function App() {
 
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
+	useEffect(() => {
+		return history.listen(() => {
+			resetMap();
+		})
+	}, [history, resetMap]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
@@ -999,13 +1007,10 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
-					console.log('got map message', message);
 					if (message.isMapShowing !== undefined) {
 						updateIsMapShowing(message.isMapShowing);
-						// setIsMapShowing(message.isMapShowing);
 					}
 					if (message.zoom !== undefined) {
-						// setZoom(message.zoom);
 						updateZoom(message.zoom);
 					}
 					if (message.coordinates) {
@@ -1015,10 +1020,14 @@ function App() {
 						};
 						updateCoordinates(newCoordinates);
 					}
-					if (message.markers) {
-						console.log('adding marker');
-						console.log(message.markers);
-						// setMarkers(message.markers);
+					if (message.func==="add") {
+						addMarker(message.marker);
+					}
+					if (message.func==="delete") {
+						deleteMarker(message.index);
+					}
+					if (message.func==="update") {
+						updateMarkerText(message.index, message.text);
 					}
 					break;
 				case 'sound':
@@ -1187,7 +1196,10 @@ function App() {
 		socket,
 		updateIsMapShowing,
 		updateZoom,
-		updateCoordinates
+		updateCoordinates,
+		addMarker,
+		deleteMarker,
+		updateMarkerText
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1697,11 +1709,11 @@ function App() {
 				subType: backgroundType,
 				mapData: mapCoordinates
 			});
-			/* setIsMapShowing(false);
+			updateIsMapShowing(false);
 			socket.emit('event', {
 				key: 'map',
 				isMapShowing: false
-			}); */
+			});
 		} else if (result.message) {
 			setModalErrorMessage(result.message);
 		}
@@ -1724,10 +1736,15 @@ function App() {
 					type: undefined,
 					mapData: undefined
 				});
-
 				socket.emit('event', {
 					key: 'unpin-item',
 					type: 'background'
+				});
+
+				updateIsMapShowing(true);
+				socket.emit('event', {
+					key: 'map',
+					isMapShowing: true
 				});
 			} else if (message) {
 				setModalErrorMessage(message);

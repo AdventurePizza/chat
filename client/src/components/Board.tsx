@@ -177,7 +177,7 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
-	console.log('board is map showing ? ', isMapShowing);
+	/* console.log('board is map showing ? ', isMapShowing); */
 
 	return (
 		<div

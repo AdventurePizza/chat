@@ -27,7 +27,8 @@ interface ISettingsPanelProps {
 interface IWalletItem {
 	contract_name? : string,
 	balance? : string,
-	contract_decimals? : number
+	contract_decimals? : number,
+	type?: string
 }
 
 export const SettingsPanel = ({
@@ -41,22 +42,12 @@ export const SettingsPanel = ({
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 
 	useEffect(() => {
-		onClick();
 		if(isLoggedIn) {
 			axios.get(`https://api.covalenthq.com/v1/137/address/${accountId}/balances_v2/?nft=true&key=ckey_33c257415ca047ff9c04fdc29c3`)
 			.then(res => setItems(res.data.data.items))
 			/* console.log("accountId: ", accountId); */
 		}
-	}, []);
-
-	const onClick = () => {
-		console.log("is user logged in: ", isLoggedIn);
-		if(isLoggedIn) {
-			axios.get(`https://api.covalenthq.com/v1/137/address/${accountId}/balances_v2/?nft=true&key=ckey_33c257415ca047ff9c04fdc29c3`)
-			.then(res => console.log(res.data))
-			/* console.log("accountId: ", accountId); */
-		}
-	}
+	}, [isLoggedIn, accountId]);
 
 	return (
 		<div className={classes.container}>
@@ -74,9 +65,14 @@ export const SettingsPanel = ({
 			/>
 			<div style={{color: "white", fontSize: "12px"}}>
 				<p>Wallet Balance:</p>
-				{items.map((item, index) => <p key={index}>{item.contract_name}: {typeof item.contract_decimals === "number" && Number(item.balance)/(Math.pow(10, item.contract_decimals))}</p>)}
+				{items.map((item, index) => {
+					let decimal = 4;
+					if(item.type === "nft") {
+						decimal = 0;
+					}
+					return <p key={index}>{item.contract_name}: {typeof item.contract_decimals === "number" && (Number(item.balance)/(Math.pow(10, item.contract_decimals))).toFixed(decimal)}</p>
+				})}
 			</div>
-			{/* <button onClick={onClick}>accountId</button> */}
 		</div>
 	);
 };

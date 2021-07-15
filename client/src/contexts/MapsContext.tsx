@@ -10,7 +10,6 @@ export interface IMapsContext {
 	coordinates: ICoordinates;
 	updateCoordinates: (coordinates: ICoordinates) => void;
 	markers: Array<ICoordinates>;
-	// setMarkers: (markers: Array<ICoordinates>) => void;
 	zoom: number;
 	updateZoom: (zoom: number) => void;
 	isMapShowing: boolean;
@@ -18,6 +17,7 @@ export interface IMapsContext {
 	addMarker: (marker: ICoordinates) => void;
 	deleteMarker: (index: number) => void;
 	updateMarkerText: (index: number, text: string) => void;
+	resetMap: () => void;
 }
 
 export const MapsContext = createContext<IMapsContext>({
@@ -27,14 +27,14 @@ export const MapsContext = createContext<IMapsContext>({
 	},
 	updateCoordinates: () => {},
 	markers: [],
-	// setMarkers: () => {},
 	zoom: 12,
 	updateZoom: () => {},
 	isMapShowing: false,
 	updateIsMapShowing: () => {},
 	addMarker: () => {},
 	deleteMarker: () => {},
-	updateMarkerText: () => {}
+	updateMarkerText: () => {},
+	resetMap: () => {}
 });
 
 export const MapsProvider = ({ children }: { children: React.ReactNode }) => {
@@ -42,15 +42,11 @@ export const MapsProvider = ({ children }: { children: React.ReactNode }) => {
 		lat: 33.91925555555555,
 		lng: -118.41655555555555
 	});
-
 	const [markers, setMarkers] = useState<ICoordinates[]>([]);
 	const [zoom, setZoom] = useState(12);
-	// setZoom: (zoom: number) => void;
 	const [isMapShowing, setIsMapShowing] = useState(false);
-	// isMapShowing: boolean;
-	// setIsMapShowing: (isMapShowing: boolean) => void;
-	// addMarker: (marker: ICoordinates) => void;
 
+	//update markers
 	const addMarker = (marker: ICoordinates) => {
 		setMarkers((markers) => markers.concat(marker));
 	};
@@ -67,6 +63,16 @@ export const MapsProvider = ({ children }: { children: React.ReactNode }) => {
 		]);
 	};
 
+	const resetMap = () => {
+		setCoordinates({
+			lat: 33.91925555555555,
+			lng: -118.41655555555555
+		});
+		setZoom(12);
+		setIsMapShowing(false);
+		setMarkers([]);
+	}
+
 	return (
 		<MapsContext.Provider
 			value={{
@@ -79,7 +85,8 @@ export const MapsProvider = ({ children }: { children: React.ReactNode }) => {
 				updateCoordinates: setCoordinates,
 				addMarker,
 				deleteMarker,
-				updateMarkerText
+				updateMarkerText,
+				resetMap
 			}}
 		>
 			{children}

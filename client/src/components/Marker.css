@@ -45,12 +45,20 @@
     box-shadow: 0 5px 10px rgba(0,0,0,0.5);
   }
 
+  .text-important {
+    opacity: 1 !important;
+  }
+
   .text:hover {
     opacity: 1;
   }
   
   .pin:hover + .text {
     opacity: 1;
+  }
+
+  .pin:hover {
+    cursor: pointer;
   }
 
   .location_delete {
@@ -79,6 +87,12 @@
   .location_submit {
     font-size: 10px;
     cursor: pointer;
+    color: white;
+    background-color: black;
+    border-radius: 50%;
+    font-weight: 700;
+    transform: rotate(-90deg);
+    padding: 3px 4px 2px 4px;
   }
 
 

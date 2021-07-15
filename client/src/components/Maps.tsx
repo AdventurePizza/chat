@@ -1,6 +1,6 @@
 import GoogleMapReact from 'google-map-react';
 import React from 'react';
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { AppStateContext } from '../contexts/AppStateContext';
 import './Marker.css';
@@ -17,30 +17,34 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 	const [inputVal, setInputVal] = useState('');
 	const { deleteMarker, updateMarkerText } = useContext(MapsContext);
 	const { socket } = useContext(AppStateContext);
+	const [keepOpen, setKeepOpen] = useState(false);
 
 	const onUpdateName = () => {
 		updateMarkerText(index, inputVal);
 		setInputVal('');
-		// socket.emit('event', {
-		// 	key: 'map',
-		// 	markers: newMarkers
-		// });
+		socket.emit('event', {
+			key: 'map',
+			func: 'update',
+			index,
+			text: inputVal
+		})
 	};
 
 	const onMarkerDelete = () => {
 		deleteMarker(index);
-		// socket.emit('event', {
-		// 	key: 'map',
-		// 	markers: newMarkers
-		// });
+		socket.emit('event', {
+			key: 'map',
+			func: 'delete',
+			index
+		})
 	};
 
 	return (
 		<>
 			<div className="pulse"></div>
-			<div className="pin"></div>
-			<div className="text">
-				{text ? text : `Location ${index + 1}`}
+			<div className="pin" onClick={() => setKeepOpen(!keepOpen)}></div>
+			<div className={keepOpen ? "text text-important" : "text"}>
+				{text ? text : `Marker ${index + 1}`}
 				<div className="location_input_container">
 					<input
 						className="location_input"
@@ -49,9 +53,9 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 						onChange={(e) => setInputVal(e.target.value)}
 						value={inputVal}
 					/>
-					<button className="location_submit" onClick={onUpdateName}>
-						go
-					</button>
+					<div className="location_submit" onClick={onUpdateName}>
+					&#x279C;
+					</div>
 				</div>
 				<button className="location_delete" onClick={onMarkerDelete}>
 					{' '}
@@ -96,23 +100,14 @@ export const Map = ({ mapData }: IMapProps) => {
 				lat: event.latLng.lat(),
 				lng: event.latLng.lng()
 			});
-			/* console.log(markers); */
-			// setMarkers(markers => markers.concat(
-			// 	lat: event.latLng.lat(),
-			// 	lng: event.latLng.lng()
-			// ))
-			// console.log('adding new marker');
-			// markers.push({
-			// 	lat: event.latLng.lat(),
-			// 	lng: event.latLng.lng()
-			// });
-			// const newMarkers = [...markers];
-			// setMarkers(newMarkers);
-			// socket.emit('event', {
-			// 	key: 'map',
-			// 	markers: newMarkers
-			// });
-			/* console.log(newMarkers); */
+			socket.emit('event', {
+				key: 'map',
+				func: 'add',
+				marker: {
+					lat: event.latLng.lat(),
+					lng: event.latLng.lng()
+				}
+			})
 		});
 	};
 

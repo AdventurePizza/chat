@@ -14,11 +14,9 @@ export const MapsPanel = () => {
 	const [address, setAddress] = useState('');
 
 	const {
-		coordinates,
 		updateCoordinates,
 		isMapShowing,
 		updateIsMapShowing,
-		markers,
 		addMarker
 	} = useContext(MapsContext);
 	const { socket } = useContext(AppStateContext);
@@ -35,21 +33,15 @@ export const MapsPanel = () => {
 			lng: latLng.lng,
 			text: value
 		});
-
-		// markers.push({
-		// 	lat: latLng.lat,
-		// 	lng: latLng.lng,
-		// 	text: value
-		// });
-		// const newMarkers = [...markers];
-		// console.log('adding new markers', markers);
-		// setMarkers(newMarkers);
-
-		// socket.emit('event', {
-		// 	key: 'map',
-		// 	coordinates: coordinates,
-		// 	markers: newMarkers
-		// });
+		socket.emit('event', {
+			key: 'map',
+			func: 'add',
+			marker: {
+				lat: latLng.lat,
+				lng: latLng.lng,
+				text: value
+			}
+		})
 	};
 
 	return (
