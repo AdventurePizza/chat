@@ -89,6 +89,8 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
 const clipboardy = require('clipboardy');
 
+
+
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
@@ -1664,6 +1666,9 @@ function App() {
 	};
 
 	const pinBackground = async () => {
+		/* if(background.isPinned===true){
+			unpinBackground();
+		} */
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
@@ -1693,7 +1698,7 @@ function App() {
 			subType: backgroundType,
 			mapData: mapCoordinates
 		});
-
+		
 		if (result.isSuccessful) {
 			setBackground((background) => ({
 				name: backgroundName,
