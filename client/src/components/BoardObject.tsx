@@ -37,7 +37,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT' | 'map';
+	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -55,6 +55,8 @@ interface BoardObjectProps {
 
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
+
+	chat?: string[];
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -72,7 +74,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		order,
 		addNewContract,
 		onBuy,
-		onCancel
+		onCancel,
+		chat
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -87,7 +90,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	if (isDragging) {
 		return <div ref={preview} />;
 	}
-	
+
 	const noLinkPrev = <div className={classes.text} style={{ width: 180 }}>{text}</div>;
 
 	return (
@@ -127,6 +130,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
+				{type === 'chat' && chat && (
+						 chat.map((ch) => <div style={{ width: 200 }}>
+						 										{ch}
+															</div>
+										 )
+				)}
 			</Paper>
 
 			{isHovering && (
@@ -137,11 +146,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
+					{type !== 'chat' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
 					{/*@ts-ignore needs better typing for innerRef*/}
-					{isPinned && <MoveButton innerRef={drag} />}
+					{(isPinned || type === 'chat') && <MoveButton innerRef={drag} />}
 				</div>
 			)}
+
 		</div>
 	);
 };

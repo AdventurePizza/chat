@@ -32,6 +32,7 @@ import {
 	PinTypes,
 	IOrder,
 	IMap,
+	IWaterfallChat,
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -231,13 +232,25 @@ function App() {
 	});
 
 	interface ICoordinates {
-		lat: number, 
+		lat: number,
 		lng: number
 	};
 	const [markers, setMarkers] = useState<ICoordinates[]>([]);
 	const [zoom, setZoom] = useState(12);
 	const [isMapShowing, setIsMapShowing] = useState(false);
 
+	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
+		top: 200,
+		left: 200,
+		messages: ["Hello ! ", "mista"],
+		key: uuidv4(),
+		show: true
+	});
+
+	/*useEffect(() => {
+		setWaterfallChat();
+	}, [roomId]);
+*/
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -394,11 +407,20 @@ function App() {
 	};
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
-		const { userId, value } = message;
+		const { userId, value } = message
 		setAvatarMessages((messages) => ({
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
 		}));
+	}, []);
+
+	const onShowChat = () => {
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
+	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
+		const { author, value } = message;
+		console.log("kek: " + message.toString());
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat(author  + ": " + value) }));
 	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -842,6 +864,9 @@ function App() {
 						]);
 					}
 					break;
+				case 'chat':
+					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
+					break;
 			}
 		},
 		[images, NFTs, gifs, pinnedText]
@@ -1024,7 +1049,9 @@ function App() {
 					break;
 				case 'chat':
 					if (message.value) {
+						console.log("rei: " + message.data);
 						handleChatMessage(message);
+						updateWaterfallChat(message);
 					}
 					break;
 				case 'gif':
@@ -1168,18 +1195,23 @@ function App() {
 		handlePinItemMessage,
 		handleMoveItemMessage,
 		addImage,
-		socket
+		socket,
+		updateWaterfallChat
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
+				console.log("rein" + userProfile.name);
 				socket.emit('event', {
 					key: 'chat',
-					value: chatValue
+					value: chatValue,
+					author: userProfile.name
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
+				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( userProfile.name  + ": " + chatValue ) }));
+
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1660,10 +1692,10 @@ function App() {
 			subType: backgroundType,
 			mapData: mapCoordinates
 		});
-		
+
 		if (result.isSuccessful) {
 			setBackground((background) => ({ name: backgroundName, isPinned: true, type: backgroundType, mapData:  mapCoordinates}));
-			
+
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
@@ -1858,73 +1890,80 @@ function App() {
 				]);
 			}
 		}
-		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-			roomId || 'default',
-			{
-				type,
-				top: y,
-				left: x,
-				key: id
-			}
-		);
 
-		//reverse the changes in client in case has no permission to edit
-		if (!isSuccessful) {
-			if (message) {
-				setModalErrorMessage(message);
-			}
-			left -= deltaX;
-			top -= deltaY;
+		if (type === 'chat') {
+			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
+		}
 
-			if (type === 'text') {
-				setPinnedText(
-					update(pinnedText, {
-						[id]: {
-							$merge: { left, top }
-						}
-					})
-				);
-			} else if (type === 'gif') {
-				const gifIndex = gifs.findIndex((gif) => gif.key === id);
-				if (gifIndex !== -1) {
-					setGifs([
-						...gifs.slice(0, gifIndex),
-						{
-							...gifs[gifIndex],
-							top,
-							left
-						},
-						...gifs.slice(gifIndex + 1)
-					]);
+		else{
+			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+				roomId || 'default',
+				{
+					type,
+					top: y,
+					left: x,
+					key: id
 				}
-			} else if (type === 'image') {
-				const imageIndex = images.findIndex((image) => image.key === id);
-				if (imageIndex !== -1) {
-					setImages([
-						...images.slice(0, imageIndex),
-						{
-							...images[imageIndex],
-							top,
-							left
-						},
-						...images.slice(imageIndex + 1)
-					]);
+			);
+
+			//reverse the changes in client in case has no permission to edit
+			if (!isSuccessful) {
+				if (message) {
+					setModalErrorMessage(message);
 				}
-			} else if (type === 'NFT') {
-				const nftIndex = NFTs.findIndex((nft) => nft.key === id);
-				if (nftIndex !== -1) {
-					setNFTs([
-						...NFTs.slice(0, nftIndex),
-						{
-							...NFTs[nftIndex],
-							top,
-							left
-						},
-						...NFTs.slice(nftIndex + 1)
-					]);
+				left -= deltaX;
+				top -= deltaY;
+
+				if (type === 'text') {
+					setPinnedText(
+						update(pinnedText, {
+							[id]: {
+								$merge: { left, top }
+							}
+						})
+					);
+				} else if (type === 'gif') {
+					const gifIndex = gifs.findIndex((gif) => gif.key === id);
+					if (gifIndex !== -1) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gifs[gifIndex],
+								top,
+								left
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+				} else if (type === 'image') {
+					const imageIndex = images.findIndex((image) => image.key === id);
+					if (imageIndex !== -1) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...images[imageIndex],
+								top,
+								left
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+				} else if (type === 'NFT') {
+					const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+					if (nftIndex !== -1) {
+						setNFTs([
+							...NFTs.slice(0, nftIndex),
+							{
+								...NFTs[nftIndex],
+								top,
+								left
+							},
+							...NFTs.slice(nftIndex + 1)
+						]);
+					}
 				}
+				return;
 			}
-			return;
 		}
 		socket.emit('event', {
 			key: 'move-item',
@@ -1959,7 +1998,7 @@ function App() {
 
 	return (
 		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
-			
+
 		<div
 			className="app"
 			style={{
@@ -2007,6 +2046,7 @@ function App() {
 				onCancel={() => {}}
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
+				waterfallChat={waterfallChat}
 			/>
 
 			<TowerDefense
@@ -2082,6 +2122,7 @@ function App() {
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
 				roomData={roomData}
+				updateShowChat = {onShowChat}
 			/>
 
 			{userProfile && !onBrowseNFTPanel &&(
