@@ -402,7 +402,7 @@ function App() {
 	};
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
-		const { userId, value } = message
+		const { userId, value } = message;
 		setAvatarMessages((messages) => ({
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
