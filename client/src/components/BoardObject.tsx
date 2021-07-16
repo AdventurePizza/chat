@@ -6,12 +6,13 @@ import { IGif } from '@giphy/js-types';
 import { Paper, Button, Box } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder } from '../types';
+import { IOrder, IWaterfallMessage } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import Avatar from '@material-ui/core/Avatar';
+import { avatarMap } from './UserCursors';
 
 const useStyles = makeStyles({
 	container: {
@@ -56,7 +57,7 @@ interface BoardObjectProps {
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
 
-	chat?: string[];
+	chat?: IWaterfallMessage[];
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -135,28 +136,25 @@ export const BoardObject = (props: BoardObjectProps) => {
 
 						chat.map((ch) => <div style={{ width: 300, clear: 'left'}}>
 							{
-							(ch.charCodeAt(0) % 4 === 0 &&
+							(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 0 &&
 							<Box color="primary.main" mt={5} style={{fontSize: 16 }}>
-								<Avatar alt="Remy Sharp" src="https://material-ui.com/static/images/avatar/3.jpg" style={{ float: 'left' }} /> {ch}
+								<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
 							</Box>)
 							||
-							(ch.charCodeAt(0) % 4 === 1 &&
+							(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 1 &&
 							<Box color="secondary.main" mt={5} style={{fontSize: 16}}>
-							  <Avatar alt="Remy Sharp" src="https://material-ui.com/static/images/avatar/3.jpg" style={{ float: 'left' }} /> {ch}
+							  <Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
 							</Box>)
 							||
-							(ch.charCodeAt(0) % 4 === 2 &&
+							(ch.avatar.charCodeAt(ch.avatar.length -1) === 2 &&
 							<Box color="success.main" mt={5} style={{fontSize: 16}}>
-								<Avatar alt="Remy Sharp" src="https://material-ui.com/static/images/avatar/3.jpg" style={{ float: 'left' }} /> {ch}
+								<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
 							</Box>)
 							||
-							(ch.charCodeAt(0) % 4 === 3 &&
+							(ch.avatar.charCodeAt(ch.avatar.length -1) === 3 &&
 							<Box color="text.primary" mt={5} style={{fontSize: 16 }}>
-								<Avatar alt="Remy Sharp" src="https://material-ui.com/static/images/avatar/3.jpg" style={{ float: 'left' }} /> {ch}
-							</Box>) ||
-							<Box style={{ minHeight: 20}}>
-								f
-							</Box>
+								<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
+							</Box>)
 							}
 						</div>
 						)

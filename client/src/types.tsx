@@ -275,10 +275,15 @@ export interface INFTMetadata {
 	lockedId?: string;
 }
 
+export interface IWaterfallMessage{
+	avatar: string;
+	message: string;
+}
+
 export interface IWaterfallChat{
 	top: number;
 	left: number;
-	messages: string[];
+	messages: IWaterfallMessage[];
 	show?: boolean;
 }
 

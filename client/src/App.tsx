@@ -413,8 +413,8 @@ function App() {
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
 	}
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
-		const { author, value } = message;
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat(author  + ": " + value) }));
+		const { avatar, value } = message;
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 		if(waterfallChat.messages.length > 6){
 			setWaterfallChat((waterfallChat) => (
 					{ ...waterfallChat, messages: waterfallChat.messages.slice(waterfallChat.messages.length - 7 , waterfallChat.messages.length)}
@@ -1204,10 +1204,10 @@ function App() {
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
-					author: userProfile.name
+					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
-				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( userProfile.name  + ": " + chatValue ) }));
+				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
 
 				if(waterfallChat.messages.length > 6){
 					setWaterfallChat((waterfallChat) => (
