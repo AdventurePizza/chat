@@ -132,34 +132,37 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'map' && data && <Map />}
 				{type === 'chat' && chat && (
-					<div> <Button style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} size="medium" color="primary"> Chat</Button>{
-
-						chat.map((ch) => <div style={{ width: 300, clear: 'left'}}>
-							{
-							(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 0 &&
-							<Box color="primary.main" mt={5} style={{fontSize: 16 }}>
-								<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-							</Box>)
-							||
-							(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 1 &&
-							<Box color="secondary.main" mt={5} style={{fontSize: 16}}>
-							  <Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-							</Box>)
-							||
-							(ch.avatar.charCodeAt(ch.avatar.length -1) === 2 &&
-							<Box color="success.main" mt={5} style={{fontSize: 16}}>
-								<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-							</Box>)
-							||
-							(ch.avatar.charCodeAt(ch.avatar.length -1) === 3 &&
-							<Box color="text.primary" mt={5} style={{fontSize: 16 }}>
-								<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-							</Box>)
-							}
-						</div>
+					<div> <Button style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} size="medium" color="primary"> Chat</Button>
+					{
+						chat.map((ch) =>
+							<div style={{ width: 300, clear: 'left'}}>
+								{
+								(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 0 &&
+								<Box color="primary.main" mt={5} style={{fontSize: 16 }}>
+									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
+								</Box>)
+								||
+								(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 1 &&
+								<Box color="secondary.main" mt={5} style={{fontSize: 16}}>
+								  <Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
+								</Box>)
+								||
+								(ch.avatar.charCodeAt(ch.avatar.length -1) === 2 &&
+								<Box color="success.main" mt={5} style={{fontSize: 16}}>
+									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
+								</Box>)
+								||
+								(ch.avatar.charCodeAt(ch.avatar.length -1) === 3 &&
+								<Box color="text.primary" mt={5} style={{fontSize: 16 }}>
+									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
+								</Box>)
+								}
+							</div>
 						)
-					}</div>
-				)}
+					}
+					</div>
+				)
+			}
 			</Paper>
 
 			{isHovering && (
