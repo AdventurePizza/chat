@@ -240,17 +240,12 @@ function App() {
 	const [isMapShowing, setIsMapShowing] = useState(false);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 200,
-		left: 200,
-		messages: ["Hello ! ", "mista"],
-		key: uuidv4(),
+		top: 400,
+		left: 800,
+		messages: [],
 		show: true
 	});
 
-	/*useEffect(() => {
-		setWaterfallChat();
-	}, [roomId]);
-*/
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -419,9 +414,13 @@ function App() {
 	}
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { author, value } = message;
-		console.log("kek: " + message.toString());
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat(author  + ": " + value) }));
-	}, []);
+		if(waterfallChat.messages.length > 6){
+			setWaterfallChat((waterfallChat) => (
+					{ ...waterfallChat, messages: waterfallChat.messages.slice(waterfallChat.messages.length - 7 , waterfallChat.messages.length)}
+				));
+		}
+	}, [waterfallChat]);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -1049,7 +1048,6 @@ function App() {
 					break;
 				case 'chat':
 					if (message.value) {
-						console.log("rei: " + message.data);
 						handleChatMessage(message);
 						updateWaterfallChat(message);
 					}
@@ -1203,7 +1201,6 @@ function App() {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
-				console.log("rein" + userProfile.name);
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
@@ -1212,6 +1209,11 @@ function App() {
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( userProfile.name  + ": " + chatValue ) }));
 
+				if(waterfallChat.messages.length > 6){
+					setWaterfallChat((waterfallChat) => (
+							{ ...waterfallChat, messages: waterfallChat.messages.slice(waterfallChat.messages.length - 7 , waterfallChat.messages.length)}
+						));
+				}
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;

@@ -278,7 +278,6 @@ export interface INFTMetadata {
 export interface IWaterfallChat{
 	top: number;
 	left: number;
-	key: string;
 	messages: string[];
 	show?: boolean;
 }
