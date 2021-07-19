@@ -12,6 +12,7 @@ import cors from "cors";
 import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
 import tokenRouter from "./token";
+import { emit } from "process";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -255,6 +256,11 @@ export class Router {
       case "map":
         socket.to(room).broadcast.emit("event", message);
         break;
+
+      case "youtube":
+        socket.to(room).broadcast.emit("event", message);
+        break;
+
       case "sound":
         // socket.broadcast.emit("event", message);
         // socket.to(room).broadcast.emit("event", message);
@@ -418,10 +424,6 @@ export class Router {
         socket.to(roomId).emit("event", message);
         socket.emit("event", message);
         removeImageAfter1Min(clientRooms[socket.id]);
-        break;
-
-      case "youtube":
-        socket.emit("event", message);
         break;
 
       case "whiteboard":

@@ -40,6 +40,8 @@ export interface IBottomPanelProps {
 	updateIsTyping: (isTyping: boolean) => void;
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
+	setVideoId: React.Dispatch<React.SetStateAction<string>>;
+	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 }
 
@@ -55,6 +57,8 @@ export interface IPanelContentProps {
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
 	setQueriedVideos: React.Dispatch<React.SetStateAction<Array<any>>>;
 	setLastQuery: React.Dispatch<React.SetStateAction<string>>;
+	setVideoId: (id: string) => void;
+	setVolume: (volume: number) => void;
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
@@ -83,6 +87,8 @@ export const BottomPanel = ({
 	updateIsTyping,
 	onNFTError,
 	onNFTSuccess,
+	setVideoId,
+	setVolume,
 	roomData
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
@@ -111,6 +117,8 @@ export const BottomPanel = ({
 					queriedVideos={videos}
 					lastQuery={lastQuery}
 					setImages={setImages}
+					setVideoId={setVideoId}
+					setVolume={setVolume}
 					setQueriedVideos={setQueriedVideos}
 					setLastQuery={setLastQuery}
 					onNFTError={onNFTError}
@@ -132,6 +140,8 @@ const PanelContent = ({
 	queriedVideos,
 	lastQuery,
 	setImages,
+	setVideoId,
+	setVolume,
 	setQueriedVideos,
 	setLastQuery,
 	onNFTError,
@@ -255,12 +265,15 @@ const PanelContent = ({
 		case 'youtube':
 			return (
 				<YouTubeMusicPanel
+					setVolume={setVolume}
+					setVideoId={setVideoId}
 					sendVideo={(id) => onAction('youtube', id)}
 					queriedVideos={queriedVideos}
 					setQueriedVideos={setQueriedVideos}
 					lastQuery={lastQuery}
 					setLastQuery={setLastQuery}
-				/> );
+				/>
+			);
 		case 'browseNFT':
 			return (
 				<iframe

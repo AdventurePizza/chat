@@ -33,10 +33,13 @@ import introShark from '../assets/intro/leftshark.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from "./Maps";
+import YouTubeBackground from "./YouTubeBackground";
 import present from '../assets/intro/present.gif';
+import { useEffect } from 'react';
 
 interface IBoardProps {
 	videoId: string;
+	volume: number;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
 	emojis: IEmoji[];
@@ -86,6 +89,7 @@ interface IBoardProps {
 
 export const Board = ({
 	videoId,
+	volume,
 	musicNotes,
 	updateNotes,
 	emojis,
@@ -163,6 +167,12 @@ export const Board = ({
 		}
 	};
 
+	const pausePlayVideo = () => {
+		if (isYouTubeShowing) {
+			setIsPaused(!isPaused);
+		}
+	}
+
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
 		: backgrounds[background.name!];
@@ -180,6 +190,21 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
+	const [ isYouTubeShowing, setIsYouTubeShowing ] = useState<boolean>(videoId !== "");
+	const [ isPaused, setIsPaused ] = useState<boolean>(true);
+	// const [ volume, setVolume ] = useState<number>(0.4);
+
+	useEffect(() => {
+		if (isMapShowing) {
+			setIsYouTubeShowing(false);
+		} else {
+			setIsYouTubeShowing(true);
+		}
+	}, [isMapShowing])
+
+	useEffect(() => {
+		setIsPaused(false);
+	}, [videoId])
 
 	return (
 		<div
@@ -192,19 +217,6 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			<div className="youtube-background">
-				{(videoId !== "") ? (
-					<ReactPlayer width="100%" height="100%"
-						url={`https://www.youtube.com/watch?v=${videoId}`}
-						playing={true}	// Autoplay video
-						volume={0.4}
-						style={{
-							position: "fixed",
-							zIndex: -100	// puts video at the very back so it doesn't disturb the rest of the components
-						}}
-					/>) : null
-				}
-			</div>
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton
@@ -215,6 +227,14 @@ export const Board = ({
 					/>
 				)}
 			</div>
+			<YouTubeBackground 
+				videoId={videoId}
+				isPaused={isPaused}
+				volume={volume}
+				isYouTubeShowing={isYouTubeShowing}
+				pausePlayVideo={pausePlayVideo}
+			/>
+
 			{background.type === "map" && (
 				<Map mapData={background.mapData}/>
 			)}

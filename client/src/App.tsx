@@ -181,6 +181,7 @@ function App() {
 		type: undefined
 	});
 	const [videoId, setVideoId] = useState<string>("");
+	const [volume, setVolume] = useState<number>(0.4);
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1020,6 +1021,8 @@ function App() {
 					}
 					break;
 				case 'youtube':
+					// console.log('youtube socket');
+					// console.log(message.value);
 					setBackground({name: '', isPinned: false});
 					setVideoId(message.value);
 					break;
@@ -1984,6 +1987,7 @@ function App() {
 			<MetamaskSection />
 			<Board
 				videoId={videoId}
+				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -2096,6 +2100,8 @@ function App() {
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
+				setVideoId={setVideoId}
+				setVolume={setVolume}
 				roomData={roomData}
 			/>
 

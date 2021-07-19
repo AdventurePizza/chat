@@ -6,6 +6,9 @@ import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
+import Slider from '@material-ui/core/Slider';
+import VolumeDown from '@material-ui/icons/VolumeDown';
+import VolumeUp from '@material-ui/icons/VolumeUp';
 
 interface IYouTubePanelProps {
   sendVideo: (id: string) => void; // Sends video id to socket event to be set as background and played
@@ -13,16 +16,20 @@ interface IYouTubePanelProps {
   lastQuery: string; // Last entered query in the search bar
   queriedVideos: Array<any>; // Videos returned from search query
 
+  setVideoId: (id: string) => void;
   setLastQuery: (query: string) => void; // modifies BottomPanel state so last queried videos can persist
+  setVolume: (volume: number) => void;
   setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
 }
 
-function YouTubeMusicPanel({ 
+function YouTubeMusicPanel({
+  setVideoId,
+  setVolume,
   sendVideo,
   queriedVideos,
   setQueriedVideos,
   lastQuery,
-  setLastQuery 
+  setLastQuery
 }: IYouTubePanelProps) {
   // Displays 5 of the 15 videos at a time
   const [selectedVideos, setSelectedVideos] = useState<Array<any>>(queriedVideos.slice(0, 5));
@@ -50,6 +57,13 @@ function YouTubeMusicPanel({
     }
   }, [leftIndex, queriedVideos])
 
+  const [value, setValue] = useState(30);
+
+  const handleChange = (event: any, newValue: any) => {
+    setValue(newValue);
+    setVolume(newValue / 100);
+  };
+
   return (
     <div className="youtube-container">
       <div className="youtube-search">
@@ -74,11 +88,25 @@ function YouTubeMusicPanel({
               <li>
               <img alt="YouTube Video Thumbnail" className="youtube-thumbnail"
                 src={video.snippet.thumbnails.default.url}
-                onClick={() => sendVideo(video.id.videoId)}/>
+                onClick={() => {
+                  sendVideo(video.id.videoId);
+                  setVideoId(video.id.videoId);
+                }}/>
               </li>
             </Tooltip>
           ))}
         </ul>
+        <div className="youtube-controls">
+          <VolumeDown />
+          <Slider 
+          style={{
+            width: "200px"
+          }}
+          value={value}
+          onChange={handleChange}
+          />
+          <VolumeUp />
+        </div>
           <IconButton
           disabled={lastQuery === '' || leftIndex <= 0}
           color="primary"
