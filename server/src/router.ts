@@ -254,7 +254,6 @@ export class Router {
     const room = clientRooms[socket.id];
     switch (message.key) {
       case "map":
-        console.log("got map event ", message);
         socket.to(room).broadcast.emit("event", message);
         break;
 
