@@ -32,7 +32,7 @@ import {
 	PinTypes,
 	IOrder,
 	IMap,
-	IWaterfallChat,
+	IWaterfallChat
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -86,11 +86,9 @@ import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
-import { MapsContext  } from './contexts/MapsContext';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { MapsContext } from './contexts/MapsContext';
 const clipboardy = require('clipboardy');
-
-
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -103,6 +101,19 @@ const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
 
 function App() {
 	const { socket } = useContext(AppStateContext);
+	const {
+		updateCoordinates,
+		coordinates,
+		markers,
+		isMapShowing,
+		zoom,
+		updateZoom,
+		updateIsMapShowing,
+		updateMarkerText,
+		addMarker,
+		deleteMarker,
+		resetMap
+	} = useContext(MapsContext);
 	const {
 		network,
 		isLoggedIn,
@@ -150,6 +161,11 @@ function App() {
 
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
+	useEffect(() => {
+		return history.listen(() => {
+			resetMap();
+		});
+	}, [history, resetMap]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
@@ -181,6 +197,8 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
+	const [videoId, setVideoId] = useState<string>('');
+	const [volume, setVolume] = useState<number>(0.4);
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -222,22 +240,18 @@ function App() {
 		condition: ''
 	});
 
-	const [coordinates, setCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	});
-	const [markerCoordinates, setMarkerCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	});
+	// const [coordinates, setCoordinates] = useState({
+	// 	lat: 33.91925555555555,
+	// 	lng: -118.41655555555555
+	// });
 
-	interface ICoordinates {
-		lat: number,
-		lng: number
-	};
-	const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	const [zoom, setZoom] = useState(12);
-	const [isMapShowing, setIsMapShowing] = useState(false);
+	// interface ICoordinates {
+	// 	lat: number;
+	// 	lng: number;
+	// }
+	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
+	// const [zoom, setZoom] = useState(12);
+	// const [isMapShowing, setIsMapShowing] = useState(false);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 400,
@@ -388,6 +402,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -748,10 +763,20 @@ function App() {
 					break;
 				case 'background':
 					if (isUnpin) {
-						setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
+						setBackground({
+							name: '',
+							isPinned: false,
+							type: undefined,
+							mapData: undefined
+						});
 					} else {
 						console.log(message);
-						setBackground({ name: message.name, isPinned: true, type: message.subType, mapData: message.mapData });
+						setBackground({
+							name: message.name,
+							isPinned: true,
+							type: message.subType,
+							mapData: message.mapData
+						});
 					}
 					break;
 				case 'text':
@@ -1008,25 +1033,28 @@ function App() {
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
-				case 'map' :
-					if(typeof message.isMapShowing === "boolean"){
-						setIsMapShowing(message.isMapShowing);
+				case 'map':
+					if (message.isMapShowing !== undefined) {
+						updateIsMapShowing(message.isMapShowing);
 					}
-					if(typeof message.zoom === "number"){
-						setZoom(message.zoom);
+					if (message.zoom !== undefined) {
+						updateZoom(message.zoom);
 					}
-					if(message.coordinates){
+					if (message.coordinates) {
 						const newCoordinates = {
 							lat: message.coordinates.lat,
 							lng: message.coordinates.lng
-						}
-						setCoordinates(newCoordinates);
+						};
+						updateCoordinates(newCoordinates);
 					}
-					if(message.markerCoordinates){
-						setMarkerCoordinates(message.markerCoordinates);
+					if (message.func === 'add') {
+						addMarker(message.marker);
 					}
-					if(message.markers){
-						setMarkers(message.markers);
+					if (message.func === 'delete') {
+						deleteMarker(message.index);
+					}
+					if (message.func === 'update') {
+						updateMarkerText(message.index, message.text);
 					}
 					break;
 				case 'sound':
@@ -1040,6 +1068,12 @@ function App() {
 							}
 						}));
 					}
+					break;
+				case 'youtube':
+					// console.log('youtube socket');
+					// console.log(message.value);
+					setBackground({ name: '', isPinned: false });
+					setVideoId(message.value);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -1066,6 +1100,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
+					setVideoId('');
 					setBackground((background) => ({
 						...background,
 						name: message.value,
@@ -1194,6 +1229,12 @@ function App() {
 		handleMoveItemMessage,
 		addImage,
 		socket,
+		updateIsMapShowing,
+		updateZoom,
+		updateCoordinates,
+		addMarker,
+		deleteMarker,
+		updateMarkerText,
 		updateWaterfallChat
 	]);
 
@@ -1363,6 +1404,13 @@ function App() {
 					url: window.location.href
 				});
 				break;
+			case 'youtube':
+				const videoId = args[0] as string;
+				socket.emit('event', {
+					key: 'youtube',
+					value: videoId
+				});
+				break;
 			default:
 				break;
 		}
@@ -1370,13 +1418,14 @@ function App() {
 
 	useHotkeys('ctrl+v', () => {
 		if (clipboardy.read()) {
-				clipboardy.read().then((value:string) => 			setMovingBoardItem({
-								type: 'text',
-								itemKey: uuidv4(),
-								value: value,
-								isNew: true
-							}) );
-
+			clipboardy.read().then((value: string) =>
+				setMovingBoardItem({
+					type: 'text',
+					itemKey: uuidv4(),
+					value: value,
+					isNew: true
+				})
+			);
 		}
 	});
 
@@ -1525,9 +1574,9 @@ function App() {
 							url: item.url
 						});
 					} else if (item.type === 'background') {
-							backgroundType = item.subType;
-							backgroundImg = item.name;
-							backgroundMap = item.mapData;
+						backgroundType = item.subType;
+						backgroundImg = item.name;
+						backgroundMap = item.mapData;
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1554,7 +1603,12 @@ function App() {
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setPinnedText(pinnedText);
-				setBackground({ name: backgroundImg, isPinned: !!backgroundImg || !!backgroundMap, mapData: backgroundMap, type: backgroundType });
+				setBackground({
+					name: backgroundImg,
+					isPinned: !!backgroundImg || !!backgroundMap,
+					mapData: backgroundMap,
+					type: backgroundType
+				});
 				setNFTs(pinnedNFTs);
 			});
 		}
@@ -1667,23 +1721,22 @@ function App() {
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
-		if(isMapShowing){
+		if (isMapShowing) {
 			backgroundType = 'map';
-		} else if(background.name) {
+		} else if (background.name) {
 			backgroundType = 'image';
 		}
 
 		let backgroundName: string | undefined;
-		if(backgroundType==="image") {
+		if (backgroundType === 'image') {
 			backgroundName = background.name;
 		} else {
-			backgroundName = ''
+			backgroundName = '';
 		}
 
-
-		let mapCoordinates: IMap | undefined = {coordinates, markerCoordinates, markers, zoom };
-		if(backgroundType!=="map"){
-			mapCoordinates = undefined
+		let mapCoordinates: IMap | undefined = { coordinates, markers, zoom };
+		if (backgroundType !== 'map') {
+			mapCoordinates = undefined;
 		}
 
 		const result = await firebaseContext.pinRoomItem(room, {
@@ -1696,7 +1749,12 @@ function App() {
 		});
 
 		if (result.isSuccessful) {
-			setBackground((background) => ({ name: backgroundName, isPinned: true, type: backgroundType, mapData:  mapCoordinates}));
+			setBackground((background) => ({
+				name: backgroundName,
+				isPinned: true,
+				type: backgroundType,
+				mapData: mapCoordinates
+			}));
 
 			socket.emit('event', {
 				key: 'pin-item',
@@ -1705,7 +1763,7 @@ function App() {
 				subType: backgroundType,
 				mapData: mapCoordinates
 			});
-			setIsMapShowing(false);
+			updateIsMapShowing(false);
 			socket.emit('event', {
 				key: 'map',
 				isMapShowing: false
@@ -1726,11 +1784,21 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
-
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: undefined,
+					mapData: undefined
+				});
 				socket.emit('event', {
 					key: 'unpin-item',
 					type: 'background'
+				});
+
+				updateIsMapShowing(true);
+				socket.emit('event', {
+					key: 'map',
+					isMapShowing: true
 				});
 			} else if (message) {
 				setModalErrorMessage(message);
@@ -1999,8 +2067,6 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
-
 		<div
 			className="app"
 			style={{
@@ -2010,6 +2076,8 @@ function App() {
 		>
 			<MetamaskSection />
 			<Board
+				videoId={videoId}
+				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -2099,7 +2167,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
 				placement="left"
 			>
 				<a
@@ -2123,11 +2191,13 @@ function App() {
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
+				setVideoId={setVideoId}
+				setVolume={setVolume}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
 			/>
 
-			{userProfile && !onBrowseNFTPanel &&(
+			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
@@ -2175,8 +2245,6 @@ function App() {
 				</>
 			</Modal>
 		</div>
-		</MapsContext.Provider>
-
 	);
 }
 

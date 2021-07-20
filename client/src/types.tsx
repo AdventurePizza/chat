@@ -38,6 +38,7 @@ export interface IAvatarChatMessages {
 export interface IMessageEvent {
 	key:
 		| 'sound'
+		| 'youtube'
 		| 'emoji'
 		| 'chat'
 		| 'chat-pin'
@@ -156,24 +157,24 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
-	'browseNFT' = 'browseNFT',
-	'NFT' = 'NFT',
-	'email' = 'email',
-	'new-room' = 'new-room',
 	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
-	'tower' = 'tower',
 	'background' = 'background',
+	'youtube' = 'youtube',
+	'maps' = 'maps',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'sound' = 'sound',
-	'emoji' = 'emoji',
-	"maps" = "maps"
+	'email' = 'email',
+	'new-room' = 'new-room',
+	'browseNFT' = 'browseNFT',
+	'NFT' = 'NFT',
+	'tower' = 'tower',
+	'emoji' = 'emoji'
 }
 
 export interface IUserLocations {
@@ -262,10 +263,9 @@ export interface IOrder {
 }
 
 export interface IMap {
-	coordinates: { lat: number, lng: number }
-    markerCoordinates: { lat: number, lng: number }
-    markers: Array<{ lat: number, lng: number }>,
-    zoom: number
+	coordinates: { lat: number; lng: number };
+	markers: Array<{ lat: number; lng: number; text?: string }>;
+	zoom: number;
 }
 
 export interface INFTMetadata {
