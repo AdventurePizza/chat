@@ -430,12 +430,7 @@ function App() {
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value } = message;
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
-		if(waterfallChat.messages.length > 6){
-			setWaterfallChat((waterfallChat) => (
-					{ ...waterfallChat, messages: waterfallChat.messages.slice(waterfallChat.messages.length - 7 , waterfallChat.messages.length)}
-				));
-		}
-	}, [waterfallChat]);
+	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -1242,6 +1237,9 @@ function App() {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
+				if(chatValue === ''){
+					return;
+				}
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
@@ -1249,12 +1247,6 @@ function App() {
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
-
-				if(waterfallChat.messages.length > 6){
-					setWaterfallChat((waterfallChat) => (
-							{ ...waterfallChat, messages: waterfallChat.messages.slice(waterfallChat.messages.length - 7 , waterfallChat.messages.length)}
-						));
-				}
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
-import { Paper, Button, Box } from '@material-ui/core';
+import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
 import { IOrder, IWaterfallMessage } from '../types';
@@ -11,8 +11,7 @@ import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
-import Avatar from '@material-ui/core/Avatar';
-import { avatarMap } from './UserCursors';
+import { WaterfallChat } from "./WaterfallChat";
 
 const useStyles = makeStyles({
 	container: {
@@ -131,38 +130,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
-				{type === 'chat' && chat && (
-					<div> <Button style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} size="medium" color="primary"> Chat</Button>
-					{
-						chat.map((ch) =>
-							<div style={{ width: 300, clear: 'left'}}>
-								{
-								(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 0 &&
-								<Box color="primary.main" mt={5} style={{fontSize: 16 }}>
-									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-								</Box>)
-								||
-								(ch.avatar.charCodeAt(ch.avatar.length -1) % 4 === 1 &&
-								<Box color="secondary.main" mt={5} style={{fontSize: 16}}>
-								  <Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-								</Box>)
-								||
-								(ch.avatar.charCodeAt(ch.avatar.length -1) === 2 &&
-								<Box color="success.main" mt={5} style={{fontSize: 16}}>
-									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-								</Box>)
-								||
-								(ch.avatar.charCodeAt(ch.avatar.length -1) === 3 &&
-								<Box color="text.primary" mt={5} style={{fontSize: 16 }}>
-									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.message}
-								</Box>)
-								}
-							</div>
-						)
-					}
-					</div>
-				)
-			}
+				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
 			</Paper>
 
 			{isHovering && (
