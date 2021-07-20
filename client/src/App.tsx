@@ -180,6 +180,8 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
+	const [videoId, setVideoId] = useState<string>("");
+	const [volume, setVolume] = useState<number>(0.4);
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -380,6 +382,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -1017,6 +1020,12 @@ function App() {
 						}));
 					}
 					break;
+				case 'youtube':
+					// console.log('youtube socket');
+					// console.log(message.value);
+					setBackground({name: '', isPinned: false});
+					setVideoId(message.value);
+					break;
 				case 'emoji':
 					if (message.value) {
 						playEmoji(message.value);
@@ -1041,6 +1050,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
+					setVideoId("");
 					setBackground((background) => ({
 						...background,
 						name: message.value,
@@ -1327,6 +1337,13 @@ function App() {
 					to: args[0],
 					message: args[1],
 					url: window.location.href
+				});
+				break;
+			case 'youtube':
+				const videoId = args[0] as string;
+				socket.emit('event', {
+					key: 'youtube',
+					value: videoId
 				});
 				break;
 			default:
@@ -1969,6 +1986,8 @@ function App() {
 		>
 			<MetamaskSection />
 			<Board
+				videoId={videoId}
+				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -2081,6 +2100,8 @@ function App() {
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
+				setVideoId={setVideoId}
+				setVolume={setVolume}
 				roomData={roomData}
 			/>
 

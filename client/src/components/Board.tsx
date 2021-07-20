@@ -31,10 +31,14 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 import introShark from '../assets/intro/leftshark.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
-import { Map } from "./Maps";
+import { Map } from './Maps';
+import YouTubeBackground from './YouTubeBackground';
 import present from '../assets/intro/present.gif';
+import { useEffect } from 'react';
 
 interface IBoardProps {
+	videoId: string;
+	volume: number;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
 	emojis: IEmoji[];
@@ -83,6 +87,8 @@ interface IBoardProps {
 }
 
 export const Board = ({
+	videoId,
+	volume,
 	musicNotes,
 	updateNotes,
 	emojis,
@@ -160,6 +166,12 @@ export const Board = ({
 		}
 	};
 
+	const pausePlayVideo = () => {
+		if (isYouTubeShowing) {
+			setIsPaused(!isPaused);
+		}
+	};
+
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
 		: backgrounds[background.name!];
@@ -177,6 +189,23 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
+	const [isYouTubeShowing, setIsYouTubeShowing] = useState<boolean>(
+		videoId !== ''
+	);
+	const [isPaused, setIsPaused] = useState<boolean>(true);
+	// const [ volume, setVolume ] = useState<number>(0.4);
+
+	useEffect(() => {
+		if (isMapShowing) {
+			setIsYouTubeShowing(false);
+		} else {
+			setIsYouTubeShowing(true);
+		}
+	}, [isMapShowing]);
+
+	useEffect(() => {
+		setIsPaused(false);
+	}, [videoId]);
 
 	return (
 		<div
@@ -189,9 +218,25 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			{background.type === "map" && (
-				<Map mapData={background.mapData}/>
-			)}
+			<div className="board-container-pin">
+				{background.name && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>
+				)}
+			</div>
+			<YouTubeBackground
+				videoId={videoId}
+				isPaused={isPaused}
+				volume={volume}
+				isYouTubeShowing={isYouTubeShowing}
+				pausePlayVideo={pausePlayVideo}
+			/>
+
+			{background.type === 'map' && <Map mapData={background.mapData} />}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -476,21 +521,21 @@ export const Board = ({
 						onPin={pinBackground}
 						onUnpin={unpinBackground}
 						placeholder="background"
-					/>	
+					/>
 				)}
 			</div>
 			<div className="board-container-pin">
-				{(isMapShowing && background.type !== "map") && (
+				{isMapShowing && background.type !== 'map' && (
 					<PinButton
 						isPinned={false}
 						onPin={pinBackground}
 						onUnpin={unpinBackground}
 						placeholder="background"
-					/>	
+					/>
 				)}
 			</div>
 
-			{ isMapShowing ? <Map /> : null }
+			{isMapShowing ? <Map /> : null}
 
 			<UserCursors
 				userLocations={userLocations}
