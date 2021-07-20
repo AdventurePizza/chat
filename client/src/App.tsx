@@ -41,7 +41,7 @@ import React, {
 	useEffect,
 	useMemo,
 	useRef,
-	useState,
+	useState
 } from 'react';
 import {
 	Redirect,
@@ -88,8 +88,6 @@ import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
 const clipboardy = require('clipboardy');
-
-
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -165,7 +163,7 @@ function App() {
 	useEffect(() => {
 		return history.listen(() => {
 			resetMap();
-		})
+		});
 	}, [history, resetMap]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
@@ -198,7 +196,7 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
-	const [videoId, setVideoId] = useState<string>("");
+	const [videoId, setVideoId] = useState<string>('');
 	const [volume, setVolume] = useState<number>(0.4);
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
@@ -1025,13 +1023,13 @@ function App() {
 						};
 						updateCoordinates(newCoordinates);
 					}
-					if (message.func==="add") {
+					if (message.func === 'add') {
 						addMarker(message.marker);
 					}
-					if (message.func==="delete") {
+					if (message.func === 'delete') {
 						deleteMarker(message.index);
 					}
-					if (message.func==="update") {
+					if (message.func === 'update') {
 						updateMarkerText(message.index, message.text);
 					}
 					break;
@@ -1050,7 +1048,7 @@ function App() {
 				case 'youtube':
 					// console.log('youtube socket');
 					// console.log(message.value);
-					setBackground({name: '', isPinned: false});
+					setBackground({ name: '', isPinned: false });
 					setVideoId(message.value);
 					break;
 				case 'emoji':
@@ -1077,7 +1075,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					setVideoId("");
+					setVideoId('');
 					setBackground((background) => ({
 						...background,
 						name: message.value,
@@ -1715,7 +1713,7 @@ function App() {
 			subType: backgroundType,
 			mapData: mapCoordinates
 		});
-		
+
 		if (result.isSuccessful) {
 			setBackground((background) => ({
 				name: backgroundName,
@@ -2127,7 +2125,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
 				placement="left"
 			>
 				<a
