@@ -28,12 +28,12 @@ import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
-import introShark from '../assets/intro/leftshark.gif';
+// import introShark from '../assets/intro/leftshark.gif';
+// import present from '../assets/intro/present.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from './Maps';
 import YouTubeBackground from './YouTubeBackground';
-import present from '../assets/intro/present.gif';
 import { useEffect } from 'react';
 
 interface IBoardProps {
@@ -127,44 +127,44 @@ export const Board = ({
 	onClickNewRoom,
 	onClickPresent
 }: IBoardProps) => {
-	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
-		'begin'
-	);
-	const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
-		'begin'
-	);
+	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
+	// 	'begin'
+	// );
+	// const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
+	// 	'begin'
+	// );
 
-	const renderPresent = () => {
-		if (presentState === 'appear' || presentState === 'begin') {
-			return (
-				<button onClick={onClickPresent} className="board-present">
-					<span>trychats tokens for you</span>
-					<img alt="present" src={present} style={{ width: 100 }} />
-				</button>
-			);
-		}
-		// else if (introState === 'begin') {
-		// 	return <button>hello</button>;
-		// }
-		else {
-			return null;
-		}
-	};
+	// const renderPresent = () => {
+	// 	if (presentState === 'appear' || presentState === 'begin') {
+	// 		return (
+	// 			<button onClick={onClickPresent} className="board-present">
+	// 				<span>trychats tokens for you</span>
+	// 				<img alt="present" src={present} style={{ width: 100 }} />
+	// 			</button>
+	// 		);
+	// 	}
+	// 	// else if (introState === 'begin') {
+	// 	// 	return <button>hello</button>;
+	// 	// }
+	// 	else {
+	// 		return null;
+	// 	}
+	// };
 
-	const renderIntro = () => {
-		if (introState === 'appear') {
-			return (
-				<button onClick={onClickNewRoom} className="board-intro">
-					<span>create new room</span>
-					<img alt="shark" src={introShark} style={{ width: 100 }} />
-				</button>
-			);
-		} else if (introState === 'begin') {
-			return <button>hello</button>;
-		} else {
-			return null;
-		}
-	};
+	// const renderIntro = () => {
+	// 	if (introState === 'appear') {
+	// 		return (
+	// 			<button onClick={onClickNewRoom} className="board-intro">
+	// 				<span>create new room</span>
+	// 				<img alt="shark" src={introShark} style={{ width: 100 }} />
+	// 			</button>
+	// 		);
+	// 	} else if (introState === 'begin') {
+	// 		return <button>hello</button>;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// };
 
 	const pausePlayVideo = () => {
 		if (isYouTubeShowing) {
@@ -336,7 +336,7 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
-			<TransitionGroup>
+			{/* <TransitionGroup>
 				<CSSTransition
 					appear
 					timeout={5000}
@@ -370,7 +370,7 @@ export const Board = ({
 				>
 					<div className="room-present">{renderPresent()}</div>
 				</CSSTransition>
-			</TransitionGroup>
+			</TransitionGroup> */}
 
 			<TransitionGroup>
 				{Object.values(pinnedText).map((text) => (
