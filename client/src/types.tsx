@@ -38,6 +38,7 @@ export interface IAvatarChatMessages {
 export interface IMessageEvent {
 	key:
 		| 'sound'
+		| 'youtube'
 		| 'emoji'
 		| 'chat'
 		| 'chat-pin'
@@ -173,6 +174,7 @@ export enum PanelItemEnum {
 	'poem' = 'poem',
 	'sound' = 'sound',
 	'emoji' = 'emoji',
+	'youtube' = 'youtube',
 	"maps" = "maps"
 }
 

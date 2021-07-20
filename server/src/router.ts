@@ -12,6 +12,7 @@ import cors from "cors";
 import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
 import tokenRouter from "./token";
+import { emit } from "process";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -81,6 +82,7 @@ let backgroundState: IBackgroundState = {};
 interface IMessageEvent {
   key:
     | "sound"
+    | "youtube"
     | "map"
     | "emoji"
     | "chat"
@@ -255,6 +257,11 @@ export class Router {
         console.log("got map event ", message);
         socket.to(room).broadcast.emit("event", message);
         break;
+
+      case "youtube":
+        socket.to(room).broadcast.emit("event", message);
+        break;
+
       case "sound":
         // socket.broadcast.emit("event", message);
         // socket.to(room).broadcast.emit("event", message);
