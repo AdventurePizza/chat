@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -273,6 +273,18 @@ export interface INFTMetadata {
 	name: string;
 	contractName: string;
 	lockedId?: string;
+}
+
+export interface IWaterfallMessage{
+	avatar: string;
+	message: string;
+}
+
+export interface IWaterfallChat{
+	top: number;
+	left: number;
+	messages: IWaterfallMessage[];
+	show?: boolean;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

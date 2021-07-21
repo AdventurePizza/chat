@@ -14,7 +14,8 @@ import {
 	IUserLocations,
 	IUserProfiles,
 	IWeather,
-	PinTypes
+	PinTypes,
+	IWaterfallChat
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -84,6 +85,7 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	waterfallChat: IWaterfallChat;
 }
 
 export const Board = ({
@@ -125,7 +127,8 @@ export const Board = ({
 	onBuy,
 	onCancel,
 	onClickNewRoom,
-	onClickPresent
+	onClickPresent,
+	waterfallChat
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -237,6 +240,15 @@ export const Board = ({
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
+			{waterfallChat.show && <BoardObject
+				id={'texteyId'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition

@@ -281,6 +281,7 @@ export class Router {
           key: "chat",
           userId: socket.id,
           value: message.value,
+          avatar: message.avatar,
         });
 
         if (message.value) {

@@ -43,6 +43,7 @@ export interface IBottomPanelProps {
 	setVideoId: React.Dispatch<React.SetStateAction<string>>;
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
+	updateShowChat: () => void;
 }
 
 export interface IPanelContentProps {
@@ -62,6 +63,7 @@ export interface IPanelContentProps {
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
+	updateShowChat: () => void;
 }
 
 export interface ISoundPairs {
@@ -89,7 +91,8 @@ export const BottomPanel = ({
 	onNFTSuccess,
 	setVideoId,
 	setVolume,
-	roomData
+	roomData,
+	updateShowChat
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -124,6 +127,7 @@ export const BottomPanel = ({
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
+					updateShowChat={updateShowChat}
 				/>
 			</div>
 		</Drawer>
@@ -146,7 +150,8 @@ const PanelContent = ({
 	setLastQuery,
 	onNFTError,
 	onNFTSuccess,
-	roomData
+	roomData,
+	updateShowChat
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -167,6 +172,7 @@ const PanelContent = ({
 						onAction('chat-pin', message);
 					}}
 					updateIsTyping={updateIsTyping}
+					showChat={updateShowChat}
 				/>
 			);
 		case 'sound':
