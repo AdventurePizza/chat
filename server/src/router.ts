@@ -12,6 +12,7 @@ import cors from "cors";
 import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
 import tokenRouter from "./token";
+import chatroomUserRouter from "./chatroomUsers";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -140,6 +141,7 @@ export class Router {
       }),
       tokenRouter
     );
+    app.use("/chatroom-users", chatroomUserRouter);
 
     io.on("connect", (socket: Socket) => {
       socket.on("authenticate", ({ token }: { token?: string }) => {
@@ -252,7 +254,6 @@ export class Router {
     const room = clientRooms[socket.id];
     switch (message.key) {
       case "map":
-        console.log("got map event ", message);
         socket.to(room).broadcast.emit("event", message);
         break;
       case "sound":

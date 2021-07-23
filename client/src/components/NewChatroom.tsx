@@ -150,10 +150,11 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 			return alert('Cannot create locked room without connecting to metamask');
 
 		const { message } = await onCreate(inputValue, isAccessLocked);
-
+			
 		if (message === 'success') {
 			setErrorMsg('');
 			setSuccessMsg({ name: inputValue, message });
+
 		} else {
 			setSuccessMsg(undefined);
 			if (message) {

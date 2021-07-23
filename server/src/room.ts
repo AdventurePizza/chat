@@ -46,6 +46,7 @@ roomRouter.post("/:roomId", async (req, res) => {
     .doc(roomId)
     .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined });
 
+
   twitterClient.post(
     "statuses/update",
     {
@@ -111,6 +112,30 @@ roomRouter.get("/:roomId/pin", async (req, res) => {
 
   res.status(200).send(docs);
 });
+
+// get pinned background
+roomRouter.get("/:roomId/pinned-background", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+
+  const snapshot = await collection.doc(roomId).collection("pinnedItems").get();
+  const docs = snapshot.docs.map((doc) => doc.data() as IPinnedItem);
+
+  const background = {
+    data: ""
+  }
+
+  docs.forEach(item => {
+    if(item.type === "background"){
+      if(item.subType === "image"){
+        background.data = item.name
+      } else if (item.subType === "map"){
+        background.data = item.mapData
+      }
+    }
+  })
+
+  res.status(200).send(background);
+})
 
 // get all rooms
 roomRouter.get("/", async (req, res) => {

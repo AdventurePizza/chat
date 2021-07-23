@@ -18,7 +18,6 @@ import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
-import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
@@ -189,11 +188,7 @@ const PanelContent = ({
 			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':
 			return (
-				// <Profile />
-				<SettingsPanel
-					onSubmitUrl={(url) => onAction('settings', 'url', url)}
-					onChangeName={(name) => onAction('settings', 'name', name)}
-				/>
+				<div></div>
 			);
 		case 'weather':
 			return (

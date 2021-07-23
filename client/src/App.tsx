@@ -1,8 +1,10 @@
 import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
+import { SettingsPanel } from './components/SettingsPanel';
 
 import { CustomToken as NFT } from './typechain/CustomToken';
+import axios  from 'axios';
 
 import {
 	BUILDING_COSTS,
@@ -44,7 +46,6 @@ import React, {
 	useState,
 } from 'react';
 import {
-	Redirect,
 	Route,
 	HashRouter as Router,
 	Switch,
@@ -168,6 +169,11 @@ function App() {
 		})
 	}, [history, resetMap]);
 
+	//clear bottom panel when on settings page
+	useEffect(() => {
+
+	})
+
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
@@ -206,7 +212,7 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-	>(PanelItemEnum.roomDirectory);
+	>(undefined);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
@@ -238,19 +244,6 @@ function App() {
 		temp: '',
 		condition: ''
 	});
-
-	// const [coordinates, setCoordinates] = useState({
-	// 	lat: 33.91925555555555,
-	// 	lng: -118.41655555555555
-	// });
-
-	// interface ICoordinates {
-	// 	lat: number;
-	// 	lng: number;
-	// }
-	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	// const [zoom, setZoom] = useState(12);
-	// const [isMapShowing, setIsMapShowing] = useState(false);
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -302,6 +295,24 @@ function App() {
 			);
 		}
 	}, [network, isLoggedIn]);
+
+	//FETCH USER DATA
+	useEffect(() => {
+		if(accountId && isLoggedIn){
+			/* console.log(`/chatroom-users/get/${accountId}`); */
+			axios.get(`/chatroom-users/get/${accountId}`)
+				.then((res: any) => {
+					/* console.log(res.data); */
+					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+				})
+				.catch((err: any) => {
+					axios.post(`/chatroom-users/add-user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
+						.then(res => console.log("new user: ", res.data))
+						.catch(err => console.log(err));
+					console.log(err);
+				});
+		}
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -1335,7 +1346,17 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					setUserProfile((profile) => ({ ...profile, name: settingsValue }));
+					axios.patch(`/chatroom-users/update-screen-name/${accountId}`, {screenName: settingsValue})
+					.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
+					.catch(err => console.log(err));
+				} else if (type === 'avatar') {
+					socket.emit('event', {
+						key: 'avatar',
+						value: settingsValue
+					});
+					axios.patch(`/chatroom-users/update-avatar/${accountId}`, {avatar: settingsValue})
+					.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
+					.catch(err => console.log(err));
 				}
 				break;
 			case 'weather':
@@ -1735,6 +1756,11 @@ function App() {
 			);
 
 			if (isSuccessful) {
+				let oldBackgroundType = "";
+				if(background.type){
+					oldBackgroundType = background.type.valueOf();
+				}
+
 				setBackground({
 					name: '',
 					isPinned: false,
@@ -1746,11 +1772,13 @@ function App() {
 					type: 'background'
 				});
 
-				updateIsMapShowing(true);
-				socket.emit('event', {
-					key: 'map',
-					isMapShowing: true
-				});
+				if(oldBackgroundType === "map"){
+					updateIsMapShowing(true);
+					socket.emit('event', {
+						key: 'map',
+						isMapShowing: true
+					});
+				}
 			} else if (message) {
 				setModalErrorMessage(message);
 			}
@@ -2019,6 +2047,16 @@ function App() {
 			onClick={onClickApp}
 		>
 			<MetamaskSection />
+
+			<Route path="/settings">
+				<SettingsPanel 
+					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
+					onChangeName={(name) => actionHandler('settings', 'name', name)}
+					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+				/>
+			</Route>
+
+			<Route exact path={["/room/:roomId", "/"]}>
 			<Board
 				background={background}
 				musicNotes={musicNotes}
@@ -2059,6 +2097,21 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 			/>
+			</Route>
+
+			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
+				towerDefenseState={towerDefenseState}
+				setBrushColor={(color: string) => setBrushColor(color)}
+				type={selectedPanelItem}
+				isOpen={Boolean(selectedPanelItem)}
+				onAction={actionHandler}
+				updateIsTyping={onIsTyping}
+				onNFTError={setModalErrorMessage}
+				onNFTSuccess={onNFTSuccess}
+				roomData={roomData}
+			/>
+			
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2122,18 +2175,6 @@ function App() {
 				</a>
 			</Tooltip>
 
-			<BottomPanel
-				bottomPanelRef={bottomPanelRef}
-				towerDefenseState={towerDefenseState}
-				setBrushColor={(color: string) => setBrushColor(color)}
-				type={selectedPanelItem}
-				isOpen={Boolean(selectedPanelItem)}
-				onAction={actionHandler}
-				updateIsTyping={onIsTyping}
-				onNFTError={setModalErrorMessage}
-				onNFTSuccess={onNFTSuccess}
-				roomData={roomData}
-			/>
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
@@ -2241,12 +2282,12 @@ const RouterHandler = () => {
 				<Route path="/room/:roomId">
 					<App />
 				</Route>
-				<Route exact path="/">
+				<Route path="/">
 					<App />
 				</Route>
-				<Redirect from="*" to="/" />
 			</Switch>
 		</Router>
 	);
 };
+
 export default RouterHandler;

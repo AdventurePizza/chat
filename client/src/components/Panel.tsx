@@ -8,6 +8,7 @@ import { PanelItemEnum } from '../types';
 import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
 
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 import SettingsIcon from '@material-ui/icons/Settings';
 import animationIcon from '../assets/navbar/animation.png';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
@@ -41,6 +42,8 @@ export const Panel = ({
 	selectedItem,
 	avatar
 }: IPanelProps) => {
+	const history = useHistory();
+
 	return (
 		<Drawer
 			className="panel-drawer"
@@ -70,7 +73,10 @@ export const Panel = ({
 						textAlign: 'center'
 					}}
 				>
-					<IconButton onClick={() => onClick('settings')}>
+					<IconButton onClick={() => {
+						onClick('settings');
+						history.push('/settings');
+					}}>
 						<div>
 							<img src={avatar} alt="user avatar" className="panel-avatar" />
 
