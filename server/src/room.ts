@@ -11,7 +11,7 @@ const roomRouter = express.Router();
 roomRouter.get("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
   if (process.env.NODE_ENV !== "production") {
-    res.status(200).send({
+    return res.status(200).send({
       name: "default",
     });
   }
@@ -139,6 +139,14 @@ roomRouter.get("/:roomId/pinned-background", async (req, res) => {
 
 // get all rooms
 roomRouter.get("/", async (req, res) => {
+  if (process.env.NODE_ENV !== "production") {
+    return res.status(200).send([
+      {
+        name: "test",
+      },
+    ]);
+  }
+
   const snapshot = await collection.get();
   const docs = snapshot.docs.map((doc) => doc.data() as IChatRoom);
 

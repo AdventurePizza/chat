@@ -27,12 +27,14 @@ interface IChatProps {
 	pinMessage: (message: string) => void;
 	sendMessage: (message: string) => void;
 	updateIsTyping: (isTyping: boolean) => void;
+	showChat: () => void;
 }
 
 export const Chat = ({
 	sendMessage,
 	updateIsTyping,
-	pinMessage
+	pinMessage,
+	showChat
 }: IChatProps) => {
 	const classes = useStyles();
 
@@ -77,6 +79,10 @@ export const Chat = ({
 		}
 	};
 
+	const onShowChat = () => {
+		showChat();
+	};
+
 	return (
 		<div className={classes.container}>
 			<TextField
@@ -92,6 +98,7 @@ export const Chat = ({
 			/>
 			<StyledButton onClick={onButtonClickChat}>send</StyledButton>
 			<PinButton onPin={onPinMessage} isPinned={false} onUnpin={() => {}} />
+			<StyledButton onClick={onShowChat}>show chat</StyledButton>
 		</div>
 	);
 };

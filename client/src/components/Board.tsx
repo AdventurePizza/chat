@@ -14,7 +14,8 @@ import {
 	IUserLocations,
 	IUserProfiles,
 	IWeather,
-	PinTypes
+	PinTypes,
+	IWaterfallChat
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -28,13 +29,18 @@ import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
-import introShark from '../assets/intro/leftshark.gif';
+// import introShark from '../assets/intro/leftshark.gif';
+// import present from '../assets/intro/present.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from './Maps';
 import present from '../assets/intro/present.gif';
+import YouTubeBackground from './YouTubeBackground';
+import { useEffect } from 'react';
 
 interface IBoardProps {
+	videoId: string;
+	volume: number;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
 	emojis: IEmoji[];
@@ -80,9 +86,12 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	waterfallChat: IWaterfallChat;
 }
 
 export const Board = ({
+	videoId,
+	volume,
 	musicNotes,
 	updateNotes,
 	emojis,
@@ -119,44 +128,51 @@ export const Board = ({
 	onBuy,
 	onCancel,
 	onClickNewRoom,
-	onClickPresent
+	onClickPresent,
+	waterfallChat
 }: IBoardProps) => {
-	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
-		'begin'
-	);
-	const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
-		'begin'
-	);
+	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
+	// 	'begin'
+	// );
+	// const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
+	// 	'begin'
+	// );
 
-	const renderPresent = () => {
-		if (presentState === 'appear' || presentState === 'begin') {
-			return (
-				<button onClick={onClickPresent} className="board-present">
-					<span>trychats tokens for you</span>
-					<img alt="present" src={present} style={{ width: 100 }} />
-				</button>
-			);
-		}
-		// else if (introState === 'begin') {
-		// 	return <button>hello</button>;
-		// }
-		else {
-			return null;
-		}
-	};
+	// const renderPresent = () => {
+	// 	if (presentState === 'appear' || presentState === 'begin') {
+	// 		return (
+	// 			<button onClick={onClickPresent} className="board-present">
+	// 				<span>trychats tokens for you</span>
+	// 				<img alt="present" src={present} style={{ width: 100 }} />
+	// 			</button>
+	// 		);
+	// 	}
+	// 	// else if (introState === 'begin') {
+	// 	// 	return <button>hello</button>;
+	// 	// }
+	// 	else {
+	// 		return null;
+	// 	}
+	// };
 
-	const renderIntro = () => {
-		if (introState === 'appear') {
-			return (
-				<button onClick={onClickNewRoom} className="board-intro">
-					<span>create new room</span>
-					<img alt="shark" src={introShark} style={{ width: 100 }} />
-				</button>
-			);
-		} else if (introState === 'begin') {
-			return <button>hello</button>;
-		} else {
-			return null;
+	// const renderIntro = () => {
+	// 	if (introState === 'appear') {
+	// 		return (
+	// 			<button onClick={onClickNewRoom} className="board-intro">
+	// 				<span>create new room</span>
+	// 				<img alt="shark" src={introShark} style={{ width: 100 }} />
+	// 			</button>
+	// 		);
+	// 	} else if (introState === 'begin') {
+	// 		return <button>hello</button>;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// };
+
+	const pausePlayVideo = () => {
+		if (isYouTubeShowing) {
+			setIsPaused(!isPaused);
 		}
 	};
 
@@ -177,7 +193,23 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
-	/* console.log('board is map showing ? ', isMapShowing); */
+	const [isYouTubeShowing, setIsYouTubeShowing] = useState<boolean>(
+		videoId !== ''
+	);
+	const [isPaused, setIsPaused] = useState<boolean>(true);
+	// const [ volume, setVolume ] = useState<number>(0.4);
+
+	useEffect(() => {
+		if (isMapShowing) {
+			setIsYouTubeShowing(false);
+		} else {
+			setIsYouTubeShowing(true);
+		}
+	}, [isMapShowing]);
+
+	useEffect(() => {
+		setIsPaused(false);
+	}, [videoId]);
 
 	return (
 		<div
@@ -191,6 +223,34 @@ export const Board = ({
 			ref={drop}
 		>
 			{background.type === 'map' && <Map mapData={background.mapData} />}
+			<div className="board-container-pin">
+				{background.name && (
+					<PinButton
+						isPinned={background.isPinned}
+						onPin={pinBackground}
+						onUnpin={unpinBackground}
+						placeholder="background"
+					/>
+				)}
+			</div>
+			<YouTubeBackground
+				videoId={videoId}
+				isPaused={isPaused}
+				volume={volume}
+				isYouTubeShowing={isYouTubeShowing}
+				pausePlayVideo={pausePlayVideo}
+			/>
+
+			{background.type === 'map' && <Map mapData={background.mapData} />}
+			{waterfallChat.show && <BoardObject
+				id={'texteyId'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -290,7 +350,7 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
-			<TransitionGroup>
+			{/* <TransitionGroup>
 				<CSSTransition
 					appear
 					timeout={5000}
@@ -324,7 +384,7 @@ export const Board = ({
 				>
 					<div className="room-present">{renderPresent()}</div>
 				</CSSTransition>
-			</TransitionGroup>
+			</TransitionGroup> */}
 
 			<TransitionGroup>
 				{Object.values(pinnedText).map((text) => (

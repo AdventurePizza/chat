@@ -57,6 +57,13 @@ interface IRoomData {
 	}
 }
 
+interface IWalletItem {
+	contract_name? : string,
+	balance? : string,
+	contract_decimals? : number,
+	type?: string
+}
+
 export const SettingsPanel = ({
 	onChangeName,
 	onSubmitUrl,

@@ -33,7 +33,8 @@ import {
 	PanelItemEnum,
 	PinTypes,
 	IOrder,
-	IMap
+	IMap,
+	IWaterfallChat
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -89,8 +90,6 @@ import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
 const clipboardy = require('clipboardy');
-
-
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -166,13 +165,8 @@ function App() {
 	useEffect(() => {
 		return history.listen(() => {
 			resetMap();
-		})
+		});
 	}, [history, resetMap]);
-
-	//clear bottom panel when on settings page
-	useEffect(() => {
-
-	})
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
@@ -204,6 +198,8 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
+	const [videoId, setVideoId] = useState<string>('');
+	const [volume, setVolume] = useState<number>(0.4);
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -243,6 +239,26 @@ function App() {
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
 		condition: ''
+	});
+
+	// const [coordinates, setCoordinates] = useState({
+	// 	lat: 33.91925555555555,
+	// 	lng: -118.41655555555555
+	// });
+
+	// interface ICoordinates {
+	// 	lat: number;
+	// 	lng: number;
+	// }
+	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
+	// const [zoom, setZoom] = useState(12);
+	// const [isMapShowing, setIsMapShowing] = useState(false);
+
+	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
+		top: 400,
+		left: 800,
+		messages: [],
+		show: true
 	});
 
 	useEffect(() => {
@@ -405,6 +421,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -424,6 +441,14 @@ function App() {
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
 		}));
+	}, []);
+
+	const onShowChat = () => {
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
+	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
+		const { avatar, value } = message;
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -877,6 +902,9 @@ function App() {
 						]);
 					}
 					break;
+				case 'chat':
+					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
+					break;
 			}
 		},
 		[images, NFTs, gifs, pinnedText]
@@ -1033,13 +1061,13 @@ function App() {
 						};
 						updateCoordinates(newCoordinates);
 					}
-					if (message.func==="add") {
+					if (message.func === 'add') {
 						addMarker(message.marker);
 					}
-					if (message.func==="delete") {
+					if (message.func === 'delete') {
 						deleteMarker(message.index);
 					}
-					if (message.func==="update") {
+					if (message.func === 'update') {
 						updateMarkerText(message.index, message.text);
 					}
 					break;
@@ -1055,6 +1083,12 @@ function App() {
 						}));
 					}
 					break;
+				case 'youtube':
+					// console.log('youtube socket');
+					// console.log(message.value);
+					setBackground({ name: '', isPinned: false });
+					setVideoId(message.value);
+					break;
 				case 'emoji':
 					if (message.value) {
 						playEmoji(message.value);
@@ -1063,6 +1097,7 @@ function App() {
 				case 'chat':
 					if (message.value) {
 						handleChatMessage(message);
+						updateWaterfallChat(message);
 					}
 					break;
 				case 'gif':
@@ -1079,6 +1114,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
+					setVideoId('');
 					setBackground((background) => ({
 						...background,
 						name: message.value,
@@ -1212,18 +1248,24 @@ function App() {
 		updateCoordinates,
 		addMarker,
 		deleteMarker,
-		updateMarkerText
+		updateMarkerText,
+		updateWaterfallChat
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
+				if(chatValue === ''){
+					return;
+				}
 				socket.emit('event', {
 					key: 'chat',
-					value: chatValue
+					value: chatValue,
+					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
+				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1381,6 +1423,13 @@ function App() {
 					to: args[0],
 					message: args[1],
 					url: window.location.href
+				});
+				break;
+			case 'youtube':
+				const videoId = args[0] as string;
+				socket.emit('event', {
+					key: 'youtube',
+					value: videoId
 				});
 				break;
 			default:
@@ -1719,7 +1768,7 @@ function App() {
 			subType: backgroundType,
 			mapData: mapCoordinates
 		});
-		
+
 		if (result.isSuccessful) {
 			setBackground((background) => ({
 				name: backgroundName,
@@ -1939,73 +1988,80 @@ function App() {
 				]);
 			}
 		}
-		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-			roomId || 'default',
-			{
-				type,
-				top: y,
-				left: x,
-				key: id
-			}
-		);
 
-		//reverse the changes in client in case has no permission to edit
-		if (!isSuccessful) {
-			if (message) {
-				setModalErrorMessage(message);
-			}
-			left -= deltaX;
-			top -= deltaY;
+		if (type === 'chat') {
+			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
+		}
 
-			if (type === 'text') {
-				setPinnedText(
-					update(pinnedText, {
-						[id]: {
-							$merge: { left, top }
-						}
-					})
-				);
-			} else if (type === 'gif') {
-				const gifIndex = gifs.findIndex((gif) => gif.key === id);
-				if (gifIndex !== -1) {
-					setGifs([
-						...gifs.slice(0, gifIndex),
-						{
-							...gifs[gifIndex],
-							top,
-							left
-						},
-						...gifs.slice(gifIndex + 1)
-					]);
+		else{
+			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+				roomId || 'default',
+				{
+					type,
+					top: y,
+					left: x,
+					key: id
 				}
-			} else if (type === 'image') {
-				const imageIndex = images.findIndex((image) => image.key === id);
-				if (imageIndex !== -1) {
-					setImages([
-						...images.slice(0, imageIndex),
-						{
-							...images[imageIndex],
-							top,
-							left
-						},
-						...images.slice(imageIndex + 1)
-					]);
+			);
+
+			//reverse the changes in client in case has no permission to edit
+			if (!isSuccessful) {
+				if (message) {
+					setModalErrorMessage(message);
 				}
-			} else if (type === 'NFT') {
-				const nftIndex = NFTs.findIndex((nft) => nft.key === id);
-				if (nftIndex !== -1) {
-					setNFTs([
-						...NFTs.slice(0, nftIndex),
-						{
-							...NFTs[nftIndex],
-							top,
-							left
-						},
-						...NFTs.slice(nftIndex + 1)
-					]);
+				left -= deltaX;
+				top -= deltaY;
+
+				if (type === 'text') {
+					setPinnedText(
+						update(pinnedText, {
+							[id]: {
+								$merge: { left, top }
+							}
+						})
+					);
+				} else if (type === 'gif') {
+					const gifIndex = gifs.findIndex((gif) => gif.key === id);
+					if (gifIndex !== -1) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gifs[gifIndex],
+								top,
+								left
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+				} else if (type === 'image') {
+					const imageIndex = images.findIndex((image) => image.key === id);
+					if (imageIndex !== -1) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...images[imageIndex],
+								top,
+								left
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+				} else if (type === 'NFT') {
+					const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+					if (nftIndex !== -1) {
+						setNFTs([
+							...NFTs.slice(0, nftIndex),
+							{
+								...NFTs[nftIndex],
+								top,
+								left
+							},
+							...NFTs.slice(nftIndex + 1)
+						]);
+					}
 				}
+				return;
 			}
-			return;
 		}
 		socket.emit('event', {
 			key: 'move-item',
@@ -2058,6 +2114,8 @@ function App() {
 
 			<Route exact path={["/room/:roomId", "/"]}>
 			<Board
+				videoId={videoId}
+				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -2096,21 +2154,9 @@ function App() {
 				onCancel={() => {}}
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
+				waterfallChat={waterfallChat}
 			/>
 			</Route>
-
-			<BottomPanel
-				bottomPanelRef={bottomPanelRef}
-				towerDefenseState={towerDefenseState}
-				setBrushColor={(color: string) => setBrushColor(color)}
-				type={selectedPanelItem}
-				isOpen={Boolean(selectedPanelItem)}
-				onAction={actionHandler}
-				updateIsTyping={onIsTyping}
-				onNFTError={setModalErrorMessage}
-				onNFTSuccess={onNFTSuccess}
-				roomData={roomData}
-			/>
 			
 
 			<TowerDefense
@@ -2161,7 +2207,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
 				placement="left"
 			>
 				<a
@@ -2175,6 +2221,21 @@ function App() {
 				</a>
 			</Tooltip>
 
+			<BottomPanel
+				bottomPanelRef={bottomPanelRef}
+				towerDefenseState={towerDefenseState}
+				setBrushColor={(color: string) => setBrushColor(color)}
+				type={selectedPanelItem}
+				isOpen={Boolean(selectedPanelItem)}
+				onAction={actionHandler}
+				updateIsTyping={onIsTyping}
+				onNFTError={setModalErrorMessage}
+				onNFTSuccess={onNFTSuccess}
+				setVideoId={setVideoId}
+				setVolume={setVolume}
+				roomData={roomData}
+				updateShowChat = {onShowChat}
+			/>
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
