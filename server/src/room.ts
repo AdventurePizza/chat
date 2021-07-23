@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { IChatRoom, IPinnedItem, error } from "./types";
 import db from "./firebase";
 import { twitterClient } from "./twitter";
+import axios from "axios";
 
 const collection = db.collection("chatrooms");
 
@@ -10,6 +11,7 @@ const roomRouter = express.Router();
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
+  const address = req.user ? req.user.payload.id : "";
   if (process.env.NODE_ENV !== "production") {
     return res.status(200).send({
       name: "default",
@@ -17,19 +19,41 @@ roomRouter.get("/:roomId", async (req, res) => {
   }
 
   const doc = await collection.doc(roomId).get();
-
   if (!doc.exists) {
     return error(res, "room does not exist");
   }
+  const contractAddress = await doc.get("contractAddress");
+  let visible = true;
+  //If room has contract address set visibility to false until finds a permission.
+  if(contractAddress){
+    visible = false;
 
-  res.status(200).send(doc.data());
+    if(address){
+      const tokens = await axios.get('https://api.covalenthq.com/v1/137/address/'+ address +'/balances_v2/?nft=true&key=ckey_d79400f2126140158e8c07f7968');
+      let items = tokens.data.data.items;
+      for (let item of items) {
+          if(contractAddress === item.contract_address){
+            const balance = await doc.get("balance");
+            if(balance !== 0){
+              visible = true;
+            }
+          }
+      }
+    }
+  }
+  if(visible){
+    res.status(200).send(doc.data());
+  }
+  else{
+    return error(res, "To view this room visitors should have token with contract address: " + contractAddress + " and logged in via metamask");
+  }
 });
 
 // create room
 roomRouter.post("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
   const { isLocked } = req.body as { isLocked: boolean };
-
+  const { contractAddress } = req.body as { contractAddress: string };
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
   if (isLocked && !address) {
@@ -44,7 +68,7 @@ roomRouter.post("/:roomId", async (req, res) => {
 
   await collection
     .doc(roomId)
-    .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined });
+    .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined , contractAddress: contractAddress ?? undefined});
 
   twitterClient.post(
     "statuses/update",
