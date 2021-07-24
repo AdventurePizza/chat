@@ -34,7 +34,6 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from './Maps';
-import present from '../assets/intro/present.gif';
 import YouTubeBackground from './YouTubeBackground';
 import { useEffect } from 'react';
 

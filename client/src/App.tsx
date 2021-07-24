@@ -163,10 +163,15 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
+		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
+		socket.emit('event', {
+			key: 'currentRoom',
+			value: roomId
+		})
 		return history.listen(() => {
 			resetMap();
 		});
-	}, [history, resetMap]);
+	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
@@ -232,7 +237,8 @@ function App() {
 		name: '',
 		avatar: '',
 		weather: { temp: '', condition: '' },
-		soundType: ''
+		soundType: '',
+		currentRoom: 'default'
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -320,6 +326,14 @@ function App() {
 				.then((res: any) => {
 					/* console.log(res.data); */
 					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+					socket.emit('event', {
+						key: 'avatar',
+						value: res.data.avatar
+					});
+					socket.emit('event', {
+						key: 'username',
+						value: res.data.screenName
+					});
 				})
 				.catch((err: any) => {
 					axios.post(`/chatroom-users/add-user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
@@ -328,7 +342,7 @@ function App() {
 					console.log(err);
 				});
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name])
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -1149,6 +1163,18 @@ function App() {
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
 					break;
+				case 'avatar':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], avatar: message.value }
+					}));
+					break;
+				case 'currentRoom':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], currentRoom: message.value }
+					}));
+				break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1389,16 +1415,16 @@ function App() {
 						value: settingsValue
 					});
 					axios.patch(`/chatroom-users/update-screen-name/${accountId}`, {screenName: settingsValue})
-					.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
-					.catch(err => console.log(err));
+						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
+						.catch(err => console.log(err));
 				} else if (type === 'avatar') {
 					socket.emit('event', {
 						key: 'avatar',
 						value: settingsValue
 					});
 					axios.patch(`/chatroom-users/update-avatar/${accountId}`, {avatar: settingsValue})
-					.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
-					.catch(err => console.log(err));
+						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
+						.catch(err => console.log(err));
 				}
 				break;
 			case 'weather':
