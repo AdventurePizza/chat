@@ -30,6 +30,7 @@ interface ISettingsPanelProps {
 	onChangeName: (username: string) => void;
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
+	onSendLocation: (location: string) => void; 
 }
 
 interface IWalletItem {
@@ -67,7 +68,8 @@ interface IWalletItem {
 export const SettingsPanel = ({
 	onChangeName,
 	onSubmitUrl,
-	onChangeAvatar
+	onChangeAvatar,
+	onSendLocation
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -161,7 +163,7 @@ export const SettingsPanel = ({
 				<InputButton
 					buttonText="go!"
 					placeholder="enter location"
-					onClick={() => {}}
+					onClick={onSendLocation}
 					inputWidth={300}
 				/>
 				<InputButton

@@ -2135,6 +2135,7 @@ function App() {
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+					onSendLocation={(location) => actionHandler('weather', location)}
 				/>
 			</Route>
 
