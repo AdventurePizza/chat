@@ -4,12 +4,14 @@ import {
 	IconButton,
 	Switch
 } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
 import axios from 'axios';
 import { backgroundIcons } from './BackgroundImages';
+import { FirebaseContext } from '../contexts/FirebaseContext';
+import loadingDots from '../assets/loading-dots.gif';
 
 interface IBackgroundPanelProps {
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
@@ -27,6 +29,13 @@ export interface IResponseData {
 	};
 	alt_description: string;
 	id: string;
+}
+
+export interface IResponseData2 {
+	url: string;
+	origin: {
+		title: string;
+	};
 }
 
 export interface IImagesState {
@@ -59,6 +68,31 @@ const BackgroundPanel = ({
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
+	const [searchByGoogle, setSearchByGoogle] = useState(false);
+	const firebaseContext = useContext(FirebaseContext);
+	const [loading, setLoading] = useState(false);
+
+
+	const googleSearch = async (textToSearch: string) => {
+		setLoading(true);
+		const res = await firebaseContext.getImage(textToSearch);
+		const response = JSON.parse(JSON.stringify(res.message as string));
+
+		const imageDataWanted = response.map(
+			({ url, origin }: IResponseData2) => {
+				const { title } = origin;
+				return {
+					alt: title,
+					imageLink: url,
+					thumbnailLink: url,
+					id: url
+				};
+			}
+		);
+
+		setLoading(false);
+		if (setImages) setImages(imageDataWanted);
+	}
 
 	useEffect(() => {
 		if (!isImagesEmpty) return;
@@ -72,12 +106,17 @@ const BackgroundPanel = ({
 				<InputBase
 					placeholder="Search Images"
 					onChange={(e) => setText(e.target.value)}
-					onKeyPress={(e) => e.key === 'Enter' && searchSubmit(text, setImages)}
+					onKeyPress={(e) => {
+							if(e.key === 'Enter'){
+								if(!searchByGoogle){searchSubmit(text, setImages);} else{googleSearch(text);}
+							}
+						}
+					}
 					value={text}
 				/>
 				<IconButton
 					color="primary"
-					onClick={() => searchSubmit(text, setImages)}
+					onClick={() => {if(!searchByGoogle){searchSubmit(text, setImages);} else{googleSearch(text);}}}
 				>
 					<SearchIcon />
 				</IconButton>
@@ -89,6 +128,27 @@ const BackgroundPanel = ({
 						label="background"
 					/>
 				</div>
+				<div style={{ display: 'flex' }}>
+					<FormControlLabel
+						checked={searchByGoogle}
+						onChange={() => {
+							setSearchByGoogle(!searchByGoogle);
+						}}
+						control={<Switch color="primary" />}
+						label="Google"
+					/>
+					{loading &&
+					<img
+						style={{
+							height: 8,
+							width: 30,
+							paddingTop: 20
+						}}
+						src={loadingDots}
+						alt="three dots"
+					/>}
+				</div>
+
 			</div>
 			<div className="background-icon-list">
 				{isImagesEmpty ? (
@@ -153,7 +213,9 @@ export const searchSubmit = async (
 	textToSearch: string,
 	setImages?: React.Dispatch<React.SetStateAction<IImagesState[]>>
 ) => {
+
 	const response = await getSearchedUnsplashImages(textToSearch);
+
 	const imageDataWanted = response.data.results.map(
 		({ urls, alt_description, id }: IResponseData) => {
 			const { regular, thumb } = urls;

@@ -24,6 +24,7 @@ export interface IFirebaseContext {
 		item: IPinnedItem
 	) => Promise<IFetchResponseBase>;
 	acquireTokens: (tokenId: string) => Promise<IFetchResponseBase>;
+	getImage:(query: string) => Promise<IFetchResponseBase>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -34,7 +35,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getRoomPinnedItems: () => Promise.resolve({ isSuccessful: false }),
 	getAllRooms: () => Promise.resolve({ isSuccessful: false }),
 	movePinnedRoomItem: () => Promise.resolve({ isSuccessful: false }),
-	acquireTokens: () => Promise.resolve({ isSuccessful: false })
+	acquireTokens: () => Promise.resolve({ isSuccessful: false }),
+	getImage: () => Promise.resolve({ isSuccessful: false })
 });
 
 const fetchBase =
@@ -89,6 +91,23 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			if (fetchRes.ok) {
 				const roomData = (await fetchRes.json()) as IChatRoom;
 				return { isSuccessful: true, data: roomData };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	const getImage= useCallback(
+		async (
+			query: string
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/search/${query}`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true, message: await fetchRes.json() };
 			}
 
 			return { isSuccessful: false, message: fetchRes.statusText };
@@ -226,7 +245,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				unpinRoomItem,
 				getAllRooms,
 				movePinnedRoomItem,
-				acquireTokens
+				acquireTokens,
+				getImage
 			}}
 		>
 			{children}
