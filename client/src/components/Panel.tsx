@@ -16,7 +16,11 @@ import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
+<<<<<<< HEAD
 import twitterIcon from '../assets/navbar/twitterIcon.png';
+=======
+import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
+>>>>>>> 2957121cadc09ac7b2ae23db911961edd1d46810
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
 // import towerIcon from '../assets/navbar/towerIcon.png';
@@ -105,6 +109,7 @@ const panelIconSrcMap: {
 	[key: string]: string;
 } = {
 	// sound: soundIcon,
+	youtube: YouTubeIcon,
 	emoji: emojiIcon,
 	gifs: gifIcon,
 	chat: chatIcon,

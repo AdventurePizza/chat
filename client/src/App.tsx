@@ -31,7 +31,9 @@ import {
 	PanelItemEnum,
 	PinTypes,
 	IOrder,
-	ITweet
+	ITweet,
+	IMap,
+	IWaterfallChat
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -85,9 +87,9 @@ import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
-
-import { MapsContext  } from './contexts/MapsContext';
-
+import { useHotkeys } from 'react-hotkeys-hook';
+import { MapsContext } from './contexts/MapsContext';
+const clipboardy = require('clipboardy');
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -100,6 +102,19 @@ const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
 
 function App() {
 	const { socket } = useContext(AppStateContext);
+	const {
+		updateCoordinates,
+		coordinates,
+		markers,
+		isMapShowing,
+		zoom,
+		updateZoom,
+		updateIsMapShowing,
+		updateMarkerText,
+		addMarker,
+		deleteMarker,
+		resetMap
+	} = useContext(MapsContext);
 	const {
 		network,
 		isLoggedIn,
@@ -147,6 +162,11 @@ function App() {
 
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
+	useEffect(() => {
+		return history.listen(() => {
+			resetMap();
+		});
+	}, [history, resetMap]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
@@ -176,8 +196,10 @@ function App() {
 	const [images, setImages] = useState<IBoardImage[]>([]);
 	const [brushColor, setBrushColor] = useState('black');
 	const [background, setBackground] = useState<IBackgroundState>({
-		name: undefined
+		type: undefined
 	});
+	const [videoId, setVideoId] = useState<string>('');
+	const [volume, setVolume] = useState<number>(0.4);
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -221,12 +243,25 @@ function App() {
 		condition: ''
 	});
 
-	const [coordinates, setCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	})
-	const [zoom, setZoom] = useState(12);
-	const [isMapShowing, setIsMapShowing] = useState(false);
+	// const [coordinates, setCoordinates] = useState({
+	// 	lat: 33.91925555555555,
+	// 	lng: -118.41655555555555
+	// });
+
+	// interface ICoordinates {
+	// 	lat: number;
+	// 	lng: number;
+	// }
+	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
+	// const [zoom, setZoom] = useState(12);
+	// const [isMapShowing, setIsMapShowing] = useState(false);
+
+	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
+		top: 400,
+		left: 800,
+		messages: [],
+		show: true
+	});
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -371,6 +406,7 @@ function App() {
 			case 'browseNFT':
 			case 'NFT':
 			case 'twitter':
+			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -390,6 +426,14 @@ function App() {
 			...messages,
 			[userId]: (messages[userId] || []).concat(value)
 		}));
+	}, []);
+
+	const onShowChat = () => {
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
+	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
+		const { avatar, value } = message;
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -730,9 +774,20 @@ function App() {
 					break;
 				case 'background':
 					if (isUnpin) {
-						setBackground({ name: '', isPinned: false });
+						setBackground({
+							name: '',
+							isPinned: false,
+							type: undefined,
+							mapData: undefined
+						});
 					} else {
-						setBackground({ name: message.name, isPinned: true });
+						console.log(message);
+						setBackground({
+							name: message.name,
+							isPinned: true,
+							type: message.subType,
+							mapData: message.mapData
+						});
 					}
 					break;
 				case 'text':
@@ -843,6 +898,9 @@ function App() {
 							...NFTs.slice(nftIndex + 1)
 						]);
 					}
+					break;
+				case 'chat':
+					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
 					break;
 			}
 		},
@@ -986,20 +1044,28 @@ function App() {
 	useEffect(() => { //useEffect is a hook
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
-				case 'map' :
-					if(typeof message.isMapShowing === "boolean"){
-						setIsMapShowing(message.isMapShowing);
+				case 'map':
+					if (message.isMapShowing !== undefined) {
+						updateIsMapShowing(message.isMapShowing);
 					}
-					if(typeof message.zoom === "number"){
-						setZoom(message.zoom);
+					if (message.zoom !== undefined) {
+						updateZoom(message.zoom);
 					}
-					if(message.coordinates){
-						console.log('got map event', message);
+					if (message.coordinates) {
 						const newCoordinates = {
 							lat: message.coordinates.lat,
 							lng: message.coordinates.lng
-						}
-						setCoordinates(newCoordinates);
+						};
+						updateCoordinates(newCoordinates);
+					}
+					if (message.func === 'add') {
+						addMarker(message.marker);
+					}
+					if (message.func === 'delete') {
+						deleteMarker(message.index);
+					}
+					if (message.func === 'update') {
+						updateMarkerText(message.index, message.text);
 					}
 					break;
 				case 'sound':
@@ -1014,6 +1080,12 @@ function App() {
 						}));
 					}
 					break;
+				case 'youtube':
+					// console.log('youtube socket');
+					// console.log(message.value);
+					setBackground({ name: '', isPinned: false });
+					setVideoId(message.value);
+					break;
 				case 'emoji':
 					if (message.value) {
 						playEmoji(message.value);
@@ -1022,6 +1094,7 @@ function App() {
 				case 'chat':
 					if (message.value) {
 						handleChatMessage(message);
+						updateWaterfallChat(message);
 					}
 					break;
 				case 'gif':
@@ -1044,10 +1117,13 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
+					setVideoId('');
 					setBackground((background) => ({
 						...background,
 						name: message.value,
-						isPinned: message.isPinned
+						isPinned: message.isPinned,
+						type: message.type,
+						mapData: message.mapData
 					}));
 					break;
 				case 'messages':
@@ -1169,18 +1245,30 @@ function App() {
 		handlePinItemMessage,
 		handleMoveItemMessage,
 		addImage,
-		socket
+		socket,
+		updateIsMapShowing,
+		updateZoom,
+		updateCoordinates,
+		addMarker,
+		deleteMarker,
+		updateMarkerText,
+		updateWaterfallChat
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
+				if(chatValue === ''){
+					return;
+				}
 				socket.emit('event', {
 					key: 'chat',
-					value: chatValue
+					value: chatValue,
+					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
+				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1339,10 +1427,29 @@ function App() {
 				value: id
 				})
 				break;
-			default:
+			case 'youtube':
+				const videoId = args[0] as string;
+				socket.emit('event', {
+					key: 'youtube',
+					value: videoId
+				});
 				break;
+			default:
 		}
 	};
+
+	useHotkeys('ctrl+v', () => {
+		if (clipboardy.read()) {
+			clipboardy.read().then((value: string) =>
+				setMovingBoardItem({
+					type: 'text',
+					itemKey: uuidv4(),
+					value: value,
+					isNew: true
+				})
+			);
+		}
+	});
 
 	const onClickApp = useCallback(
 		async (event: React.MouseEvent) => {
@@ -1465,7 +1572,9 @@ function App() {
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 
-				let background: string | undefined;
+				let backgroundType: 'image' | 'map' | undefined;
+				let backgroundImg: string | undefined;
+				let backgroundMap: IMap | undefined;
 
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
@@ -1487,7 +1596,9 @@ function App() {
 							url: item.url
 						});
 					} else if (item.type === 'background') {
-						background = item.name;
+						backgroundType = item.subType;
+						backgroundImg = item.name;
+						backgroundMap = item.mapData;
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1514,7 +1625,12 @@ function App() {
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setPinnedText(pinnedText);
-				setBackground({ name: background, isPinned: !!background });
+				setBackground({
+					name: backgroundImg,
+					isPinned: !!backgroundImg || !!backgroundMap,
+					mapData: backgroundMap,
+					type: backgroundType
+				});
 				setNFTs(pinnedNFTs);
 			});
 		}
@@ -1624,23 +1740,58 @@ function App() {
 	};
 
 	const pinBackground = async () => {
+		/* if(background.isPinned===true){
+			unpinBackground();
+		} */
 		const room = roomId || 'default';
 
-		// if (!background.isPinned) {
+		let backgroundType: 'image' | 'map' | undefined;
+		if (isMapShowing) {
+			backgroundType = 'map';
+		} else if (background.name) {
+			backgroundType = 'image';
+		}
+
+		let backgroundName: string | undefined;
+		if (backgroundType === 'image') {
+			backgroundName = background.name;
+		} else {
+			backgroundName = '';
+		}
+
+		let mapCoordinates: IMap | undefined = { coordinates, markers, zoom };
+		if (backgroundType !== 'map') {
+			mapCoordinates = undefined;
+		}
+
 		const result = await firebaseContext.pinRoomItem(room, {
-			name: background.name,
+			name: backgroundName,
 			type: 'background',
 			top: 0,
-			left: 0
+			left: 0,
+			subType: backgroundType,
+			mapData: mapCoordinates
 		});
 
 		if (result.isSuccessful) {
-			setBackground((background) => ({ ...background, isPinned: true }));
+			setBackground((background) => ({
+				name: backgroundName,
+				isPinned: true,
+				type: backgroundType,
+				mapData: mapCoordinates
+			}));
 
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
-				name: background.name
+				name: backgroundName,
+				subType: backgroundType,
+				mapData: mapCoordinates
+			});
+			updateIsMapShowing(false);
+			socket.emit('event', {
+				key: 'map',
+				isMapShowing: false
 			});
 		} else if (result.message) {
 			setModalErrorMessage(result.message);
@@ -1658,11 +1809,21 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				setBackground({ name: '', isPinned: false });
-
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: undefined,
+					mapData: undefined
+				});
 				socket.emit('event', {
 					key: 'unpin-item',
 					type: 'background'
+				});
+
+				updateIsMapShowing(true);
+				socket.emit('event', {
+					key: 'map',
+					isMapShowing: true
 				});
 			} else if (message) {
 				setModalErrorMessage(message);
@@ -1775,26 +1936,11 @@ function App() {
 		type: PinTypes,
 		id: string,
 		left: number,
-		top: number
+		top: number,
+		deltaX: number,
+		deltaY: number
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
-
-		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-			roomId || 'default',
-			{
-				type,
-				top: y,
-				left: x,
-				key: id
-			}
-		);
-
-		if (!isSuccessful) {
-			if (message) {
-				setModalErrorMessage(message);
-			}
-			return;
-		}
 
 		if (type === 'text') {
 			setPinnedText(
@@ -1845,6 +1991,80 @@ function App() {
 			}
 		}
 
+		if (type === 'chat') {
+			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
+		}
+
+		else{
+			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+				roomId || 'default',
+				{
+					type,
+					top: y,
+					left: x,
+					key: id
+				}
+			);
+
+			//reverse the changes in client in case has no permission to edit
+			if (!isSuccessful) {
+				if (message) {
+					setModalErrorMessage(message);
+				}
+				left -= deltaX;
+				top -= deltaY;
+
+				if (type === 'text') {
+					setPinnedText(
+						update(pinnedText, {
+							[id]: {
+								$merge: { left, top }
+							}
+						})
+					);
+				} else if (type === 'gif') {
+					const gifIndex = gifs.findIndex((gif) => gif.key === id);
+					if (gifIndex !== -1) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gifs[gifIndex],
+								top,
+								left
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+				} else if (type === 'image') {
+					const imageIndex = images.findIndex((image) => image.key === id);
+					if (imageIndex !== -1) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...images[imageIndex],
+								top,
+								left
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+				} else if (type === 'NFT') {
+					const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+					if (nftIndex !== -1) {
+						setNFTs([
+							...NFTs.slice(0, nftIndex),
+							{
+								...NFTs[nftIndex],
+								top,
+								left
+							},
+							...NFTs.slice(nftIndex + 1)
+						]);
+					}
+				}
+				return;
+			}
+		}
 		socket.emit('event', {
 			key: 'move-item',
 			type,
@@ -1877,8 +2097,6 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{coordinates, setCoordinates, zoom, setZoom, isMapShowing, setIsMapShowing}}>
-			
 		<div
 			className="app"
 			style={{
@@ -1891,6 +2109,8 @@ function App() {
 				tweets={tweets}
 				pinTweet={pinTweet}     //write pintweet
 				unpinTweet={unpinTweet} //write unpintweet
+				videoId={videoId}
+				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}
@@ -1929,6 +2149,7 @@ function App() {
 				onCancel={() => {}}
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
+				waterfallChat={waterfallChat}
 			/>
 
 			<TowerDefense
@@ -1979,7 +2200,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
 				placement="left"
 			>
 				<a
@@ -2003,10 +2224,13 @@ function App() {
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
+				setVideoId={setVideoId}
+				setVolume={setVolume}
 				roomData={roomData}
+				updateShowChat = {onShowChat}
 			/>
 
-			{userProfile && !onBrowseNFTPanel &&(
+			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
@@ -2054,8 +2278,6 @@ function App() {
 				</>
 			</Modal>
 		</div>
-		</MapsContext.Provider>
-
 	);
 }
 

@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
-import { Paper } from '@material-ui/core';
+import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder } from '../types';
+import { IOrder, IWaterfallMessage } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { Timeline, Tweet, Follow, Share } from 'react-twitter-widgets';
-
+import { WaterfallChat } from "./WaterfallChat";
 
 const useStyles = makeStyles({
 	container: {
@@ -38,7 +38,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' |'tweet';
+	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' |'tweet'| 'chat';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -56,6 +56,8 @@ interface BoardObjectProps {
 
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
+
+	chat?: IWaterfallMessage[];
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -73,7 +75,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		order,
 		addNewContract,
 		onBuy,
-		onCancel
+		onCancel,
+		chat
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -88,7 +91,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	if (isDragging) {
 		return <div ref={preview} />;
 	}
-	
+
 	const noLinkPrev = <div className={classes.text} style={{ width: 180 }}>{text}</div>;
 
 	return (
@@ -129,6 +132,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'map' && data && <Map />}
 				{type==='tweet' && id && (<Tweet tweetId={id} />)}
+				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
 			</Paper>
 
 			{isHovering && (
@@ -139,11 +143,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
+					{type !== 'chat' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
 					{/*@ts-ignore needs better typing for innerRef*/}
-					{isPinned && <MoveButton innerRef={drag} />}
+					{(isPinned || type === 'chat') && <MoveButton innerRef={drag} />}
 				</div>
 			)}
+
 		</div>
 	);
 };

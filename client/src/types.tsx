@@ -1,10 +1,12 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'tweet';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'tweet' | 'chat';
 
 export interface IBackgroundState {
+	type?: 'image' | 'map';
+	name?: string;
 	isPinned?: boolean;
-	name: string | undefined;
+	mapData?: IMap;
 }
 
 export interface IPinnedItem {
@@ -13,6 +15,7 @@ export interface IPinnedItem {
 	left: number;
 	key?: string;
 	data?: IGif;
+	mapData?: IMap;
 	[key: string]: any;
 }
 
@@ -40,27 +43,29 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
-	| 'sound'
-	| 'emoji'
-	| 'chat'
-	| 'chat-pin'
-	| 'gif'
-	| 'image'
-	| 'tower defense'
-	| 'background'
-	| 'messages'
-	| 'whiteboard'
-	| 'animation'
-	| 'isTyping'
-	| 'username'
-	| 'weather'
-	| 'map'
-	| 'settings-url'
-	| 'pin-item'
-	| 'move-item'
-	| 'unpin-item'
-	| 'poem'
-	| 'tweet';
+		| 'sound'
+		| 'youtube'
+		| 'emoji'
+		| 'chat'
+		| 'chat-pin'
+		| 'gif'
+		| 'image'
+		| 'tower defense'
+		| 'background'
+		| 'messages'
+		| 'whiteboard'
+		| 'animation'
+		| 'isTyping'
+		| 'username'
+		| 'weather'
+		| 'map'
+		| 'settings-url'
+		| 'pin-item'
+		| 'move-item'
+		| 'unpin-item'
+		| 'poem'
+		| 'tweet';
+		
 	value?: any;
 	[key: string]: any;
 }
@@ -160,25 +165,25 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
-	'browseNFT' = 'browseNFT',
-	'NFT' = 'NFT',
-	'email' = 'email',
-	'new-room' = 'new-room',
 	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
-	'tower' = 'tower',
 	'background' = 'background',
+	'youtube' = 'youtube',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'sound' = 'sound',
-	'emoji' = 'emoji',
 	"maps" = "maps",
-	'twitter' = 'twitter'
+	'twitter' = 'twitter',
+	'email' = 'email',
+	'new-room' = 'new-room',
+	'browseNFT' = 'browseNFT',
+	'NFT' = 'NFT',
+	'tower' = 'tower',
+	'emoji' = 'emoji'
 }
 
 export interface IUserLocations {
@@ -266,11 +271,29 @@ export interface IOrder {
 	isPartnered: boolean;
 }
 
+export interface IMap {
+	coordinates: { lat: number; lng: number };
+	markers: Array<{ lat: number; lng: number; text?: string }>;
+	zoom: number;
+}
+
 export interface INFTMetadata {
 	image: string;
 	name: string;
 	contractName: string;
 	lockedId?: string;
+}
+
+export interface IWaterfallMessage{
+	avatar: string;
+	message: string;
+}
+
+export interface IWaterfallChat{
+	top: number;
+	left: number;
+	messages: IWaterfallMessage[];
+	show?: boolean;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

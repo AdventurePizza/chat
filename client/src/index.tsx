@@ -10,6 +10,7 @@ import { AuthProvider } from './contexts/AuthProvider';
 import { FirebaseProvider } from './contexts/FirebaseContext';
 import { AppStateProvider } from './contexts/AppStateContext';
 import io from 'socket.io-client';
+import { MapsProvider } from './contexts/MapsContext';
 
 const socketURL =
 	window.location.hostname === 'localhost'
@@ -23,7 +24,9 @@ ReactDOM.render(
 		<AuthProvider socket={socket}>
 			<FirebaseProvider>
 				<AppStateProvider socket={socket}>
-					<App />
+					<MapsProvider>
+						<App />
+					</MapsProvider>
 				</AppStateProvider>
 			</FirebaseProvider>
 		</AuthProvider>

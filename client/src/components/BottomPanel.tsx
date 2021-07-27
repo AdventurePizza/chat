@@ -20,6 +20,7 @@ import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
+import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import { MapsPanel } from './MapsPanel';
@@ -39,7 +40,10 @@ export interface IBottomPanelProps {
 	updateIsTyping: (isTyping: boolean) => void;
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
+	setVideoId: React.Dispatch<React.SetStateAction<string>>;
+	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
+	updateShowChat: () => void;
 }
 
 export interface IPanelContentProps {
@@ -49,10 +53,17 @@ export interface IPanelContentProps {
 	towerDefenseState: ITowerDefenseState;
 	updateIsTyping: (isTyping: boolean) => void;
 	images: IImagesState[];
+	queriedVideos: Array<any>;
+	lastQuery: string;
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
+	setQueriedVideos: React.Dispatch<React.SetStateAction<Array<any>>>;
+	setLastQuery: React.Dispatch<React.SetStateAction<string>>;
+	setVideoId: (id: string) => void;
+	setVolume: (volume: number) => void;
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
+	updateShowChat: () => void;
 }
 
 export interface ISoundPairs {
@@ -78,9 +89,14 @@ export const BottomPanel = ({
 	updateIsTyping,
 	onNFTError,
 	onNFTSuccess,
-	roomData
+	setVideoId,
+	setVolume,
+	roomData,
+	updateShowChat
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
+	const [videos, setQueriedVideos] = useState<Array<any>>([]);
+	const [lastQuery, setLastQuery] = useState<string>("");
 	const classes = useStyles();
 
 	return (
@@ -101,10 +117,17 @@ export const BottomPanel = ({
 					towerDefenseState={towerDefenseState}
 					updateIsTyping={updateIsTyping}
 					images={images}
+					queriedVideos={videos}
+					lastQuery={lastQuery}
 					setImages={setImages}
+					setVideoId={setVideoId}
+					setVolume={setVolume}
+					setQueriedVideos={setQueriedVideos}
+					setLastQuery={setLastQuery}
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
+					updateShowChat={updateShowChat}
 				/>
 			</div>
 		</Drawer>
@@ -118,10 +141,17 @@ const PanelContent = ({
 	towerDefenseState,
 	updateIsTyping,
 	images,
+	queriedVideos,
+	lastQuery,
 	setImages,
+	setVideoId,
+	setVolume,
+	setQueriedVideos,
+	setLastQuery,
 	onNFTError,
 	onNFTSuccess,
 	roomData,
+	updateShowChat
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -142,6 +172,7 @@ const PanelContent = ({
 						onAction('chat-pin', message);
 					}}
 					updateIsTyping={updateIsTyping}
+					showChat={updateShowChat}
 				/>
 			);
 		case 'sound':
@@ -235,6 +266,18 @@ const PanelContent = ({
 					roomData={roomData}
 					onError={onNFTError}
 					onSuccess={onNFTSuccess}
+				/>
+			);
+		case 'youtube':
+			return (
+				<YouTubeMusicPanel
+					setVolume={setVolume}
+					setVideoId={setVideoId}
+					sendVideo={(id) => onAction('youtube', id)}
+					queriedVideos={queriedVideos}
+					setQueriedVideos={setQueriedVideos}
+					lastQuery={lastQuery}
+					setLastQuery={setLastQuery}
 				/>
 			);
 		case 'browseNFT':
