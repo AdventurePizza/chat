@@ -8,7 +8,7 @@ import { Switch, Tooltip } from '@material-ui/core';
 import { AuthContext } from '../contexts/AuthProvider';
 import { MetamaskButton } from './MetamaskButton';
 import { IFetchResponseBase } from '../types';
-import { RenderToken } from './RenderToken';
+import { Token } from './Token';
 
 const useStyles = makeStyles({
 	container: {
@@ -242,7 +242,7 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 						placeholder="contract address"
 					/>
 
-					<RenderToken
+					<Token
 						contractAddress={contractAddress}
 					/>
 

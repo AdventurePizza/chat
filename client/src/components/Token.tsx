@@ -1,10 +1,10 @@
 import React from 'react';
 // planning to visualise tokens in future so it is separate component
-interface IRenderTokenProps {
+interface ITokenProps {
 	contractAddress: string;
 }
 
-export const RenderToken = ({ contractAddress }: IRenderTokenProps) => {
+export const Token = ({ contractAddress }: ITokenProps) => {
 
 	return (
 		<div>{ contractAddress}</div>
