@@ -53,7 +53,7 @@ export interface IIconsProps {
 export type unsplashIconsProps = IIconsProps & { images: IImagesState[] };
 
 export const getSearchedUnsplashImages = async (text: string) =>
-	await axios.get('https://api.unsplash.com/search/photos', {
+	await axios.get('https://api.unsplash.com/search/photos?per_page=15', {
 		params: { query: text },
 		headers: {
 			authorization: 'Client-ID MZjo-jtjTqOzH1e0MLB5wDm19tMAhILsBEOcS9uGYyQ'
@@ -102,7 +102,7 @@ const BackgroundPanel = ({
 
 	return (
 		<div className="background-container" style={{overflowY: 'auto'}}>
-			<div className="background-icon-list">
+			<div className="background-search-settings">
 				<InputBase
 					placeholder="Search Images"
 					onChange={(e) => setText(e.target.value)}
