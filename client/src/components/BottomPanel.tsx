@@ -27,7 +27,7 @@ import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-
+import TweetPanel from './TweetPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -121,7 +121,7 @@ const PanelContent = ({
 	setImages,
 	onNFTError,
 	onNFTSuccess,
-	roomData
+	roomData,
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -199,10 +199,10 @@ const PanelContent = ({
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
-			case 'maps':
-				return (
-					<MapsPanel />
-				);
+		case 'maps':
+			return (
+				<MapsPanel />
+			);
 		case 'poem':
 			return (
 				<Poem
@@ -241,11 +241,18 @@ const PanelContent = ({
 			return (
 				<iframe
 					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
-				  width='100%'
-				  height='100vh'
-				  frameBorder='0'
-				  allowFullScreen>
-		    </iframe>
+					width='100%'
+					height='100vh'
+					frameBorder='0'
+					allowFullScreen>
+				</iframe>
+			);
+		case 'twitter':
+			return (<TweetPanel 
+			pinTweet={(id: string)=>{
+				onAction('tweet',id);
+			}}
+			updateIsTyping={updateIsTyping}/>
 			);
 		default:
 			return null;

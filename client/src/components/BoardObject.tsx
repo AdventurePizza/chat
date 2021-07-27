@@ -11,6 +11,7 @@ import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
+import { Timeline, Tweet, Follow, Share } from 'react-twitter-widgets';
 
 
 const useStyles = makeStyles({
@@ -37,7 +38,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT' | 'map';
+	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' |'tweet';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -127,6 +128,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
+				{type==='tweet' && id && (<Tweet tweetId={id} />)}
 			</Paper>
 
 			{isHovering && (

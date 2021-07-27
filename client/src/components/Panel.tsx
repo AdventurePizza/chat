@@ -16,6 +16,7 @@ import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
 import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
+import twitterIcon from '../assets/navbar/twitterIcon.png';
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
 // import towerIcon from '../assets/navbar/towerIcon.png';
@@ -107,6 +108,7 @@ const panelIconSrcMap: {
 	emoji: emojiIcon,
 	gifs: gifIcon,
 	chat: chatIcon,
+	twitter: twitterIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	whiteboard: pencilIcon,

@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'tweet';
 
 export interface IBackgroundState {
 	isPinned?: boolean;
@@ -28,32 +28,39 @@ export interface IAnimation {
 	text?: string;
 }
 
+export interface ITweet {
+	id: string;
+	left: number;
+	top: number;
+	
+}
 export interface IAvatarChatMessages {
 	[userId: string]: string[];
 }
 
 export interface IMessageEvent {
 	key:
-		| 'sound'
-		| 'emoji'
-		| 'chat'
-		| 'chat-pin'
-		| 'gif'
-		| 'image'
-		| 'tower defense'
-		| 'background'
-		| 'messages'
-		| 'whiteboard'
-		| 'animation'
-		| 'isTyping'
-		| 'username'
-		| 'weather'
-		| 'map'
-		| 'settings-url'
-		| 'pin-item'
-		| 'move-item'
-		| 'unpin-item'
-		| 'poem';
+	| 'sound'
+	| 'emoji'
+	| 'chat'
+	| 'chat-pin'
+	| 'gif'
+	| 'image'
+	| 'tower defense'
+	| 'background'
+	| 'messages'
+	| 'whiteboard'
+	| 'animation'
+	| 'isTyping'
+	| 'username'
+	| 'weather'
+	| 'map'
+	| 'settings-url'
+	| 'pin-item'
+	| 'move-item'
+	| 'unpin-item'
+	| 'poem'
+	| 'tweet';
 	value?: any;
 	[key: string]: any;
 }
@@ -170,7 +177,8 @@ export enum PanelItemEnum {
 	'poem' = 'poem',
 	'sound' = 'sound',
 	'emoji' = 'emoji',
-	"maps" = "maps"
+	"maps" = "maps",
+	'twitter' = 'twitter'
 }
 
 export interface IUserLocations {

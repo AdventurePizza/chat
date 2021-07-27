@@ -30,7 +30,8 @@ import {
 	IWeather,
 	PanelItemEnum,
 	PinTypes,
-	IOrder
+	IOrder,
+	ITweet
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -185,7 +186,9 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-	>(PanelItemEnum.roomDirectory);
+		>(PanelItemEnum.roomDirectory);
+
+	const [tweets, setTweets] = useState<ITweet[]>([]);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
@@ -367,6 +370,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'twitter':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -393,6 +397,18 @@ function App() {
 		const { prevX, prevY, currentX, currentY, color } = lineData;
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
+
+	const addTweet= useCallback((tweetId: string) => { //triggered if message.vakye=tweet (Case:tweet in app.tsx)
+		const { x, y } = generateRandomXY(true, true);
+		console.log(x)
+			const newTweet: ITweet = {
+				top: y,
+				left: x,
+				id: tweetId //tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
+			};
+			setTweets((tweets) => tweets.concat(newTweet));
+		},[]);
+
 
 	const addGif = useCallback((gifId: string, gifKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -967,7 +983,7 @@ function App() {
 	// 	}
 	// };
 
-	useEffect(() => {
+	useEffect(() => { //useEffect is a hook
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map' :
@@ -1013,6 +1029,12 @@ function App() {
 						addGif(message.value, message.gifKey);
 					}
 					break;
+				case 'tweet':
+					if (message.value) {
+						console.log("useEffect")
+						//addTweet(message.value);
+						}
+						break;
 				case 'image':
 					if (message.value) {
 						addImage(message.value, message.imageKey);
@@ -1308,6 +1330,15 @@ function App() {
 					url: window.location.href
 				});
 				break;
+			case 'tweet':
+				console.log("actionhandler");
+				const id = args[0] as string;
+				addTweet(id);
+				socket.emit('event',{
+				key:'tweet',
+				value: id
+				})
+				break;
 			default:
 				break;
 		}
@@ -1557,6 +1588,9 @@ function App() {
 			}
 		}
 	};
+	const pinTweet = () => {
+		//deals with sockets
+	};
 
 	const pinImage = async (imageKey: string) => {
 		const imageIndex = images.findIndex((image) => image.key === imageKey);
@@ -1636,6 +1670,11 @@ function App() {
 		}
 	};
 
+	
+	
+	const unpinTweet = () => {
+
+	};
 	const unpinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
@@ -1848,7 +1887,10 @@ function App() {
 			onClick={onClickApp}
 		>
 			<MetamaskSection />
-			<Board
+				<Board
+				tweets={tweets}
+				pinTweet={pinTweet}     //write pintweet
+				unpinTweet={unpinTweet} //write unpintweet
 				background={background}
 				musicNotes={musicNotes}
 				updateNotes={setMusicNotes}

@@ -14,7 +14,8 @@ import {
 	IUserLocations,
 	IUserProfiles,
 	IWeather,
-	PinTypes
+	PinTypes,
+	ITweet
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -78,6 +79,10 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	
+	tweets: ITweet[];
+	pinTweet: (tweetID: string) => void;
+	unpinTweet: (tweetID: string) => void;
 }
 
 export const Board = ({
@@ -117,7 +122,10 @@ export const Board = ({
 	onBuy,
 	onCancel,
 	onClickNewRoom,
-	onClickPresent
+	onClickPresent,
+	unpinTweet,
+	tweets,
+	pinTweet
 }: IBoardProps) => {
 	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 		'begin'
@@ -374,6 +382,26 @@ export const Board = ({
 							}}
 							onUnpin={() => {
 								unpinGif(gif.key);
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+			<TransitionGroup>
+				{tweets.map((tweet) => (
+					<CSSTransition
+						key={tweet.id}
+						timeout={5000}
+						classNames="gif-transition"
+					>
+						<BoardObject
+							type="tweet"
+							{...tweet}
+							onPin={() => {
+								pinTweet(tweet.id);
+							}}
+							onUnpin={() => {
+								unpinTweet(tweet.id);
 							}}
 						/>
 					</CSSTransition>
