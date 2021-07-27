@@ -19,7 +19,7 @@ interface IBackgroundPanelProps {
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
 }
 
-export interface IResponseData {
+export interface IResponseDataUnsplash {
 	urls: {
 		full: string;
 		raw: string;
@@ -31,7 +31,7 @@ export interface IResponseData {
 	id: string;
 }
 
-export interface IResponseData2 {
+export interface IResponseDataGoogle {
 	url: string;
 	origin: {
 		title: string;
@@ -79,7 +79,7 @@ const BackgroundPanel = ({
 		const response = JSON.parse(JSON.stringify(res.message as string));
 
 		const imageDataWanted = response.map(
-			({ url, origin }: IResponseData2) => {
+			({ url, origin }: IResponseDataGoogle) => {
 				const { title } = origin;
 				return {
 					alt: title,
@@ -101,7 +101,7 @@ const BackgroundPanel = ({
 	}, [isImagesEmpty, setImages]); // Wanted empty deps but warning said to put them in.....
 
 	return (
-		<div className="background-container">
+		<div className="background-container" style={{overflowY: 'auto'}}>
 			<div className="background-icon-list">
 				<InputBase
 					placeholder="Search Images"
@@ -150,7 +150,7 @@ const BackgroundPanel = ({
 				</div>
 
 			</div>
-			<div className="background-icon-list">
+			<div className="background-icon-list" >
 				{isImagesEmpty ? (
 					<DefaultIcons
 						sendImage={sendImage}
@@ -217,7 +217,7 @@ export const searchSubmit = async (
 	const response = await getSearchedUnsplashImages(textToSearch);
 
 	const imageDataWanted = response.data.results.map(
-		({ urls, alt_description, id }: IResponseData) => {
+		({ urls, alt_description, id }: IResponseDataUnsplash) => {
 			const { regular, thumb } = urls;
 			return {
 				alt: alt_description,

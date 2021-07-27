@@ -144,7 +144,7 @@ export class Router {
       tokenRouter
     );
     app.use(
-      "/search",
+      "/google-image-search",
       expressjwt({
         //@ts-ignore
         secret: Buffer.from(process.env.JWT_SECRET, "base64"),

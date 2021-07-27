@@ -102,7 +102,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		async (
 			query: string
 		): Promise<IFetchResponseBase> => {
-			const fetchRes = await fetchAuthenticated(`/search/${query}`, {
+			const fetchRes = await fetchAuthenticated(`/google-image-search/${query}`, {
 				method: 'GET'
 			});
 

@@ -201,6 +201,8 @@
 .background-icon-list {
 	display: flex;
 	justify-content: center;
+	width:100%;
+	overflow-x: scroll;
 }
 
 .sound-category-list {
