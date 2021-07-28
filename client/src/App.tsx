@@ -5,7 +5,6 @@ import { SettingsPanel } from './components/SettingsPanel';
 /* import Tour from 'reactour'; */
 
 import { CustomToken as NFT } from './typechain/CustomToken';
-import axios  from 'axios';
 
 import {
 	BUILDING_COSTS,

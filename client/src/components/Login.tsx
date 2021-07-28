@@ -1,11 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
+import { FirebaseContext } from '../contexts/FirebaseContext';
 import "./Login.css";
 import check from "../assets/check.png";
 import maticInput from '../assets/matic-input.png';
 import networks from '../assets/networks.png';
 import { MetamaskButton } from './MetamaskButton';
-import axios from 'axios';
 
 import IconButton from '@material-ui/core/IconButton';
 import KeyboardBackspaceIcon from '@material-ui/icons/KeyboardBackspace';
@@ -27,13 +27,12 @@ interface ILoginProps {
 }
 
 export const Login = ({ beginTour, showModal, isFirstVisit, userEmail, setUserEmail } : ILoginProps) => {
-    /* const [emailInput, setEmailInput] = useState(""); */
     const [showEmail, setShowEmail] = useState(false);
     const [showMetamask, setShowMetamask] = useState(false);
     const { isLoggedIn, accountId } = useContext(AuthContext);
+    const firebaseContext = useContext(FirebaseContext);
 
     const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        /* setEmailInput(e.target.value); */
         setUserEmail(e.target.value);
     }
 
@@ -69,9 +68,11 @@ export const Login = ({ beginTour, showModal, isFirstVisit, userEmail, setUserEm
             {userEmail && isLoggedIn && !showEmail ? (
                 <button className="login-button-email" 
                     onClick={() => {
-                        axios.patch(`/chatroom-users/email/${accountId}`, {email: userEmail})
-                            .then(() => console.log("user email updated"))
-                            .catch(err => console.log(err));
+                        if(accountId){
+                            firebaseContext.updateEmail(accountId, userEmail)
+                                .then(() => console.log("user email updated"))
+                                .catch(err => console.log(err));
+                        }
                         showModal(false);
                         if(isFirstVisit){
                             beginTour(true);
