@@ -1,6 +1,7 @@
 import { InputButton } from './shared/InputButton';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
+import { FirebaseContext } from '../contexts/FirebaseContext';
 import axios from "axios";
 import "./SettingsPanel.css";
 import Button from '@material-ui/core/Button';
@@ -42,7 +43,7 @@ interface IWalletItem {
 	logo_url?: string,
 }
 
-interface IRoomData {
+export interface IRoomData {
 	roomData: {
 		isLocked: string,
 		lockedOwnerAddress: string,
@@ -77,6 +78,7 @@ export const SettingsPanel = ({
 	const [isWalletLoaded, setIsWalletLoaded] = useState(false);
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 	const [rooms, setRooms] = useState<IRoomData[]>([]);
+	const firebaseContext = useContext(FirebaseContext);
 
 	const [activeAvatar, setActiveAvatar] = useState(currentAvatar);
 	const avatars = [{
@@ -132,9 +134,12 @@ export const SettingsPanel = ({
 			   })
 			   .catch(err => console.log(err)); 
 
-			 axios.get(`/chatroom-users/user-rooms/${accountId}`)
+
+			firebaseContext.getUserRooms(accountId)
 				.then(res => {
-					setRooms(res.data);
+					if(res.data){
+						setRooms(res.data);
+					}
 				})
 				.catch(err => console.log(err)); 
 		}
@@ -143,7 +148,7 @@ export const SettingsPanel = ({
 		if(isLoggedIn){ 
 			fetchData();
 		}	
-	}, [isLoggedIn, accountId]);
+	}, [isLoggedIn, accountId, firebaseContext]);
 	
 	const history = useHistory();
 
