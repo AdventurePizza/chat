@@ -22,8 +22,8 @@
     justify-content: space-between;
 }
 
-.settings-input-container div:nth-of-type(3)  {
-    margin-top: 20px;
+.settings-input-container > div {
+    margin-bottom: 20px;
 }
 
 .settings-avatar {

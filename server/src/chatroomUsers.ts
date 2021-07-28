@@ -7,15 +7,8 @@ const collection = db.collection("chatroomUsers");
 
 const chatroomUserRouter = express.Router();
 
-//get all chatroom users
-chatroomUserRouter.get("/get-all", async (req, res) => {
-    const doc = await collection.get();
-
-    res.status(200).send(doc.docs.map(doc => doc.data()));
-})
-
 //create new chatroom user
-chatroomUserRouter.post("/add-user", async (req, res) => {
+chatroomUserRouter.post("/user", async (req, res) => {
     const { userId, screenName, avatar } = req.body as { userId: string, screenName: string, avatar: string };
 
     const doc = await collection.doc(userId).get();
@@ -39,15 +32,14 @@ chatroomUserRouter.get("/get/:userId", async (req, res) => {
     const doc = await collection.doc(userId).get();
 
     if(!doc.exists){
-        res.status(400).send({msg: "user does not exist"});
-        return error(res, "user does not exist");
+        return null;
     }
 
     res.status(200).send(doc.data());
 })
 
 //update user screenName
-chatroomUserRouter.patch("/update-screen-name/:userId", async (req, res) => {
+chatroomUserRouter.patch("/screen-name/:userId", async (req, res) => {
     const { userId } = req.params as { userId: string };
     const { screenName } = req.body as { screenName: string };
 
@@ -64,7 +56,7 @@ chatroomUserRouter.patch("/update-screen-name/:userId", async (req, res) => {
 })
 
 //update user avatar
-chatroomUserRouter.patch("/update-avatar/:userId", async (req, res) => {
+chatroomUserRouter.patch("/avatar/:userId", async (req, res) => {
     const { userId } = req.params as { userId: string };
     const { avatar } = req.body as { avatar: string };
 
@@ -80,7 +72,7 @@ chatroomUserRouter.patch("/update-avatar/:userId", async (req, res) => {
     res.status(200).end();
 })
 
-chatroomUserRouter.get("/get-rooms/:userId", async (req, res) => {
+chatroomUserRouter.get("/user-rooms/:userId", async (req, res) => {
     const { userId } = req.params as { userId: string };
     let promises: any = [];
     const chatroomsRef = db.collection("chatrooms");

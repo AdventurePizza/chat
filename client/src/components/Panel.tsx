@@ -73,6 +73,7 @@ export const Panel = ({
 						width: '100%',
 						textAlign: 'center'
 					}}
+					className="first-step"
 				>
 					<IconButton onClick={() => {
 						onClick('settings');
@@ -130,11 +131,11 @@ const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
 	'new-room': <NewRoomPanelButton />,
-	email: <EmailButton />,
+	email: <div className="sixth-step"><EmailButton /></div>,
 	NFT: <NFTIcon />,
 	background: <Image style={{ fontSize: 32 }} />,
 	tower: <SportsEsports style={{ fontSize: 36 }} />,
-	roomDirectory: <MeetingRoom style={{ fontSize: 36 }} />
+	roomDirectory: <div className="fourth-step"><MeetingRoom style={{ fontSize: 36 }} /></div>
 };
 
 interface IPanelItemProps {
@@ -165,7 +166,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 
 		return (
 			<div
-				className="panel-icon-container"
+				className={title === "chat" ? "panel-icon-container fifth-step" : "panel-icon-container"}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
 			>
 				{iconSrc && renderIconImage()}

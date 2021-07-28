@@ -2,6 +2,7 @@ import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
+/* import Tour from 'reactour'; */
 
 import { CustomToken as NFT } from './typechain/CustomToken';
 import axios  from 'axios';
@@ -89,6 +90,8 @@ import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
+/* import { Login } from './components/Login'; */
+
 const clipboardy = require('clipboardy');
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
@@ -247,6 +250,10 @@ function App() {
 		condition: ''
 	});
 
+	/* const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true); */
+
+
 	// const [coordinates, setCoordinates] = useState({
 	// 	lat: 33.91925555555555,
 	// 	lng: -118.41655555555555
@@ -324,23 +331,23 @@ function App() {
 			/* console.log(`/chatroom-users/get/${accountId}`); */
 			axios.get(`/chatroom-users/get/${accountId}`)
 				.then((res: any) => {
-					/* console.log(res.data); */
-					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
-					socket.emit('event', {
-						key: 'avatar',
-						value: res.data.avatar
-					});
-					socket.emit('event', {
-						key: 'username',
-						value: res.data.screenName
-					});
+					if(!res){
+						axios.post(`/chatroom-users/user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
+							.then(res => console.log("new user: ", res.data))
+							.catch(err => console.log(err));
+					} else {
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+						socket.emit('event', {
+							key: 'avatar',
+							value: res.data.avatar
+						});
+						socket.emit('event', {
+							key: 'username',
+							value: res.data.screenName
+						});
+					}
 				})
-				.catch((err: any) => {
-					axios.post(`/chatroom-users/add-user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
-						.then(res => console.log("new user: ", res.data))
-						.catch(err => console.log(err));
-					console.log(err);
-				});
+				.catch((err: any) => console.log(err));
 		}
 	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket])
 
@@ -1414,7 +1421,7 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					axios.patch(`/chatroom-users/update-screen-name/${accountId}`, {screenName: settingsValue})
+					axios.patch(`/chatroom-users/screen-name/${accountId}`, {screenName: settingsValue})
 						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
 						.catch(err => console.log(err));
 				} else if (type === 'avatar') {
@@ -1422,7 +1429,7 @@ function App() {
 						key: 'avatar',
 						value: settingsValue
 					});
-					axios.patch(`/chatroom-users/update-avatar/${accountId}`, {avatar: settingsValue})
+					axios.patch(`/chatroom-users/avatar/${accountId}`, {avatar: settingsValue})
 						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
 						.catch(err => console.log(err));
 				}
@@ -2120,6 +2127,31 @@ function App() {
 		return <div>Invalid room {roomId}</div>;
 	}
 
+	/* const steps = [
+		{
+			selector: ".first-step",
+			content: "Customize your avatar and name in profile settings"
+		},{
+			selector: ".second-step",
+			content: "Enter a screen name and press update",
+			action: (node:any) => {
+				node.focus();
+			}
+		},{
+			selector: ".third-step",
+			content: "Select an avatar and click go"
+		},{
+			selector: ".fourth-step",
+			content: "Let's try entering a room (only room creators can lock editing functions)"
+		},{
+			selector: ".fifth-step",
+			content: "Tap here to chat"
+		}, {
+			selector: ".sixth-step",
+			content: "Invite the homies and earn tokens"
+		}] */
+
+
 	return (
 		<div
 			className="app"
@@ -2136,6 +2168,7 @@ function App() {
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
+					currentAvatar={userProfile.avatar}
 				/>
 			</Route>
 
@@ -2184,6 +2217,14 @@ function App() {
 				waterfallChat={waterfallChat}
 			/>
 			</Route>
+
+			{/* <Tour 
+				steps={steps}
+				isOpen={showTour}
+				onRequestClose={() => setShowTour(false)}
+				disableDotsNavigation={true}
+				disableFocusLock={true}
+			/> */}
 			
 
 			<TowerDefense
@@ -2263,6 +2304,8 @@ function App() {
 				roomData={roomData}
 				updateShowChat = {onShowChat}
 			/>
+
+			{/* {showLoginModal ? <Login beginTour={setShowTour} hideModal={setShowLoginModal}/> : null } */}
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor

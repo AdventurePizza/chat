@@ -31,6 +31,7 @@ interface ISettingsPanelProps {
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void; 
+	currentAvatar: string
 }
 
 interface IWalletItem {
@@ -39,7 +40,6 @@ interface IWalletItem {
 	contract_decimals? : number,
 	type?: string,
 	logo_url?: string,
-	nft_data: [{external_data: { image: string}}]
 }
 
 interface IRoomData {
@@ -69,7 +69,8 @@ export const SettingsPanel = ({
 	onChangeName,
 	onSubmitUrl,
 	onChangeAvatar,
-	onSendLocation
+	onSendLocation,
+	currentAvatar
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -77,7 +78,7 @@ export const SettingsPanel = ({
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 	const [rooms, setRooms] = useState<IRoomData[]>([]);
 
-	const [activeAvatar, setActiveAvatar] = useState("");
+	const [activeAvatar, setActiveAvatar] = useState(currentAvatar);
 	const avatars = [{
 		data: character1,
 		name: "character1"
@@ -124,14 +125,14 @@ export const SettingsPanel = ({
 
 	useEffect(() => {
 		const fetchData = () => {
-			axios.get(`https://api.covalenthq.com/v1/137/address/${accountId}/balances_v2/?nft=true&key=ckey_33c257415ca047ff9c04fdc29c3`)
+			axios.get(`https://api.covalenthq.com/v1/137/address/${accountId}/balances_v2/?key=ckey_33c257415ca047ff9c04fdc29c3`)
 			   .then(res => {
 				   setItems(res.data.data.items);
 				   setIsWalletLoaded(true);
 			   })
 			   .catch(err => console.log(err)); 
 
-			 axios.get(`/chatroom-users/get-rooms/${accountId}`)
+			 axios.get(`/chatroom-users/user-rooms/${accountId}`)
 				.then(res => {
 					setRooms(res.data);
 				})
@@ -154,27 +155,30 @@ export const SettingsPanel = ({
 	return (
 		<div className="settings-panel-container">
 			<div className="settings-input-container">
+				<div className="second-step" >
+					<InputButton
+						buttonText="update"
+						placeholder="enter name"
+						onClick={onChangeName}
+						inputWidth={300}
+					/>
+					{/* <input type="text" placeholder="add text"/> */}
+				</div>
 				<InputButton
-					buttonText="go!"
-					placeholder="enter name"
-					onClick={onChangeName}
-					inputWidth={300}
-				/>
-				<InputButton
-					buttonText="go!"
+					buttonText="add"
 					placeholder="enter location"
 					onClick={onSendLocation}
 					inputWidth={300}
-				/>
+					/>
 				<InputButton
-					buttonText="go!"
+					buttonText="add"
 					placeholder="enter music url"
 					onClick={onSubmitUrl}
 					inputWidth={300}
 				/>
 			</div>
 			<h2>AVATAR</h2>
-			<div className="settings-avatar">
+			<div className="settings-avatar third-step">
 				{avatars.map((avatar, index) => {
 					let classes = "settings-avatar-container";
 					if(activeAvatar === avatar.name) {
@@ -222,8 +226,6 @@ export const SettingsPanel = ({
 						let image = <img src={dollar} height={50} width={50} alt="token icon" />;
 						if (item.type === "cryptocurrency" && item.logo_url){
 							image = <img src={item.logo_url} height={50} width={50} alt="token icon" />;
-						} else if (item.type === "nft" && item.nft_data[0].external_data.image){
-							image = <img src={item.nft_data[0].external_data.image} height={50} width={50} alt="token icon" />
 						}
 
 						return (

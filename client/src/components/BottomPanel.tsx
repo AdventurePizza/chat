@@ -218,9 +218,7 @@ const PanelContent = ({
 		case 'whiteboard':
 			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':
-			return (
-				<div></div>
-			);
+			return null;
 		case 'weather':
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
