@@ -3,7 +3,8 @@ import { IChatRoom, IPinnedItem, error } from "./types";
 import db from "./firebase";
 import { twitterClient } from "./twitter";
 import axios from "axios";
-
+import * as ethers from "ethers";
+import erc20abi from "./erc20abi.json";
 const collection = db.collection("chatrooms");
 
 const roomRouter = express.Router();
@@ -11,11 +12,16 @@ const roomRouter = express.Router();
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
-  const address = req.user ? req.user.payload.id : "";
+  const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
+
   if (process.env.NODE_ENV !== "production") {
     return res.status(200).send({
       name: "default",
     });
+  }
+
+  if (!ethers.utils.isAddress(address)) {
+    return error(res, "Invalid user wallet address: " + address);
   }
 
   const doc = await collection.doc(roomId).get();
@@ -28,17 +34,20 @@ roomRouter.get("/:roomId", async (req, res) => {
   if(contractAddress){
     visible = false;
 
-    if(address){
-      const tokens = await axios.get('https://api.covalenthq.com/v1/137/address/'+ address +'/balances_v2/?nft=true&key=ckey_d79400f2126140158e8c07f7968');
-      let items = tokens.data.data.items;
-      for (let item of items) {
-          if(contractAddress === item.contract_address){
-            const balance = await doc.get("balance");
-            if(balance !== 0){
-              visible = true;
-            }
-          }
-      }
+    let provider: ethers.providers.JsonRpcProvider;
+    let wallet: ethers.Wallet;
+    let contractRequiredToken: ethers.Contract;
+
+
+    // matic mainnet
+    provider = new ethers.providers.JsonRpcProvider(
+      "https://rpc-mainnet.maticvigil.com/v1/3cd8c7560296ba08d4c7a0f0039927e09b385123"
+    );
+    contractRequiredToken = new ethers.Contract(contractAddress, erc20abi, provider);
+
+    const balance = await contractRequiredToken.balanceOf(address);
+    if(balance !== 0){
+      visible = true;
     }
   }
   if(visible){
