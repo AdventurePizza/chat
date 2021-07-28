@@ -159,6 +159,7 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 		if (message === 'success') {
 			setErrorMsg('');
 			setSuccessMsg({ name: inputValue, message });
+
 		} else {
 			setSuccessMsg(undefined);
 			if (message) {

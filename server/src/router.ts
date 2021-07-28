@@ -12,6 +12,7 @@ import cors from "cors";
 import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
 import tokenRouter from "./token";
+import chatroomUserRouter from "./chatroomUsers";
 import { emit } from "process";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
@@ -95,6 +96,8 @@ interface IMessageEvent {
     | "animation"
     | "isTyping"
     | "username"
+    | "avatar"
+    | "currentRoom"
     | "settings-url"
     | "weather"
     | "pin-item"
@@ -142,6 +145,7 @@ export class Router {
       }),
       tokenRouter
     );
+    app.use("/chatroom-users", chatroomUserRouter);
 
     io.on("connect", (socket: Socket) => {
       socket.on("authenticate", ({ token }: { token?: string }) => {
@@ -362,7 +366,14 @@ export class Router {
         socket.to(room).emit("event", { ...message, id: socket.id });
         clientProfiles[socket.id].name = message.value as string;
         break;
-
+      case "avatar":
+        socket.to(room).emit("event", { ...message, id: socket.id });
+        clientProfiles[socket.id].avatar = message.value as string;
+        break;
+      case "currentRoom":
+        socket.to(room).emit("event", { ...message, id: socket.id });
+        clientProfiles[socket.id].currentRoom = message.value as string;
+        break;
       case "settings-url":
         const metadata = await resolveUrl(message.value as string);
         clientProfiles[socket.id].musicMetadata = metadata;
@@ -523,6 +534,7 @@ const clientProfiles: {
     avatar: string;
     musicMetadata?: IMetadata;
     weather?: IWeather;
+    currentRoom: string
   };
 } = {};
 
@@ -560,8 +572,9 @@ const createProfile = (client: Socket) => {
     name: username,
     avatar: newAvatar,
     weather: { temp: "", condition: "" },
+    currentRoom: "default"
   };
-};
+}; 
 
 const spawnEnemy = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
