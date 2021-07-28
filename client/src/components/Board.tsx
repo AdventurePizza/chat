@@ -221,6 +221,7 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
+			{background.type === 'map' && <Map mapData={background.mapData} />}
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton
