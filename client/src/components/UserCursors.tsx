@@ -7,6 +7,7 @@ import {
 	IWeather
 } from '../types';
 import React, { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { CSSTransition } from 'react-transition-group';
 import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
@@ -95,12 +96,18 @@ interface IUserCursorsProps {
 }
 
 export const UserCursors = (props: IUserCursorsProps) => {
+	let { roomId } = useParams<{ roomId?: string }>();
+
 	return (
 		<>
 			{Object.entries(props.userLocations).map(([key, value]) => {
 				const { x, y } = value;
 
 				if (!props.userProfiles[key]) {
+					return null;
+				}
+
+				if (props.userProfiles[key].currentRoom !== roomId) {
 					return null;
 				}
 				const userProfile = props.userProfiles[key];
