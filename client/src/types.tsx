@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -148,6 +148,14 @@ export interface IBoardImage {
 	isPinned?: boolean;
 }
 
+export interface IBoardVideo {
+	top: number;
+	left: number;
+	key: string;
+	url: string;
+	isPinned?: boolean;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -157,25 +165,24 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
-	'browseNFT' = 'browseNFT',
-	'NFT' = 'NFT',
-	'email' = 'email',
-	'new-room' = 'new-room',
 	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	// 'color' = 'color',
 	'gifs' = 'gifs',
 	'chat' = 'chat',
-	'tower' = 'tower',
 	'background' = 'background',
+	'youtube' = 'youtube',
+	'maps' = 'maps',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'sound' = 'sound',
-	'emoji' = 'emoji',
-	'youtube' = 'youtube',
-	"maps" = "maps"
+	'email' = 'email',
+	'new-room' = 'new-room',
+	'browseNFT' = 'browseNFT',
+	'NFT' = 'NFT',
+	'tower' = 'tower',
+	'emoji' = 'emoji'
 }
 
 export interface IUserLocations {
@@ -264,10 +271,9 @@ export interface IOrder {
 }
 
 export interface IMap {
-	coordinates: { lat: number, lng: number }
-    markerCoordinates: { lat: number, lng: number }
-    markers: Array<{ lat: number, lng: number }>,
-    zoom: number
+	coordinates: { lat: number; lng: number };
+	markers: Array<{ lat: number; lng: number; text?: string }>;
+	zoom: number;
 }
 
 export interface INFTMetadata {
@@ -275,6 +281,18 @@ export interface INFTMetadata {
 	name: string;
 	contractName: string;
 	lockedId?: string;
+}
+
+export interface IWaterfallMessage{
+	avatar: string;
+	message: string;
+}
+
+export interface IWaterfallChat{
+	top: number;
+	left: number;
+	messages: IWaterfallMessage[];
+	show?: boolean;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

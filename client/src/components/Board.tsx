@@ -6,6 +6,7 @@ import {
 	IAvatarChatMessages,
 	IBackgroundState,
 	IBoardImage,
+	IBoardVideo,
 	IChatMessage,
 	IEmoji,
 	IGifs,
@@ -14,7 +15,8 @@ import {
 	IUserLocations,
 	IUserProfiles,
 	IWeather,
-	PinTypes
+	PinTypes,
+	IWaterfallChat
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -29,16 +31,20 @@ import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
 import { LoadingNFT } from './NFT/NFTPanel';
 import { CustomToken as NFT } from '../typechain/CustomToken';
-import introShark from '../assets/intro/leftshark.gif';
+// import introShark from '../assets/intro/leftshark.gif';
+// import present from '../assets/intro/present.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
 import { Map } from "./Maps";
 import YouTubeBackground from "./YouTubeBackground";
 import present from '../assets/intro/present.gif';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface IBoardProps {
 	videoId: string;
+	hideAllPins: boolean;
+	lastTime: number;
+	videoRef: React.Ref<any>;
 	volume: number;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
@@ -48,6 +54,8 @@ interface IBoardProps {
 	updateGifs: (gifs: IGifs[]) => void;
 	images: IBoardImage[];
 	updateImages: (images: IBoardImage[]) => void;
+	videos: IBoardVideo[];
+	updateVideos: (videos: IBoardVideo[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
 	userLocations: IUserLocations;
@@ -62,6 +70,10 @@ interface IBoardProps {
 	unpinGif: (gifKey: string) => void;
 	pinImage: (imageKey: string) => void;
 	unpinImage: (gifKey: string) => void;
+	addVideo: (videoId: string | undefined) => void;
+	pinVideo: (videoId: string | undefined) => void;
+	unpinVideo: (videoId: string | undefined) => void;
+	isVideoPinned: boolean;
 	pinBackground: () => void;
 	unpinBackground: () => void;
 	background: IBackgroundState;
@@ -85,10 +97,14 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	waterfallChat: IWaterfallChat;
 }
 
 export const Board = ({
 	videoId,
+	hideAllPins,
+	videoRef,
+	lastTime,
 	volume,
 	musicNotes,
 	updateNotes,
@@ -98,6 +114,8 @@ export const Board = ({
 	updateGifs,
 	images,
 	updateImages,
+	videos,
+	updateVideos,
 	chatMessages,
 	updateChatMessages,
 	userLocations,
@@ -111,6 +129,10 @@ export const Board = ({
 	unpinGif,
 	pinImage,
 	unpinImage,
+	addVideo,
+	pinVideo,
+	unpinVideo,
+	isVideoPinned,
 	background,
 	pinBackground,
 	unpinBackground,
@@ -126,46 +148,47 @@ export const Board = ({
 	onBuy,
 	onCancel,
 	onClickNewRoom,
-	onClickPresent
+	onClickPresent,
+	waterfallChat
 }: IBoardProps) => {
-	const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
-		'begin'
-	);
-	const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
-		'begin'
-	);
+	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
+	// 	'begin'
+	// );
+	// const [presentState, setPresentState] = useState<'begin' | 'appear' | 'end'>(
+	// 	'begin'
+	// );
 
-	const renderPresent = () => {
-		if (presentState === 'appear' || presentState === 'begin') {
-			return (
-				<button onClick={onClickPresent} className="board-present">
-					<span>trychats tokens for you</span>
-					<img alt="present" src={present} style={{ width: 100 }} />
-				</button>
-			);
-		}
-		// else if (introState === 'begin') {
-		// 	return <button>hello</button>;
-		// }
-		else {
-			return null;
-		}
-	};
+	// const renderPresent = () => {
+	// 	if (presentState === 'appear' || presentState === 'begin') {
+	// 		return (
+	// 			<button onClick={onClickPresent} className="board-present">
+	// 				<span>trychats tokens for you</span>
+	// 				<img alt="present" src={present} style={{ width: 100 }} />
+	// 			</button>
+	// 		);
+	// 	}
+	// 	// else if (introState === 'begin') {
+	// 	// 	return <button>hello</button>;
+	// 	// }
+	// 	else {
+	// 		return null;
+	// 	}
+	// };
 
-	const renderIntro = () => {
-		if (introState === 'appear') {
-			return (
-				<button onClick={onClickNewRoom} className="board-intro">
-					<span>create new room</span>
-					<img alt="shark" src={introShark} style={{ width: 100 }} />
-				</button>
-			);
-		} else if (introState === 'begin') {
-			return <button>hello</button>;
-		} else {
-			return null;
-		}
-	};
+	// const renderIntro = () => {
+	// 	if (introState === 'appear') {
+	// 		return (
+	// 			<button onClick={onClickNewRoom} className="board-intro">
+	// 				<span>create new room</span>
+	// 				<img alt="shark" src={introShark} style={{ width: 100 }} />
+	// 			</button>
+	// 		);
+	// 	} else if (introState === 'begin') {
+	// 		return <button>hello</button>;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// };
 
 	const pausePlayVideo = () => {
 		if (isYouTubeShowing) {
@@ -190,9 +213,10 @@ export const Board = ({
 	});
 
 	const { isMapShowing } = useContext(MapsContext);
-	const [ isYouTubeShowing, setIsYouTubeShowing ] = useState<boolean>(videoId !== "");
-	const [ isPaused, setIsPaused ] = useState<boolean>(true);
-	// const [ volume, setVolume ] = useState<number>(0.4);
+	const [isYouTubeShowing, setIsYouTubeShowing] = useState<boolean>(
+		videoId !== ''
+	);
+	const [isPaused, setIsPaused] = useState<boolean>(true);
 
 	useEffect(() => {
 		if (isMapShowing) {
@@ -200,11 +224,11 @@ export const Board = ({
 		} else {
 			setIsYouTubeShowing(true);
 		}
-	}, [isMapShowing])
+	}, [isMapShowing]);
 
 	useEffect(() => {
 		setIsPaused(false);
-	}, [videoId])
+	}, [videoId]);
 
 	return (
 		<div
@@ -227,17 +251,29 @@ export const Board = ({
 					/>
 				)}
 			</div>
-			<YouTubeBackground 
+			<YouTubeBackground
+				isVideoPinned={isVideoPinned}
+				lastTime={lastTime}
 				videoId={videoId}
 				isPaused={isPaused}
 				volume={volume}
 				isYouTubeShowing={isYouTubeShowing}
 				pausePlayVideo={pausePlayVideo}
+				onPinVideo={addVideo}
+				unpinVideo={unpinVideo}
+				videoRef={videoRef}
 			/>
 
-			{background.type === "map" && (
-				<Map mapData={background.mapData}/>
-			)}
+			{background.type === 'map' && <Map mapData={background.mapData} />}
+			{waterfallChat.show && <BoardObject
+				id={'texteyId'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -337,7 +373,7 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
-			<TransitionGroup>
+			{/* <TransitionGroup>
 				<CSSTransition
 					appear
 					timeout={5000}
@@ -371,8 +407,9 @@ export const Board = ({
 				>
 					<div className="room-present">{renderPresent()}</div>
 				</CSSTransition>
-			</TransitionGroup>
+			</TransitionGroup> */}
 
+			{!hideAllPins ? 
 			<TransitionGroup>
 				{Object.values(pinnedText).map((text) => (
 					<CSSTransition
@@ -380,6 +417,7 @@ export const Board = ({
 						timeout={5000}
 						classNames="gif-transition"
 					>
+						{!hideAllPins ? 
 						<BoardObject
 							{...text}
 							id={text.key!}
@@ -388,11 +426,12 @@ export const Board = ({
 							onUnpin={() => {
 								unpinText(text.key || '');
 							}}
-						/>
+						/> : null}
 					</CSSTransition>
 				))}
-			</TransitionGroup>
+			</TransitionGroup> : null}
 
+			{!hideAllPins ? 
 			<TransitionGroup>
 				{gifs.map((gif) => (
 					<CSSTransition
@@ -406,6 +445,7 @@ export const Board = ({
 							}
 						}}
 					>
+						
 						<BoardObject
 							type="gif"
 							id={gif.key}
@@ -419,8 +459,9 @@ export const Board = ({
 						/>
 					</CSSTransition>
 				))}
-			</TransitionGroup>
+			</TransitionGroup> : null}
 
+			{!hideAllPins ? 
 			<TransitionGroup>
 				{images.map((image) => (
 					<CSSTransition
@@ -453,7 +494,36 @@ export const Board = ({
 						/>
 					</CSSTransition>
 				))}
-			</TransitionGroup>
+			</TransitionGroup> : null}
+
+			{!hideAllPins ? 
+			<TransitionGroup>
+				{videos.map((video) => (
+					<CSSTransition
+						key={video.key}
+						timeout={5000}
+						classNames="gif-transition"
+						onEntered={() => {
+							if (!video.isPinned) {
+								const index = videos.findIndex((_video) => _video.key === video.key);
+								updateVideos([...videos.slice(0, index), ...videos.slice(index + 1)]);
+							}
+						}}
+					>
+						<BoardObject
+							type="video"
+							id={video.key}
+							{...video}
+							onPin={() => {
+								pinVideo(video.key);
+							}}
+							onUnpin={() => {
+								unpinVideo(video.key);
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup> : null}
 
 			<TransitionGroup>
 				{animations.map((animation) => (
@@ -476,6 +546,7 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
+			{!hideAllPins ? 
 			<TransitionGroup>
 				{NFTs.map((nft) => (
 					<CSSTransition
@@ -505,7 +576,7 @@ export const Board = ({
 						/>
 					</CSSTransition>
 				))}
-			</TransitionGroup>
+			</TransitionGroup> : null}
 
 			{/* <TransitionGroup> */}
 			{loadingNFT && (
@@ -522,21 +593,21 @@ export const Board = ({
 						onPin={pinBackground}
 						onUnpin={unpinBackground}
 						placeholder="background"
-					/>	
+					/>
 				)}
 			</div>
 			<div className="board-container-pin">
-				{(isMapShowing && background.type !== "map") && (
+				{isMapShowing && background.type !== 'map' && (
 					<PinButton
 						isPinned={false}
 						onPin={pinBackground}
 						onUnpin={unpinBackground}
 						placeholder="background"
-					/>	
+					/>
 				)}
 			</div>
 
-			{ isMapShowing ? <Map /> : null }
+			{isMapShowing ? <Map /> : null}
 
 			<UserCursors
 				userLocations={userLocations}

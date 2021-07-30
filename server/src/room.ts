@@ -10,6 +10,11 @@ const roomRouter = express.Router();
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
+  if (process.env.NODE_ENV !== "production") {
+    return res.status(200).send({
+      name: "default",
+    });
+  }
 
   const doc = await collection.doc(roomId).get();
 
@@ -109,6 +114,14 @@ roomRouter.get("/:roomId/pin", async (req, res) => {
 
 // get all rooms
 roomRouter.get("/", async (req, res) => {
+  if (process.env.NODE_ENV !== "production") {
+    return res.status(200).send([
+      {
+        name: "test",
+      },
+    ]);
+  }
+
   const snapshot = await collection.get();
   const docs = snapshot.docs.map((doc) => doc.data() as IChatRoom);
 

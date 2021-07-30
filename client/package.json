@@ -1,6 +1,6 @@
 {
 	"name": "chat-client",
-	"version": "1.28.0",
+	"version": "1.30.0",
 	"private": true,
 	"dependencies": {
 		"@dhaiwat10/react-link-preview": "^1.7.2",
@@ -61,14 +61,16 @@
 	},
 	"browserslist": {
 		"production": [
-			">0.2%",
+			">0.3%",
+			"not ie 11",
 			"not dead",
 			"not op_mini all"
 		],
 		"development": [
-			"last 1 chrome version",
-			"last 1 firefox version",
-			"last 1 safari version"
+			">0.3%",
+			"not ie 11",
+			"not dead",
+			"not op_mini all"
 		]
 	},
 	"devDependencies": {

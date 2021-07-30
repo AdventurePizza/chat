@@ -61,6 +61,7 @@ interface IRoomDirectoryProps {
 interface IEnterRoomProps {
 	roomName: string;
 	onClickCancel: () => void;
+	clearVideo: () => void; // for stopping video when switching rooms
 }
 
 export const RoomDirectoryPanel = ({
@@ -153,7 +154,8 @@ export const RoomDirectoryPanel = ({
 
 export const EnterRoomModal = ({
 	roomName,
-	onClickCancel
+	onClickCancel,
+	clearVideo // for stopping video when switching rooms
 }: IEnterRoomProps) => {
 	const classes = useStyles();
 	const buttonClasses = buttonStyles();
@@ -171,6 +173,7 @@ export const EnterRoomModal = ({
 				onClick={() => {
 					history.push(`/room/${roomName}`);
 					onClickCancel();
+					clearVideo();
 				}}
 			>
 				Enter

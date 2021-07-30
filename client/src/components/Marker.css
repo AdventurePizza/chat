@@ -28,6 +28,74 @@
     -ms-animation-duration: 1s;
     animation-duration: 1s;
   }
+  .text {
+    opacity: 0;
+    transition: 0s opacity;
+    padding: 5px;
+    background-color: white;
+    width: 150px;
+    height: 80px;
+    border-radius: 5px;
+    transform: translate(-55%, -140%);
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+  }
+
+  .text-important {
+    opacity: 1 !important;
+  }
+
+  .text:hover {
+    opacity: 1;
+  }
+  
+  .pin:hover + .text {
+    opacity: 1;
+  }
+
+  .pin:hover {
+    cursor: pointer;
+  }
+
+  .location_delete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(100%, -100%);
+    border: none;
+    background-color: black;
+    color: white;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+
+  .location_input_container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .location_input {
+    width: 80%;
+    font-size: 10px;
+    box-sizing: border-box;
+  }
+
+  .location_submit {
+    font-size: 10px;
+    cursor: pointer;
+    color: white;
+    background-color: black;
+    border-radius: 50%;
+    font-weight: 700;
+    transform: rotate(-90deg);
+    padding: 3px 4px 2px 4px;
+  }
+
+
   .pin:after {
     content: '';
     width: 14px;

@@ -345,6 +345,7 @@
 
 .youtube-container .youtube-list {
 	list-style-type: none;
+	padding: 0;
 	margin-top: 0;
 	margin-bottom: 0;
 }
@@ -354,4 +355,10 @@
 	margin: 20px;
 	padding: 0;
 	cursor: pointer;
+}
+
+.youtube-container .button-wrapper {
+	display: inline-block;
+	min-height: 100%;
+	vertical-align: middle;
 }

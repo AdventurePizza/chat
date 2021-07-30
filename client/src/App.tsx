@@ -14,6 +14,7 @@ import {
 	IAvatarChatMessages,
 	IBackgroundState,
 	IBoardImage,
+	IBoardVideo,
 	IChatMessage,
 	IChatRoom,
 	IEmoji,
@@ -32,6 +33,7 @@ import {
 	PinTypes,
 	IOrder,
 	IMap,
+	IWaterfallChat
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -85,11 +87,10 @@ import { AuthContext } from './contexts/AuthProvider';
 import { config, network as configNetwork } from './config';
 import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
-import { MapsContext  } from './contexts/MapsContext';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { MapsContext } from './contexts/MapsContext';
+import ReactPlayer from 'react-player';
 const clipboardy = require('clipboardy');
-
-
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
 const GIF_FETCH = new GiphyFetch(API_KEY);
@@ -102,6 +103,19 @@ const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
 
 function App() {
 	const { socket } = useContext(AppStateContext);
+	const {
+		updateCoordinates,
+		coordinates,
+		markers,
+		isMapShowing,
+		zoom,
+		updateZoom,
+		updateIsMapShowing,
+		updateMarkerText,
+		addMarker,
+		deleteMarker,
+		resetMap
+	} = useContext(MapsContext);
 	const {
 		network,
 		isLoggedIn,
@@ -149,6 +163,11 @@ function App() {
 
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
+	useEffect(() => {
+		return history.listen(() => {
+			resetMap();
+		});
+	}, [history, resetMap]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
@@ -180,8 +199,21 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
-	const [videoId, setVideoId] = useState<string>("");
+
+	const [videos, setVideos] = useState<IBoardVideo[]>([]);
+	const [videoId, setVideoId] = useState<string>('');
+	const [isVidPinned, setIsVidPinned] = useState<boolean>(false);
+	const [lastVideoId, setLastVideoId] = useState<string>('');
+	const [lastTime, setLastTime] = useState<number>(0);
+	const [isVideoShowing, setIsVideoShowing] = useState<boolean>(false);
+	const [hideAllPins, setHideAllPins] = useState<boolean>(false);
 	const [volume, setVolume] = useState<number>(0.4);
+	const videoRef = useRef<ReactPlayer>(null);
+
+	const clearVideo = () => {
+		setVideoId('');
+		setLastVideoId('');
+	}
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -223,22 +255,34 @@ function App() {
 		condition: ''
 	});
 
-	const [coordinates, setCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	});
-	const [markerCoordinates, setMarkerCoordinates] = useState({
-		lat: 33.91925555555555,
-		lng: -118.41655555555555
-	});
+	// YouTube function to keep track of timestamps
+	const updateLastTime = () => {
+		if (videoRef.current !== null) {
+			// console.log(videoRef.current.getCurrentTime());
+			// console.log('updating timestamp');
+			setLastTime(videoRef.current.getCurrentTime());
+		}
+	}
 
-	interface ICoordinates {
-		lat: number, 
-		lng: number
-	};
-	const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	const [zoom, setZoom] = useState(12);
-	const [isMapShowing, setIsMapShowing] = useState(false);
+	// const [coordinates, setCoordinates] = useState({
+	// 	lat: 33.91925555555555,
+	// 	lng: -118.41655555555555
+	// });
+
+	// interface ICoordinates {
+	// 	lat: number;
+	// 	lng: number;
+	// }
+	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
+	// const [zoom, setZoom] = useState(12);
+	// const [isMapShowing, setIsMapShowing] = useState(false);
+
+	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
+		top: 400,
+		left: 800,
+		messages: [],
+		show: true
+	});
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -404,6 +448,14 @@ function App() {
 		}));
 	}, []);
 
+	const onShowChat = () => {
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
+	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
+		const { avatar, value } = message;
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
+	}, []);
+
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
 		const { prevX, prevY, currentX, currentY, color } = lineData;
@@ -433,6 +485,18 @@ function App() {
 		};
 		setImages((images) => images.concat(newImage));
 	}, []);
+
+	// List of videos
+	const addVideo = useCallback((videoId: string | undefined) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newVideo: IBoardVideo = {
+			top: y,
+			left: x,
+			key: videoId || uuidv4(),
+			url: `https://img.youtube.com/vi/${videoId}/default.jpg`
+		};
+		setVideos((videos) => videos.concat(newVideo));
+	}, [])
 
 	const updateCursorPosition = useMemo(
 		() =>
@@ -728,12 +792,42 @@ function App() {
 						}
 					}
 					break;
+
+				case 'video':
+					const videoIndex = videos.findIndex((video) => video.key === itemKey);
+					const video = videos[videoIndex];
+					if (video) {
+						if (isUnpin) {
+							setVideos([
+								...videos.slice(0, videoIndex),
+								...videos.slice(videoIndex + 1)
+							]);
+						} else {
+							setVideos([
+								...videos.slice(0, videoIndex),
+								{ ...video, isPinned: true },
+								...videos.slice(videoIndex + 1)
+							]);
+						}
+					}
+					break;
+
 				case 'background':
 					if (isUnpin) {
-						setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
+						setBackground({
+							name: '',
+							isPinned: false,
+							type: undefined,
+							mapData: undefined
+						});
 					} else {
 						console.log(message);
-						setBackground({ name: message.name, isPinned: true, type: message.subType, mapData: message.mapData });
+						setBackground({
+							name: message.name,
+							isPinned: true,
+							type: message.subType,
+							mapData: message.mapData
+						});
 					}
 					break;
 				case 'text':
@@ -775,7 +869,7 @@ function App() {
 					break;
 			}
 		},
-		[gifs, images, pinnedText, NFTs]
+		[gifs, images, videos, pinnedText, NFTs]
 	);
 
 	const handleMoveItemMessage = useCallback(
@@ -797,6 +891,22 @@ function App() {
 								left: relativeLeft
 							},
 							...images.slice(imageIndex + 1)
+						]);
+					}
+					break;
+
+				case 'video':
+					const videoIndex = videos.findIndex((video) => video.key === itemKey);
+					const video = videos[videoIndex];
+					if (video) {
+						setImages([
+							...videos.slice(0, videoIndex),
+							{
+								...video,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...videos.slice(videoIndex + 1)
 						]);
 					}
 					break;
@@ -845,9 +955,12 @@ function App() {
 						]);
 					}
 					break;
+				case 'chat':
+					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
+					break;
 			}
 		},
-		[images, NFTs, gifs, pinnedText]
+		[images, videos, NFTs, gifs, pinnedText]
 	);
 
 	// const onBuy = async (orderId: string) => {
@@ -987,25 +1100,28 @@ function App() {
 	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
-				case 'map' :
-					if(typeof message.isMapShowing === "boolean"){
-						setIsMapShowing(message.isMapShowing);
+				case 'map':
+					if (message.isMapShowing !== undefined) {
+						updateIsMapShowing(message.isMapShowing);
 					}
-					if(typeof message.zoom === "number"){
-						setZoom(message.zoom);
+					if (message.zoom !== undefined) {
+						updateZoom(message.zoom);
 					}
-					if(message.coordinates){
+					if (message.coordinates) {
 						const newCoordinates = {
 							lat: message.coordinates.lat,
 							lng: message.coordinates.lng
-						}
-						setCoordinates(newCoordinates);
+						};
+						updateCoordinates(newCoordinates);
 					}
-					if(message.markerCoordinates){
-						setMarkerCoordinates(message.markerCoordinates);
+					if (message.func === 'add') {
+						addMarker(message.marker);
 					}
-					if(message.markers){
-						setMarkers(message.markers);
+					if (message.func === 'delete') {
+						deleteMarker(message.index);
+					}
+					if (message.func === 'update') {
+						updateMarkerText(message.index, message.text);
 					}
 					break;
 				case 'sound':
@@ -1021,10 +1137,8 @@ function App() {
 					}
 					break;
 				case 'youtube':
-					// console.log('youtube socket');
-					// console.log(message.value);
-					setBackground({name: '', isPinned: false});
 					setVideoId(message.value);
+					setLastVideoId(message.value);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -1034,6 +1148,7 @@ function App() {
 				case 'chat':
 					if (message.value) {
 						handleChatMessage(message);
+						updateWaterfallChat(message);
 					}
 					break;
 				case 'gif':
@@ -1050,7 +1165,7 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					setVideoId("");
+					setVideoId('');
 					setBackground((background) => ({
 						...background,
 						name: message.value,
@@ -1178,18 +1293,30 @@ function App() {
 		handlePinItemMessage,
 		handleMoveItemMessage,
 		addImage,
-		socket
+		socket,
+		updateIsMapShowing,
+		updateZoom,
+		updateCoordinates,
+		addMarker,
+		deleteMarker,
+		updateMarkerText,
+		updateWaterfallChat
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
+				if(chatValue === ''){
+					return;
+				}
 				socket.emit('event', {
 					key: 'chat',
-					value: chatValue
+					value: chatValue,
+					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
+				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1353,13 +1480,14 @@ function App() {
 
 	useHotkeys('ctrl+v', () => {
 		if (clipboardy.read()) {
-				clipboardy.read().then((value:string) => 			setMovingBoardItem({
-								type: 'text',
-								itemKey: uuidv4(),
-								value: value,
-								isNew: true
-							}) );
-
+			clipboardy.read().then((value: string) =>
+				setMovingBoardItem({
+					type: 'text',
+					itemKey: uuidv4(),
+					value: value,
+					isNew: true
+				})
+			);
 		}
 	});
 
@@ -1481,6 +1609,7 @@ function App() {
 
 				const pinnedGifs: IGifs[] = [];
 				const pinnedImages: IBoardImage[] = [];
+				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 
@@ -1507,10 +1636,19 @@ function App() {
 							key: item.key!,
 							url: item.url
 						});
+					} else if (item.type === 'video') {
+						pinnedVideos.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							url: item.url
+						});
 					} else if (item.type === 'background') {
-							backgroundType = item.subType;
-							backgroundImg = item.name;
-							backgroundMap = item.mapData;
+						backgroundType = item.subType;
+						backgroundImg = item.name;
+						backgroundMap = item.mapData;
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1537,7 +1675,13 @@ function App() {
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setPinnedText(pinnedText);
-				setBackground({ name: backgroundImg, isPinned: !!backgroundImg || !!backgroundMap, mapData: backgroundMap, type: backgroundType });
+				setVideos(pinnedVideos);
+				setBackground({
+					name: backgroundImg,
+					isPinned: !!backgroundImg || !!backgroundMap,
+					mapData: backgroundMap,
+					type: backgroundType
+				});
 				setNFTs(pinnedNFTs);
 			});
 		}
@@ -1643,6 +1787,79 @@ function App() {
 		}
 	};
 
+	const pinVideo = async (videoId: string | undefined) => {
+		const videoIndex = videos.findIndex((video) => video.key === videoId);
+		const video = videos[videoIndex];
+		const room = roomId || 'default';
+
+		if (video && !video.isPinned) {
+			const result = await firebaseContext.pinRoomItem(room, {
+				...video,
+				type: 'video',
+				left: video.left / window.innerWidth,
+				top: video.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setVideos([
+					...videos.slice(0, videoIndex),
+					{ ...video, isPinned: true },
+					...videos.slice(videoIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'video',
+					itemKey: videoId
+				});
+
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+
+	};
+
+	const unpinVideo = async (videoId: string | undefined) => {
+		const videoIndex = videos.findIndex((video) => video.key === videoId);
+		const video = videos[videoIndex];
+		const room = roomId || 'default';
+
+		if (video && video.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				video.key
+			);
+			if (isSuccessful) {
+				setVideos([...videos.slice(0, videoIndex), ...videos.slice(videoIndex + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'video',
+					itemKey: videoId
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
+	useEffect(() => {
+		const videoIndex = videos.findIndex((video: IBoardVideo) => video.key === videoId);
+		const video = videos[videoIndex];
+
+		if (videoId === "") {
+			setIsVideoShowing(false);
+			setHideAllPins(false);
+
+		} else if (video && videoId !== "" && video.isPinned) {
+			setIsVidPinned(true);
+
+		} else {
+			setIsVidPinned(false);
+		}
+	}, [videoId, videos]);
+
 	const pinBackground = async () => {
 		/* if(background.isPinned===true){
 			unpinBackground();
@@ -1650,23 +1867,22 @@ function App() {
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
-		if(isMapShowing){
+		if (isMapShowing) {
 			backgroundType = 'map';
-		} else if(background.name) {
+		} else if (background.name) {
 			backgroundType = 'image';
 		}
 
 		let backgroundName: string | undefined;
-		if(backgroundType==="image") {
+		if (backgroundType === 'image') {
 			backgroundName = background.name;
 		} else {
-			backgroundName = ''
+			backgroundName = '';
 		}
 
-
-		let mapCoordinates: IMap | undefined = {coordinates, markerCoordinates, markers, zoom };
-		if(backgroundType!=="map"){
-			mapCoordinates = undefined
+		let mapCoordinates: IMap | undefined = { coordinates, markers, zoom };
+		if (backgroundType !== 'map') {
+			mapCoordinates = undefined;
 		}
 
 		const result = await firebaseContext.pinRoomItem(room, {
@@ -1677,10 +1893,15 @@ function App() {
 			subType: backgroundType,
 			mapData: mapCoordinates
 		});
-		
+
 		if (result.isSuccessful) {
-			setBackground((background) => ({ name: backgroundName, isPinned: true, type: backgroundType, mapData:  mapCoordinates}));
-			
+			setBackground((background) => ({
+				name: backgroundName,
+				isPinned: true,
+				type: backgroundType,
+				mapData: mapCoordinates
+			}));
+
 			socket.emit('event', {
 				key: 'pin-item',
 				type: 'background',
@@ -1688,7 +1909,7 @@ function App() {
 				subType: backgroundType,
 				mapData: mapCoordinates
 			});
-			setIsMapShowing(false);
+			updateIsMapShowing(false);
 			socket.emit('event', {
 				key: 'map',
 				isMapShowing: false
@@ -1709,11 +1930,21 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				setBackground({ name: '', isPinned: false, type: undefined, mapData: undefined });
-
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: undefined,
+					mapData: undefined
+				});
 				socket.emit('event', {
 					key: 'unpin-item',
 					type: 'background'
+				});
+
+				updateIsMapShowing(true);
+				socket.emit('event', {
+					key: 'map',
+					isMapShowing: true
 				});
 			} else if (message) {
 				setModalErrorMessage(message);
@@ -1861,6 +2092,17 @@ function App() {
 					...images.slice(imageIndex + 1)
 				]);
 			}
+		} else if (type === 'video') {
+			const videoIndex = videos.findIndex((video) => video.key === id);
+			setVideos([
+				...videos.slice(0, videoIndex),
+				{
+					...videos[videoIndex],
+					top,
+					left
+				},
+				...videos.slice(videoIndex + 1)
+			]);
 		} else if (type === 'NFT') {
 			const nftIndex = NFTs.findIndex((nft) => nft.key === id);
 			if (nftIndex !== -1) {
@@ -1875,73 +2117,80 @@ function App() {
 				]);
 			}
 		}
-		const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-			roomId || 'default',
-			{
-				type,
-				top: y,
-				left: x,
-				key: id
-			}
-		);
 
-		//reverse the changes in client in case has no permission to edit
-		if (!isSuccessful) {
-			if (message) {
-				setModalErrorMessage(message);
-			}
-			left -= deltaX;
-			top -= deltaY;
+		if (type === 'chat') {
+			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
+		}
 
-			if (type === 'text') {
-				setPinnedText(
-					update(pinnedText, {
-						[id]: {
-							$merge: { left, top }
-						}
-					})
-				);
-			} else if (type === 'gif') {
-				const gifIndex = gifs.findIndex((gif) => gif.key === id);
-				if (gifIndex !== -1) {
-					setGifs([
-						...gifs.slice(0, gifIndex),
-						{
-							...gifs[gifIndex],
-							top,
-							left
-						},
-						...gifs.slice(gifIndex + 1)
-					]);
+		else{
+			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+				roomId || 'default',
+				{
+					type,
+					top: y,
+					left: x,
+					key: id
 				}
-			} else if (type === 'image') {
-				const imageIndex = images.findIndex((image) => image.key === id);
-				if (imageIndex !== -1) {
-					setImages([
-						...images.slice(0, imageIndex),
-						{
-							...images[imageIndex],
-							top,
-							left
-						},
-						...images.slice(imageIndex + 1)
-					]);
+			);
+
+			//reverse the changes in client in case has no permission to edit
+			if (!isSuccessful) {
+				if (message) {
+					setModalErrorMessage(message);
 				}
-			} else if (type === 'NFT') {
-				const nftIndex = NFTs.findIndex((nft) => nft.key === id);
-				if (nftIndex !== -1) {
-					setNFTs([
-						...NFTs.slice(0, nftIndex),
-						{
-							...NFTs[nftIndex],
-							top,
-							left
-						},
-						...NFTs.slice(nftIndex + 1)
-					]);
+				left -= deltaX;
+				top -= deltaY;
+
+				if (type === 'text') {
+					setPinnedText(
+						update(pinnedText, {
+							[id]: {
+								$merge: { left, top }
+							}
+						})
+					);
+				} else if (type === 'gif') {
+					const gifIndex = gifs.findIndex((gif) => gif.key === id);
+					if (gifIndex !== -1) {
+						setGifs([
+							...gifs.slice(0, gifIndex),
+							{
+								...gifs[gifIndex],
+								top,
+								left
+							},
+							...gifs.slice(gifIndex + 1)
+						]);
+					}
+				} else if (type === 'image') {
+					const imageIndex = images.findIndex((image) => image.key === id);
+					if (imageIndex !== -1) {
+						setImages([
+							...images.slice(0, imageIndex),
+							{
+								...images[imageIndex],
+								top,
+								left
+							},
+							...images.slice(imageIndex + 1)
+						]);
+					}
+				} else if (type === 'NFT') {
+					const nftIndex = NFTs.findIndex((nft) => nft.key === id);
+					if (nftIndex !== -1) {
+						setNFTs([
+							...NFTs.slice(0, nftIndex),
+							{
+								...NFTs[nftIndex],
+								top,
+								left
+							},
+							...NFTs.slice(nftIndex + 1)
+						]);
+					}
 				}
+				return;
 			}
-			return;
 		}
 		socket.emit('event', {
 			key: 'move-item',
@@ -1975,8 +2224,6 @@ function App() {
 	}
 
 	return (
-		<MapsContext.Provider value={{coordinates, setCoordinates, markerCoordinates, setMarkerCoordinates, markers, setMarkers, zoom, setZoom, isMapShowing, setIsMapShowing}}>
-			
 		<div
 			className="app"
 			style={{
@@ -1987,6 +2234,10 @@ function App() {
 			<MetamaskSection />
 			<Board
 				videoId={videoId}
+				isVideoPinned={isVidPinned}
+				hideAllPins={hideAllPins}
+				videoRef={videoRef}
+				lastTime={lastTime}
 				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
@@ -1997,6 +2248,9 @@ function App() {
 				updateGifs={setGifs}
 				images={images}
 				updateImages={setImages}
+				videos={videos}
+				updateVideos={setVideos}
+				addVideo={addVideo}
 				chatMessages={chatMessages}
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
@@ -2011,6 +2265,8 @@ function App() {
 				unpinGif={unpinGif}
 				pinImage={pinImage}
 				unpinImage={unpinImage}
+				pinVideo={pinVideo}
+				unpinVideo={unpinVideo}
 				pinBackground={pinBackground}
 				unpinBackground={unpinBackground}
 				pinnedText={pinnedText}
@@ -2026,6 +2282,7 @@ function App() {
 				onCancel={() => {}}
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
+				waterfallChat={waterfallChat}
 			/>
 
 			<TowerDefense
@@ -2055,6 +2312,9 @@ function App() {
 							onClick={() => {
 								setIsPanelOpen(true);
 							}}
+							style={{
+								backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none"
+							}}
 						>
 							<ChevronRight />
 						</IconButton>
@@ -2076,7 +2336,7 @@ function App() {
 			/>
 
 			<Tooltip
-				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, and kelly`}
+				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
 				placement="left"
 			>
 				<a
@@ -2084,6 +2344,9 @@ function App() {
 					target="_blank"
 					rel="noreferrer"
 					className="adventure-logo"
+					style={{
+						visibility: isVideoShowing ? "hidden" : "visible"
+					}}
 				>
 					<div>adventure</div>
 					<div>networks</div>
@@ -2101,11 +2364,19 @@ function App() {
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
 				setVideoId={setVideoId}
+				setLastVideoId={setLastVideoId}
+				lastVideoId={lastVideoId}
+				hideAllPins={hideAllPins}
+				setHideAllPins={setHideAllPins}
+				updateLastTime={updateLastTime}
 				setVolume={setVolume}
+				setIsVideoShowing={setIsVideoShowing}
+				isVideoShowing={isVideoShowing}
 				roomData={roomData}
+				updateShowChat = {onShowChat}
 			/>
 
-			{userProfile && !onBrowseNFTPanel &&(
+			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
@@ -2130,6 +2401,7 @@ function App() {
 						<EnterRoomModal
 							roomName={roomToEnter}
 							onClickCancel={() => setModalState(null)}
+							clearVideo={clearVideo}
 						/>
 					)}
 					{modalState === 'error' && modalErrorMessage && (
@@ -2153,8 +2425,6 @@ function App() {
 				</>
 			</Modal>
 		</div>
-		</MapsContext.Provider>
-
 	);
 }
 
