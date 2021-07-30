@@ -32,7 +32,8 @@ interface ISettingsPanelProps {
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void; 
-	currentAvatar: string
+	currentAvatar: string;
+	setStep: (step: number) => void;
 }
 
 interface IWalletItem {
@@ -71,7 +72,8 @@ export const SettingsPanel = ({
 	onSubmitUrl,
 	onChangeAvatar,
 	onSendLocation,
-	currentAvatar
+	currentAvatar,
+	setStep
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -166,6 +168,7 @@ export const SettingsPanel = ({
 						placeholder="enter name"
 						onClick={onChangeName}
 						inputWidth={300}
+						setStep={setStep}
 					/>
 					{/* <input type="text" placeholder="add text"/> */}
 				</div>
@@ -195,7 +198,11 @@ export const SettingsPanel = ({
 						</div>
 					)
 				})}
-				<Button className="settings-avatar-button" onClick={() => onChangeAvatar(activeAvatar)} variant="contained" color="primary">GO!</Button>
+				<Button className="settings-avatar-button" 
+					onClick={() => {
+						onChangeAvatar(activeAvatar);
+						setStep(3);
+					}} variant="contained" color="primary">GO!</Button>
 			</div>
 			<h2>ROOMS</h2>
 			{rooms ? (

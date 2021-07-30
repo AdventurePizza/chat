@@ -202,7 +202,7 @@ export interface IUserProfile {
 	soundType?: string;
 	musicMetadata?: IMetadata;
 	currentRoom?: string;
-	email?: string;
+	email: string;
 }
 
 export interface IUserProfiles {

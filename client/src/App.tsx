@@ -2,7 +2,7 @@ import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
-/* import Tour from 'reactour'; */
+import Tour from 'reactour';
 
 import { CustomToken as NFT } from './typechain/CustomToken';
 
@@ -38,6 +38,7 @@ import {
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
 import React, {
 	useCallback,
 	useContext,
@@ -89,7 +90,7 @@ import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
-/* import { Login } from './components/Login'; */
+import { Login } from './components/Login';
 
 const clipboardy = require('clipboardy');
 
@@ -250,23 +251,11 @@ function App() {
 		condition: ''
 	});
 
-	/* const [showTour, setShowTour] = useState(false);
+	const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true);
-	const [isFirstVisit, setIsFirstVisit] = useState(false); */
+	const [isFirstVisit, setIsFirstVisit] = useState(false);
+	const [step, setStep] = useState(0);
 
-
-	// const [coordinates, setCoordinates] = useState({
-	// 	lat: 33.91925555555555,
-	// 	lng: -118.41655555555555
-	// });
-
-	// interface ICoordinates {
-	// 	lat: number;
-	// 	lng: number;
-	// }
-	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	// const [zoom, setZoom] = useState(12);
-	// const [isMapShowing, setIsMapShowing] = useState(false);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 400,
@@ -331,7 +320,14 @@ function App() {
 		if(accountId && isLoggedIn){
 			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
+					if(res.data.email){
+						setShowLoginModal(false);
+					}
+					if(userProfile.email){
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+					} else {
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
+					}
 					socket.emit('event', {
 						key: 'avatar',
 						value: res.data.avatar
@@ -343,12 +339,12 @@ function App() {
 				})
 				.catch((err: any) => {
 					firebaseContext.createUser(accountId, userProfile.name, userProfile.avatar)
-						.then(() => /* setIsFirstVisit(true) */ console.log("user added"))
+						.then(() => setIsFirstVisit(true))
 						.catch(err => console.log(err));
 					console.log(err)
 				});
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket, firebaseContext])
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, userProfile.email, socket, firebaseContext])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -559,6 +555,13 @@ function App() {
 			setBottomPanelHeight(
 				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
 			);
+		}
+		if(selectedPanelItem === "settings"){
+			setStep(1);
+		} else if (selectedPanelItem === "roomDirectory"){
+			setStep(4);
+		} else if (selectedPanelItem === "youtube"){
+			setStep(5);
 		}
 	}, [selectedPanelItem]);
 
@@ -2132,10 +2135,10 @@ function App() {
 		return <div>Invalid room {roomId}</div>;
 	}
 
-	/* const steps = [
+	const steps = [
 		{
 			selector: ".first-step",
-			content: "Customize your avatar and name in profile settings"
+			content: "Click on the settings tab to customize your avatar and name"
 		},{
 			selector: ".second-step",
 			content: "Enter a screen name and press update"
@@ -2144,14 +2147,14 @@ function App() {
 			content: "Select an avatar and click go"
 		},{
 			selector: ".fourth-step",
-			content: "Let's try entering a room (only room creators can lock editing functions)"
+			content: "Create and enter rooms here"
 		},{
 			selector: ".fifth-step",
-			content: "Tap here to chat"
+			content: "You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner"
 		}, {
 			selector: ".sixth-step",
 			content: "Invite the homies and earn tokens"
-		}] */
+		}]
 
 
 	return (
@@ -2171,6 +2174,7 @@ function App() {
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
 					currentAvatar={userProfile.avatar}
+					setStep={setStep}
 				/>
 			</Route>
 
@@ -2220,13 +2224,16 @@ function App() {
 				/>
 			</Route>
 
-			{/* <Tour 
+			<Tour 
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
 				disableDotsNavigation={true}
 				disableFocusLock={true}
-				/>
+				goToStep={step}
+				lastStepNextButton={<CloseIcon />}
+				showCloseButton={false}
+			/>
 			
 			{showLoginModal ? (
 				<Login 
@@ -2236,7 +2243,7 @@ function App() {
 					userEmail={userProfile.email}
 					setUserEmail={(email) => actionHandler('settings', 'email', email)}
 				/>
-			 ) : null } */}
+			 ) : null }
 
 			<TowerDefense
 				state={towerDefenseState}

@@ -166,7 +166,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 
 		return (
 			<div
-				className={title === "chat" ? "panel-icon-container fifth-step" : "panel-icon-container"}
+				className={title === "maps" || title === "youtube" ? "panel-icon-container fifth-step" : "panel-icon-container"}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
 			>
 				{iconSrc && renderIconImage()}

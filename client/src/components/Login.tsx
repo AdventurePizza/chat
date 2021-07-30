@@ -22,7 +22,7 @@ interface ILoginProps {
     beginTour: (val: boolean) => void;
     showModal: (val: boolean) => void;
     isFirstVisit: boolean;
-    userEmail?: string;
+    userEmail: string;
     setUserEmail: (email: string) => void;
 }
 
