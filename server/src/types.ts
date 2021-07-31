@@ -32,6 +32,7 @@ export interface IChatRoom {
   name: string;
   isLocked?: boolean;
   lockedOwnerAddress?: string;
+  contractAddress?: string;
 }
 
 export const error = (res: Response, message: string) => {

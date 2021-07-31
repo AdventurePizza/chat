@@ -177,6 +177,7 @@ function App() {
 	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -1566,14 +1567,12 @@ function App() {
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = async (roomName: string, isAccessLocked: boolean) => {
-		const result = await firebaseContext.createRoom(roomName, isAccessLocked);
-
+	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
+		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
 		}
-
 		return result;
 	};
 
@@ -1590,7 +1589,8 @@ function App() {
 			} else {
 				setIsInvalidRoom(true);
 				if (result.message) {
-					setModalErrorMessage(result.message);
+					//setModalErrorMessage(result.message);
+					setInvalidRoomMessage(result.message);
 				}
 			}
 			// if (result.data === null) {
@@ -2132,7 +2132,8 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return <div>Invalid room {roomId}</div>;
+		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
+
 	}
 
 	const steps = [
