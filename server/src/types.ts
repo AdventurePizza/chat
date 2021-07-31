@@ -32,9 +32,23 @@ export interface IChatRoom {
   name: string;
   isLocked?: boolean;
   lockedOwnerAddress?: string;
+  contractAddress?: string;
 }
 
 export const error = (res: Response, message: string) => {
   res.statusMessage = message;
   return res.status(400).end();
 };
+
+export interface IMap {
+  coordinates: { lat: number; lng: number };
+  markers: Array<{ lat: number; lng: number; text?: string }>;
+  zoom: number;
+}
+
+export interface IBackgroundState {
+  type?: "image" | "map";
+  name?: string;
+  isPinned?: boolean;
+  mapData?: IMap;
+}

@@ -1,8 +1,11 @@
 import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
+import { SettingsPanel } from './components/SettingsPanel';
+/* import Tour from 'reactour'; */
 
 import { CustomToken as NFT } from './typechain/CustomToken';
+import axios  from 'axios';
 
 import {
 	BUILDING_COSTS,
@@ -43,10 +46,9 @@ import React, {
 	useEffect,
 	useMemo,
 	useRef,
-	useState
+	useState,
 } from 'react';
 import {
-	Redirect,
 	Route,
 	HashRouter as Router,
 	Switch,
@@ -90,6 +92,8 @@ import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
 import ReactPlayer from 'react-player';
+/* import { Login } from './components/Login'; */
+
 const clipboardy = require('clipboardy');
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
@@ -164,12 +168,18 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
+		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
+		socket.emit('event', {
+			key: 'currentRoom',
+			value: roomId
+		})
 		return history.listen(() => {
 			resetMap();
 		});
-	}, [history, resetMap]);
+	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -222,7 +232,7 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-	>(PanelItemEnum.roomDirectory);
+	>(undefined);
 
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
@@ -246,7 +256,8 @@ function App() {
 		name: '',
 		avatar: '',
 		weather: { temp: '', condition: '' },
-		soundType: ''
+		soundType: '',
+		currentRoom: 'default'
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -263,6 +274,10 @@ function App() {
 			setLastTime(videoRef.current.getCurrentTime());
 		}
 	}
+
+	/* const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true); */
+
 
 	// const [coordinates, setCoordinates] = useState({
 	// 	lat: 33.91925555555555,
@@ -334,6 +349,32 @@ function App() {
 			);
 		}
 	}, [network, isLoggedIn]);
+
+	//FETCH USER DATA
+	useEffect(() => {
+		if(accountId && isLoggedIn){
+			/* console.log(`/chatroom-users/get/${accountId}`); */
+			axios.get(`/chatroom-users/get/${accountId}`)
+				.then((res: any) => {
+					if(!res){
+						axios.post(`/chatroom-users/user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
+							.then(res => console.log("new user: ", res.data))
+							.catch(err => console.log(err));
+					} else {
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+						socket.emit('event', {
+							key: 'avatar',
+							value: res.data.avatar
+						});
+						socket.emit('event', {
+							key: 'username',
+							value: res.data.screenName
+						});
+					}
+				})
+				.catch((err: any) => console.log(err));
+		}
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -1200,6 +1241,18 @@ function App() {
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
 					break;
+				case 'avatar':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], avatar: message.value }
+					}));
+					break;
+				case 'currentRoom':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], currentRoom: message.value }
+					}));
+				break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1439,7 +1492,17 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					setUserProfile((profile) => ({ ...profile, name: settingsValue }));
+					axios.patch(`/chatroom-users/screen-name/${accountId}`, {screenName: settingsValue})
+						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
+						.catch(err => console.log(err));
+				} else if (type === 'avatar') {
+					socket.emit('event', {
+						key: 'avatar',
+						value: settingsValue
+					});
+					axios.patch(`/chatroom-users/avatar/${accountId}`, {avatar: settingsValue})
+						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
+						.catch(err => console.log(err));
 				}
 				break;
 			case 'weather':
@@ -1566,14 +1629,12 @@ function App() {
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = async (roomName: string, isAccessLocked: boolean) => {
-		const result = await firebaseContext.createRoom(roomName, isAccessLocked);
-
+	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
+		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
 		}
-
 		return result;
 	};
 
@@ -1590,7 +1651,8 @@ function App() {
 			} else {
 				setIsInvalidRoom(true);
 				if (result.message) {
-					setModalErrorMessage(result.message);
+					//setModalErrorMessage(result.message);
+					setInvalidRoomMessage(result.message);
 				}
 			}
 			// if (result.data === null) {
@@ -1930,6 +1992,11 @@ function App() {
 			);
 
 			if (isSuccessful) {
+				let oldBackgroundType = "";
+				if(background.type){
+					oldBackgroundType = background.type.valueOf();
+				}
+
 				setBackground({
 					name: '',
 					isPinned: false,
@@ -1941,11 +2008,13 @@ function App() {
 					type: 'background'
 				});
 
-				updateIsMapShowing(true);
-				socket.emit('event', {
-					key: 'map',
-					isMapShowing: true
-				});
+				if(oldBackgroundType === "map"){
+					updateIsMapShowing(true);
+					socket.emit('event', {
+						key: 'map',
+						isMapShowing: true
+					});
+				}
 			} else if (message) {
 				setModalErrorMessage(message);
 			}
@@ -2220,8 +2289,34 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return <div>Invalid room {roomId}</div>;
+		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
+
 	}
+
+	/* const steps = [
+		{
+			selector: ".first-step",
+			content: "Customize your avatar and name in profile settings"
+		},{
+			selector: ".second-step",
+			content: "Enter a screen name and press update",
+			action: (node:any) => {
+				node.focus();
+			}
+		},{
+			selector: ".third-step",
+			content: "Select an avatar and click go"
+		},{
+			selector: ".fourth-step",
+			content: "Let's try entering a room (only room creators can lock editing functions)"
+		},{
+			selector: ".fifth-step",
+			content: "Tap here to chat"
+		}, {
+			selector: ".sixth-step",
+			content: "Invite the homies and earn tokens"
+		}] */
+
 
 	return (
 		<div
@@ -2232,6 +2327,18 @@ function App() {
 			onClick={onClickApp}
 		>
 			<MetamaskSection />
+
+			<Route path="/settings">
+				<SettingsPanel 
+					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
+					onChangeName={(name) => actionHandler('settings', 'name', name)}
+					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+					onSendLocation={(location) => actionHandler('weather', location)}
+					currentAvatar={userProfile.avatar}
+				/>
+			</Route>
+
+			<Route exact path={["/room/:roomId", "/"]}>
 			<Board
 				videoId={videoId}
 				isVideoPinned={isVidPinned}
@@ -2284,6 +2391,16 @@ function App() {
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
 			/>
+			</Route>
+
+			{/* <Tour 
+				steps={steps}
+				isOpen={showTour}
+				onRequestClose={() => setShowTour(false)}
+				disableDotsNavigation={true}
+				disableFocusLock={true}
+			/> */}
+			
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2375,6 +2492,8 @@ function App() {
 				roomData={roomData}
 				updateShowChat = {onShowChat}
 			/>
+
+			{/* {showLoginModal ? <Login beginTour={setShowTour} hideModal={setShowLoginModal}/> : null } */}
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
@@ -2483,12 +2602,12 @@ const RouterHandler = () => {
 				<Route path="/room/:roomId">
 					<App />
 				</Route>
-				<Route exact path="/">
+				<Route path="/">
 					<App />
 				</Route>
-				<Redirect from="*" to="/" />
 			</Switch>
 		</Router>
 	);
 };
+
 export default RouterHandler;

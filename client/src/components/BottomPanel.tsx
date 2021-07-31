@@ -18,7 +18,6 @@ import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
-import { SettingsPanel } from './SettingsPanel';
 import SoundPanel from './SoundPanel';
 import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
@@ -254,13 +253,7 @@ const PanelContent = ({
 		case 'whiteboard':
 			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':
-			return (
-				// <Profile />
-				<SettingsPanel
-					onSubmitUrl={(url) => onAction('settings', 'url', url)}
-					onChangeName={(name) => onAction('settings', 'name', name)}
-				/>
-			);
+			return null;
 		case 'weather':
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />

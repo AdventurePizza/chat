@@ -51,6 +51,8 @@ export interface IMessageEvent {
 		| 'animation'
 		| 'isTyping'
 		| 'username'
+		| 'avatar'
+		| 'currentRoom'
 		| 'weather'
 		| 'map'
 		| 'settings-url'
@@ -207,6 +209,7 @@ export interface IUserProfile {
 	weather?: IWeather;
 	soundType?: string;
 	musicMetadata?: IMetadata;
+	currentRoom?: string
 }
 
 export interface IUserProfiles {

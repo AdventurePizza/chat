@@ -1,0 +1,96 @@
+.settings-panel-container {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 100px);
+    height: 100vh;
+    background-color: #c3cfd9;
+    position: fixed;
+    left: 100px;
+    top: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.settings-panel-container div form {
+    margin: 0;
+}
+
+.settings-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 70%;
+    justify-content: space-between;
+}
+
+.settings-input-container > div {
+    margin-bottom: 20px;
+}
+
+.settings-avatar {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.settings-avatar-container {
+    height: 125px;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    margin-right: 20px;
+}
+
+.settings-avatar-button {
+    height: 40px;
+}
+
+.settings-avatar-container-active {
+    border: 5px solid rgb(15, 214, 4);
+}
+
+.settings-avatar-container:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-wallet {
+    display: flex;
+    width: 50%;
+    flex-wrap: wrap;
+    color: black;
+    font-size: 12px;
+}
+
+.settings-token-container {
+    width: 100px;
+    height: 125px;
+}
+
+.settings-rooms {
+    display: flex;
+}
+
+.settings-room-container {
+    width: fit-content;
+    cursor: pointer;
+    margin-right: 25px;
+}
+.settings-room-container p {
+    margin: 5px 0;
+    text-align: center;
+    font-size: 12px;
+}
+
+.settings-room-container img {
+    height: 150px;
+    width: 200px;
+    object-fit: cover;
+}
+
+.settings-image-container {
+    height: 150px;
+    width: 200px;
+}
