@@ -2,7 +2,9 @@ import express, { Request, Response } from "express";
 import { IChatRoom, IPinnedItem, error } from "./types";
 import db from "./firebase";
 import { twitterClient } from "./twitter";
-
+import axios from "axios";
+import * as ethers from "ethers";
+import erc20abi from "./erc20abi.json";
 const collection = db.collection("chatrooms");
 
 const roomRouter = express.Router();
@@ -10,26 +12,57 @@ const roomRouter = express.Router();
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
+  const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
+
   if (process.env.NODE_ENV !== "production") {
     return res.status(200).send({
       name: "default",
     });
   }
 
-  const doc = await collection.doc(roomId).get();
+  if (!ethers.utils.isAddress(address)) {
+    return error(res, "Invalid user wallet address: " + address);
+  }
 
+  const doc = await collection.doc(roomId).get();
   if (!doc.exists) {
     return error(res, "room does not exist");
   }
+  const contractAddress = await doc.get("contractAddress");
+  let visible = true;
+  //If room has contract address set visibility to false until finds a permission.
+  if(contractAddress){
+    visible = false;
 
-  res.status(200).send(doc.data());
+    let provider: ethers.providers.JsonRpcProvider;
+    let wallet: ethers.Wallet;
+    let contractRequiredToken: ethers.Contract;
+
+
+    // matic mainnet
+    provider = new ethers.providers.JsonRpcProvider(
+      "https://rpc-mainnet.maticvigil.com/v1/3cd8c7560296ba08d4c7a0f0039927e09b385123"
+    );
+    contractRequiredToken = new ethers.Contract(contractAddress, erc20abi, provider);
+
+    const balance = await contractRequiredToken.balanceOf(address);
+    if(balance !== 0){
+      visible = true;
+    }
+  }
+  if(visible){
+    res.status(200).send(doc.data());
+  }
+  else{
+    return error(res, "To view this room visitors should have token with contract address: " + contractAddress + " and logged in via metamask");
+  }
 });
 
 // create room
 roomRouter.post("/:roomId", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
   const { isLocked } = req.body as { isLocked: boolean };
-
+  const { contractAddress } = req.body as { contractAddress: string };
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
   if (isLocked && !address) {
@@ -44,7 +77,7 @@ roomRouter.post("/:roomId", async (req, res) => {
 
   await collection
     .doc(roomId)
-    .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined });
+    .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined , contractAddress: contractAddress ?? undefined});
 
 
   twitterClient.post(

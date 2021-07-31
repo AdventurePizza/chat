@@ -6,7 +6,8 @@ import { AuthContext } from './AuthProvider';
 export interface IFirebaseContext {
 	createRoom: (
 		roomName: string,
-		isLocked: boolean
+		isLocked: boolean,
+		contractAddress?: string
 	) => Promise<IFetchResponseBase>;
 	getRoom: (
 		roomName: string
@@ -99,14 +100,15 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 	const createRoom = useCallback(
 		async (
 			roomName: string,
-			isLocked: boolean
+			isLocked: boolean,
+			contractAddress?: string
 		): Promise<IFetchResponseBase> => {
 			const fetchRes = await fetchAuthenticated(`/room/${roomName}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ isLocked })
+				body: JSON.stringify({ isLocked, contractAddress })
 			});
 
 			if (fetchRes.ok) {
