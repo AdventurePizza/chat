@@ -25,11 +25,13 @@ interface IZedrunPanel {
 
 interface race{
 	id: string;
+	name: string;
 }
 
 interface IRace {
 	node: {
 		race_id: string;
+		name: string;
 	};
 }
 
@@ -54,22 +56,19 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 		} else return inputValue;
 	}, [inputValue]);
 
-
-
 	useEffect(() => {
 		const getRaces = async () => {
 			const res = await firebaseContext.getRaces();
 			const response = JSON.parse(JSON.stringify(res.message as string));
-			console.log(response.data.get_race_results.edges);
 			const races = (response.data.get_race_results.edges).map(
 					({node}: IRace) => {
-						const { race_id } = node;
+						const { race_id, name } = node;
 						return{
-							id: race_id
+							id: race_id,
+							name: name
 						};
 					}
 			);
-			console.log(races[0].id);
 			setRacess(races);
 		}
 		getRaces();
@@ -105,8 +104,13 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 			{racess && racess.map((r, index) =>
 						<div key={index.toString()}>
 							{
-								<Button >
-									{r.id}
+								<Button
+									onClick={() => {
+										setRaceId(r.id);
+									}}
+								>
+
+									{r.name}
 								</Button>
 							}
 						</div>

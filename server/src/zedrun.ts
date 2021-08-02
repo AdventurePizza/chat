@@ -4,7 +4,7 @@ const axios = require('axios');
 
 // request Images, This request on serverside because of CORS restriction in client side
 zedrunRouter.get("/", async (req, res) => {
-  const data = JSON.stringify({query: "{get_race_results(first:5, input: {only_my_racehorses: false}) {edges {node {race_id}}      }  }"})
+  const data = JSON.stringify({query: "{get_race_results(first:5, input: {only_my_racehorses: false}) {edges {node {name race_id}}      }  }"})
 
   axios.post('https://zed-ql.zed.run/graphql', data, {
       headers: {
