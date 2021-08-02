@@ -5,7 +5,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 /* import Tour from 'reactour'; */
 
 import { CustomToken as NFT } from './typechain/CustomToken';
-import axios  from 'axios';
+import axios from 'axios';
 
 import {
 	BUILDING_COSTS,
@@ -45,7 +45,7 @@ import React, {
 	useEffect,
 	useMemo,
 	useRef,
-	useState,
+	useState
 } from 'react';
 import {
 	Route,
@@ -166,18 +166,20 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
-		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
+		setUserProfile((profile) => ({ ...profile, currentRoom: roomId }));
 		socket.emit('event', {
 			key: 'currentRoom',
 			value: roomId
-		})
+		});
 		return history.listen(() => {
 			resetMap();
 		});
 	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
-	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<
+		string | undefined
+	>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -254,7 +256,6 @@ function App() {
 	/* const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true); */
 
-
 	// const [coordinates, setCoordinates] = useState({
 	// 	lat: 33.91925555555555,
 	// 	lng: -118.41655555555555
@@ -274,6 +275,8 @@ function App() {
 		messages: [],
 		show: true
 	});
+
+	const [raceId, setRaceId] = useState<string>('');
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -328,16 +331,26 @@ function App() {
 
 	//FETCH USER DATA
 	useEffect(() => {
-		if(accountId && isLoggedIn){
+		if (accountId && isLoggedIn) {
 			/* console.log(`/chatroom-users/get/${accountId}`); */
-			axios.get(`/chatroom-users/get/${accountId}`)
+			axios
+				.get(`/chatroom-users/get/${accountId}`)
 				.then((res: any) => {
-					if(!res){
-						axios.post(`/chatroom-users/user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
-							.then(res => console.log("new user: ", res.data))
-							.catch(err => console.log(err));
+					if (!res) {
+						axios
+							.post(`/chatroom-users/user`, {
+								userId: accountId,
+								screenName: userProfile.name,
+								avatar: userProfile.avatar
+							})
+							.then((res) => console.log('new user: ', res.data))
+							.catch((err) => console.log(err));
 					} else {
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+						setUserProfile((profile) => ({
+							...profile,
+							name: res.data.screenName,
+							avatar: res.data.avatar
+						}));
 						socket.emit('event', {
 							key: 'avatar',
 							value: res.data.avatar
@@ -350,7 +363,7 @@ function App() {
 				})
 				.catch((err: any) => console.log(err));
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket])
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket]);
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -443,6 +456,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'zedrun':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -466,11 +480,20 @@ function App() {
 	}, []);
 
 	const onShowChat = () => {
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
-	}
+		setWaterfallChat((waterfallChat) => ({
+			...waterfallChat,
+			show: !waterfallChat.show
+		}));
+	};
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value } = message;
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
+		setWaterfallChat((waterfallChat) => ({
+			...waterfallChat,
+			messages: waterfallChat.messages.concat({
+				avatar: avatar,
+				message: value
+			})
+		}));
 	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -925,7 +948,11 @@ function App() {
 					}
 					break;
 				case 'chat':
-					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						top: relativeTop,
+						left: relativeLeft
+					}));
 					break;
 			}
 		},
@@ -1180,9 +1207,12 @@ function App() {
 				case 'currentRoom':
 					setUserProfiles((profiles) => ({
 						...profiles,
-						[message.id]: { ...profiles[message.id], currentRoom: message.value }
+						[message.id]: {
+							...profiles[message.id],
+							currentRoom: message.value
+						}
 					}));
-				break;
+					break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1290,7 +1320,7 @@ function App() {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
-				if(chatValue === ''){
+				if (chatValue === '') {
 					return;
 				}
 				socket.emit('event', {
@@ -1299,7 +1329,13 @@ function App() {
 					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
-				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
+				setWaterfallChat((waterfallChat) => ({
+					...waterfallChat,
+					messages: waterfallChat.messages.concat({
+						avatar: userProfile.avatar,
+						message: chatValue
+					})
+				}));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1422,17 +1458,30 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					axios.patch(`/chatroom-users/screen-name/${accountId}`, {screenName: settingsValue})
-						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
-						.catch(err => console.log(err));
+					axios
+						.patch(`/chatroom-users/screen-name/${accountId}`, {
+							screenName: settingsValue
+						})
+						.then((res) =>
+							setUserProfile((profile) => ({ ...profile, name: settingsValue }))
+						)
+						.catch((err) => console.log(err));
 				} else if (type === 'avatar') {
 					socket.emit('event', {
 						key: 'avatar',
 						value: settingsValue
 					});
-					axios.patch(`/chatroom-users/avatar/${accountId}`, {avatar: settingsValue})
-						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
-						.catch(err => console.log(err));
+					axios
+						.patch(`/chatroom-users/avatar/${accountId}`, {
+							avatar: settingsValue
+						})
+						.then((res) =>
+							setUserProfile((profile) => ({
+								...profile,
+								avatar: settingsValue
+							}))
+						)
+						.catch((err) => console.log(err));
 				}
 				break;
 			case 'weather':
@@ -1559,8 +1608,16 @@ function App() {
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
-		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
+	const onCreateRoom = async (
+		roomName: string,
+		isAccessLocked: boolean,
+		contractAddress?: string
+	) => {
+		const result = await firebaseContext.createRoom(
+			roomName,
+			isAccessLocked,
+			contractAddress
+		);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
@@ -1838,8 +1895,8 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				let oldBackgroundType = "";
-				if(background.type){
+				let oldBackgroundType = '';
+				if (background.type) {
 					oldBackgroundType = background.type.valueOf();
 				}
 
@@ -1854,7 +1911,7 @@ function App() {
 					type: 'background'
 				});
 
-				if(oldBackgroundType === "map"){
+				if (oldBackgroundType === 'map') {
 					updateIsMapShowing(true);
 					socket.emit('event', {
 						key: 'map',
@@ -2023,19 +2080,21 @@ function App() {
 		}
 
 		if (type === 'chat') {
-			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
-		}
-
-		else{
-			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-				roomId || 'default',
-				{
-					type,
-					top: y,
-					left: x,
-					key: id
-				}
-			);
+			setWaterfallChat((waterfallChat) => ({
+				...waterfallChat,
+				top: top,
+				left: left
+			}));
+		} else {
+			const {
+				isSuccessful,
+				message
+			} = await firebaseContext.movePinnedRoomItem(roomId || 'default', {
+				type,
+				top: y,
+				left: x,
+				key: id
+			});
 
 			//reverse the changes in client in case has no permission to edit
 			if (!isSuccessful) {
@@ -2124,8 +2183,11 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
-
+		return (
+			<div>
+				Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection />{' '}
+			</div>
+		);
 	}
 
 	/* const steps = [
@@ -2152,7 +2214,6 @@ function App() {
 			content: "Invite the homies and earn tokens"
 		}] */
 
-
 	return (
 		<div
 			className="app"
@@ -2164,69 +2225,71 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel 
+				<SettingsPanel
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+					onChangeAvatar={(avatar) =>
+						actionHandler('settings', 'avatar', avatar)
+					}
 					onSendLocation={(location) => actionHandler('weather', location)}
 					currentAvatar={userProfile.avatar}
 				/>
 			</Route>
 
-			<Route exact path={["/room/:roomId", "/"]}>
-			<Board
-				videoId={videoId}
-				volume={volume}
-				background={background}
-				musicNotes={musicNotes}
-				updateNotes={setMusicNotes}
-				emojis={emojis}
-				updateEmojis={setEmojis}
-				gifs={gifs}
-				updateGifs={setGifs}
-				images={images}
-				updateImages={setImages}
-				chatMessages={chatMessages}
-				updateChatMessages={setChatMessages}
-				userLocations={userLocations}
-				userProfiles={userProfiles}
-				setUserProfiles={setUserProfiles}
-				animations={animations}
-				updateAnimations={setAnimations}
-				avatarMessages={avatarMessages}
-				weather={weather}
-				updateWeather={setWeather}
-				pinGif={pinGif}
-				unpinGif={unpinGif}
-				pinImage={pinImage}
-				unpinImage={unpinImage}
-				pinBackground={pinBackground}
-				unpinBackground={unpinBackground}
-				pinnedText={pinnedText}
-				unpinText={unpinText}
-				moveItem={moveItem}
-				NFTs={NFTs}
-				updateNFTs={setNFTs}
-				pinNFT={pinNFT}
-				unpinNFT={unpinNFT}
-				addNewContract={addNewContract}
-				loadingNFT={loadingNFT}
-				onBuy={() => {}}
-				onCancel={() => {}}
-				onClickNewRoom={() => setModalState('new-room')}
-				onClickPresent={onClickPresent}
-				waterfallChat={waterfallChat}
-			/>
+			<Route exact path={['/room/:roomId', '/']}>
+				<Board
+					videoId={videoId}
+					volume={volume}
+					background={background}
+					musicNotes={musicNotes}
+					updateNotes={setMusicNotes}
+					emojis={emojis}
+					updateEmojis={setEmojis}
+					gifs={gifs}
+					updateGifs={setGifs}
+					images={images}
+					updateImages={setImages}
+					chatMessages={chatMessages}
+					updateChatMessages={setChatMessages}
+					userLocations={userLocations}
+					userProfiles={userProfiles}
+					setUserProfiles={setUserProfiles}
+					animations={animations}
+					updateAnimations={setAnimations}
+					avatarMessages={avatarMessages}
+					weather={weather}
+					updateWeather={setWeather}
+					pinGif={pinGif}
+					unpinGif={unpinGif}
+					pinImage={pinImage}
+					unpinImage={unpinImage}
+					pinBackground={pinBackground}
+					unpinBackground={unpinBackground}
+					pinnedText={pinnedText}
+					unpinText={unpinText}
+					moveItem={moveItem}
+					NFTs={NFTs}
+					updateNFTs={setNFTs}
+					pinNFT={pinNFT}
+					unpinNFT={unpinNFT}
+					addNewContract={addNewContract}
+					loadingNFT={loadingNFT}
+					onBuy={() => {}}
+					onCancel={() => {}}
+					onClickNewRoom={() => setModalState('new-room')}
+					onClickPresent={onClickPresent}
+					waterfallChat={waterfallChat}
+					raceId={raceId}
+				/>
 			</Route>
 
-			{/* <Tour 
+			{/* <Tour
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
 				disableDotsNavigation={true}
 				disableFocusLock={true}
 			/> */}
-			
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2303,7 +2366,8 @@ function App() {
 				setVideoId={setVideoId}
 				setVolume={setVolume}
 				roomData={roomData}
-				updateShowChat = {onShowChat}
+				updateShowChat={onShowChat}
+				setRaceId={setRaceId}
 			/>
 
 			{/* {showLoginModal ? <Login beginTour={setShowTour} hideModal={setShowLoginModal}/> : null } */}

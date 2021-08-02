@@ -3,15 +3,15 @@ import React, { useState } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
-import { Paper} from '@material-ui/core';
+import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
 import { IOrder, IWaterfallMessage } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { Map } from "./Maps";
-import { WaterfallChat } from "./WaterfallChat";
+import { Map } from './Maps';
+import { WaterfallChat } from './WaterfallChat';
 
 const useStyles = makeStyles({
 	container: {
@@ -91,7 +91,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 		return <div ref={preview} />;
 	}
 
-	const noLinkPrev = <div className={classes.text} style={{ width: 180 }}>{text}</div>;
+	const noLinkPrev = (
+		<div className={classes.text} style={{ width: 180 }}>
+			{text}
+		</div>
+	);
 
 	return (
 		<div
@@ -118,7 +122,17 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 200 }}>
-						<div>{text && <LinkPreview url= {text!}fallback= {noLinkPrev} descriptionLength= {50} imageHeight= {100} showLoader= {false} />}</div>
+						<div>
+							{text && (
+								<LinkPreview
+									url={text!}
+									fallback={noLinkPrev}
+									descriptionLength={50}
+									imageHeight={100}
+									showLoader={false}
+								/>
+							)}
+						</div>
 					</div>
 				)}
 				{type === 'NFT' && order && (
@@ -130,7 +144,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
-				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
+				{type === 'chat' && chat && <WaterfallChat chat={chat} />}
 			</Paper>
 
 			{isHovering && (
@@ -141,12 +155,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{type !== 'chat' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
+					{type !== 'chat' && (
+						<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
+					)}
 					{/*@ts-ignore needs better typing for innerRef*/}
 					{(isPinned || type === 'chat') && <MoveButton innerRef={drag} />}
 				</div>
 			)}
-
 		</div>
 	);
 };

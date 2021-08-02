@@ -41,7 +41,7 @@ export const MapsPanel = () => {
 				lng: latLng.lng,
 				text: value
 			}
-		})
+		});
 	};
 
 	return (

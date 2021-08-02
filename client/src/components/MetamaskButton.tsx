@@ -19,10 +19,14 @@ const useStyles = makeStyles((theme) => ({
 interface IMetamaskButtonProps {
 	style?: React.CSSProperties;
 	className?: string;
-	children?: React.ReactChild
+	children?: React.ReactChild;
 }
 
-export const MetamaskButton = ({ style, className, children }: IMetamaskButtonProps) => {
+export const MetamaskButton = ({
+	style,
+	className,
+	children
+}: IMetamaskButtonProps) => {
 	const classes = useStyles();
 	const { signIn } = useContext(AuthContext);
 
@@ -34,7 +38,9 @@ export const MetamaskButton = ({ style, className, children }: IMetamaskButtonPr
 			onClick={signIn}
 			className={`${classes.metamaskButtonRoot} ${className || ''}`}
 		>
-			{children ? children : (
+			{children ? (
+				children
+			) : (
 				<>
 					<div>connect</div>
 					<img className={classes.img} src={imgMetamask} alt="metamask fox" />

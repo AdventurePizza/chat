@@ -71,7 +71,7 @@ export const MapsProvider = ({ children }: { children: React.ReactNode }) => {
 		setZoom(12);
 		setIsMapShowing(false);
 		setMarkers([]);
-	}
+	};
 
 	return (
 		<MapsContext.Provider

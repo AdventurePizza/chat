@@ -27,7 +27,7 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 			func: 'update',
 			index,
 			text: inputVal
-		})
+		});
 	};
 
 	const onMarkerDelete = () => {
@@ -36,14 +36,14 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 			key: 'map',
 			func: 'delete',
 			index
-		})
+		});
 	};
 
 	return (
 		<>
 			<div className="pulse"></div>
 			<div className="pin" onClick={() => setKeepOpen(!keepOpen)}></div>
-			<div className={keepOpen ? "text text-important" : "text"}>
+			<div className={keepOpen ? 'text text-important' : 'text'}>
 				{text ? text : `Marker ${index + 1}`}
 				<div className="location_input_container">
 					<input
@@ -54,7 +54,7 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 						value={inputVal}
 					/>
 					<div className="location_submit" onClick={onUpdateName}>
-					&#x279C;
+						&#x279C;
 					</div>
 				</div>
 				<button className="location_delete" onClick={onMarkerDelete}>
@@ -107,7 +107,7 @@ export const Map = ({ mapData }: IMapProps) => {
 					lat: event.latLng.lat(),
 					lng: event.latLng.lng()
 				}
-			})
+			});
 		});
 	};
 
