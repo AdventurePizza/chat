@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
+import { FirebaseContext } from '../contexts/FirebaseContext';
 import "./Login.css";
 import check from "../assets/check.png";
 import maticInput from '../assets/matic-input.png';
@@ -19,17 +20,20 @@ const Checkmark = () => {
 
 interface ILoginProps {
     beginTour: (val: boolean) => void;
-    hideModal: (val: boolean) => void;
+    showModal: (val: boolean) => void;
+    isFirstVisit: boolean;
+    userEmail: string;
+    setUserEmail: (email: string) => void;
 }
 
-export const Login = ({ beginTour, hideModal } : ILoginProps) => {
-    const [email, setEmail] = useState("");
+export const Login = ({ beginTour, showModal, isFirstVisit, userEmail, setUserEmail } : ILoginProps) => {
     const [showEmail, setShowEmail] = useState(false);
     const [showMetamask, setShowMetamask] = useState(false);
-    const { isLoggedIn } = useContext(AuthContext);
+    const { isLoggedIn, accountId } = useContext(AuthContext);
+    const firebaseContext = useContext(FirebaseContext);
 
     const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEmail(e.target.value);
+        setUserEmail(e.target.value);
     }
 
     return (
@@ -41,7 +45,7 @@ export const Login = ({ beginTour, hideModal } : ILoginProps) => {
             {!showEmail ? (
                 <div className="login-button-container">
                     <div className="login-button">
-                        {email ?  <Checkmark /> : <button className="login-button-email" onClick={() => setShowEmail(true)}>Email</button>}
+                        {userEmail ?  <Checkmark /> : <button className="login-button-email" onClick={() => setShowEmail(true)}>Email</button>}
                         <p>Lets get you tricked out</p>
                     </div>
                     <div className="login-button">
@@ -57,11 +61,25 @@ export const Login = ({ beginTour, hideModal } : ILoginProps) => {
             ) : null}
             {showEmail ? (
                 <div className="login-email-input-container">
-                    <input type="email" placeholder="Email" onChange={e => onEmailChange(e)} value={email} className="login-email-input"/>
+                    <input type="email" placeholder="Email" onChange={e => onEmailChange(e)} value={userEmail} className="login-email-input"/>
                     <button className="login-button-email" onClick={() => setShowEmail(false)}>Trick me out!</button>
                 </div>
             ) : null}
-            {email && isLoggedIn ? <button className="login-button-email" onClick={() => {hideModal(false); beginTour(true);}}>Enter</button> : null}
+            {userEmail && isLoggedIn && !showEmail ? (
+                <button className="login-button-email" 
+                    onClick={() => {
+                        if(accountId){
+                            firebaseContext.updateEmail(accountId, userEmail)
+                                .then(() => console.log("user email updated"))
+                                .catch(err => console.log(err));
+                        }
+                        showModal(false);
+                        if(isFirstVisit){
+                            beginTour(true);
+                        }
+                    }}
+                >Enter</button>
+            ) : null}
             {showMetamask ? <MetamaskTutorial setShowMetamask={setShowMetamask}/> : null}
         </div>
     )

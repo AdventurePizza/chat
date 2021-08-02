@@ -1,6 +1,7 @@
 import { InputButton } from './shared/InputButton';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
+import { FirebaseContext } from '../contexts/FirebaseContext';
 import axios from "axios";
 import "./SettingsPanel.css";
 import Button from '@material-ui/core/Button';
@@ -31,7 +32,8 @@ interface ISettingsPanelProps {
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void; 
-	currentAvatar: string
+	currentAvatar: string;
+	setStep: (step: number) => void;
 }
 
 interface IWalletItem {
@@ -42,7 +44,7 @@ interface IWalletItem {
 	logo_url?: string,
 }
 
-interface IRoomData {
+export interface IRoomData {
 	roomData: {
 		isLocked: string,
 		lockedOwnerAddress: string,
@@ -70,13 +72,15 @@ export const SettingsPanel = ({
 	onSubmitUrl,
 	onChangeAvatar,
 	onSendLocation,
-	currentAvatar
+	currentAvatar,
+	setStep
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
 	const [isWalletLoaded, setIsWalletLoaded] = useState(false);
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 	const [rooms, setRooms] = useState<IRoomData[]>([]);
+	const firebaseContext = useContext(FirebaseContext);
 
 	const [activeAvatar, setActiveAvatar] = useState(currentAvatar);
 	const avatars = [{
@@ -132,9 +136,12 @@ export const SettingsPanel = ({
 			   })
 			   .catch(err => console.log(err)); 
 
-			 axios.get(`/chatroom-users/user-rooms/${accountId}`)
+
+			firebaseContext.getUserRooms(accountId)
 				.then(res => {
-					setRooms(res.data);
+					if(res.data){
+						setRooms(res.data);
+					}
 				})
 				.catch(err => console.log(err)); 
 		}
@@ -143,7 +150,7 @@ export const SettingsPanel = ({
 		if(isLoggedIn){ 
 			fetchData();
 		}	
-	}, [isLoggedIn, accountId]);
+	}, [isLoggedIn, accountId, firebaseContext]);
 	
 	const history = useHistory();
 
@@ -161,6 +168,7 @@ export const SettingsPanel = ({
 						placeholder="enter name"
 						onClick={onChangeName}
 						inputWidth={300}
+						setStep={setStep}
 					/>
 					{/* <input type="text" placeholder="add text"/> */}
 				</div>
@@ -190,7 +198,11 @@ export const SettingsPanel = ({
 						</div>
 					)
 				})}
-				<Button className="settings-avatar-button" onClick={() => onChangeAvatar(activeAvatar)} variant="contained" color="primary">GO!</Button>
+				<Button className="settings-avatar-button" 
+					onClick={() => {
+						onChangeAvatar(activeAvatar);
+						setStep(3);
+					}} variant="contained" color="primary">GO!</Button>
 			</div>
 			<h2>ROOMS</h2>
 			{rooms ? (
