@@ -34,11 +34,10 @@ const useStyles = makeStyles({
 		},
 		backgroundColor: 'whitesmoke',
 		border: '5px solid #87D3F3',
-		position: 'relative',
 		'&:focus': {
 			outline: 'none',
 			boxShadow: 'none'
-		}
+		},
 	},
 	cancelButton: {
 		position: 'absolute',
