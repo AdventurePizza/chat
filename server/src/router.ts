@@ -13,6 +13,7 @@ import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
 import tokenRouter from "./token";
 import chatroomUserRouter from "./chatroomUsers";
+import imageSearchRouter from "./imageSearch";
 import { emit } from "process";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
@@ -145,7 +146,20 @@ export class Router {
       }),
       tokenRouter
     );
+
+    app.use(
+      "/google-image-search",
+      expressjwt({
+        //@ts-ignore
+        secret: Buffer.from(process.env.JWT_SECRET, "base64"),
+        algorithms: ["HS256"],
+        credentialsRequired: false,
+      }),
+      imageSearchRouter
+    );
+
     app.use("/chatroom-users", chatroomUserRouter);
+
 
     io.on("connect", (socket: Socket) => {
       socket.on("authenticate", ({ token }: { token?: string }) => {
