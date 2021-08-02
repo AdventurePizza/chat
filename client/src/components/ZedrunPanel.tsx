@@ -23,10 +23,21 @@ interface IZedrunPanel {
 	setRaceId: (raceId: string) => void;
 }
 
+interface race{
+	id: string;
+}
+
+interface IRace {
+	node: {
+		race_id: string;
+	};
+}
+
 export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 	const classes = useStyles();
 	const [inputValue, setInputValue] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
+	const [racess, setRacess] = useState<race[]>([]);
 
 	const roomId = useMemo(() => {
 		if (inputValue.includes(baseURLRace)) {
@@ -43,12 +54,27 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 		} else return inputValue;
 	}, [inputValue]);
 
-	const getRaces = async () => {
-		const res = await firebaseContext.getRaces();
-		console.log(res);
-	}
 
-	getRaces();
+
+	useEffect(() => {
+		const getRaces = async () => {
+			const res = await firebaseContext.getRaces();
+			const response = JSON.parse(JSON.stringify(res.message as string));
+			console.log(response.data.get_race_results.edges);
+			const races = (response.data.get_race_results.edges).map(
+					({node}: IRace) => {
+						const { race_id } = node;
+						return{
+							id: race_id
+						};
+					}
+			);
+			console.log(races[0].id);
+			setRacess(races);
+		}
+		getRaces();
+	}, [firebaseContext]);
+
 	return (
 		<div className={classes.horsePanelRoot}>
 			<TextField
@@ -75,6 +101,17 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 				{' '}
 				Close{' '}
 			</Button>
+
+			{racess && racess.map((r, index) =>
+						<div key={index.toString()}>
+							{
+								<Button >
+									{r.id}
+								</Button>
+							}
+						</div>
+					)
+			}
 		</div>
 	);
 };
