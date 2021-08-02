@@ -220,19 +220,17 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		return { isSuccessful: false, message: fetchRes.statusText };
 	}, [fetchAuthenticated]);
 
-	const getRaces = useCallback( async (): Promise<IFetchResponseBase> => {
-				const fetchRes = await fetchAuthenticated(`/zedrun/getRaces`, {
-					method: 'GET'
-				});
+	const getRaces = useCallback(async (): Promise<IFetchResponseBase> => {
+		const fetchRes = await fetchAuthenticated(`/zedrun/getRaces`, {
+			method: 'GET'
+		});
 
-				if (fetchRes.ok) {
-					return { isSuccessful: true, message: await fetchRes.json() };
-				}
+		if (fetchRes.ok) {
+			return { isSuccessful: true, message: await fetchRes.json() };
+		}
 
-				return { isSuccessful: false, message: fetchRes.statusText };
-			},
-			[fetchAuthenticated]
-		);
+		return { isSuccessful: false, message: fetchRes.statusText };
+	}, [fetchAuthenticated]);
 
 	return (
 		<FirebaseContext.Provider

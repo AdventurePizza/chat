@@ -10,10 +10,6 @@ const useStyles = makeStyles((theme) => ({
 		'& > *': {
 			marginRight: 10
 		}
-	},
-	link: {
-		fontStyle: 'none',
-		textDecoration: 'none'
 	}
 }));
 
@@ -23,12 +19,12 @@ interface IZedrunPanel {
 	setRaceId: (raceId: string) => void;
 }
 
-interface race{
+interface IRace {
 	id: string;
 	name: string;
 }
 
-interface IRace {
+interface INode {
 	node: {
 		race_id: string;
 		name: string;
@@ -39,7 +35,7 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 	const classes = useStyles();
 	const [inputValue, setInputValue] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
-	const [racess, setRacess] = useState<race[]>([]);
+	const [races, setRaces] = useState<IRace[]>([]);
 
 	const roomId = useMemo(() => {
 		if (inputValue.includes(baseURLRace)) {
@@ -59,18 +55,18 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 	useEffect(() => {
 		const getRaces = async () => {
 			const res = await firebaseContext.getRaces();
-			const response = JSON.parse(JSON.stringify(res.message as string));
-			const races = (response.data.get_race_results.edges).map(
-					({node}: IRace) => {
-						const { race_id, name } = node;
-						return{
-							id: race_id,
-							name: name
-						};
-					}
+			const resMessage = JSON.parse(JSON.stringify(res.message as string));
+			const responseRaces = resMessage.data.get_race_results.edges.map(
+				({ node }: INode) => {
+					const { race_id, name } = node;
+					return {
+						id: race_id,
+						name: name
+					};
+				}
 			);
-			setRacess(races);
-		}
+			setRaces(responseRaces);
+		};
 		getRaces();
 	}, [firebaseContext]);
 
@@ -101,21 +97,20 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 				Close{' '}
 			</Button>
 
-			{racess && racess.map((r, index) =>
-						<div key={index.toString()}>
-							{
-								<Button
-									onClick={() => {
-										setRaceId(r.id);
-									}}
-								>
-
-									{r.name}
-								</Button>
-							}
-						</div>
-					)
-			}
+			{races &&
+				races.map((race, index) => (
+					<div key={index.toString()}>
+						{
+							<Button
+								onClick={() => {
+									setRaceId(race.id);
+								}}
+							>
+								{race.name}
+							</Button>
+						}
+					</div>
+				))}
 		</div>
 	);
 };
