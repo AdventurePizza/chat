@@ -428,7 +428,6 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 
 			if (fetchRes.ok) {
 				const playlist = (await fetchRes.json());
-				console.log(playlist);
 				return { isSuccessful: true, data: playlist };
 			}
 

@@ -253,7 +253,7 @@ export const Board = ({
 				top={waterfallChat.top}
 				left={waterfallChat.left}
 			/>}
-			{<BoardObject
+			{musicPlayer.playlist.length !== 0 && <BoardObject
 				id={'musicPlayer'}
 				type="musicPlayer"
 				onPin={() => {}}

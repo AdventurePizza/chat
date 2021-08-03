@@ -481,13 +481,10 @@ function App() {
 		const index = parseInt(music);
 		//if it is number it means it is index should be removed
 		if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
-			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.splice(index, 1)}));
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
 			if(musicPlayer.playlist.length === 0){
 				setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
 			}
-		}
-		else if(music === 'clear'){
-			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
 		}
 		//it is url and should be added
 		else{
@@ -1518,13 +1515,9 @@ function App() {
 						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
 					}
 					else{
-						console.log("remove:" + musicPlayer.playlist[index].timestamp)
 						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
 						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
 					}
-				}
-				else if(music === 'clear'){
-					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
 				}
 				//it is url and should be added
 				else{
@@ -1669,8 +1662,7 @@ function App() {
 
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
-			//test call should remvoe laater dont forget !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			//setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+
 			firebaseContext.getPlaylist(room).then((playlist) => {
 				if(playlist.data)
 					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
@@ -2397,6 +2389,7 @@ function App() {
 				setVolume={setVolume}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
+				musicPlayer = {musicPlayer}
 			/>
 
 

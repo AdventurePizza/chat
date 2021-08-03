@@ -3,7 +3,8 @@ import {
 	IChatRoom,
 	IEmojiDict,
 	ITowerDefenseState,
-	PanelItemEnum
+	PanelItemEnum,
+	IMusicPlayer
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
@@ -43,6 +44,7 @@ export interface IBottomPanelProps {
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	musicPlayer: IMusicPlayer;
 }
 
 export interface IPanelContentProps {
@@ -63,6 +65,7 @@ export interface IPanelContentProps {
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	musicPlayer: IMusicPlayer;
 }
 
 export interface ISoundPairs {
@@ -91,7 +94,8 @@ export const BottomPanel = ({
 	setVideoId,
 	setVolume,
 	roomData,
-	updateShowChat
+	updateShowChat,
+	musicPlayer
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -127,6 +131,7 @@ export const BottomPanel = ({
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
 					updateShowChat={updateShowChat}
+					musicPlayer={musicPlayer}
 				/>
 			</div>
 		</Drawer>
@@ -150,7 +155,8 @@ const PanelContent = ({
 	onNFTError,
 	onNFTSuccess,
 	roomData,
-	updateShowChat
+	updateShowChat,
+	musicPlayer
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -289,6 +295,7 @@ const PanelContent = ({
 					changePlaylist={(message) => {
 						onAction('change-playlist', message);
 					}}
+					musicPlayer={musicPlayer}
 				/>
 			);
 		default:

@@ -226,8 +226,6 @@ roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
   const { track } = req.body as { track: string };
   const { timestamp } = req.body as { timestamp: string };
 
-  console.log("add " + track);
-
   const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
 
   if (!isVerifiedOwner) return;

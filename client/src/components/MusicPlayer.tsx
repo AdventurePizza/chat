@@ -3,10 +3,6 @@ import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import { IPlaylist } from '../types';
 
-interface PlayListState {
-  currentMusicIndex: number
-}
-
 interface MusicPlayerProps {
 	playlist?: IPlaylist[];
 }
@@ -49,10 +45,10 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           src={playlist[currentIndex].url}
           onClickPrevious={prev}
           onClickNext={next}
+          onEnded={next}
+          autoPlay={true}
         />
       }
-      {playlist && playlist?.length}
-      {playlist && playlist[currentIndex] && playlist[currentIndex].url}
     </div>
   )
 }
