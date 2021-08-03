@@ -25,8 +25,8 @@ import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import { NFTIcon } from './NFT/NFTPanel';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
-
 import browseNFTIcon from '../assets/navbar/browseNFTIcon.png';
+import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -123,8 +123,8 @@ const panelIconSrcMap: {
 	animation: animationIcon,
 	// poem: poemIcon
 	maps: mapsIcon,
-
-	browseNFT: browseNFTIcon
+	browseNFT: browseNFTIcon,
+	musicPlayer: musicPlayerIcon
 };
 
 const panelIconComponentMap: {

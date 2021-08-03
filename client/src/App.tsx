@@ -34,7 +34,8 @@ import {
 	PinTypes,
 	IOrder,
 	IMap,
-	IWaterfallChat
+	IWaterfallChat,
+	IMusicPlayer
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -265,6 +266,15 @@ function App() {
 		show: true
 	});
 
+	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
+		top: 600,
+		left: 200,
+		playlist: [
+			'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+			'https://hanzluo.s3-us-west-1.amazonaws.com/music/ziyounvshen.mp3'
+		]
+	});
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -438,6 +448,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'musicPlayer':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -467,6 +478,25 @@ function App() {
 		const { avatar, value } = message;
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 	}, []);
+
+	const handleChangePlaylist = useCallback((message: IMessageEvent) => {
+		const music = message.value;
+		const index = parseInt(music);
+		//if it is number it means it is index should be removed
+		if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.splice(index, 1)}));
+			if(musicPlayer.playlist.length === 0){
+				setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+			}
+		}
+		else if(music === 'clear'){
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+		}
+		//it is url and should be added
+		else{
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat(music)}));
+		}
+	}, [musicPlayer]);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -929,6 +959,9 @@ function App() {
 				case 'chat':
 					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
 					break;
+				case 'musicPlayer':
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, top: relativeTop, left: relativeLeft}));
+					break;
 			}
 		},
 		[images, NFTs, gifs, pinnedText]
@@ -1224,6 +1257,9 @@ function App() {
 				case 'move-item':
 					handleMoveItemMessage(message);
 					break;
+				case 'change-playlist':
+					handleChangePlaylist(message);
+					break;
 			}
 		};
 
@@ -1285,7 +1321,8 @@ function App() {
 		addMarker,
 		deleteMarker,
 		updateMarkerText,
-		updateWaterfallChat
+		updateWaterfallChat,
+		handleChangePlaylist
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1472,6 +1509,30 @@ function App() {
 				socket.emit('event', {
 					key: 'youtube',
 					value: videoId
+				});
+				break;
+			case 'change-playlist':
+				const music = args[0] as string;
+				const index = parseInt(music);
+				//if it is number it means it is index should be removed
+				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+					if(musicPlayer.playlist.length === 1){
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+					}
+					else{
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.splice(index, 1)}));
+					}
+				}
+				else if(music === 'clear'){
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+				}
+				//it is url and should be added
+				else{
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat(music)}));
+				}
+				socket.emit('event', {
+					key: 'change-playlist',
+					value: music
 				});
 				break;
 			default:
@@ -2034,6 +2095,9 @@ function App() {
 			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
 		}
 
+		else if (type === 'musicPlayer') {
+			setMusicPlayer((musicPlayer) => ({ ...musicPlayer, top: top, left: left}));
+		}
 		else{
 			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
 				roomId || 'default',
@@ -2169,7 +2233,7 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel 
+				<SettingsPanel
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
@@ -2222,10 +2286,11 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				musicPlayer={musicPlayer}
 				/>
 			</Route>
 
-			<Tour 
+			<Tour
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
@@ -2235,10 +2300,10 @@ function App() {
 				lastStepNextButton={<CloseIcon />}
 				showCloseButton={false}
 			/>
-			
+
 			{showLoginModal ? (
-				<Login 
-					beginTour={setShowTour} 
+				<Login
+					beginTour={setShowTour}
 					showModal={setShowLoginModal}
 					isFirstVisit={isFirstVisit}
 					userEmail={userProfile.email}

@@ -12,6 +12,7 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { WaterfallChat } from "./WaterfallChat";
+import { MusicPlayer } from "./MusicPlayer";
 
 const useStyles = makeStyles({
 	container: {
@@ -37,7 +38,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
+	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -57,6 +58,7 @@ interface BoardObjectProps {
 	onCancel?: (nftId: string) => void;
 
 	chat?: IWaterfallMessage[];
+	playlist?: string[];
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -75,7 +77,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		addNewContract,
 		onBuy,
 		onCancel,
-		chat
+		chat,
+		playlist
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -131,6 +134,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'map' && data && <Map />}
 				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
+				{type === 'musicPlayer' && playlist &&
+					<div style={{ width: 400 }}>
+						<MusicPlayer
+							playlist={playlist}
+						/>
+					</div>
+				}
 			</Paper>
 
 			{isHovering && (
@@ -141,9 +151,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{type !== 'chat' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
+					{type !== 'chat' && type !== 'musicPlayer' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
 					{/*@ts-ignore needs better typing for innerRef*/}
-					{(isPinned || type === 'chat') && <MoveButton innerRef={drag} />}
+					{(isPinned || type === 'chat' || type === 'musicPlayer') && <MoveButton innerRef={drag} />}
 				</div>
 			)}
 

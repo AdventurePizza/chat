@@ -27,7 +27,7 @@ import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-
+import { MusicPlayerPanel } from './MusicPlayerPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -282,6 +282,14 @@ const PanelContent = ({
 				  frameBorder='0'
 				  allowFullScreen>
 		    </iframe>
+			);
+		case 'musicPlayer':
+			return (
+				<MusicPlayerPanel
+					changePlaylist={(message) => {
+						onAction('change-playlist', message);
+					}}
+				/>
 			);
 		default:
 			return null;
