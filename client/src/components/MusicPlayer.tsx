@@ -42,7 +42,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   return (
     <div>
-      {playlist && <AudioPlayer
+      {playlist && playlist[currentIndex] && <AudioPlayer
           autoPlayAfterSrcChange={true}
           showSkipControls={true}
           showJumpControls={false}
@@ -51,8 +51,8 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           onClickNext={next}
         />
       }
-      {playlist?.length}
-      {playlist && playlist[currentIndex].url}
+      {playlist && playlist?.length}
+      {playlist && playlist[currentIndex] && playlist[currentIndex].url}
     </div>
   )
 }

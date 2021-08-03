@@ -57,7 +57,7 @@ export const MusicPlayerPanel = ({
 		changePlaylist('https://hanzluo.s3-us-west-1.amazonaws.com/music/suipian.mp3');
 	};
 	const removeFirst = () => {
-		changePlaylist('-1');
+		changePlaylist('0');
 	};
 	const clear = () => {
 		changePlaylist('clear');

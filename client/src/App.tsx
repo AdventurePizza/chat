@@ -269,9 +269,7 @@ function App() {
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
 		top: 600,
 		left: 200,
-		playlist: [
-			{timestamp: '0', url:'https://hanzluo.s3-us-west-1.amazonaws.com/music/ziyounvshen.mp3'}
-		]
+		playlist: []
 	});
 
 	useEffect(() => {
@@ -1516,10 +1514,13 @@ function App() {
 				//if it is number it means it is index should be removed
 				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
 					if(musicPlayer.playlist.length === 1){
+						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
 						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
 					}
 					else{
-						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.splice(index, 1)}));
+						console.log("remove:" + musicPlayer.playlist[index].timestamp)
+						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
 					}
 				}
 				else if(music === 'clear'){
@@ -1527,14 +1528,14 @@ function App() {
 				}
 				//it is url and should be added
 				else{
-					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: new Date().getTime().toString(), url: music})}));
+					const timestamp = new Date().getTime().toString();
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: timestamp, url: music})}));
+					firebaseContext.addtoPlaylist(roomId || 'default', music, timestamp);
 				}
 				socket.emit('event', {
 					key: 'change-playlist',
 					value: music
 				});
-
-				firebaseContext.addtoPlaylist(roomId || 'default', music);
 
 				break;
 			default:

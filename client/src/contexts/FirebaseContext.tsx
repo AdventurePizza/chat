@@ -59,7 +59,12 @@ export interface IFirebaseContext {
 	) => Promise<IFetchResponseBase & { data?: IPlaylist[] }>;
 	addtoPlaylist:(
 		roomName: string,
-		track: string
+		track: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
+	removefromPlaylist:(
+		roomName: string,
+		timestamp: string
 	) => Promise<IFetchResponseBase>;
 }
 
@@ -80,7 +85,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getUserRooms: () => Promise.resolve({ isSuccessful: false }),
 	getImage: () => Promise.resolve({ isSuccessful: false }),
 	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
-	addtoPlaylist: () => Promise.resolve({ isSuccessful: false })
+	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	removefromPlaylist: () => Promise.resolve({ isSuccessful: false })
 });
 
 const fetchBase =
@@ -435,9 +441,10 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 	const addtoPlaylist = useCallback(
 		async (
 			roomName: string,
-			track: string
+			track: string,
+			timestamp: string
 		): Promise<IFetchResponseBase> => {
-			let timestamp: string = new Date().getTime().toString();  
+
 			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoPlaylist`, {
 				method: 'POST',
 				headers: {
@@ -454,6 +461,27 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		},
 		[fetchAuthenticated]
 	);
+
+	const removefromPlaylist = useCallback(
+		async (roomName: string, timestamp: string): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(
+				`/room/${roomName}/playlist/${timestamp}`,
+				{
+					method: 'DELETE'
+				}
+			);
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+
+		},
+		[fetchAuthenticated]
+	);
+
 
 	return (
 		<FirebaseContext.Provider
@@ -474,7 +502,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getUserRooms,
 				getImage,
 				getPlaylist,
-				addtoPlaylist
+				addtoPlaylist,
+				removefromPlaylist
 			}}
 		>
 			{children}

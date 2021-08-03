@@ -226,6 +226,8 @@ roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
   const { track } = req.body as { track: string };
   const { timestamp } = req.body as { timestamp: string };
 
+  console.log("add " + track);
+
   const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
 
   if (!isVerifiedOwner) return;
@@ -240,6 +242,19 @@ roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
     return error(res, "room does not exist");
   }
 });
+
+//delete a track from playlist
+roomRouter.delete("/:roomId/playlist/:timestamp", async (req, res) => {
+  const { roomId, timestamp } = req.params as { roomId: string; timestamp: string };
+  const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
+
+  if (!isVerifiedOwner) return;
+
+  await collection.doc(roomId).collection("playlist").doc(timestamp).delete();
+
+  res.status(200).end();
+});
+
 
 const lockedRooms: { [roomId: string]: { ownerAddress: string } } = {};
 
