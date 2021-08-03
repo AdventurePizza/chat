@@ -82,11 +82,8 @@ let backgroundState: IBackgroundState = {};
 interface IMessageEvent {
   key:
     | "sound"
-<<<<<<< HEAD
-    | "tweet"
-=======
     | "youtube"
->>>>>>> 2957121cadc09ac7b2ae23db911961edd1d46810
+    | "tweet"
     | "map"
     | "emoji"
     | "chat"

@@ -11,8 +11,9 @@ import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
-import { Timeline, Tweet, Follow, Share } from 'react-twitter-widgets';
+import { Timeline, Tweet} from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
+
 
 const useStyles = makeStyles({
 	container: {

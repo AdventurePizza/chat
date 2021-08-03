@@ -193,7 +193,12 @@ export const Board = ({
 			const left = Math.round(item.left + delta.x);
 			const top = Math.round(item.top + delta.y);
 			console.log(item);
+			if (item.key){
+				moveItem(item.itemType, item.key, left, top, delta.x, delta.y);
+			}
+			else{
 			moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
+			}
 			return undefined;
 		}
 	});

@@ -35,6 +35,7 @@ export interface ITweet {
 	id: string;
 	left: number;
 	top: number;
+	isPinned?: boolean;
 	
 }
 export interface IAvatarChatMessages {
@@ -68,6 +69,8 @@ export interface IMessageEvent {
 		
 	value?: any;
 	[key: string]: any;
+	xt: number;
+	yt: number;
 }
 
 export interface IFigure {

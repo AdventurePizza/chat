@@ -442,13 +442,12 @@ function App() {
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
-	const addTweet= useCallback((tweetId: string) => { //triggered if message.vakye=tweet (Case:tweet in app.tsx)
-		const { x, y } = generateRandomXY(true, true);
-		console.log(x)
-			const newTweet: ITweet = {
+	const addTweet= useCallback((x: number, y:number, tweetId: string) => { //triggered if message.vakye=tweet (Case:tweet in app.tsx)
+		const newTweet: ITweet = {
 				top: y,
 				left: x,
-				id: tweetId //tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
+				id: tweetId,//tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
+				isPinned: false,
 			};
 			setTweets((tweets) => tweets.concat(newTweet));
 		},[]);
@@ -754,6 +753,7 @@ function App() {
 					}
 					break;
 
+
 				case 'image':
 					const index = images.findIndex((image) => image.key === itemKey);
 					const image = images[index];
@@ -827,9 +827,29 @@ function App() {
 						}
 					}
 					break;
+					case 'tweet':
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
+					const tweet = tweets[tweetIndex];
+					console.log(tweet);
+					if (tweet) {
+	
+						if (isUnpin) {
+							setTweets([
+								...tweets.slice(0, tweetIndex),
+								...tweets.slice(tweetIndex + 1)
+							]);
+						} else {
+							setTweets([
+								...tweets.slice(0, tweetIndex),
+								{ ...tweet, isPinned: true },
+								...tweets.slice(tweetIndex + 1)
+							]);
+						}
+					}
+					break;
 			}
 		},
-		[gifs, images, pinnedText, NFTs]
+		[gifs, images, pinnedText, NFTs, tweets]
 	);
 
 	const handleMoveItemMessage = useCallback(
@@ -902,10 +922,23 @@ function App() {
 				case 'chat':
 					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
 					break;
-			}
-		},
-		[images, NFTs, gifs, pinnedText]
-	);
+				case 'tweet':
+						const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
+						const tweet = tweets[tweetIndex];
+						if (tweet) {
+							setTweets([
+								...tweets.slice(0, tweetIndex),
+								{
+									...tweet,
+									top: relativeTop,
+									left: relativeLeft
+								},
+								...tweets.slice(tweetIndex + 1)
+							]);
+						}
+						break;
+				}},
+		[images, NFTs, gifs, pinnedText, tweets]);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1103,9 +1136,10 @@ function App() {
 					}
 					break;
 				case 'tweet':
-					if (message.value) {
+					console.log("useEffect1")
+					if (message.value && message.yt && message.xt) {
 						console.log("useEffect")
-						//addTweet(message.value);
+						addTweet(message.xt, message.yt, message.value)
 						}
 						break;
 				case 'image':
@@ -1234,6 +1268,7 @@ function App() {
 	}, [
 		handleTowerDefenseEvents,
 		playEmoji,
+		addTweet,
 		playSound,
 		handleChatMessage,
 		addGif,
@@ -1419,13 +1454,21 @@ function App() {
 				});
 				break;
 			case 'tweet':
-				console.log("actionhandler");
 				const id = args[0] as string;
-				addTweet(id);
+				const { x, y } = generateRandomXY(true, true);
+				addTweet(x, y, id);
 				socket.emit('event',{
-				key:'tweet',
-				value: id
-				})
+					key:'tweet',
+					value: id,
+					xt: x,
+					yt: y
+				});
+				setMovingBoardItem({
+					type: 'tweet',
+					itemKey: id,
+					value: id,
+					isNew: true
+				});
 				break;
 			case 'youtube':
 				const videoId = args[0] as string;
@@ -1571,6 +1614,7 @@ function App() {
 				const pinnedImages: IBoardImage[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
+				const pinnedTweets: ITweet[] =[];
 
 				let backgroundType: 'image' | 'map' | undefined;
 				let backgroundImg: string | undefined;
@@ -1594,6 +1638,16 @@ function App() {
 							isPinned: true,
 							key: item.key!,
 							url: item.url
+						});
+					}
+					else if(item.type ==='tweet'){
+						pinnedTweets.push({
+						...item,
+						top:  item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						id: item.id
+
 						});
 					} else if (item.type === 'background') {
 						backgroundType = item.subType;
@@ -1624,6 +1678,7 @@ function App() {
 
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
+				setTweets(pinnedTweets);
 				setPinnedText(pinnedText);
 				setBackground({
 					name: backgroundImg,
@@ -1704,8 +1759,37 @@ function App() {
 			}
 		}
 	};
-	const pinTweet = () => {
-		//deals with sockets
+		const pinTweet = async (tweetID: string) => {
+		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
+		const tweet = tweets[tweetIndex];
+		const room = roomId || 'default';
+
+		if (tweet && !tweet.isPinned) {
+			console.log('Tweet called pinRoomItem');
+			const result = await firebaseContext.pinRoomItem(room, {
+				...tweet,
+				key: tweet.id,
+				type: 'tweet',
+				left: tweet.left / window.innerWidth,
+				top: tweet.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setTweets([
+					...tweets.slice(0, tweetIndex),
+					{ ...tweet, isPinned: true },
+					...tweets.slice(tweetIndex + 1)
+				]);
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'tweet',
+					itemKey: tweet.id
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+
 	};
 
 	const pinImage = async (imageKey: string) => {
@@ -1832,9 +1916,28 @@ function App() {
 	};
 
 	
-	
-	const unpinTweet = () => {
+	const unpinTweet = async (tweetID: string) => {
+		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
+		const tweet = tweets[tweetIndex];
+		const room = roomId || 'default';
 
+		if (tweet && tweet.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				tweet.id
+			);
+			if (isSuccessful) {
+				setTweets([...tweets.slice(0, tweetIndex), ...tweets.slice(tweetIndex + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'tweet',
+					itemKey: tweetID
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
 	};
 	const unpinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
@@ -1989,8 +2092,20 @@ function App() {
 					...NFTs.slice(nftIndex + 1)
 				]);
 			}
+		} else if (type === 'tweet') {
+			const tweetIndex = tweets.findIndex((tweet) => tweet.id === id);
+			if (tweetIndex !== -1) {
+				setTweets([
+					...tweets.slice(0, tweetIndex),
+					{
+						...tweets[tweetIndex],
+						top,
+						left
+					},
+					...tweets.slice(tweetIndex + 1)
+				]);
+			}
 		}
-
 		if (type === 'chat') {
 			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
 		}
@@ -2106,9 +2221,6 @@ function App() {
 		>
 			<MetamaskSection />
 				<Board
-				tweets={tweets}
-				pinTweet={pinTweet}     //write pintweet
-				unpinTweet={unpinTweet} //write unpintweet
 				videoId={videoId}
 				volume={volume}
 				background={background}
@@ -2150,6 +2262,10 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				tweets={tweets}
+				pinTweet={pinTweet}
+				unpinTweet={unpinTweet}
+				//updateTweets={setTweets}
 			/>
 
 			<TowerDefense
