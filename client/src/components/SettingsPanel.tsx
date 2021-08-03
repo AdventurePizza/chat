@@ -210,7 +210,7 @@ export const SettingsPanel = ({
 					{rooms.map((room, index) => (
 						<div className="settings-room-container" key={index} onClick={() => onRoomClick(room.roomData.name)}>
 							<div className="settings-image-container">
-								{room.background && room.background.subType === "image" ? (
+								{room.background && room.background.name ? (
 									<img src={room.background.name} alt="room background"/>
 								) : null}
 								{room.background && room.background.subType === "map" ? (
