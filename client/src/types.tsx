@@ -209,7 +209,8 @@ export interface IUserProfile {
 	weather?: IWeather;
 	soundType?: string;
 	musicMetadata?: IMetadata;
-	currentRoom?: string
+	currentRoom?: string;
+	email: string;
 }
 
 export interface IUserProfiles {
@@ -296,6 +297,11 @@ export interface IWaterfallChat{
 	left: number;
 	messages: IWaterfallMessage[];
 	show?: boolean;
+}
+
+export interface IChatroomData {
+	roomData: IChatRoom;
+	background?: any;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

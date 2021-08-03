@@ -32,7 +32,7 @@ chatroomUserRouter.get("/get/:userId", async (req, res) => {
     const doc = await collection.doc(userId).get();
 
     if(!doc.exists){
-        return null;
+        return res.status(200).send("");
     }
 
     res.status(200).send(doc.data());
@@ -70,6 +70,23 @@ chatroomUserRouter.patch("/avatar/:userId", async (req, res) => {
     docRef.update({ avatar });
 
     res.status(200).end();
+})
+
+//update user email
+chatroomUserRouter.patch("/email/:userId", async (req, res) => {
+  const { userId } = req.params as { userId: string };
+  const { email } = req.body as { email: string };
+
+  const docRef = await collection.doc(userId);
+  const doc = await docRef.get();
+
+  if(!doc.exists){
+      return error(res, "user does not exist");
+  }
+
+  docRef.update({ email });
+
+  res.status(200).end();
 })
 
 chatroomUserRouter.get("/user-rooms/:userId", async (req, res) => {

@@ -58,10 +58,11 @@
 
 .settings-wallet {
     display: flex;
-    width: 50%;
+    width: 100%;
     flex-wrap: wrap;
     color: black;
     font-size: 12px;
+    overflow-y: scroll;
 }
 
 .settings-token-container {

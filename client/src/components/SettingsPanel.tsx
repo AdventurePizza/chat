@@ -2,6 +2,7 @@ import { InputButton } from './shared/InputButton';
 import React, { useContext, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { AuthContext } from '../contexts/AuthProvider';
+import { FirebaseContext } from '../contexts/FirebaseContext';
 import axios from "axios";
 
 const useStyles = makeStyles({
@@ -47,7 +48,8 @@ interface ISettingsPanelProps {
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void; 
-	currentAvatar: string
+	currentAvatar: string;
+	setStep: (step: number) => void;
 }
 
 interface IWalletItem {
@@ -58,7 +60,7 @@ interface IWalletItem {
 	logo_url?: string,
 }
 
-interface IRoomData {
+export interface IRoomData {
 	roomData: {
 		isLocked: string,
 		lockedOwnerAddress: string,
@@ -93,13 +95,15 @@ export const SettingsPanel = ({
 	onSubmitUrl,
 	onChangeAvatar,
 	onSendLocation,
-	currentAvatar
+	currentAvatar,
+	setStep
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
 	const [isWalletLoaded, setIsWalletLoaded] = useState(false);
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 	const [rooms, setRooms] = useState<IRoomData[]>([]);
+	const firebaseContext = useContext(FirebaseContext);
 
 	const [activeAvatar, setActiveAvatar] = useState(currentAvatar);
 	const avatars = [{
@@ -155,9 +159,12 @@ export const SettingsPanel = ({
 			   })
 			   .catch(err => console.log(err)); 
 
-			 axios.get(`/chatroom-users/user-rooms/${accountId}`)
+
+			firebaseContext.getUserRooms(accountId)
 				.then(res => {
-					setRooms(res.data);
+					if(res.data){
+						setRooms(res.data);
+					}
 				})
 				.catch(err => console.log(err)); 
 		}
@@ -166,7 +173,7 @@ export const SettingsPanel = ({
 		if(isLoggedIn){ 
 			fetchData();
 		}	
-	}, [isLoggedIn, accountId]);
+	}, [isLoggedIn, accountId, firebaseContext]);
 	
 	const history = useHistory();
 
@@ -184,6 +191,7 @@ export const SettingsPanel = ({
 						placeholder="enter name"
 						onClick={onChangeName}
 						inputWidth={300}
+						setStep={setStep}
 					/>
 					{/* <input type="text" placeholder="add text"/> */}
 				</div>
@@ -213,7 +221,11 @@ export const SettingsPanel = ({
 						</div>
 					)
 				})}
-				<Button className="settings-avatar-button" onClick={() => onChangeAvatar(activeAvatar)} variant="contained" color="primary">GO!</Button>
+				<Button className="settings-avatar-button" 
+					onClick={() => {
+						onChangeAvatar(activeAvatar);
+						setStep(3);
+					}} variant="contained" color="primary">GO!</Button>
 			</div>
 			<h2>ROOMS</h2>
 			{rooms ? (
@@ -221,7 +233,7 @@ export const SettingsPanel = ({
 					{rooms.map((room, index) => (
 						<div className="settings-room-container" key={index} onClick={() => onRoomClick(room.roomData.name)}>
 							<div className="settings-image-container">
-								{room.background && room.background.subType === "image" ? (
+								{room.background && room.background.name ? (
 									<img src={room.background.name} alt="room background"/>
 								) : null}
 								{room.background && room.background.subType === "map" ? (

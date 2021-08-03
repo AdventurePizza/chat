@@ -2,10 +2,9 @@ import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
-/* import Tour from 'reactour'; */
+import Tour from 'reactour';
 
 import { CustomToken as NFT } from './typechain/CustomToken';
-import axios  from 'axios';
 
 import {
 	BUILDING_COSTS,
@@ -40,6 +39,7 @@ import {
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
 import React, {
 	useCallback,
 	useContext,
@@ -93,6 +93,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
 import ReactPlayer from 'react-player';
 /* import { Login } from './components/Login'; */
+import { Login } from './components/Login';
 
 const clipboardy = require('clipboardy');
 
@@ -257,7 +258,8 @@ function App() {
 		avatar: '',
 		weather: { temp: '', condition: '' },
 		soundType: '',
-		currentRoom: 'default'
+		currentRoom: 'default',
+		email: ''
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -277,20 +279,11 @@ function App() {
 
 	/* const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true); */
+	const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true);
+	const [isFirstVisit, setIsFirstVisit] = useState(false);
+	const [step, setStep] = useState(0);
 
-
-	// const [coordinates, setCoordinates] = useState({
-	// 	lat: 33.91925555555555,
-	// 	lng: -118.41655555555555
-	// });
-
-	// interface ICoordinates {
-	// 	lat: number;
-	// 	lng: number;
-	// }
-	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	// const [zoom, setZoom] = useState(12);
-	// const [isMapShowing, setIsMapShowing] = useState(false);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 400,
@@ -353,28 +346,33 @@ function App() {
 	//FETCH USER DATA
 	useEffect(() => {
 		if(accountId && isLoggedIn){
-			/* console.log(`/chatroom-users/get/${accountId}`); */
-			axios.get(`/chatroom-users/get/${accountId}`)
+			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					if(!res){
-						axios.post(`/chatroom-users/user`, {userId: accountId, screenName: userProfile.name, avatar: userProfile.avatar})
-							.then(res => console.log("new user: ", res.data))
-							.catch(err => console.log(err));
-					} else {
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
-						socket.emit('event', {
-							key: 'avatar',
-							value: res.data.avatar
-						});
-						socket.emit('event', {
-							key: 'username',
-							value: res.data.screenName
-						});
+					if(res.data.email){
+						setShowLoginModal(false);
 					}
+					if(userProfile.email){
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+					} else {
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
+					}
+					socket.emit('event', {
+						key: 'avatar',
+						value: res.data.avatar
+					});
+					socket.emit('event', {
+						key: 'username',
+						value: res.data.screenName
+					});
 				})
-				.catch((err: any) => console.log(err));
+				.catch((err: any) => {
+					firebaseContext.createUser(accountId, userProfile.name, userProfile.avatar)
+						.then(() => setIsFirstVisit(true))
+						.catch(err => console.log(err));
+					console.log(err)
+				});
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket])
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, userProfile.email, socket, firebaseContext])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -597,6 +595,13 @@ function App() {
 			setBottomPanelHeight(
 				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
 			);
+		}
+		if(selectedPanelItem === "settings"){
+			setStep(1);
+		} else if (selectedPanelItem === "roomDirectory"){
+			setStep(4);
+		} else if (selectedPanelItem === "youtube"){
+			setStep(5);
 		}
 	}, [selectedPanelItem]);
 
@@ -1492,17 +1497,23 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					axios.patch(`/chatroom-users/screen-name/${accountId}`, {screenName: settingsValue})
+					if(accountId){
+						firebaseContext.updateScreenname(accountId, settingsValue)
 						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
 						.catch(err => console.log(err));
+					}
 				} else if (type === 'avatar') {
 					socket.emit('event', {
 						key: 'avatar',
 						value: settingsValue
 					});
-					axios.patch(`/chatroom-users/avatar/${accountId}`, {avatar: settingsValue})
+					if(accountId){
+						firebaseContext.updateAvatar(accountId, settingsValue)
 						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
 						.catch(err => console.log(err));
+					}
+				} else if (type === "email") {
+					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
 				}
 				break;
 			case 'weather':
@@ -2293,29 +2304,26 @@ function App() {
 
 	}
 
-	/* const steps = [
+	const steps = [
 		{
 			selector: ".first-step",
-			content: "Customize your avatar and name in profile settings"
+			content: "Click on the settings tab to customize your avatar and name"
 		},{
 			selector: ".second-step",
-			content: "Enter a screen name and press update",
-			action: (node:any) => {
-				node.focus();
-			}
+			content: "Enter a screen name and press update"
 		},{
 			selector: ".third-step",
 			content: "Select an avatar and click go"
 		},{
 			selector: ".fourth-step",
-			content: "Let's try entering a room (only room creators can lock editing functions)"
+			content: "Create and enter rooms here"
 		},{
 			selector: ".fifth-step",
-			content: "Tap here to chat"
+			content: "You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner"
 		}, {
 			selector: ".sixth-step",
 			content: "Invite the homies and earn tokens"
-		}] */
+		}]
 
 
 	return (
@@ -2335,6 +2343,7 @@ function App() {
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
 					currentAvatar={userProfile.avatar}
+					setStep={setStep}
 				/>
 			</Route>
 
@@ -2390,17 +2399,29 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
-			/>
+				/>
 			</Route>
 
-			{/* <Tour 
+			<Tour 
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
 				disableDotsNavigation={true}
 				disableFocusLock={true}
-			/> */}
+				goToStep={step}
+				lastStepNextButton={<CloseIcon />}
+				showCloseButton={false}
+			/>
 			
+			{showLoginModal ? (
+				<Login 
+					beginTour={setShowTour} 
+					showModal={setShowLoginModal}
+					isFirstVisit={isFirstVisit}
+					userEmail={userProfile.email}
+					setUserEmail={(email) => actionHandler('settings', 'email', email)}
+				/>
+			 ) : null }
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2493,7 +2514,6 @@ function App() {
 				updateShowChat = {onShowChat}
 			/>
 
-			{/* {showLoginModal ? <Login beginTour={setShowTour} hideModal={setShowLoginModal}/> : null } */}
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor

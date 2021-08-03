@@ -25,9 +25,9 @@ roomRouter.get("/:roomId", async (req, res) => {
     });
   }
 
-  if (!ethers.utils.isAddress(address)) {
+  /* if (!ethers.utils.isAddress(address)) {
     return error(res, "Invalid user wallet address: " + address);
-  }
+  } */
 
   const doc = await collection.doc(roomId).get();
   if (!doc.exists) {

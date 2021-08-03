@@ -198,9 +198,17 @@
 	margin-right: 2px;
 }
 
-.background-icon-list {
+.background-search-settings {
 	display: flex;
 	justify-content: center;
+	width:100%;
+}
+
+.background-icon-list {
+	display: flex;
+	overflow-x: scroll;
+	padding-left: 20%;
+	padding-right: 20%;
 }
 
 .sound-category-list {
