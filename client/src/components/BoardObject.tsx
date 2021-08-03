@@ -6,7 +6,7 @@ import { IGif } from '@giphy/js-types';
 import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage } from '../types';
+import { IOrder, IWaterfallMessage, IPlaylist } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
@@ -58,7 +58,7 @@ interface BoardObjectProps {
 	onCancel?: (nftId: string) => void;
 
 	chat?: IWaterfallMessage[];
-	playlist?: string[];
+	playlist?: IPlaylist[];
 }
 
 export const BoardObject = (props: BoardObjectProps) => {

@@ -1,4 +1,4 @@
-import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext } from 'react';
@@ -56,7 +56,7 @@ export interface IFirebaseContext {
 	//music player routes
 	getPlaylist:(
 		roomName: string
-	) => Promise<IFetchResponseBase>;
+	) => Promise<IFetchResponseBase & { data?: IPlaylist[] }>;
 	addtoPlaylist:(
 		roomName: string,
 		track: string
@@ -415,7 +415,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 	const getPlaylist = useCallback(
 		async (
 			roomName: string
-		): Promise<IFetchResponseBase> => {
+		): Promise<IFetchResponseBase & { data?: IPlaylist[] }> => {
 			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getPlaylist`, {
 				method: 'GET'
 			});
@@ -423,7 +423,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			if (fetchRes.ok) {
 				const playlist = (await fetchRes.json());
 				console.log(playlist);
-				return { isSuccessful: true };
+				return { isSuccessful: true, data: playlist };
 			}
 
 			return { isSuccessful: false, message: fetchRes.statusText };

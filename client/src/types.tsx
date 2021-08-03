@@ -298,10 +298,15 @@ export interface IChatroomData {
 	background?: any;
 }
 
+export interface IPlaylist{
+	timestamp: string;
+	url: string;
+}
+
 export interface IMusicPlayer{
 	top: number;
 	left: number;
-	playlist: string[];
+	playlist: IPlaylist[];
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

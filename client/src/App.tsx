@@ -270,8 +270,7 @@ function App() {
 		top: 600,
 		left: 200,
 		playlist: [
-			'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-			'https://hanzluo.s3-us-west-1.amazonaws.com/music/ziyounvshen.mp3'
+			{timestamp: '0', url:'https://hanzluo.s3-us-west-1.amazonaws.com/music/ziyounvshen.mp3'}
 		]
 	});
 
@@ -494,7 +493,7 @@ function App() {
 		}
 		//it is url and should be added
 		else{
-			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat(music)}));
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: new Date().getTime().toString(), url: music})}));
 		}
 	}, [musicPlayer]);
 
@@ -1528,7 +1527,7 @@ function App() {
 				}
 				//it is url and should be added
 				else{
-					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat(music)}));
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: new Date().getTime().toString(), url: music})}));
 				}
 				socket.emit('event', {
 					key: 'change-playlist',
@@ -1665,12 +1664,16 @@ function App() {
 		});
 		// }
 
-		//test call should remvoe laater dont forget !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		firebaseContext.getPlaylist(room);
+		
 
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
-
+			//test call should remvoe laater dont forget !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			//setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+			firebaseContext.getPlaylist(room).then((playlist) => {
+				if(playlist.data)
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
+			});
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 

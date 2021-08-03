@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
+import { IPlaylist } from '../types';
 
 interface PlayListState {
   currentMusicIndex: number
 }
 
 interface MusicPlayerProps {
-	playlist?: string[];
+	playlist?: IPlaylist[];
 }
 
 export const MusicPlayer = (props: MusicPlayerProps) => {
@@ -45,13 +46,13 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           autoPlayAfterSrcChange={true}
           showSkipControls={true}
           showJumpControls={false}
-          src={playlist[currentIndex]}
+          src={playlist[currentIndex].url}
           onClickPrevious={prev}
           onClickNext={next}
         />
       }
       {playlist?.length}
-      {playlist && playlist[currentIndex]}
+      {playlist && playlist[currentIndex].url}
     </div>
   )
 }
