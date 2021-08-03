@@ -52,6 +52,15 @@ export interface IFirebaseContext {
 		email: string,
 	) => Promise<IFetchResponseBase>;
 	getImage:(query: string) => Promise<IFetchResponseBase>;
+
+	//music player routes
+	getPlaylist:(
+		roomName: string
+	) => Promise<IFetchResponseBase>;
+	addtoPlaylist:(
+		roomName: string,
+		track: string
+	) => Promise<IFetchResponseBase>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -69,7 +78,9 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	updateEmail: () => Promise.resolve({ isSuccessful: false }),
 	getUser: () => Promise.resolve({ isSuccessful: false }),
 	getUserRooms: () => Promise.resolve({ isSuccessful: false }),
-	getImage: () => Promise.resolve({ isSuccessful: false })
+	getImage: () => Promise.resolve({ isSuccessful: false }),
+	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	addtoPlaylist: () => Promise.resolve({ isSuccessful: false })
 });
 
 const fetchBase =
@@ -400,7 +411,49 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	//get playlist
+	const getPlaylist = useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getPlaylist`, {
+				method: 'GET'
+			});
 
+			if (fetchRes.ok) {
+				const playlist = (await fetchRes.json());
+				console.log(playlist);
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//add a track to playlist
+	const addtoPlaylist = useCallback(
+		async (
+			roomName: string,
+			track: string
+		): Promise<IFetchResponseBase> => {
+			let timestamp: string = new Date().getTime().toString();  
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoPlaylist`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ track, timestamp })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
 
 	return (
 		<FirebaseContext.Provider
@@ -419,7 +472,9 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				updateEmail,
 				getUser,
 				getUserRooms,
-				getImage
+				getImage,
+				getPlaylist,
+				addtoPlaylist
 			}}
 		>
 			{children}

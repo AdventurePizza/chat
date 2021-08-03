@@ -1534,6 +1534,9 @@ function App() {
 					key: 'change-playlist',
 					value: music
 				});
+
+				firebaseContext.addtoPlaylist(roomId || 'default', music);
+
 				break;
 			default:
 				break;
@@ -1661,6 +1664,9 @@ function App() {
 			// }
 		});
 		// }
+
+		//test call should remvoe laater dont forget !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		firebaseContext.getPlaylist(room);
 
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);

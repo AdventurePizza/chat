@@ -210,6 +210,37 @@ roomRouter.patch("/:roomId/pin/:itemId", async (req, res) => {
   res.status(200).end();
 });
 
+// add a track to playlist
+roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+  const { track } = req.body as { track: string };
+  const { timestamp } = req.body as { timestamp: string };
+
+  const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
+
+  if (!isVerifiedOwner) return;
+
+  const docRef = await collection.doc(roomId);
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+    await docRef.collection("playlist").doc(timestamp).set({ track: track, key: timestamp });
+    res.status(200).end();
+  } else {
+    return error(res, "room does not exist");
+  }
+});
+
+// get playlist
+roomRouter.get("/:roomId/getPlaylist", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+
+  const snapshot = await collection.doc(roomId).collection("playlist").get();
+  const docs = snapshot.docs.map((doc) => doc.data() as IPinnedItem);
+
+  res.status(200).send(docs);
+});
+
 const lockedRooms: { [roomId: string]: { ownerAddress: string } } = {};
 
 const getLockedOwnerAddress = async (
