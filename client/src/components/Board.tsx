@@ -98,6 +98,7 @@ interface IBoardProps {
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
 	waterfallChat: IWaterfallChat;
+	raceId: string;
 }
 
 export const Board = ({
@@ -149,7 +150,8 @@ export const Board = ({
 	onCancel,
 	onClickNewRoom,
 	onClickPresent,
-	waterfallChat
+	waterfallChat,
+	raceId
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -253,6 +255,17 @@ export const Board = ({
 					/>
 				)}
 			</div>
+
+			{raceId && (
+				<iframe
+					src={`https://3d-racing.zed.run/live/${raceId}`}
+					width="100%"
+					height="100%"
+					title="zed racing"
+					style={{ pointerEvents: 'none' }}
+				/>
+			)}
+
 			<YouTubeBackground
 				isVideoPinned={isVideoPinned}
 				lastTime={lastTime}

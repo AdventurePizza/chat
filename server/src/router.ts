@@ -15,6 +15,7 @@ import tokenRouter from "./token";
 import chatroomUserRouter from "./chatroomUsers";
 import imageSearchRouter from "./imageSearch";
 import { emit } from "process";
+import zedrunRouter from "./zedrun";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -159,7 +160,8 @@ export class Router {
     );
 
     app.use("/chatroom-users", chatroomUserRouter);
-
+    
+    app.use("/zedrun/getRaces", zedrunRouter);
 
     io.on("connect", (socket: Socket) => {
       socket.on("authenticate", ({ token }: { token?: string }) => {

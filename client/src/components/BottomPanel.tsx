@@ -27,7 +27,7 @@ import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-
+import { ZedrunPanel } from './ZedrunPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -50,6 +50,7 @@ export interface IBottomPanelProps {
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	setRaceId: (raceId: string) => void;
 }
 
 export interface IPanelContentProps {
@@ -77,6 +78,7 @@ export interface IPanelContentProps {
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	setRaceId: (raceId: string) => void;
 }
 
 export interface ISoundPairs {
@@ -112,7 +114,8 @@ export const BottomPanel = ({
 	hideAllPins,
 	setHideAllPins,
 	roomData,
-	updateShowChat
+	updateShowChat,
+	setRaceId
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -155,6 +158,7 @@ export const BottomPanel = ({
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
 					updateShowChat={updateShowChat}
+					setRaceId={setRaceId}
 				/>
 			</div>
 		</Drawer>
@@ -185,7 +189,8 @@ const PanelContent = ({
 	onNFTError,
 	onNFTSuccess,
 	roomData,
-	updateShowChat
+	updateShowChat,
+	setRaceId
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -325,6 +330,8 @@ const PanelContent = ({
 				  allowFullScreen>
 		    </iframe>
 			);
+		case 'zedrun':
+			return <ZedrunPanel setRaceId={setRaceId} />;
 		default:
 			return null;
 	}

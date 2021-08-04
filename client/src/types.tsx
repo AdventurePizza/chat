@@ -178,6 +178,7 @@ export enum PanelItemEnum {
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
+	'zedrun' = 'zedrun',
 	'sound' = 'sound',
 	'email' = 'email',
 	'new-room' = 'new-room',

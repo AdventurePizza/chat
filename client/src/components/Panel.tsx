@@ -25,7 +25,7 @@ import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import { NFTIcon } from './NFT/NFTPanel';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
-
+import horseIcon from '../assets/navbar/horse.svg';
 import browseNFTIcon from '../assets/navbar/browseNFTIcon.png';
 
 interface IPanelProps {
@@ -123,7 +123,7 @@ const panelIconSrcMap: {
 	animation: animationIcon,
 	// poem: poemIcon
 	maps: mapsIcon,
-
+	
 	browseNFT: browseNFTIcon
 };
 
@@ -135,7 +135,16 @@ const panelIconComponentMap: {
 	NFT: <NFTIcon />,
 	background: <Image style={{ fontSize: 32 }} />,
 	tower: <SportsEsports style={{ fontSize: 36 }} />,
-	roomDirectory: <div className="fourth-step"><MeetingRoom style={{ fontSize: 36 }} /></div>
+	roomDirectory: <div className="fourth-step"><MeetingRoom style={{ fontSize: 36 }} /></div>,
+	zedrun: (
+		<img
+			alt="horse"
+			className="panel-icon"
+			src={horseIcon}
+			width="40"
+			height="40"
+		/>
+	)
 };
 
 interface IPanelItemProps {

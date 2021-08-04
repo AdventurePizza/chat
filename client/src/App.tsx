@@ -292,6 +292,8 @@ function App() {
 		show: true
 	});
 
+	const [raceId, setRaceId] = useState<string>('');
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -465,6 +467,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'zedrun':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -2399,6 +2402,7 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				raceId={raceId}
 				/>
 			</Route>
 
@@ -2512,6 +2516,7 @@ function App() {
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
+				setRaceId={setRaceId}
 			/>
 
 
