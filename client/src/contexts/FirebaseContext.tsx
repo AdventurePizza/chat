@@ -66,6 +66,7 @@ export interface IFirebaseContext {
 		roomName: string,
 		timestamp: string
 	) => Promise<IFetchResponseBase>;
+	getRaces: () => Promise<IFetchResponseBase>;
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
@@ -86,7 +87,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getImage: () => Promise.resolve({ isSuccessful: false }),
 	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
-	removefromPlaylist: () => Promise.resolve({ isSuccessful: false })
+	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	getRaces: () => Promise.resolve({ isSuccessful: false })
 });
 
 const fetchBase =
@@ -234,6 +236,18 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		},
 		[fetchAuthenticated]
 	);
+
+	const getRaces = useCallback(async (): Promise<IFetchResponseBase> => {
+		const fetchRes = await fetchAuthenticated(`/zedrun/getRaces`, {
+			method: 'GET'
+		});
+
+		if (fetchRes.ok) {
+			return { isSuccessful: true, message: await fetchRes.json() };
+		}
+
+		return { isSuccessful: false, message: fetchRes.statusText };
+	}, [fetchAuthenticated]);
 
 	const unpinRoomItem = useCallback(
 		async (roomName: string, itemId: string): Promise<IFetchResponseBase> => {
@@ -502,7 +516,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getImage,
 				getPlaylist,
 				addtoPlaylist,
-				removefromPlaylist
+				removefromPlaylist,
+				getRaces
 			}}
 		>
 			{children}

@@ -13,6 +13,7 @@ import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { WaterfallChat } from "./WaterfallChat";
 import { MusicPlayer } from "./MusicPlayer";
+import ReactPlayer from 'react-player';
 
 const useStyles = makeStyles({
 	container: {
@@ -38,7 +39,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer';
+	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'musicPlayer';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -133,6 +134,21 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
+				{type === 'video' && id && (
+				<div className="pinned-video-player"
+					style={{
+						height: "225px",
+						width: "400px"
+					}}
+				>
+					<ReactPlayer width="100%" height="100%"
+						url={`https://www.youtube.com/watch/${id}`}
+						controls={true}
+						playing={false}	// Autoplay video
+					/>
+				</div>
+					)
+				}
 				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
 				{type === 'musicPlayer' && playlist &&
 					<div style={{ width: 400 }}>

@@ -16,6 +16,7 @@ import {
 	IAvatarChatMessages,
 	IBackgroundState,
 	IBoardImage,
+	IBoardVideo,
 	IChatMessage,
 	IChatRoom,
 	IEmoji,
@@ -91,6 +92,8 @@ import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
+import ReactPlayer from 'react-player';
+/* import { Login } from './components/Login'; */
 import { Login } from './components/Login';
 
 const clipboardy = require('clipboardy');
@@ -208,8 +211,21 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
+
+	const [videos, setVideos] = useState<IBoardVideo[]>([]);
 	const [videoId, setVideoId] = useState<string>('');
+	const [isVidPinned, setIsVidPinned] = useState<boolean>(false);
+	const [lastVideoId, setLastVideoId] = useState<string>('');
+	const [lastTime, setLastTime] = useState<number>(0);
+	const [isVideoShowing, setIsVideoShowing] = useState<boolean>(false);
+	const [hideAllPins, setHideAllPins] = useState<boolean>(false);
 	const [volume, setVolume] = useState<number>(0.4);
+	const videoRef = useRef<ReactPlayer>(null);
+
+	const clearVideo = () => {
+		setVideoId('');
+		setLastVideoId('');
+	}
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -253,6 +269,17 @@ function App() {
 		condition: ''
 	});
 
+	// YouTube function to keep track of timestamps
+	const updateLastTime = () => {
+		if (videoRef.current !== null) {
+			// console.log(videoRef.current.getCurrentTime());
+			// console.log('updating timestamp');
+			setLastTime(videoRef.current.getCurrentTime());
+		}
+	}
+
+	/* const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true); */
 	const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true);
 	const [isFirstVisit, setIsFirstVisit] = useState(false);
@@ -271,6 +298,7 @@ function App() {
 		left: 200,
 		playlist: []
 	});
+	const [raceId, setRaceId] = useState<string>('');
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -446,6 +474,7 @@ function App() {
 			case 'browseNFT':
 			case 'NFT':
 			case 'musicPlayer':
+			case 'zedrun':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -521,6 +550,18 @@ function App() {
 		};
 		setImages((images) => images.concat(newImage));
 	}, []);
+
+	// List of videos
+	const addVideo = useCallback((videoId: string | undefined) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newVideo: IBoardVideo = {
+			top: y,
+			left: x,
+			key: videoId || uuidv4(),
+			url: `https://img.youtube.com/vi/${videoId}/default.jpg`
+		};
+		setVideos((videos) => videos.concat(newVideo));
+	}, [])
 
 	const updateCursorPosition = useMemo(
 		() =>
@@ -823,6 +864,26 @@ function App() {
 						}
 					}
 					break;
+
+				case 'video':
+					const videoIndex = videos.findIndex((video) => video.key === itemKey);
+					const video = videos[videoIndex];
+					if (video) {
+						if (isUnpin) {
+							setVideos([
+								...videos.slice(0, videoIndex),
+								...videos.slice(videoIndex + 1)
+							]);
+						} else {
+							setVideos([
+								...videos.slice(0, videoIndex),
+								{ ...video, isPinned: true },
+								...videos.slice(videoIndex + 1)
+							]);
+						}
+					}
+					break;
+
 				case 'background':
 					if (isUnpin) {
 						setBackground({
@@ -880,7 +941,7 @@ function App() {
 					break;
 			}
 		},
-		[gifs, images, pinnedText, NFTs]
+		[gifs, images, videos, pinnedText, NFTs]
 	);
 
 	const handleMoveItemMessage = useCallback(
@@ -902,6 +963,22 @@ function App() {
 								left: relativeLeft
 							},
 							...images.slice(imageIndex + 1)
+						]);
+					}
+					break;
+
+				case 'video':
+					const videoIndex = videos.findIndex((video) => video.key === itemKey);
+					const video = videos[videoIndex];
+					if (video) {
+						setImages([
+							...videos.slice(0, videoIndex),
+							{
+								...video,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...videos.slice(videoIndex + 1)
 						]);
 					}
 					break;
@@ -958,7 +1035,7 @@ function App() {
 					break;
 			}
 		},
-		[images, NFTs, gifs, pinnedText]
+		[images, videos, NFTs, gifs, pinnedText]
 	);
 
 	// const onBuy = async (orderId: string) => {
@@ -1135,10 +1212,8 @@ function App() {
 					}
 					break;
 				case 'youtube':
-					// console.log('youtube socket');
-					// console.log(message.value);
-					setBackground({ name: '', isPinned: false });
 					setVideoId(message.value);
+					setLastVideoId(message.value);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -1672,6 +1747,7 @@ function App() {
 
 				const pinnedGifs: IGifs[] = [];
 				const pinnedImages: IBoardImage[] = [];
+				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 
@@ -1691,6 +1767,15 @@ function App() {
 						});
 					} else if (item.type === 'image') {
 						pinnedImages.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							url: item.url
+						});
+					} else if (item.type === 'video') {
+						pinnedVideos.push({
 							...item,
 							top: item.top! * window.innerHeight,
 							left: item.left! * window.innerWidth,
@@ -1728,6 +1813,7 @@ function App() {
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
 				setPinnedText(pinnedText);
+				setVideos(pinnedVideos);
 				setBackground({
 					name: backgroundImg,
 					isPinned: !!backgroundImg || !!backgroundMap,
@@ -1838,6 +1924,79 @@ function App() {
 			}
 		}
 	};
+
+	const pinVideo = async (videoId: string | undefined) => {
+		const videoIndex = videos.findIndex((video) => video.key === videoId);
+		const video = videos[videoIndex];
+		const room = roomId || 'default';
+
+		if (video && !video.isPinned) {
+			const result = await firebaseContext.pinRoomItem(room, {
+				...video,
+				type: 'video',
+				left: video.left / window.innerWidth,
+				top: video.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setVideos([
+					...videos.slice(0, videoIndex),
+					{ ...video, isPinned: true },
+					...videos.slice(videoIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'video',
+					itemKey: videoId
+				});
+
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+
+	};
+
+	const unpinVideo = async (videoId: string | undefined) => {
+		const videoIndex = videos.findIndex((video) => video.key === videoId);
+		const video = videos[videoIndex];
+		const room = roomId || 'default';
+
+		if (video && video.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				video.key
+			);
+			if (isSuccessful) {
+				setVideos([...videos.slice(0, videoIndex), ...videos.slice(videoIndex + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'video',
+					itemKey: videoId
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
+	useEffect(() => {
+		const videoIndex = videos.findIndex((video: IBoardVideo) => video.key === videoId);
+		const video = videos[videoIndex];
+
+		if (videoId === "") {
+			setIsVideoShowing(false);
+			setHideAllPins(false);
+
+		} else if (video && videoId !== "" && video.isPinned) {
+			setIsVidPinned(true);
+
+		} else {
+			setIsVidPinned(false);
+		}
+	}, [videoId, videos]);
 
 	const pinBackground = async () => {
 		/* if(background.isPinned===true){
@@ -2078,6 +2237,17 @@ function App() {
 					...images.slice(imageIndex + 1)
 				]);
 			}
+		} else if (type === 'video') {
+			const videoIndex = videos.findIndex((video) => video.key === id);
+			setVideos([
+				...videos.slice(0, videoIndex),
+				{
+					...videos[videoIndex],
+					top,
+					left
+				},
+				...videos.slice(videoIndex + 1)
+			]);
 		} else if (type === 'NFT') {
 			const nftIndex = NFTs.findIndex((nft) => nft.key === id);
 			if (nftIndex !== -1) {
@@ -2248,6 +2418,10 @@ function App() {
 			<Route exact path={["/room/:roomId", "/"]}>
 			<Board
 				videoId={videoId}
+				isVideoPinned={isVidPinned}
+				hideAllPins={hideAllPins}
+				videoRef={videoRef}
+				lastTime={lastTime}
 				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
@@ -2258,6 +2432,9 @@ function App() {
 				updateGifs={setGifs}
 				images={images}
 				updateImages={setImages}
+				videos={videos}
+				updateVideos={setVideos}
+				addVideo={addVideo}
 				chatMessages={chatMessages}
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
@@ -2272,6 +2449,8 @@ function App() {
 				unpinGif={unpinGif}
 				pinImage={pinImage}
 				unpinImage={unpinImage}
+				pinVideo={pinVideo}
+				unpinVideo={unpinVideo}
 				pinBackground={pinBackground}
 				unpinBackground={unpinBackground}
 				pinnedText={pinnedText}
@@ -2289,6 +2468,7 @@ function App() {
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
 				musicPlayer={musicPlayer}
+				raceId={raceId}
 				/>
 			</Route>
 
@@ -2340,6 +2520,9 @@ function App() {
 							onClick={() => {
 								setIsPanelOpen(true);
 							}}
+							style={{
+								backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none"
+							}}
 						>
 							<ChevronRight />
 						</IconButton>
@@ -2369,6 +2552,9 @@ function App() {
 					target="_blank"
 					rel="noreferrer"
 					className="adventure-logo"
+					style={{
+						visibility: isVideoShowing ? "hidden" : "visible"
+					}}
 				>
 					<div>adventure</div>
 					<div>networks</div>
@@ -2386,10 +2572,18 @@ function App() {
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
 				setVideoId={setVideoId}
+				setLastVideoId={setLastVideoId}
+				lastVideoId={lastVideoId}
+				hideAllPins={hideAllPins}
+				setHideAllPins={setHideAllPins}
+				updateLastTime={updateLastTime}
 				setVolume={setVolume}
+				setIsVideoShowing={setIsVideoShowing}
+				isVideoShowing={isVideoShowing}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
 				musicPlayer = {musicPlayer}
+				setRaceId={setRaceId}
 			/>
 
 
@@ -2418,6 +2612,7 @@ function App() {
 						<EnterRoomModal
 							roomName={roomToEnter}
 							onClickCancel={() => setModalState(null)}
+							clearVideo={clearVideo}
 						/>
 					)}
 					{modalState === 'error' && modalErrorMessage && (

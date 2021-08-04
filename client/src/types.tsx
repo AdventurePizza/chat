@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'musicPlayer';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -151,6 +151,14 @@ export interface IBoardImage {
 	isPinned?: boolean;
 }
 
+export interface IBoardVideo {
+	top: number;
+	left: number;
+	key: string;
+	url: string;
+	isPinned?: boolean;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -171,6 +179,7 @@ export enum PanelItemEnum {
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
+	'zedrun' = 'zedrun',
 	'sound' = 'sound',
 	'email' = 'email',
 	'new-room' = 'new-room',

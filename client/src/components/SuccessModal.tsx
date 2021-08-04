@@ -36,7 +36,6 @@ const useStyles = makeStyles({
 			outline: 'none',
 			boxShadow: 'none'
 		},
-		zIndex: 99999999999999
 	},
 	cancelButton: {
 		position: 'absolute',
