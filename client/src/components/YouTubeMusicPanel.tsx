@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import youtube from './youtube'
 
-import { IconButton, Tooltip } from '@material-ui/core';
+import { IconButton, Tooltip, FormControlLabel, Switch } from '@material-ui/core';
+
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
@@ -15,26 +16,42 @@ interface IYouTubePanelProps {
 
   lastQuery: string; // Last entered query in the search bar
   queriedVideos: Array<any>; // Videos returned from search query
+  isVideoShowing: boolean;
+  lastVideoId: string;
+  hideAllPins: boolean;
 
   setVideoId: (id: string) => void;
+  setLastVideoId: (id: string) => void;
+  setIsVideoShowing: (value: boolean) => void;
   setLastQuery: (query: string) => void; // modifies BottomPanel state so last queried videos can persist
   setVolume: (volume: number) => void;
+  setHideAllPins: (value: boolean) => void;
   setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
+  updateLastTime: () => void;
 }
 
 function YouTubeMusicPanel({
   setVideoId,
+  setLastVideoId,
+  lastVideoId,
   setVolume,
   sendVideo,
   queriedVideos,
   setQueriedVideos,
   lastQuery,
-  setLastQuery
+  setLastQuery,
+  setIsVideoShowing,
+  isVideoShowing,
+  updateLastTime,
+  hideAllPins,
+  setHideAllPins
 }: IYouTubePanelProps) {
   // Displays 5 of the 15 videos at a time
   const [selectedVideos, setSelectedVideos] = useState<Array<any>>(queriedVideos.slice(0, 5));
   const [text, setText] = useState<string>(lastQuery);
   const [leftIndex, setLeftIndex] = useState<any>(0);
+  const [value, setValue] = useState<number>(30);
+  const [isShowing, setIsShowing] = useState<boolean>(false);
 
   // Function called when search icon is clicked
   const queryYouTube = (ytquery: string) => {
@@ -56,8 +73,6 @@ function YouTubeMusicPanel({
       setSelectedVideos(queriedVideos.slice(leftIndex, leftIndex + 5));
     }
   }, [leftIndex, queriedVideos])
-
-  const [value, setValue] = useState(30);
 
   const handleChange = (event: any, newValue: any) => {
     setValue(newValue);
@@ -81,32 +96,13 @@ function YouTubeMusicPanel({
           <SearchIcon />
         </IconButton>
       </div>
-      <div className="youtube-list-container">
-        <ul className="youtube-list">
-          {selectedVideos.map((video, i) => (
-            <Tooltip key={i} title={video.snippet.title}>
-              <li>
-              <img alt="YouTube Video Thumbnail" className="youtube-thumbnail"
-                src={video.snippet.thumbnails.default.url}
-                onClick={() => {
-                  sendVideo(video.id.videoId);
-                  setVideoId(video.id.videoId);
-                }}/>
-              </li>
-            </Tooltip>
-          ))}
-        </ul>
-        <div className="youtube-controls">
-          <VolumeDown />
-          <Slider 
-          style={{
-            width: "200px"
-          }}
-          value={value}
-          onChange={handleChange}
-          />
-          <VolumeUp />
-        </div>
+      <div className="youtube-list-container"
+        style={{
+          display: "inline-block",
+          height: lastQuery !== '' ? "134px" : "auto"
+        }}
+      >
+        <div className="button-wrapper">
           <IconButton
           disabled={lastQuery === '' || leftIndex <= 0}
           color="primary"
@@ -116,17 +112,89 @@ function YouTubeMusicPanel({
           >
             <NavigateBeforeIcon />
           </IconButton>
-
+        </div>
+        <ul className="youtube-list" style={{
+          display: "inline-block"
+        }}>
+          {selectedVideos.map((video, i) => (
+            <Tooltip key={i} title={video.snippet.title}>
+              <li>
+              <img alt="YouTube Video Thumbnail" className="youtube-thumbnail"
+                src={video.snippet.thumbnails.default.url}
+                onClick={() => {
+                  const videoId = video.id.videoId;
+                  sendVideo(videoId);
+                  setVideoId(videoId);
+                  setLastVideoId(videoId);
+                  setIsShowing(true);
+                  setIsVideoShowing(true);
+                }}/>
+              </li>
+            </Tooltip>
+          ))}
+        </ul>
+        <div className="button-wrapper">
           <IconButton
           disabled={lastQuery === '' || leftIndex >= 10}
           color="primary"
           onClick={() => {
             setLeftIndex(leftIndex + 5);
           }}
-         >
+          >
             <NavigateNextIcon />
           </IconButton>
+        </div>
       </div>
+      <div className="youtube-controls">
+        <VolumeDown />
+        <Slider 
+        style={{
+          width: "200px"
+        }}
+        value={value}
+        onChange={handleChange}
+        />
+        <VolumeUp />
+      </div>
+      <div style={{ 
+        marginTop: "10px",
+        marginBottom: "20px"
+       }}>
+				<FormControlLabel
+					checked={isVideoShowing}
+					onChange={() => {
+						const newVal = !isVideoShowing;
+            setIsShowing(newVal);
+            setIsVideoShowing(newVal);
+
+            if (newVal) {
+              setVideoId(lastVideoId);
+              // console.log({lastTime})
+            } else {
+              setVideoId('');
+              updateLastTime();
+            }
+					}}
+					control={<Switch color="primary" />}
+					label="Show Video"
+				/>
+
+          <FormControlLabel
+            checked={hideAllPins}
+            onChange={() => {
+              const newVal = !hideAllPins;
+              setHideAllPins(newVal);
+
+              if (newVal) {
+                console.log('pins hidden');
+              } else {
+                console.log('pins shown');
+              }
+            }}
+            control={<Switch color="primary" />}
+            label="Hide Pins"
+          />
+			</div>
     </div>
   )
 }

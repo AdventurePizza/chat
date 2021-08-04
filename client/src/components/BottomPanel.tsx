@@ -32,6 +32,7 @@ import { ISubmit } from './NFT/OrderInput';
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
 	isOpen: boolean;
+	isVideoShowing: boolean;
 	type?: PanelItemEnum;
 	setBrushColor: (color: string) => void;
 	onAction: (key: string, ...args: any[]) => void;
@@ -40,6 +41,12 @@ export interface IBottomPanelProps {
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	setVideoId: React.Dispatch<React.SetStateAction<string>>;
+	setLastVideoId: (id: string) => void;
+	updateLastTime: () => void;
+	lastVideoId: string;
+	hideAllPins: boolean;
+	setIsVideoShowing: (value: boolean) => void;
+	setHideAllPins: (value: boolean) => void;
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
@@ -54,10 +61,17 @@ export interface IPanelContentProps {
 	images: IImagesState[];
 	queriedVideos: Array<any>;
 	lastQuery: string;
+	hideAllPins: boolean;
+	isVideoShowing: boolean;
+	lastVideoId: string;
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
 	setQueriedVideos: React.Dispatch<React.SetStateAction<Array<any>>>;
 	setLastQuery: React.Dispatch<React.SetStateAction<string>>;
 	setVideoId: (id: string) => void;
+	setLastVideoId: (id: string) => void;
+	setIsVideoShowing: (value: boolean) => void;
+	setHideAllPins: (value: boolean) => void;
+	updateLastTime: () => void;
 	setVolume: (volume: number) => void;
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
@@ -89,7 +103,14 @@ export const BottomPanel = ({
 	onNFTError,
 	onNFTSuccess,
 	setVideoId,
+	lastVideoId,
+	setLastVideoId,
+	isVideoShowing,
+	setIsVideoShowing,
+	updateLastTime,
 	setVolume,
+	hideAllPins,
+	setHideAllPins,
 	roomData,
 	updateShowChat
 }: IBottomPanelProps) => {
@@ -117,12 +138,19 @@ export const BottomPanel = ({
 					updateIsTyping={updateIsTyping}
 					images={images}
 					queriedVideos={videos}
+					lastVideoId={lastVideoId}
 					lastQuery={lastQuery}
+					isVideoShowing={isVideoShowing}
 					setImages={setImages}
 					setVideoId={setVideoId}
+					setLastVideoId={setLastVideoId}
+					setIsVideoShowing={setIsVideoShowing}
+					updateLastTime={updateLastTime}
 					setVolume={setVolume}
 					setQueriedVideos={setQueriedVideos}
 					setLastQuery={setLastQuery}
+					hideAllPins={hideAllPins}
+					setHideAllPins={setHideAllPins}
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
@@ -144,6 +172,13 @@ const PanelContent = ({
 	lastQuery,
 	setImages,
 	setVideoId,
+	lastVideoId,
+	setLastVideoId,
+	setIsVideoShowing,
+	isVideoShowing,
+	updateLastTime,
+	hideAllPins,
+	setHideAllPins,
 	setVolume,
 	setQueriedVideos,
 	setLastQuery,
@@ -271,11 +306,18 @@ const PanelContent = ({
 					setQueriedVideos={setQueriedVideos}
 					lastQuery={lastQuery}
 					setLastQuery={setLastQuery}
+					setIsVideoShowing={setIsVideoShowing}
+					isVideoShowing={isVideoShowing}
+					lastVideoId={lastVideoId}
+					setLastVideoId={setLastVideoId}
+					updateLastTime={updateLastTime}
+					hideAllPins={hideAllPins}
+					setHideAllPins={setHideAllPins}
 				/>
 			);
 		case 'browseNFT':
 			return (
-				<iframe
+				<iframe className="opensea-listings"
 					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
 				  width='100%'
 				  height='100vh'

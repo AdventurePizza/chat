@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -143,6 +143,14 @@ export interface ITextAnimation {
 }
 
 export interface IBoardImage {
+	top: number;
+	left: number;
+	key: string;
+	url: string;
+	isPinned?: boolean;
+}
+
+export interface IBoardVideo {
 	top: number;
 	left: number;
 	key: string;
