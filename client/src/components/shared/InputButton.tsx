@@ -35,6 +35,7 @@ interface IInputButtonProps {
 	buttonText: string;
 	inputWidth?: number;
 	updateValue?: (inputValue: string) => void;
+	setStep?: (step: number) => void;
 }
 
 export const InputButton = ({
@@ -42,7 +43,8 @@ export const InputButton = ({
 	onClick,
 	buttonText,
 	inputWidth,
-	updateValue
+	updateValue,
+	setStep
 }: IInputButtonProps) => {
 	const classes = useStyles();
 	const [inputValue, setInputValue] = useState('');
@@ -50,6 +52,9 @@ export const InputButton = ({
 	const onClickSubmit = () => {
 		setInputValue('');
 		onClick(inputValue);
+		if(setStep){
+			setStep(2);
+		}
 	};
 
 	const onChangeInputValue = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {

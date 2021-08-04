@@ -254,18 +254,15 @@ export const Board = ({
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
-
-			{waterfallChat.show && (
-				<BoardObject
-					id={'texteyId'}
-					type="chat"
-					onPin={() => {}}
-					onUnpin={() => {}}
-					chat={waterfallChat.messages}
-					top={waterfallChat.top}
-					left={waterfallChat.left}
-				/>
-			)}
+			{waterfallChat.show && <BoardObject
+				id={'texteyId'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition

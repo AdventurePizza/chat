@@ -2,10 +2,9 @@ import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
-/* import Tour from 'reactour'; */
+import Tour from 'reactour';
 
 import { CustomToken as NFT } from './typechain/CustomToken';
-import axios from 'axios';
 
 import {
 	BUILDING_COSTS,
@@ -39,13 +38,14 @@ import {
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
 import React, {
 	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
 	useRef,
-	useState
+	useState,
 } from 'react';
 import {
 	Route,
@@ -90,7 +90,7 @@ import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
-/* import { Login } from './components/Login'; */
+import { Login } from './components/Login';
 
 const clipboardy = require('clipboardy');
 
@@ -166,20 +166,18 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
-		setUserProfile((profile) => ({ ...profile, currentRoom: roomId }));
+		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
 		socket.emit('event', {
 			key: 'currentRoom',
 			value: roomId
-		});
+		})
 		return history.listen(() => {
 			resetMap();
 		});
 	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
-	const [invalidRoomMessage, setInvalidRoomMessage] = useState<
-		string | undefined
-	>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -244,7 +242,8 @@ function App() {
 		avatar: '',
 		weather: { temp: '', condition: '' },
 		soundType: '',
-		currentRoom: 'default'
+		currentRoom: 'default',
+		email: ''
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -253,21 +252,11 @@ function App() {
 		condition: ''
 	});
 
-	/* const [showTour, setShowTour] = useState(false);
-	const [showLoginModal, setShowLoginModal] = useState(true); */
+	const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true);
+	const [isFirstVisit, setIsFirstVisit] = useState(false);
+	const [step, setStep] = useState(0);
 
-	// const [coordinates, setCoordinates] = useState({
-	// 	lat: 33.91925555555555,
-	// 	lng: -118.41655555555555
-	// });
-
-	// interface ICoordinates {
-	// 	lat: number;
-	// 	lng: number;
-	// }
-	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	// const [zoom, setZoom] = useState(12);
-	// const [isMapShowing, setIsMapShowing] = useState(false);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 400,
@@ -331,39 +320,34 @@ function App() {
 
 	//FETCH USER DATA
 	useEffect(() => {
-		if (accountId && isLoggedIn) {
-			/* console.log(`/chatroom-users/get/${accountId}`); */
-			axios
-				.get(`/chatroom-users/get/${accountId}`)
+		if(accountId && isLoggedIn){
+			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					if (!res) {
-						axios
-							.post(`/chatroom-users/user`, {
-								userId: accountId,
-								screenName: userProfile.name,
-								avatar: userProfile.avatar
-							})
-							.then((res) => console.log('new user: ', res.data))
-							.catch((err) => console.log(err));
-					} else {
-						setUserProfile((profile) => ({
-							...profile,
-							name: res.data.screenName,
-							avatar: res.data.avatar
-						}));
-						socket.emit('event', {
-							key: 'avatar',
-							value: res.data.avatar
-						});
-						socket.emit('event', {
-							key: 'username',
-							value: res.data.screenName
-						});
+					if(res.data.email){
+						setShowLoginModal(false);
 					}
+					if(userProfile.email){
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+					} else {
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
+					}
+					socket.emit('event', {
+						key: 'avatar',
+						value: res.data.avatar
+					});
+					socket.emit('event', {
+						key: 'username',
+						value: res.data.screenName
+					});
 				})
-				.catch((err: any) => console.log(err));
+				.catch((err: any) => {
+					firebaseContext.createUser(accountId, userProfile.name, userProfile.avatar)
+						.then(() => setIsFirstVisit(true))
+						.catch(err => console.log(err));
+					console.log(err)
+				});
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, socket]);
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, userProfile.email, socket, firebaseContext])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -480,20 +464,11 @@ function App() {
 	}, []);
 
 	const onShowChat = () => {
-		setWaterfallChat((waterfallChat) => ({
-			...waterfallChat,
-			show: !waterfallChat.show
-		}));
-	};
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value } = message;
-		setWaterfallChat((waterfallChat) => ({
-			...waterfallChat,
-			messages: waterfallChat.messages.concat({
-				avatar: avatar,
-				message: value
-			})
-		}));
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 	}, []);
 
 	const drawLineEvent = useCallback((strLineData) => {
@@ -584,6 +559,13 @@ function App() {
 			setBottomPanelHeight(
 				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
 			);
+		}
+		if(selectedPanelItem === "settings"){
+			setStep(1);
+		} else if (selectedPanelItem === "roomDirectory"){
+			setStep(4);
+		} else if (selectedPanelItem === "youtube"){
+			setStep(5);
 		}
 	}, [selectedPanelItem]);
 
@@ -948,11 +930,7 @@ function App() {
 					}
 					break;
 				case 'chat':
-					setWaterfallChat((waterfallChat) => ({
-						...waterfallChat,
-						top: relativeTop,
-						left: relativeLeft
-					}));
+					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
 					break;
 			}
 		},
@@ -1207,12 +1185,9 @@ function App() {
 				case 'currentRoom':
 					setUserProfiles((profiles) => ({
 						...profiles,
-						[message.id]: {
-							...profiles[message.id],
-							currentRoom: message.value
-						}
+						[message.id]: { ...profiles[message.id], currentRoom: message.value }
 					}));
-					break;
+				break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1320,7 +1295,7 @@ function App() {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
-				if (chatValue === '') {
+				if(chatValue === ''){
 					return;
 				}
 				socket.emit('event', {
@@ -1329,13 +1304,7 @@ function App() {
 					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
-				setWaterfallChat((waterfallChat) => ({
-					...waterfallChat,
-					messages: waterfallChat.messages.concat({
-						avatar: userProfile.avatar,
-						message: chatValue
-					})
-				}));
+				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1458,30 +1427,23 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					axios
-						.patch(`/chatroom-users/screen-name/${accountId}`, {
-							screenName: settingsValue
-						})
-						.then((res) =>
-							setUserProfile((profile) => ({ ...profile, name: settingsValue }))
-						)
-						.catch((err) => console.log(err));
+					if(accountId){
+						firebaseContext.updateScreenname(accountId, settingsValue)
+						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
+						.catch(err => console.log(err));
+					}
 				} else if (type === 'avatar') {
 					socket.emit('event', {
 						key: 'avatar',
 						value: settingsValue
 					});
-					axios
-						.patch(`/chatroom-users/avatar/${accountId}`, {
-							avatar: settingsValue
-						})
-						.then((res) =>
-							setUserProfile((profile) => ({
-								...profile,
-								avatar: settingsValue
-							}))
-						)
-						.catch((err) => console.log(err));
+					if(accountId){
+						firebaseContext.updateAvatar(accountId, settingsValue)
+						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
+						.catch(err => console.log(err));
+					}
+				} else if (type === "email") {
+					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
 				}
 				break;
 			case 'weather':
@@ -1608,16 +1570,8 @@ function App() {
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = async (
-		roomName: string,
-		isAccessLocked: boolean,
-		contractAddress?: string
-	) => {
-		const result = await firebaseContext.createRoom(
-			roomName,
-			isAccessLocked,
-			contractAddress
-		);
+	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
+		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
@@ -1895,8 +1849,8 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				let oldBackgroundType = '';
-				if (background.type) {
+				let oldBackgroundType = "";
+				if(background.type){
 					oldBackgroundType = background.type.valueOf();
 				}
 
@@ -1911,7 +1865,7 @@ function App() {
 					type: 'background'
 				});
 
-				if (oldBackgroundType === 'map') {
+				if(oldBackgroundType === "map"){
 					updateIsMapShowing(true);
 					socket.emit('event', {
 						key: 'map',
@@ -2080,21 +2034,19 @@ function App() {
 		}
 
 		if (type === 'chat') {
-			setWaterfallChat((waterfallChat) => ({
-				...waterfallChat,
-				top: top,
-				left: left
-			}));
-		} else {
-			const {
-				isSuccessful,
-				message
-			} = await firebaseContext.movePinnedRoomItem(roomId || 'default', {
-				type,
-				top: y,
-				left: x,
-				key: id
-			});
+			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
+		}
+
+		else{
+			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
+				roomId || 'default',
+				{
+					type,
+					top: y,
+					left: x,
+					key: id
+				}
+			);
 
 			//reverse the changes in client in case has no permission to edit
 			if (!isSuccessful) {
@@ -2183,36 +2135,31 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return (
-			<div>
-				Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection />{' '}
-			</div>
-		);
+		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
+
 	}
 
-	/* const steps = [
+	const steps = [
 		{
 			selector: ".first-step",
-			content: "Customize your avatar and name in profile settings"
+			content: "Click on the settings tab to customize your avatar and name"
 		},{
 			selector: ".second-step",
-			content: "Enter a screen name and press update",
-			action: (node:any) => {
-				node.focus();
-			}
+			content: "Enter a screen name and press update"
 		},{
 			selector: ".third-step",
 			content: "Select an avatar and click go"
 		},{
 			selector: ".fourth-step",
-			content: "Let's try entering a room (only room creators can lock editing functions)"
+			content: "Create and enter rooms here"
 		},{
 			selector: ".fifth-step",
-			content: "Tap here to chat"
+			content: "You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner"
 		}, {
 			selector: ".sixth-step",
 			content: "Invite the homies and earn tokens"
-		}] */
+		}]
+
 
 	return (
 		<div
@@ -2225,71 +2172,83 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel
+				<SettingsPanel 
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) =>
-						actionHandler('settings', 'avatar', avatar)
-					}
+					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
 					currentAvatar={userProfile.avatar}
+					setStep={setStep}
 				/>
 			</Route>
 
-			<Route exact path={['/room/:roomId', '/']}>
-				<Board
-					videoId={videoId}
-					volume={volume}
-					background={background}
-					musicNotes={musicNotes}
-					updateNotes={setMusicNotes}
-					emojis={emojis}
-					updateEmojis={setEmojis}
-					gifs={gifs}
-					updateGifs={setGifs}
-					images={images}
-					updateImages={setImages}
-					chatMessages={chatMessages}
-					updateChatMessages={setChatMessages}
-					userLocations={userLocations}
-					userProfiles={userProfiles}
-					setUserProfiles={setUserProfiles}
-					animations={animations}
-					updateAnimations={setAnimations}
-					avatarMessages={avatarMessages}
-					weather={weather}
-					updateWeather={setWeather}
-					pinGif={pinGif}
-					unpinGif={unpinGif}
-					pinImage={pinImage}
-					unpinImage={unpinImage}
-					pinBackground={pinBackground}
-					unpinBackground={unpinBackground}
-					pinnedText={pinnedText}
-					unpinText={unpinText}
-					moveItem={moveItem}
-					NFTs={NFTs}
-					updateNFTs={setNFTs}
-					pinNFT={pinNFT}
-					unpinNFT={unpinNFT}
-					addNewContract={addNewContract}
-					loadingNFT={loadingNFT}
-					onBuy={() => {}}
-					onCancel={() => {}}
-					onClickNewRoom={() => setModalState('new-room')}
-					onClickPresent={onClickPresent}
-					waterfallChat={waterfallChat}
-					raceId={raceId}
+			<Route exact path={["/room/:roomId", "/"]}>
+			<Board
+				videoId={videoId}
+				volume={volume}
+				background={background}
+				musicNotes={musicNotes}
+				updateNotes={setMusicNotes}
+				emojis={emojis}
+				updateEmojis={setEmojis}
+				gifs={gifs}
+				updateGifs={setGifs}
+				images={images}
+				updateImages={setImages}
+				chatMessages={chatMessages}
+				updateChatMessages={setChatMessages}
+				userLocations={userLocations}
+				userProfiles={userProfiles}
+				setUserProfiles={setUserProfiles}
+				animations={animations}
+				updateAnimations={setAnimations}
+				avatarMessages={avatarMessages}
+				weather={weather}
+				updateWeather={setWeather}
+				pinGif={pinGif}
+				unpinGif={unpinGif}
+				pinImage={pinImage}
+				unpinImage={unpinImage}
+				pinBackground={pinBackground}
+				unpinBackground={unpinBackground}
+				pinnedText={pinnedText}
+				unpinText={unpinText}
+				moveItem={moveItem}
+				NFTs={NFTs}
+				updateNFTs={setNFTs}
+				pinNFT={pinNFT}
+				unpinNFT={unpinNFT}
+				addNewContract={addNewContract}
+				loadingNFT={loadingNFT}
+				onBuy={() => {}}
+				onCancel={() => {}}
+				onClickNewRoom={() => setModalState('new-room')}
+				onClickPresent={onClickPresent}
+				waterfallChat={waterfallChat}
+				raceId={raceId}
 				/>
 			</Route>
 
-			{/* <Tour
+			<Tour 
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
 				disableDotsNavigation={true}
 				disableFocusLock={true}
-			/> */}
+				goToStep={step}
+				lastStepNextButton={<CloseIcon />}
+				showCloseButton={false}
+			/>
+			
+			{showLoginModal ? (
+				<Login 
+					beginTour={setShowTour} 
+					showModal={setShowLoginModal}
+					isFirstVisit={isFirstVisit}
+					userEmail={userProfile.email}
+					setUserEmail={(email) => actionHandler('settings', 'email', email)}
+				/>
+			 ) : null }
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2366,11 +2325,10 @@ function App() {
 				setVideoId={setVideoId}
 				setVolume={setVolume}
 				roomData={roomData}
-				updateShowChat={onShowChat}
+				updateShowChat = {onShowChat}
 				setRaceId={setRaceId}
 			/>
 
-			{/* {showLoginModal ? <Login beginTour={setShowTour} hideModal={setShowLoginModal}/> : null } */}
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor

@@ -98,7 +98,7 @@ export const BottomPanel = ({
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
-	const [lastQuery, setLastQuery] = useState<string>('');
+	const [lastQuery, setLastQuery] = useState<string>("");
 	const classes = useStyles();
 
 	return (
@@ -228,8 +228,10 @@ const PanelContent = ({
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
-		case 'maps':
-			return <MapsPanel />;
+			case 'maps':
+				return (
+					<MapsPanel />
+				);
 		case 'poem':
 			return (
 				<Poem
@@ -279,13 +281,12 @@ const PanelContent = ({
 		case 'browseNFT':
 			return (
 				<iframe
-					title="Opensea Listings"
-					src="https://opensea.io/assets?embed=true"
-					width="100%"
-					height="100vh"
-					frameBorder="0"
-					allowFullScreen
-				></iframe>
+					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
+				  width='100%'
+				  height='100vh'
+				  frameBorder='0'
+				  allowFullScreen>
+		    </iframe>
 			);
 		case 'zedrun':
 			return <ZedrunPanel setRaceId={setRaceId} />;

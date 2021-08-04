@@ -1,13 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes =
-	| 'gif'
-	| 'background'
-	| 'image'
-	| 'text'
-	| 'NFT'
-	| 'map'
-	| 'chat';
+export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -177,10 +170,10 @@ export enum PanelItemEnum {
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
+	'zedrun' = 'zedrun',
 	'sound' = 'sound',
 	'email' = 'email',
 	'new-room' = 'new-room',
-	'zedrun' = 'zedrun',
 	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'tower' = 'tower',
@@ -210,6 +203,7 @@ export interface IUserProfile {
 	soundType?: string;
 	musicMetadata?: IMetadata;
 	currentRoom?: string;
+	email: string;
 }
 
 export interface IUserProfiles {
@@ -286,16 +280,21 @@ export interface INFTMetadata {
 	lockedId?: string;
 }
 
-export interface IWaterfallMessage {
+export interface IWaterfallMessage{
 	avatar: string;
 	message: string;
 }
 
-export interface IWaterfallChat {
+export interface IWaterfallChat{
 	top: number;
 	left: number;
 	messages: IWaterfallMessage[];
 	show?: boolean;
+}
+
+export interface IChatroomData {
+	roomData: IChatRoom;
+	background?: any;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

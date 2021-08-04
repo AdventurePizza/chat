@@ -5,5 +5,8 @@ interface ITokenProps {
 }
 
 export const Token = ({ contractAddress }: ITokenProps) => {
-	return <div>{contractAddress}</div>;
+
+	return (
+		<div>{ contractAddress}</div>
+	);
 };

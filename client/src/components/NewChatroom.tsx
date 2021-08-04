@@ -154,15 +154,12 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 		if (isAccessLocked && !isLoggedIn)
 			return alert('Cannot create locked room without connecting to metamask');
 
-		const { message } = await onCreate(
-			inputValue,
-			isAccessLocked,
-			contractAddress
-		);
+		const { message } = await onCreate(inputValue, isAccessLocked, contractAddress);
 
 		if (message === 'success') {
 			setErrorMsg('');
 			setSuccessMsg({ name: inputValue, message });
+
 		} else {
 			setSuccessMsg(undefined);
 			if (message) {
@@ -172,9 +169,10 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 	};
 
 	const onClickRestrict = async (contractAddress: string) => {
-		if (!contractAddress) {
+		if (!contractAddress){
 			setErrorMsg('Please enter the contract address of the token/NFT');
-		} else {
+		}
+		else{
 			setContractAddress(contractAddressInput);
 		}
 	};
@@ -236,7 +234,7 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 				</div>
 			)}
 
-			{visitorAllowed && (
+			{visitorAllowed &&
 				<div>
 					<InputButton
 						onClick={onClickRestrict}
@@ -245,9 +243,12 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 						placeholder="contract address"
 					/>
 
-					<Token contractAddress={contractAddress} />
+					<Token
+						contractAddress={contractAddress}
+					/>
+
 				</div>
-			)}
+			}
 
 			<div className={classes.previewText}>
 				www.trychats.com/#/room/{inputValue}

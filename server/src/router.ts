@@ -13,8 +13,9 @@ import * as jwt from "jsonwebtoken";
 import roomRouter from "./room";
 import tokenRouter from "./token";
 import chatroomUserRouter from "./chatroomUsers";
-import zedrunRouter from "./zedrun";
+import imageSearchRouter from "./imageSearch";
 import { emit } from "process";
+import zedrunRouter from "./zedrun";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -146,8 +147,20 @@ export class Router {
       }),
       tokenRouter
     );
-    app.use("/chatroom-users", chatroomUserRouter);
 
+    app.use(
+      "/google-image-search",
+      expressjwt({
+        //@ts-ignore
+        secret: Buffer.from(process.env.JWT_SECRET, "base64"),
+        algorithms: ["HS256"],
+        credentialsRequired: false,
+      }),
+      imageSearchRouter
+    );
+
+    app.use("/chatroom-users", chatroomUserRouter);
+    
     app.use("/zedrun/getRaces", zedrunRouter);
 
     io.on("connect", (socket: Socket) => {
@@ -577,7 +590,7 @@ const createProfile = (client: Socket) => {
     weather: { temp: "", condition: "" },
     currentRoom: "default"
   };
-};
+}; 
 
 const spawnEnemy = (roomId: string) => {
   const towerDefenseStateRoom = towerDefenseState[roomId];
