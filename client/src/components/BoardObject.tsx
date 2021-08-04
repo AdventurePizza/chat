@@ -57,6 +57,7 @@ interface BoardObjectProps {
 	onCancel?: (nftId: string) => void;
 
 	chat?: IWaterfallMessage[];
+	updateShowChat?: () => void;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -75,7 +76,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		addNewContract,
 		onBuy,
 		onCancel,
-		chat
+		chat,
+		updateShowChat
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -130,7 +132,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
-				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
+				{type === 'chat' && chat && updateShowChat && <WaterfallChat chat= {chat} updateShowChat={updateShowChat}/>}
 			</Paper>
 
 			{isHovering && (

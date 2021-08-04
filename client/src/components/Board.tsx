@@ -86,6 +86,7 @@ interface IBoardProps {
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
 	waterfallChat: IWaterfallChat;
+	updateShowChat: () => void;
 }
 
 export const Board = ({
@@ -128,7 +129,8 @@ export const Board = ({
 	onCancel,
 	onClickNewRoom,
 	onClickPresent,
-	waterfallChat
+	waterfallChat,
+	updateShowChat
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -242,13 +244,14 @@ export const Board = ({
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
 			{waterfallChat.show && <BoardObject
-				id={'texteyId'}
+				id={'waterfallChat'}
 				type="chat"
 				onPin={() => {}}
 				onUnpin={() => {}}
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
+				updateShowChat={updateShowChat}
 			/>}
 			<TransitionGroup>
 				{emojis.map((emoji) => (

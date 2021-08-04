@@ -259,8 +259,8 @@ function App() {
 
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 400,
-		left: 800,
+		top: 10,
+		left: 110,
 		messages: [],
 		show: true
 	});
@@ -2222,6 +2222,7 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				updateShowChat = {onShowChat}
 				/>
 			</Route>
 

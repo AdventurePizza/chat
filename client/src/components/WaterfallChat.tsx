@@ -1,13 +1,14 @@
 import React, { useEffect, useRef } from 'react'
 import { IWaterfallMessage } from '../types';
-import { Box, Avatar } from '@material-ui/core';
+import { Box, Avatar, Button } from '@material-ui/core';
 import { avatarMap } from './UserCursors';
 
 interface IWaterfallChatProps {
 	chat: IWaterfallMessage[];
+	updateShowChat: () => void;
 }
 
-export const WaterfallChat = ({ chat }: IWaterfallChatProps) => {
+export const WaterfallChat = ({ chat, updateShowChat }: IWaterfallChatProps) => {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const scrollToBottom = () => {
 			if(messagesEndRef && messagesEndRef.current){
@@ -21,7 +22,10 @@ export const WaterfallChat = ({ chat }: IWaterfallChatProps) => {
 
 	return (
 			<div>
-				<Box color="primary.main" style={{ maxWidth: 300, maxHeight: 30 , minWidth: 300, minHeight: 30, fontSize: 20, textAlign: 'center' }}> CHAT </Box>
+				<Button 
+					style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} 
+					size="medium" color="primary" onClick={() => { updateShowChat()}} > CHAT
+				</Button>
 				<div style={{overflowY: 'auto', maxHeight: 300}}>
 				{
 					chat.map((ch, index) =>
