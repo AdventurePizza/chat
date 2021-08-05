@@ -510,7 +510,7 @@ function App() {
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
-	const addTweet= useCallback((x: number, y:number, tweetId: string) => { //triggered if message.vakye=tweet (Case:tweet in app.tsx)
+	const addTweet= useCallback((x: number, y:number, tweetId: string) => { 
 		const newTweet: ITweet = {
 				top: y,
 				left: x,
@@ -937,7 +937,6 @@ function App() {
 					case 'tweet':
 					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
 					const tweet = tweets[tweetIndex];
-					console.log(tweet);
 					if (tweet) {
 	
 						if (isUnpin) {
@@ -1197,7 +1196,7 @@ function App() {
 	// 	}
 	// };
 
-	useEffect(() => { //useEffect is a hook
+	useEffect(() => { 
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
@@ -1257,9 +1256,7 @@ function App() {
 					}
 					break;
 				case 'tweet':
-					console.log("useEffect1")
 					if (message.value && message.yt && message.xt) {
-						console.log("useEffect")
 						addTweet(message.xt, message.yt, message.value)
 						}
 						break;
@@ -2055,9 +2052,7 @@ function App() {
 	}, [videoId, videos]);
 
 	const pinBackground = async () => {
-		/* if(background.isPinned===true){
-			unpinBackground();
-		} */
+
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
@@ -2559,7 +2554,6 @@ function App() {
 				tweets={tweets}
 				pinTweet={pinTweet}
 				unpinTweet={unpinTweet}
-				//updateTweets={setTweets}
 				raceId={raceId}
 				/>
 			</Route>
