@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'tweet' | 'chat';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -58,6 +58,8 @@ export interface IMessageEvent {
 		| 'animation'
 		| 'isTyping'
 		| 'username'
+		| 'avatar'
+		| 'currentRoom'
 		| 'weather'
 		| 'map'
 		| 'settings-url'
@@ -159,6 +161,14 @@ export interface IBoardImage {
 	isPinned?: boolean;
 }
 
+export interface IBoardVideo {
+	top: number;
+	left: number;
+	key: string;
+	url: string;
+	isPinned?: boolean;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -178,6 +188,7 @@ export enum PanelItemEnum {
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
+	'zedrun' = 'zedrun',
 	'sound' = 'sound',
 	"maps" = "maps",
 	'twitter' = 'twitter',
@@ -211,6 +222,8 @@ export interface IUserProfile {
 	weather?: IWeather;
 	soundType?: string;
 	musicMetadata?: IMetadata;
+	currentRoom?: string;
+	email: string;
 }
 
 export interface IUserProfiles {
@@ -297,6 +310,11 @@ export interface IWaterfallChat{
 	left: number;
 	messages: IWaterfallMessage[];
 	show?: boolean;
+}
+
+export interface IChatroomData {
+	roomData: IChatRoom;
+	background?: any;
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };

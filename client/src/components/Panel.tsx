@@ -8,6 +8,7 @@ import { PanelItemEnum } from '../types';
 import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
 
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 import SettingsIcon from '@material-ui/icons/Settings';
 import animationIcon from '../assets/navbar/animation.png';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
@@ -25,7 +26,7 @@ import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import { NFTIcon } from './NFT/NFTPanel';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
-
+import horseIcon from '../assets/navbar/horse.svg';
 import browseNFTIcon from '../assets/navbar/browseNFTIcon.png';
 
 interface IPanelProps {
@@ -43,6 +44,8 @@ export const Panel = ({
 	selectedItem,
 	avatar
 }: IPanelProps) => {
+	const history = useHistory();
+
 	return (
 		<Drawer
 			className="panel-drawer"
@@ -71,8 +74,12 @@ export const Panel = ({
 						width: '100%',
 						textAlign: 'center'
 					}}
+					className="first-step"
 				>
-					<IconButton onClick={() => onClick('settings')}>
+					<IconButton onClick={() => {
+						onClick('settings');
+						history.push('/settings');
+					}}>
 						<div>
 							<img src={avatar} alt="user avatar" className="panel-avatar" />
 
@@ -118,7 +125,7 @@ const panelIconSrcMap: {
 	animation: animationIcon,
 	// poem: poemIcon
 	maps: mapsIcon,
-
+	
 	browseNFT: browseNFTIcon
 };
 
@@ -126,11 +133,20 @@ const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
 	'new-room': <NewRoomPanelButton />,
-	email: <EmailButton />,
+	email: <div className="sixth-step"><EmailButton /></div>,
 	NFT: <NFTIcon />,
 	background: <Image style={{ fontSize: 32 }} />,
 	tower: <SportsEsports style={{ fontSize: 36 }} />,
-	roomDirectory: <MeetingRoom style={{ fontSize: 36 }} />
+	roomDirectory: <div className="fourth-step"><MeetingRoom style={{ fontSize: 36 }} /></div>,
+	zedrun: (
+		<img
+			alt="horse"
+			className="panel-icon"
+			src={horseIcon}
+			width="40"
+			height="40"
+		/>
+	)
 };
 
 interface IPanelItemProps {
@@ -161,7 +177,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 
 		return (
 			<div
-				className="panel-icon-container"
+				className={title === "maps" || title === "youtube" ? "panel-icon-container fifth-step" : "panel-icon-container"}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
 			>
 				{iconSrc && renderIconImage()}

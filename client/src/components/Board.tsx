@@ -6,6 +6,7 @@ import {
 	IAvatarChatMessages,
 	IBackgroundState,
 	IBoardImage,
+	IBoardVideo,
 	IChatMessage,
 	IEmoji,
 	IGifs,
@@ -14,8 +15,8 @@ import {
 	IUserLocations,
 	IUserProfiles,
 	IWeather,
-	PinTypes,
 	ITweet,
+	PinTypes,
 	IWaterfallChat
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -40,6 +41,9 @@ import { useEffect } from 'react';
 
 interface IBoardProps {
 	videoId: string;
+	hideAllPins: boolean;
+	lastTime: number;
+	videoRef: React.Ref<any>;
 	volume: number;
 	musicNotes: IMusicNoteProps[];
 	updateNotes: (notes: IMusicNoteProps[]) => void;
@@ -49,6 +53,8 @@ interface IBoardProps {
 	updateGifs: (gifs: IGifs[]) => void;
 	images: IBoardImage[];
 	updateImages: (images: IBoardImage[]) => void;
+	videos: IBoardVideo[];
+	updateVideos: (videos: IBoardVideo[]) => void;
 	chatMessages: IChatMessage[];
 	updateChatMessages: (chatMessages: IChatMessage[]) => void;
 	userLocations: IUserLocations;
@@ -63,6 +69,10 @@ interface IBoardProps {
 	unpinGif: (gifKey: string) => void;
 	pinImage: (imageKey: string) => void;
 	unpinImage: (gifKey: string) => void;
+	addVideo: (videoId: string | undefined) => void;
+	pinVideo: (videoId: string | undefined) => void;
+	unpinVideo: (videoId: string | undefined) => void;
+	isVideoPinned: boolean;
 	pinBackground: () => void;
 	unpinBackground: () => void;
 	background: IBackgroundState;
@@ -89,11 +99,15 @@ interface IBoardProps {
 	tweets: ITweet[];
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
-	waterfallChat: IWaterfallChat;
+ 	waterfallChat: IWaterfallChat;
+	raceId: string;
 }
 
 export const Board = ({
 	videoId,
+	hideAllPins,
+	videoRef,
+	lastTime,
 	volume,
 	musicNotes,
 	updateNotes,
@@ -103,6 +117,8 @@ export const Board = ({
 	updateGifs,
 	images,
 	updateImages,
+	videos,
+	updateVideos,
 	chatMessages,
 	updateChatMessages,
 	userLocations,
@@ -116,6 +132,10 @@ export const Board = ({
 	unpinGif,
 	pinImage,
 	unpinImage,
+	addVideo,
+	pinVideo,
+	unpinVideo,
+	isVideoPinned,
 	background,
 	pinBackground,
 	unpinBackground,
@@ -135,7 +155,8 @@ export const Board = ({
 	unpinTweet,
 	tweets,
 	pinTweet,
-	waterfallChat
+	waterfallChat,
+	raceId
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -193,12 +214,7 @@ export const Board = ({
 			const left = Math.round(item.left + delta.x);
 			const top = Math.round(item.top + delta.y);
 			console.log(item);
-			if (item.key){
-				moveItem(item.itemType, item.key, left, top, delta.x, delta.y);
-			}
-			else{
 			moveItem(item.itemType, item.id, left, top, delta.x, delta.y);
-			}
 			return undefined;
 		}
 	});
@@ -233,6 +249,7 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
+			{background.type === 'map' && <Map mapData={background.mapData} />}
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton
@@ -243,24 +260,42 @@ export const Board = ({
 					/>
 				)}
 			</div>
+
+			{raceId && (
+				<iframe
+					src={`https://3d-racing.zed.run/live/${raceId}`}
+					width="100%"
+					height="100%"
+					title="zed racing"
+					style={{ pointerEvents: 'none' }}
+				/>
+			)}
+
 			<YouTubeBackground
+				isVideoPinned={isVideoPinned}
+				lastTime={lastTime}
 				videoId={videoId}
 				isPaused={isPaused}
 				volume={volume}
 				isYouTubeShowing={isYouTubeShowing}
 				pausePlayVideo={pausePlayVideo}
+				onPinVideo={addVideo}
+				unpinVideo={unpinVideo}
+				videoRef={videoRef}
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
-			{waterfallChat.show && <BoardObject
-				id={'texteyId'}
-				type="chat"
-				onPin={() => {}}
-				onUnpin={() => {}}
-				chat={waterfallChat.messages}
-				top={waterfallChat.top}
-				left={waterfallChat.left}
-			/>}
+			{waterfallChat.show && (
+				<BoardObject
+					id={'texteyId'}
+					type="chat"
+					onPin={() => {}}
+					onUnpin={() => {}}
+					chat={waterfallChat.messages}
+					top={waterfallChat.top}
+					left={waterfallChat.left}
+				/>
+			)}
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -369,7 +404,6 @@ export const Board = ({
 						setTimeout(() => {
 							setIntroState('appear');
 						}, 5000);
-
 						setTimeout(() => {
 							setIntroState('end');
 						}, 20000);
@@ -377,7 +411,6 @@ export const Board = ({
 				>
 					<div className="room-button">{renderIntro()}</div>
 				</CSSTransition>
-
 				<CSSTransition
 					appear
 					timeout={5000}
@@ -386,7 +419,6 @@ export const Board = ({
 						setTimeout(() => {
 							setPresentState('appear');
 						}, 5000);
-
 						setTimeout(() => {
 							setPresentState('end');
 						}, 20000);
@@ -396,54 +428,31 @@ export const Board = ({
 				</CSSTransition>
 			</TransitionGroup> */}
 
-			<TransitionGroup>
-				{Object.values(pinnedText).map((text) => (
-					<CSSTransition
-						key={text.key}
-						timeout={5000}
-						classNames="gif-transition"
-					>
-						<BoardObject
-							{...text}
-							id={text.key!}
-							type="text"
-							onPin={() => {}}
-							onUnpin={() => {
-								unpinText(text.key || '');
-							}}
-						/>
-					</CSSTransition>
-				))}
-			</TransitionGroup>
-
-			<TransitionGroup>
-				{gifs.map((gif) => (
-					<CSSTransition
-						key={gif.key}
-						timeout={5000}
-						classNames="gif-transition"
-						onEntered={() => {
-							if (!gif.isPinned) {
-								const index = gifs.findIndex((_gif) => _gif.key === gif.key);
-								updateGifs([...gifs.slice(0, index), ...gifs.slice(index + 1)]);
-							}
-						}}
-					>
-						<BoardObject
-							type="gif"
-							id={gif.key}
-							{...gif}
-							onPin={() => {
-								pinGif(gif.key);
-							}}
-							onUnpin={() => {
-								unpinGif(gif.key);
-							}}
-						/>
-					</CSSTransition>
-				))}
-			</TransitionGroup>
-			<TransitionGroup>
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{Object.values(pinnedText).map((text) => (
+						<CSSTransition
+							key={text.key}
+							timeout={5000}
+							classNames="gif-transition"
+						>
+							{!hideAllPins ? (
+								<BoardObject
+									{...text}
+									id={text.key!}
+									type="text"
+									onPin={() => {}}
+									onUnpin={() => {
+										unpinText(text.key || '');
+									}}
+								/>
+							) : null}
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+			{!hideAllPins ? (
+				<TransitionGroup>
 				{tweets.map((tweet) => (
 					<CSSTransition
 						key={tweet.id}
@@ -463,40 +472,112 @@ export const Board = ({
 					</CSSTransition>
 				))}
 			</TransitionGroup>
+ ) : null}
+ 
 
-			<TransitionGroup>
-				{images.map((image) => (
-					<CSSTransition
-						key={image.key}
-						timeout={5000}
-						classNames="gif-transition"
-						onEntered={() => {
-							if (!image.isPinned) {
-								const index = images.findIndex(
-									(_image) => _image.key === image.key
-								);
-								updateImages([
-									...images.slice(0, index),
-									...images.slice(index + 1)
-								]);
-							}
-						}}
-					>
-						<BoardObject
-							{...image}
-							id={image.key}
-							type="image"
-							imgSrc={image.url}
-							onPin={() => {
-								pinImage(image.key);
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{gifs.map((gif) => (
+						<CSSTransition
+							key={gif.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!gif.isPinned) {
+									const index = gifs.findIndex((_gif) => _gif.key === gif.key);
+									updateGifs([
+										...gifs.slice(0, index),
+										...gifs.slice(index + 1)
+									]);
+								}
 							}}
-							onUnpin={() => {
-								unpinImage(image.key);
+						>
+							<BoardObject
+								type="gif"
+								id={gif.key}
+								{...gif}
+								onPin={() => {
+									pinGif(gif.key);
+								}}
+								onUnpin={() => {
+									unpinGif(gif.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{images.map((image) => (
+						<CSSTransition
+							key={image.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!image.isPinned) {
+									const index = images.findIndex(
+										(_image) => _image.key === image.key
+									);
+									updateImages([
+										...images.slice(0, index),
+										...images.slice(index + 1)
+									]);
+								}
 							}}
-						/>
-					</CSSTransition>
-				))}
-			</TransitionGroup>
+						>
+							<BoardObject
+								{...image}
+								id={image.key}
+								type="image"
+								imgSrc={image.url}
+								onPin={() => {
+									pinImage(image.key);
+								}}
+								onUnpin={() => {
+									unpinImage(image.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{videos.map((video) => (
+						<CSSTransition
+							key={video.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!video.isPinned) {
+									const index = videos.findIndex(
+										(_video) => _video.key === video.key
+									);
+									updateVideos([
+										...videos.slice(0, index),
+										...videos.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								type="video"
+								id={video.key}
+								{...video}
+								onPin={() => {
+									pinVideo(video.key);
+								}}
+								onUnpin={() => {
+									unpinVideo(video.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
 
 			<TransitionGroup>
 				{animations.map((animation) => (
@@ -519,36 +600,41 @@ export const Board = ({
 				))}
 			</TransitionGroup>
 
-			<TransitionGroup>
-				{NFTs.map((nft) => (
-					<CSSTransition
-						key={nft.key}
-						timeout={5000}
-						classNames="gif-transition"
-						onEntered={() => {
-							if (!nft.isPinned) {
-								const index = NFTs.findIndex((_nft) => _nft.key === nft.key);
-								updateNFTs([...NFTs.slice(0, index), ...NFTs.slice(index + 1)]);
-							}
-						}}
-					>
-						<BoardObject
-							{...nft}
-							id={nft.key!}
-							type="NFT"
-							onPin={() => {
-								pinNFT(nft.key!);
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{NFTs.map((nft) => (
+						<CSSTransition
+							key={nft.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!nft.isPinned) {
+									const index = NFTs.findIndex((_nft) => _nft.key === nft.key);
+									updateNFTs([
+										...NFTs.slice(0, index),
+										...NFTs.slice(index + 1)
+									]);
+								}
 							}}
-							onUnpin={() => {
-								unpinNFT(nft.key!);
-							}}
-							addNewContract={addNewContract}
-							onBuy={onBuy}
-							onCancel={onCancel}
-						/>
-					</CSSTransition>
-				))}
-			</TransitionGroup>
+						>
+							<BoardObject
+								{...nft}
+								id={nft.key!}
+								type="NFT"
+								onPin={() => {
+									pinNFT(nft.key!);
+								}}
+								onUnpin={() => {
+									unpinNFT(nft.key!);
+								}}
+								addNewContract={addNewContract}
+								onBuy={onBuy}
+								onCancel={onCancel}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
 
 			{/* <TransitionGroup> */}
 			{loadingNFT && (

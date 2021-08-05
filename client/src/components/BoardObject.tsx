@@ -13,6 +13,7 @@ import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { Timeline, Tweet} from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
+import ReactPlayer from 'react-player';
 
 
 const useStyles = makeStyles({
@@ -39,7 +40,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'text' | 'NFT' | 'map' |'tweet'| 'chat';
+	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -133,6 +134,21 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'map' && data && <Map />}
 				{type==='tweet' && id && (<Tweet tweetId={id} />)}
+				{type === 'video' && id && (
+				<div className="pinned-video-player"
+					style={{
+						height: "225px",
+						width: "400px"
+					}}
+				>
+					<ReactPlayer width="100%" height="100%"
+						url={`https://www.youtube.com/watch/${id}`}
+						controls={true}
+						playing={false}	// Autoplay video
+					/>
+				</div>
+					)
+				}
 				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
 			</Paper>
 

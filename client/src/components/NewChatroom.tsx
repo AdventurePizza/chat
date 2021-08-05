@@ -8,6 +8,7 @@ import { Switch, Tooltip } from '@material-ui/core';
 import { AuthContext } from '../contexts/AuthProvider';
 import { MetamaskButton } from './MetamaskButton';
 import { IFetchResponseBase } from '../types';
+import { Token } from './Token';
 
 const useStyles = makeStyles({
 	container: {
@@ -117,7 +118,8 @@ interface INewChatroomProps {
 	onClickCancel: () => void;
 	onCreate: (
 		roomName: string,
-		isLocked: boolean
+		isLocked: boolean,
+		contractAddress?: string
 	) => Promise<IFetchResponseBase>;
 }
 
@@ -133,6 +135,9 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 	const [successMsg, setSuccessMsg] = useState<
 		INewChatroomCreateResponse | undefined
 	>();
+	const [visitorAllowed, setVisitorAllowed] = useState(false);
+	const [contractAddress, setContractAddress] = useState('');
+	const [contractAddressInput, setContractAddressInput] = useState('');
 
 	useEffect(() => {
 		if (isAccessLocked && !isLoggedIn) {
@@ -149,16 +154,26 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 		if (isAccessLocked && !isLoggedIn)
 			return alert('Cannot create locked room without connecting to metamask');
 
-		const { message } = await onCreate(inputValue, isAccessLocked);
+		const { message } = await onCreate(inputValue, isAccessLocked, contractAddress);
 
 		if (message === 'success') {
 			setErrorMsg('');
 			setSuccessMsg({ name: inputValue, message });
+
 		} else {
 			setSuccessMsg(undefined);
 			if (message) {
 				setErrorMsg(message);
 			}
+		}
+	};
+
+	const onClickRestrict = async (contractAddress: string) => {
+		if (!contractAddress){
+			setErrorMsg('Please enter the contract address of the token/NFT');
+		}
+		else{
+			setContractAddress(contractAddressInput);
 		}
 	};
 
@@ -191,6 +206,20 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 				<span>locked</span>
 			</div>
 
+			<div>
+				<span>Restrict visitors: </span>
+				<span>allow</span>
+				<Tooltip title="Restrict visitors">
+					<span>
+						<Switch
+							checked={visitorAllowed}
+							onClick={() => setVisitorAllowed(!visitorAllowed)}
+						/>
+					</span>
+				</Tooltip>
+				<span>restrict</span>
+			</div>
+
 			{hasAttemptedLock && (
 				<div
 					className={classes.loginContainer}
@@ -204,6 +233,22 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 					<MetamaskButton />
 				</div>
 			)}
+
+			{visitorAllowed &&
+				<div>
+					<InputButton
+						onClick={onClickRestrict}
+						buttonText="Allow Owners"
+						updateValue={setContractAddressInput}
+						placeholder="contract address"
+					/>
+
+					<Token
+						contractAddress={contractAddress}
+					/>
+
+				</div>
+			}
 
 			<div className={classes.previewText}>
 				www.trychats.com/#/room/{inputValue}

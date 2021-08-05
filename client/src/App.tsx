@@ -1,6 +1,8 @@
 import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
+import { SettingsPanel } from './components/SettingsPanel';
+import Tour from 'reactour';
 
 import { CustomToken as NFT } from './typechain/CustomToken';
 
@@ -14,6 +16,7 @@ import {
 	IAvatarChatMessages,
 	IBackgroundState,
 	IBoardImage,
+	IBoardVideo,
 	IChatMessage,
 	IChatRoom,
 	IEmoji,
@@ -37,16 +40,16 @@ import {
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
 import React, {
 	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
 	useRef,
-	useState
+	useState,
 } from 'react';
 import {
-	Redirect,
 	Route,
 	HashRouter as Router,
 	Switch,
@@ -89,6 +92,10 @@ import { Marketplace } from './typechain/Marketplace';
 import abiMarketplace from './abis/Marketplace.abi.json';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { MapsContext } from './contexts/MapsContext';
+import ReactPlayer from 'react-player';
+/* import { Login } from './components/Login'; */
+import { Login } from './components/Login';
+
 const clipboardy = require('clipboardy');
 
 const API_KEY = 'A7O4CiyZj72oLKEX2WvgZjMRS7g4jqS4';
@@ -163,12 +170,18 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
+		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
+		socket.emit('event', {
+			key: 'currentRoom',
+			value: roomId
+		})
 		return history.listen(() => {
 			resetMap();
 		});
-	}, [history, resetMap]);
+	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -198,8 +211,21 @@ function App() {
 	const [background, setBackground] = useState<IBackgroundState>({
 		type: undefined
 	});
+
+	const [videos, setVideos] = useState<IBoardVideo[]>([]);
 	const [videoId, setVideoId] = useState<string>('');
+	const [isVidPinned, setIsVidPinned] = useState<boolean>(false);
+	const [lastVideoId, setLastVideoId] = useState<string>('');
+	const [lastTime, setLastTime] = useState<number>(0);
+	const [isVideoShowing, setIsVideoShowing] = useState<boolean>(false);
+	const [hideAllPins, setHideAllPins] = useState<boolean>(false);
 	const [volume, setVolume] = useState<number>(0.4);
+	const videoRef = useRef<ReactPlayer>(null);
+
+	const clearVideo = () => {
+		setVideoId('');
+		setLastVideoId('');
+	}
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -208,10 +234,12 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-		>(PanelItemEnum.roomDirectory);
+		>(undefined);
+
+	//	>(PanelItemEnum.roomDirectory);
 
 	const [tweets, setTweets] = useState<ITweet[]>([]);
-
+	
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
@@ -234,7 +262,9 @@ function App() {
 		name: '',
 		avatar: '',
 		weather: { temp: '', condition: '' },
-		soundType: ''
+		soundType: '',
+		currentRoom: 'default',
+		email: ''
 	});
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
@@ -243,18 +273,22 @@ function App() {
 		condition: ''
 	});
 
-	// const [coordinates, setCoordinates] = useState({
-	// 	lat: 33.91925555555555,
-	// 	lng: -118.41655555555555
-	// });
+	// YouTube function to keep track of timestamps
+	const updateLastTime = () => {
+		if (videoRef.current !== null) {
+			// console.log(videoRef.current.getCurrentTime());
+			// console.log('updating timestamp');
+			setLastTime(videoRef.current.getCurrentTime());
+		}
+	}
 
-	// interface ICoordinates {
-	// 	lat: number;
-	// 	lng: number;
-	// }
-	// const [markers, setMarkers] = useState<ICoordinates[]>([]);
-	// const [zoom, setZoom] = useState(12);
-	// const [isMapShowing, setIsMapShowing] = useState(false);
+	/* const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true); */
+	const [showTour, setShowTour] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(true);
+	const [isFirstVisit, setIsFirstVisit] = useState(false);
+	const [step, setStep] = useState(0);
+
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 400,
@@ -262,6 +296,8 @@ function App() {
 		messages: [],
 		show: true
 	});
+
+	const [raceId, setRaceId] = useState<string>('');
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -313,6 +349,37 @@ function App() {
 			);
 		}
 	}, [network, isLoggedIn]);
+
+	//FETCH USER DATA
+	useEffect(() => {
+		if(accountId && isLoggedIn){
+			firebaseContext.getUser(accountId)
+				.then((res: any) => {
+					if(res.data.email){
+						setShowLoginModal(false);
+					}
+					if(userProfile.email){
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
+					} else {
+						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
+					}
+					socket.emit('event', {
+						key: 'avatar',
+						value: res.data.avatar
+					});
+					socket.emit('event', {
+						key: 'username',
+						value: res.data.screenName
+					});
+				})
+				.catch((err: any) => {
+					firebaseContext.createUser(accountId, userProfile.name, userProfile.avatar)
+						.then(() => setIsFirstVisit(true))
+						.catch(err => console.log(err));
+					console.log(err)
+				});
+		}
+	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, userProfile.email, socket, firebaseContext])
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -406,6 +473,7 @@ function App() {
 			case 'browseNFT':
 			case 'NFT':
 			case 'twitter':
+			case 'zedrun':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -477,6 +545,18 @@ function App() {
 		setImages((images) => images.concat(newImage));
 	}, []);
 
+	// List of videos
+	const addVideo = useCallback((videoId: string | undefined) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newVideo: IBoardVideo = {
+			top: y,
+			left: x,
+			key: videoId || uuidv4(),
+			url: `https://img.youtube.com/vi/${videoId}/default.jpg`
+		};
+		setVideos((videos) => videos.concat(newVideo));
+	}, [])
+
 	const updateCursorPosition = useMemo(
 		() =>
 			_.throttle((position: [number, number]) => {
@@ -535,6 +615,13 @@ function App() {
 			setBottomPanelHeight(
 				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
 			);
+		}
+		if(selectedPanelItem === "settings"){
+			setStep(1);
+		} else if (selectedPanelItem === "roomDirectory"){
+			setStep(4);
+		} else if (selectedPanelItem === "youtube"){
+			setStep(5);
 		}
 	}, [selectedPanelItem]);
 
@@ -772,6 +859,26 @@ function App() {
 						}
 					}
 					break;
+
+				case 'video':
+					const videoIndex = videos.findIndex((video) => video.key === itemKey);
+					const video = videos[videoIndex];
+					if (video) {
+						if (isUnpin) {
+							setVideos([
+								...videos.slice(0, videoIndex),
+								...videos.slice(videoIndex + 1)
+							]);
+						} else {
+							setVideos([
+								...videos.slice(0, videoIndex),
+								{ ...video, isPinned: true },
+								...videos.slice(videoIndex + 1)
+							]);
+						}
+					}
+					break;
+
 				case 'background':
 					if (isUnpin) {
 						setBackground({
@@ -849,7 +956,7 @@ function App() {
 					break;
 			}
 		},
-		[gifs, images, pinnedText, NFTs, tweets]
+		[gifs, images, videos, pinnedText, NFTs, tweets]
 	);
 
 	const handleMoveItemMessage = useCallback(
@@ -871,6 +978,22 @@ function App() {
 								left: relativeLeft
 							},
 							...images.slice(imageIndex + 1)
+						]);
+					}
+					break;
+
+				case 'video':
+					const videoIndex = videos.findIndex((video) => video.key === itemKey);
+					const video = videos[videoIndex];
+					if (video) {
+						setImages([
+							...videos.slice(0, videoIndex),
+							{
+								...video,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...videos.slice(videoIndex + 1)
 						]);
 					}
 					break;
@@ -938,7 +1061,7 @@ function App() {
 						}
 						break;
 				}},
-		[images, NFTs, gifs, pinnedText, tweets]);
+		[images,videos, NFTs, gifs, pinnedText, tweets]);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1114,10 +1237,8 @@ function App() {
 					}
 					break;
 				case 'youtube':
-					// console.log('youtube socket');
-					// console.log(message.value);
-					setBackground({ name: '', isPinned: false });
 					setVideoId(message.value);
+					setLastVideoId(message.value);
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -1186,6 +1307,18 @@ function App() {
 						[message.id]: { ...profiles[message.id], name: message.value }
 					}));
 					break;
+				case 'avatar':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], avatar: message.value }
+					}));
+					break;
+				case 'currentRoom':
+					setUserProfiles((profiles) => ({
+						...profiles,
+						[message.id]: { ...profiles[message.id], currentRoom: message.value }
+					}));
+				break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1426,7 +1559,23 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					setUserProfile((profile) => ({ ...profile, name: settingsValue }));
+					if(accountId){
+						firebaseContext.updateScreenname(accountId, settingsValue)
+						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
+						.catch(err => console.log(err));
+					}
+				} else if (type === 'avatar') {
+					socket.emit('event', {
+						key: 'avatar',
+						value: settingsValue
+					});
+					if(accountId){
+						firebaseContext.updateAvatar(accountId, settingsValue)
+						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
+						.catch(err => console.log(err));
+					}
+				} else if (type === "email") {
+					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
 				}
 				break;
 			case 'weather':
@@ -1569,14 +1718,12 @@ function App() {
 
 	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
 
-	const onCreateRoom = async (roomName: string, isAccessLocked: boolean) => {
-		const result = await firebaseContext.createRoom(roomName, isAccessLocked);
-
+	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
+		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
 		}
-
 		return result;
 	};
 
@@ -1593,7 +1740,8 @@ function App() {
 			} else {
 				setIsInvalidRoom(true);
 				if (result.message) {
-					setModalErrorMessage(result.message);
+					//setModalErrorMessage(result.message);
+					setInvalidRoomMessage(result.message);
 				}
 			}
 			// if (result.data === null) {
@@ -1612,6 +1760,7 @@ function App() {
 
 				const pinnedGifs: IGifs[] = [];
 				const pinnedImages: IBoardImage[] = [];
+				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 				const pinnedTweets: ITweet[] =[];
@@ -1647,7 +1796,15 @@ function App() {
 						left: item.left! * window.innerWidth,
 						isPinned: true,
 						id: item.id
-
+						});
+					} else if (item.type === 'video') {
+						pinnedVideos.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							url: item.url
 						});
 					} else if (item.type === 'background') {
 						backgroundType = item.subType;
@@ -1680,6 +1837,7 @@ function App() {
 				setImages(pinnedImages);
 				setTweets(pinnedTweets);
 				setPinnedText(pinnedText);
+				setVideos(pinnedVideos);
 				setBackground({
 					name: backgroundImg,
 					isPinned: !!backgroundImg || !!backgroundMap,
@@ -1823,6 +1981,79 @@ function App() {
 		}
 	};
 
+	const pinVideo = async (videoId: string | undefined) => {
+		const videoIndex = videos.findIndex((video) => video.key === videoId);
+		const video = videos[videoIndex];
+		const room = roomId || 'default';
+
+		if (video && !video.isPinned) {
+			const result = await firebaseContext.pinRoomItem(room, {
+				...video,
+				type: 'video',
+				left: video.left / window.innerWidth,
+				top: video.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setVideos([
+					...videos.slice(0, videoIndex),
+					{ ...video, isPinned: true },
+					...videos.slice(videoIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'video',
+					itemKey: videoId
+				});
+
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+
+	};
+
+	const unpinVideo = async (videoId: string | undefined) => {
+		const videoIndex = videos.findIndex((video) => video.key === videoId);
+		const video = videos[videoIndex];
+		const room = roomId || 'default';
+
+		if (video && video.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				video.key
+			);
+			if (isSuccessful) {
+				setVideos([...videos.slice(0, videoIndex), ...videos.slice(videoIndex + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'video',
+					itemKey: videoId
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
+	useEffect(() => {
+		const videoIndex = videos.findIndex((video: IBoardVideo) => video.key === videoId);
+		const video = videos[videoIndex];
+
+		if (videoId === "") {
+			setIsVideoShowing(false);
+			setHideAllPins(false);
+
+		} else if (video && videoId !== "" && video.isPinned) {
+			setIsVidPinned(true);
+
+		} else {
+			setIsVidPinned(false);
+		}
+	}, [videoId, videos]);
+
 	const pinBackground = async () => {
 		/* if(background.isPinned===true){
 			unpinBackground();
@@ -1893,6 +2124,11 @@ function App() {
 			);
 
 			if (isSuccessful) {
+				let oldBackgroundType = "";
+				if(background.type){
+					oldBackgroundType = background.type.valueOf();
+				}
+
 				setBackground({
 					name: '',
 					isPinned: false,
@@ -1904,11 +2140,13 @@ function App() {
 					type: 'background'
 				});
 
-				updateIsMapShowing(true);
-				socket.emit('event', {
-					key: 'map',
-					isMapShowing: true
-				});
+				if(oldBackgroundType === "map"){
+					updateIsMapShowing(true);
+					socket.emit('event', {
+						key: 'map',
+						isMapShowing: true
+					});
+				}
 			} else if (message) {
 				setModalErrorMessage(message);
 			}
@@ -2079,6 +2317,17 @@ function App() {
 					...images.slice(imageIndex + 1)
 				]);
 			}
+		} else if (type === 'video') {
+			const videoIndex = videos.findIndex((video) => video.key === id);
+			setVideos([
+				...videos.slice(0, videoIndex),
+				{
+					...videos[videoIndex],
+					top,
+					left
+				},
+				...videos.slice(videoIndex + 1)
+			]);
 		} else if (type === 'NFT') {
 			const nftIndex = NFTs.findIndex((nft) => nft.key === id);
 			if (nftIndex !== -1) {
@@ -2208,8 +2457,31 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return <div>Invalid room {roomId}</div>;
+		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
+
 	}
+
+	const steps = [
+		{
+			selector: ".first-step",
+			content: "Click on the settings tab to customize your avatar and name"
+		},{
+			selector: ".second-step",
+			content: "Enter a screen name and press update"
+		},{
+			selector: ".third-step",
+			content: "Select an avatar and click go"
+		},{
+			selector: ".fourth-step",
+			content: "Create and enter rooms here"
+		},{
+			selector: ".fifth-step",
+			content: "You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner"
+		}, {
+			selector: ".sixth-step",
+			content: "Invite the homies and earn tokens"
+		}]
+
 
 	return (
 		<div
@@ -2220,8 +2492,25 @@ function App() {
 			onClick={onClickApp}
 		>
 			<MetamaskSection />
-				<Board
+
+			<Route path="/settings">
+				<SettingsPanel 
+					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
+					onChangeName={(name) => actionHandler('settings', 'name', name)}
+					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+					onSendLocation={(location) => actionHandler('weather', location)}
+					currentAvatar={userProfile.avatar}
+					setStep={setStep}
+				/>
+			</Route>
+
+			<Route exact path={["/room/:roomId", "/"]}>
+			<Board
 				videoId={videoId}
+				isVideoPinned={isVidPinned}
+				hideAllPins={hideAllPins}
+				videoRef={videoRef}
+				lastTime={lastTime}
 				volume={volume}
 				background={background}
 				musicNotes={musicNotes}
@@ -2232,6 +2521,9 @@ function App() {
 				updateGifs={setGifs}
 				images={images}
 				updateImages={setImages}
+				videos={videos}
+				updateVideos={setVideos}
+				addVideo={addVideo}
 				chatMessages={chatMessages}
 				updateChatMessages={setChatMessages}
 				userLocations={userLocations}
@@ -2246,6 +2538,8 @@ function App() {
 				unpinGif={unpinGif}
 				pinImage={pinImage}
 				unpinImage={unpinImage}
+				pinVideo={pinVideo}
+				unpinVideo={unpinVideo}
 				pinBackground={pinBackground}
 				unpinBackground={unpinBackground}
 				pinnedText={pinnedText}
@@ -2266,7 +2560,30 @@ function App() {
 				pinTweet={pinTweet}
 				unpinTweet={unpinTweet}
 				//updateTweets={setTweets}
+				raceId={raceId}
+				/>
+			</Route>
+
+			<Tour 
+				steps={steps}
+				isOpen={showTour}
+				onRequestClose={() => setShowTour(false)}
+				disableDotsNavigation={true}
+				disableFocusLock={true}
+				goToStep={step}
+				lastStepNextButton={<CloseIcon />}
+				showCloseButton={false}
 			/>
+			
+			{showLoginModal ? (
+				<Login 
+					beginTour={setShowTour} 
+					showModal={setShowLoginModal}
+					isFirstVisit={isFirstVisit}
+					userEmail={userProfile.email}
+					setUserEmail={(email) => actionHandler('settings', 'email', email)}
+				/>
+			 ) : null }
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2294,6 +2611,9 @@ function App() {
 						<IconButton
 							onClick={() => {
 								setIsPanelOpen(true);
+							}}
+							style={{
+								backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none"
 							}}
 						>
 							<ChevronRight />
@@ -2324,6 +2644,9 @@ function App() {
 					target="_blank"
 					rel="noreferrer"
 					className="adventure-logo"
+					style={{
+						visibility: isVideoShowing ? "hidden" : "visible"
+					}}
 				>
 					<div>adventure</div>
 					<div>networks</div>
@@ -2341,10 +2664,19 @@ function App() {
 				onNFTError={setModalErrorMessage}
 				onNFTSuccess={onNFTSuccess}
 				setVideoId={setVideoId}
+				setLastVideoId={setLastVideoId}
+				lastVideoId={lastVideoId}
+				hideAllPins={hideAllPins}
+				setHideAllPins={setHideAllPins}
+				updateLastTime={updateLastTime}
 				setVolume={setVolume}
+				setIsVideoShowing={setIsVideoShowing}
+				isVideoShowing={isVideoShowing}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
+				setRaceId={setRaceId}
 			/>
+
 
 			{userProfile && !onBrowseNFTPanel && (
 				<UserCursor
@@ -2371,6 +2703,7 @@ function App() {
 						<EnterRoomModal
 							roomName={roomToEnter}
 							onClickCancel={() => setModalState(null)}
+							clearVideo={clearVideo}
 						/>
 					)}
 					{modalState === 'error' && modalErrorMessage && (
@@ -2452,12 +2785,12 @@ const RouterHandler = () => {
 				<Route path="/room/:roomId">
 					<App />
 				</Route>
-				<Route exact path="/">
+				<Route path="/">
 					<App />
 				</Route>
-				<Redirect from="*" to="/" />
 			</Switch>
 		</Router>
 	);
 };
+
 export default RouterHandler;
