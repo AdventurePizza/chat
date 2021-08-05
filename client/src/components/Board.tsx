@@ -16,7 +16,8 @@ import {
 	IUserProfiles,
 	IWeather,
 	PinTypes,
-	IWaterfallChat
+	IWaterfallChat,
+	IBoardHorse
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -97,6 +98,7 @@ interface IBoardProps {
 	onClickPresent: () => void;
 	waterfallChat: IWaterfallChat;
 	raceId: string;
+	horses: IBoardHorse[];
 }
 
 export const Board = ({
@@ -149,7 +151,8 @@ export const Board = ({
 	onClickNewRoom,
 	onClickPresent,
 	waterfallChat,
-	raceId
+	raceId,
+	horses
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -289,6 +292,55 @@ export const Board = ({
 					left={waterfallChat.left}
 				/>
 			)}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{horses.map((horse) => (
+						/*<CSSTransition
+							key={horse.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!horse.isPinned) {
+									const index = horses.findIndex(
+										(horse) => horse.key === horse.key
+									);
+									updateImages([
+										...images.slice(0, index),
+										...images.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...image}
+								id={image.key}
+								type="image"
+								imgSrc={image.url}
+								onPin={() => {
+									pinImage(image.key);
+								}}
+								onUnpin={() => {
+									unpinImage(image.key);
+								}}
+							/>
+						</CSSTransition>*/
+						<BoardObject
+							{...horse}
+							id={horse.key}
+							type="horse"
+							horseData={horse.horseData}
+							onPin={() => {
+								//pinImage(image.key);
+							}}
+							onUnpin={() => {
+								//unpinImage(image.key);
+							}}
+						/>
+					))}
+				</TransitionGroup>
+			) : null}
+
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition

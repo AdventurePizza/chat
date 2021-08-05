@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat';
+export type PinTypes =  'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' ;
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -158,6 +158,19 @@ export interface IBoardVideo {
 	isPinned?: boolean;
 }
 
+export interface IHorse{
+	name: string;
+	image: string;
+}
+
+export interface IBoardHorse {
+	top: number;
+	left: number;
+	horseData: IHorse;
+	key: string;
+	isPinned?: boolean;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -185,7 +198,8 @@ export enum PanelItemEnum {
 	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'tower' = 'tower',
-	'emoji' = 'emoji'
+	'emoji' = 'emoji',
+	"dashboard" = "dashboard"
 }
 
 export interface IUserLocations {

@@ -3,7 +3,7 @@ import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
-
+import axios from "axios";
 import { CustomToken as NFT } from './typechain/CustomToken';
 
 import {
@@ -35,7 +35,8 @@ import {
 	PinTypes,
 	IOrder,
 	IMap,
-	IWaterfallChat
+	IWaterfallChat,
+	IBoardHorse
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -294,6 +295,8 @@ function App() {
 
 	const [raceId, setRaceId] = useState<string>('');
 
+	const [horses, setHorses] = useState<IBoardHorse[]>([]);
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 	}, [roomId]);
@@ -468,6 +471,7 @@ function App() {
 			case 'browseNFT':
 			case 'NFT':
 			case 'zedrun':
+			case "dashboard":
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -920,6 +924,22 @@ function App() {
 		},
 		[gifs, images, videos, pinnedText, NFTs]
 	);
+
+	const getHorse = async (id: string)  => await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
+
+	const addHorse = useCallback((id: string, imageKey?: string) => {
+		const { x, y } = generateRandomXY(true, true);
+
+		getHorse(id).then((res) => {
+			const newHorse: IBoardHorse = {
+				top: y,
+				left: x,
+				key: imageKey || uuidv4(),
+				horseData: {name: res.data.hash_info.name, image: res.data.img_url}
+			};
+			setHorses((horses) => horses.concat(newHorse));
+		});
+	}, []);
 
 	const handleMoveItemMessage = useCallback(
 		(message: IMessageEvent) => {
@@ -1549,6 +1569,10 @@ function App() {
 					key: 'youtube',
 					value: videoId
 				});
+				break;
+			case 'horse':
+				const horseId = args[0] as string;
+				addHorse(horseId);
 				break;
 			default:
 				break;
@@ -2403,6 +2427,7 @@ function App() {
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
 				raceId={raceId}
+				horses={horses}
 				/>
 			</Route>
 

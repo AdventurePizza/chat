@@ -6,13 +6,14 @@ import { IGif } from '@giphy/js-types';
 import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage } from '../types';
+import { IOrder, IWaterfallMessage, IHorse } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { WaterfallChat } from "./WaterfallChat";
 import ReactPlayer from 'react-player';
+import { Horse } from "./Horse";
 
 const useStyles = makeStyles({
 	container: {
@@ -38,7 +39,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat';
+	type: 'horse' |'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -58,6 +59,7 @@ interface BoardObjectProps {
 	onCancel?: (nftId: string) => void;
 
 	chat?: IWaterfallMessage[];
+	horseData?: IHorse;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -76,7 +78,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		addNewContract,
 		onBuy,
 		onCancel,
-		chat
+		chat,
+		horseData
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -146,6 +149,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				</div>
 					)
 				}
+				{type === 'horse' && horseData && <Horse horse= {horseData}/>}
 				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
 			</Paper>
 
