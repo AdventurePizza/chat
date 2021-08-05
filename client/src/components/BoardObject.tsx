@@ -11,8 +11,10 @@ import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
+import { Tweet} from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
 import ReactPlayer from 'react-player';
+
 
 const useStyles = makeStyles({
 	container: {
@@ -38,7 +40,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat';
+	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -131,6 +133,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
+				{type==='tweet' && id && (<Tweet tweetId={id} />)}
 				{type === 'video' && id && (
 				<div className="pinned-video-player"
 					style={{
