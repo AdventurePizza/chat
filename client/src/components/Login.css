@@ -162,3 +162,9 @@
     transform: translateX(150%);
     display: none;
 }
+
+.login-modal-close-modal {
+	position: absolute;
+	top: 5px;
+	left: 5px;
+}

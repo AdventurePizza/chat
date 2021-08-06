@@ -264,13 +264,16 @@ function App() {
 		weather: { temp: '', condition: '' },
 		soundType: '',
 		currentRoom: 'default',
-		email: ''
+		email: '',
+		location: ''
 	});
+
+	
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
-		condition: ''
+		condition: '',
 	});
 
 	// YouTube function to keep track of timestamps
@@ -301,6 +304,7 @@ function App() {
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
+		console.log(roomId);
 	}, [roomId]);
 
 	const playEmoji = useCallback((dict: IEmojiDict) => {
@@ -355,9 +359,9 @@ function App() {
 		if(accountId && isLoggedIn){
 			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					if(res.data.email){
+					//if(res.data.email){
 						setShowLoginModal(false);
-					}
+					//}
 					if(userProfile.email){
 						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
 					} else {
@@ -454,7 +458,7 @@ function App() {
 		audio.current.play();
 	}, []);
 
-	const onClickPanelItem = (key: string) => {
+	const onClickPanelItem = (key: string | undefined) => {
 		switch (key) {
 			case 'sound':
 			case 'emoji':
@@ -485,6 +489,8 @@ function App() {
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
+			case undefined :
+				setSelectedPanelItem(undefined);
 		}
 	};
 
@@ -1317,21 +1323,41 @@ function App() {
 					}));
 				break;
 				case 'weather':
+					let messageValue = message.value;
+					if(messageValue === "DELETE"){
+						messageValue = { temp: '', condition: ''}
+					}
+
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
 							...profile,
-							weather: message.value
+							weather: messageValue
 						}));
 					} else {
 						setUserProfiles((profiles) => ({
 							...profiles,
-							[message.id]: { ...profiles[message.id], weather: message.value }
+							[message.id]: { ...profiles[message.id], weather: messageValue }
 						}));
 					}
 
 					break;
 				case 'settings-url':
-					if (message.value && message.isSelf) {
+					if(message.value === "DELETE"){
+						if(message.isSelf){
+							setUserProfile((profile) => ({
+								...profile,
+								musicMetadata: undefined
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: {
+									...profiles[message.id],
+									musicMetadata: undefined
+								}
+							}));
+						}
+					} else if (message.value && message.isSelf) {
 						setUserProfile((profile) => ({
 							...profile,
 							musicMetadata: message.value
@@ -1572,12 +1598,21 @@ function App() {
 						.catch(err => console.log(err));
 					}
 				} else if (type === "email") {
-					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
+					if(accountId){
+						firebaseContext.updateEmail(accountId, settingsValue)
+						.then(res => setUserProfile((profile) => ({ ...profile, email: settingsValue })))
+						.catch(err => console.log(err));
+					}
 				}
 				break;
 			case 'weather':
 				const location = args[0] as string;
-
+				if(location === "DELETE"){
+					setUserProfile((profile) => ({ ...profile, location: "" }))
+				} else {
+					setUserProfile((profile) => ({ ...profile, location: location }))
+				}
+				
 				socket.emit('event', {
 					key: 'weather',
 					value: location
@@ -2494,8 +2529,15 @@ function App() {
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
+					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
 					currentAvatar={userProfile.avatar}
 					setStep={setStep}
+					username={userProfile.name}
+					email={userProfile.email}
+					myLocation={userProfile.location}
+					setLocation={(location) => actionHandler('weather', location)}
+					music={userProfile.musicMetadata}
+					setMusic={(music) => actionHandler('sound', music)}
 				/>
 			</Route>
 
@@ -2574,7 +2616,6 @@ function App() {
 					beginTour={setShowTour} 
 					showModal={setShowLoginModal}
 					isFirstVisit={isFirstVisit}
-					userEmail={userProfile.email}
 					setUserEmail={(email) => actionHandler('settings', 'email', email)}
 				/>
 			 ) : null }

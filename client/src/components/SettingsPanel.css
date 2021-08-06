@@ -18,12 +18,11 @@
 .settings-input-container {
     display: flex;
     flex-wrap: wrap;
-    width: 70%;
-    justify-content: space-between;
+    width: calc(100% - 300px);
 }
 
 .settings-input-container > div {
-    margin-bottom: 20px;
+    margin: 0 20px 20px 0;
 }
 
 .settings-avatar {

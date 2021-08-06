@@ -395,16 +395,28 @@ export class Router {
         clientProfiles[socket.id].currentRoom = message.value as string;
         break;
       case "settings-url":
-        const metadata = await resolveUrl(message.value as string);
-        clientProfiles[socket.id].musicMetadata = metadata;
-        const emitData = {
-          key: "settings-url",
-          id: socket.id,
-          value: metadata,
-        };
-        socket.to(room).emit("event", emitData);
+        if(message.value === "DELETE"){
+          clientProfiles[socket.id].musicMetadata = undefined;
+          const emitData = {
+            key: "settings-url",
+            id: socket.id,
+            value: "DELETE",
+          };
+          socket.to(room).emit("event", emitData);
 
-        socket.emit("event", { ...emitData, isSelf: true });
+          socket.emit("event", { ...emitData, isSelf: true });
+        } else {
+          const metadata = await resolveUrl(message.value as string);
+          clientProfiles[socket.id].musicMetadata = metadata;
+          const emitData = {
+            key: "settings-url",
+            id: socket.id,
+            value: metadata,
+          };
+          socket.to(room).emit("event", emitData);
+  
+          socket.emit("event", { ...emitData, isSelf: true });
+        }
         break;
 
       case "tower defense":
@@ -494,7 +506,31 @@ export class Router {
             };
           })
           .catch((error) => {
-            console.error(error.response.data);
+            if(message.value === "DELETE"){
+              socket.to(room).emit("event", {
+                key: "weather",
+                value: {
+                  temp: "",
+                  condition: "",
+                },
+                id: socket.id,
+              });
+  
+              io.to(socket.id).emit("event", {
+                key: "weather",
+                value: {
+                  temp: "",
+                  condition: "",
+                },
+                toSelf: true,
+              });
+              clientProfiles[socket.id].weather = {
+                temp: "",
+                condition: "",
+              };
+            } else {
+              console.error(error.response.data);
+            }
           });
 
         break;

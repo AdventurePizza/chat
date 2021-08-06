@@ -224,6 +224,7 @@ export interface IUserProfile {
 	musicMetadata?: IMetadata;
 	currentRoom?: string;
 	email: string;
+	location: string;
 }
 
 export interface IUserProfiles {

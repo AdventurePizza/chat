@@ -1,4 +1,3 @@
-import { InputButton } from './shared/InputButton';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
 import { FirebaseContext } from '../contexts/FirebaseContext';
@@ -7,33 +6,41 @@ import './SettingsPanel.css';
 import Button from '@material-ui/core/Button';
 import { useHistory } from 'react-router-dom';
 import { Map } from './Maps';
+import { EditField } from './shared/EditField';
 
 import dollar from '../assets/dollar.png';
 
-import character1 from '../assets/character1.png';
-import character2 from '../assets/character2.png';
-import character3 from '../assets/character3.png';
-import character4 from '../assets/character4.png';
-import character5 from '../assets/character5.png';
-import character6 from '../assets/character6.png';
-import character7 from '../assets/character7.png';
-import character8 from '../assets/character8.png';
-import kirby from '../assets/kirby.gif';
-import link from '../assets/link-run.gif';
-import mario from '../assets/mario.gif';
-import nyancat from '../assets/nyancat_big.gif';
-import redghost from '../assets/red_ghost.gif';
-import yoshi from '../assets/yoshi.gif';
-/* import { _fetchData } from 'ethers/lib/utils'; */
-import placeholder from '../assets/default-placeholder.png';
+import character1 from "../assets/character1.png";
+import character2 from "../assets/character2.png";
+import character3 from "../assets/character3.png";
+import character4 from "../assets/character4.png";
+import character5 from "../assets/character5.png";
+import character6 from "../assets/character6.png";
+import character7 from "../assets/character7.png";
+import character8 from "../assets/character8.png";
+import kirby from "../assets/kirby.gif";
+import link from "../assets/link-run.gif";
+import mario from "../assets/mario.gif";
+import nyancat from "../assets/nyancat_big.gif";
+import redghost from "../assets/red_ghost.gif";
+import yoshi from "../assets/yoshi.gif";
+import placeholder from "../assets/default-placeholder.png";
+import { IMetadata } from '../types';
 
 interface ISettingsPanelProps {
 	onChangeName: (username: string) => void;
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void;
+	onSubmitEmail: (email: string) => void;
 	currentAvatar: string;
 	setStep: (step: number) => void;
+	username: string;
+	email: string;
+	myLocation?: string;
+	setLocation: (location: string) => void;
+	music?: IMetadata;
+	setMusic: (music: string) => void;
 }
 
 interface IWalletItem {
@@ -79,8 +86,15 @@ export const SettingsPanel = ({
 	onSubmitUrl,
 	onChangeAvatar,
 	onSendLocation,
+	onSubmitEmail,
 	currentAvatar,
-	setStep
+	setStep,
+	username,
+	email,
+	myLocation,
+	setLocation,
+	music,
+	setMusic
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -186,27 +200,30 @@ export const SettingsPanel = ({
 	return (
 		<div className="settings-panel-container">
 			<div className="settings-input-container">
-				<div className="second-step">
-					<InputButton
-						buttonText="update"
-						placeholder="enter name"
-						onClick={onChangeName}
-						inputWidth={300}
-						setStep={setStep}
-					/>
-					{/* <input type="text" placeholder="add text"/> */}
-				</div>
-				<InputButton
-					buttonText="add"
-					placeholder="enter location"
-					onClick={onSendLocation}
-					inputWidth={300}
+				<EditField 
+					prefix="SCREEN NAME"
+					placeholder={username}
+					onClick={onChangeName}
+					setStep={setStep}
+					containsRemove={false}
 				/>
-				<InputButton
-					buttonText="add"
-					placeholder="enter music url"
+				<EditField 
+					prefix="EMAIL"
+					placeholder={email ? email : "add email"}
+					onClick={onSubmitEmail}
+					containsRemove={true}
+				/>
+				<EditField 
+					prefix="LOCATION"
+					placeholder={myLocation ? myLocation : "add location"}
+					onClick={onSendLocation}
+					containsRemove={true}
+				/>
+				<EditField 
+					prefix="MUSIC"
+					placeholder={music ? music.title : "add song url"}
 					onClick={onSubmitUrl}
-					inputWidth={300}
+					containsRemove={true}
 				/>
 			</div>
 			<h2>AVATAR</h2>
