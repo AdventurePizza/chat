@@ -475,6 +475,7 @@ function App() {
 			case 'twitter':
 			case 'zedrun':
 			case 'youtube':
+			case 'crypto':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);

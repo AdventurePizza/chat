@@ -29,6 +29,7 @@ import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 import TweetPanel from './TweetPanel';
 import { ZedrunPanel } from './ZedrunPanel';
+import CryptoPanel from './CryptoPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -340,6 +341,8 @@ const PanelContent = ({
 			);
 		case 'zedrun':
 			return <ZedrunPanel setRaceId={setRaceId} />;
+		case 'crypto':
+			return <CryptoPanel />;
 		default:
 			return null;
 	}

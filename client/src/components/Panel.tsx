@@ -19,6 +19,7 @@ import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
 import twitterIcon from '../assets/navbar/twitterIcon.png';
 import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
+import cryptoIcon from '../assets/navbar/cryptoIcon.png';
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
 // import towerIcon from '../assets/navbar/towerIcon.png';
@@ -118,6 +119,7 @@ const panelIconSrcMap: {
 	gifs: gifIcon,
 	chat: chatIcon,
 	twitter: twitterIcon,
+	crypto: cryptoIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	whiteboard: pencilIcon,

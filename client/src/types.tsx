@@ -197,7 +197,8 @@ export enum PanelItemEnum {
 	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'tower' = 'tower',
-	'emoji' = 'emoji'
+	'emoji' = 'emoji',
+	'crypto' = 'crypto'
 }
 
 export interface IUserLocations {
