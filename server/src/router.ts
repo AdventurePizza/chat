@@ -15,6 +15,7 @@ import tokenRouter from "./token";
 import chatroomUserRouter from "./chatroomUsers";
 import imageSearchRouter from "./imageSearch";
 import { emit } from "process";
+import zedrunRouter from "./zedrun";
 
 const WEATHER_APIKEY = "76e1b88bbdea63939ea0dd9dcdc3ff1b";
 
@@ -85,6 +86,7 @@ interface IMessageEvent {
   key:
     | "sound"
     | "youtube"
+    | "tweet"
     | "map"
     | "emoji"
     | "chat"
@@ -159,7 +161,8 @@ export class Router {
     );
 
     app.use("/chatroom-users", chatroomUserRouter);
-
+    
+    app.use("/zedrun/getRaces", zedrunRouter);
 
     io.on("connect", (socket: Socket) => {
       socket.on("authenticate", ({ token }: { token?: string }) => {
@@ -287,7 +290,10 @@ export class Router {
           userId: socket.id,
           value: message.value,
         });
-        break;
+            break;
+        case "tweet":
+            socket.to(room).broadcast.emit("event", message);
+            break;
 
       case "emoji":
         // socket.broadcast.emit("event", message);

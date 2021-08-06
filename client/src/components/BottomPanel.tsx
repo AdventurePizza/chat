@@ -27,7 +27,8 @@ import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-
+import TweetPanel from './TweetPanel';
+import { ZedrunPanel } from './ZedrunPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -50,6 +51,7 @@ export interface IBottomPanelProps {
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	setRaceId: (raceId: string) => void;
 }
 
 export interface IPanelContentProps {
@@ -77,6 +79,7 @@ export interface IPanelContentProps {
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	setRaceId: (raceId: string) => void;
 }
 
 export interface ISoundPairs {
@@ -112,7 +115,8 @@ export const BottomPanel = ({
 	hideAllPins,
 	setHideAllPins,
 	roomData,
-	updateShowChat
+	updateShowChat,
+	setRaceId
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -155,6 +159,7 @@ export const BottomPanel = ({
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
 					updateShowChat={updateShowChat}
+					setRaceId={setRaceId}
 				/>
 			</div>
 		</Drawer>
@@ -185,7 +190,8 @@ const PanelContent = ({
 	onNFTError,
 	onNFTSuccess,
 	roomData,
-	updateShowChat
+	updateShowChat,
+	setRaceId
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -258,10 +264,10 @@ const PanelContent = ({
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
-			case 'maps':
-				return (
-					<MapsPanel />
-				);
+		case 'maps':
+			return (
+				<MapsPanel />
+			);
 		case 'poem':
 			return (
 				<Poem
@@ -319,12 +325,21 @@ const PanelContent = ({
 			return (
 				<iframe className="opensea-listings"
 					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
-				  width='100%'
-				  height='100vh'
-				  frameBorder='0'
-				  allowFullScreen>
-		    </iframe>
+					width='100%'
+					height='100vh'
+					frameBorder='0'
+					allowFullScreen>
+				</iframe>
 			);
+		case 'twitter':
+			return (<TweetPanel 
+			pinTweet={(id: string)=>{
+				onAction('tweet',id);
+			}}
+			updateIsTyping={updateIsTyping}/>
+			);
+		case 'zedrun':
+			return <ZedrunPanel setRaceId={setRaceId} />;
 		default:
 			return null;
 	}
