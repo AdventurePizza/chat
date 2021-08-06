@@ -5,20 +5,6 @@ import { AuthContext } from '../contexts/AuthProvider';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import axios from "axios";
 
-const useStyles = makeStyles({
-	container: {
-		'& > *:not(:last-child)': {
-			marginRight: 10
-		},
-		display: 'flex',
-		alignItems: 'center',
-		overflowX: 'auto',
-		background: 'var(--background)',
-		width: '100%',
-		justifyContent: 'center',
-		height: 100
-	}
-});
 import "./SettingsPanel.css";
 import Button from '@material-ui/core/Button';
 import { useHistory } from 'react-router-dom';
@@ -89,6 +75,21 @@ interface IWalletItem {
 	contract_decimals? : number,
 	type?: string
 }
+
+const useStyles = makeStyles({
+	container: {
+		'& > *:not(:last-child)': {
+			marginRight: 10
+		},
+		display: 'flex',
+		alignItems: 'center',
+		overflowX: 'auto',
+		background: 'var(--background)',
+		width: '100%',
+		justifyContent: 'center',
+		height: 100
+	}
+});
 
 export const SettingsPanel = ({
 	onChangeName,

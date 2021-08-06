@@ -1,5 +1,5 @@
 import { MoveButton, PinButton } from './shared/PinButton';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
@@ -13,6 +13,8 @@ import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { WaterfallChat } from "./WaterfallChat";
 import ReactPlayer from 'react-player';
+import { AppStateContext } from '../contexts/AppStateContext';
+import { useEffect } from 'react';
 
 const useStyles = makeStyles({
 	container: {
@@ -45,10 +47,13 @@ interface BoardObjectProps {
 
 	onPin: () => void;
 	onUnpin: () => void;
+	setPinnedVideoId?: (id: string) => void;
 
 	top: number;
 	left: number;
 
+	isPinnedPlaying?: boolean;
+	pinnedVideoId?: string;
 	isPinned?: boolean;
 	order?: IOrder;
 
@@ -67,6 +72,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 		data,
 		onPin,
 		onUnpin,
+		isPinnedPlaying,
+		pinnedVideoId,
+		setPinnedVideoId,
 		isPinned,
 		type,
 		imgSrc,
@@ -79,7 +87,14 @@ export const BoardObject = (props: BoardObjectProps) => {
 		chat
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
+	const [pinPlaying, setPinPlaying] = useState(isPinnedPlaying);
 	const classes = useStyles();
+
+	const { socket } = useContext(AppStateContext);
+
+	// useEffect(() => {
+
+	// }, [isPinned ])
 
 	const [{ isDragging }, drag, preview] = useDrag({
 		item: { id, left, top, itemType: type, type: 'item' },
@@ -137,11 +152,32 @@ export const BoardObject = (props: BoardObjectProps) => {
 						height: "225px",
 						width: "400px"
 					}}
+					onClick={() => {
+						console.log("hello")
+					}}
 				>
 					<ReactPlayer width="100%" height="100%"
 						url={`https://www.youtube.com/watch/${id}`}
 						controls={true}
-						playing={false}	// Autoplay video
+						playing={isPinnedPlaying}
+						onPlay={
+							() => {
+								socket.emit('event', {
+									key: 'youtube',
+									value: id,
+									playPin: true
+								})
+							}
+						}
+						onPause={
+							() => {
+								socket.emit('event', {
+									key: 'youtube',
+									value: id,
+									playPin: false
+								})
+							}
+						}
 					/>
 				</div>
 					)

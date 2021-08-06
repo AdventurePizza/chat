@@ -1,8 +1,9 @@
 import ReactPlayer from 'react-player';
-import React, {useState} from 'react';
+import React, { useState, useContext } from 'react';
 import { IconButton, Tooltip } from '@material-ui/core';
 import { PinButtonImage } from './shared/PinButton';
 import { Cancel } from '@material-ui/icons';
+import { AppStateContext } from '../contexts/AppStateContext';
 
 interface IYouTubeBackgroundProps {
   isVideoPinned: boolean;
@@ -29,6 +30,8 @@ function YouTubeBackground({
   pausePlayVideo,
   videoRef
 }: IYouTubeBackgroundProps) {
+  const { socket } = useContext(AppStateContext);
+
   const [isHovering, setIsHovering] = useState<boolean>(false);
 
   return (
@@ -81,6 +84,11 @@ function YouTubeBackground({
           }}
           onClick={() => {
             onPinVideo(videoId);
+            socket.emit('event', {
+              key: 'youtube',
+              value: videoId,
+              pin: true
+            });
           }}>
 						<PinButtonImage />
 					</IconButton>

@@ -43,6 +43,8 @@ import { useEffect, useRef } from 'react';
 interface IBoardProps {
 	videoId: string;
 	hideAllPins: boolean;
+	setPinnedVideoId: React.Dispatch<React.SetStateAction<string>>;
+	pinnedVideoId: string;
 	lastTime: number;
 	videoRef: React.Ref<any>;
 	volume: number;
@@ -103,6 +105,8 @@ interface IBoardProps {
 export const Board = ({
 	videoId,
 	hideAllPins,
+	setPinnedVideoId,
+	pinnedVideoId,
 	videoRef,
 	lastTime,
 	volume,
@@ -514,6 +518,9 @@ export const Board = ({
 					>
 						<BoardObject
 							type="video"
+							isPinnedPlaying={video.isPlaying}
+							setPinnedVideoId={setPinnedVideoId}
+							pinnedVideoId={pinnedVideoId}
 							id={video.key}
 							{...video}
 							onPin={() => {
