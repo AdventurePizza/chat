@@ -1,7 +1,5 @@
 import { Button, TextField, makeStyles } from '@material-ui/core';
-import React, { useMemo, useState, useEffect, useContext } from 'react';
-import axios from "axios";
-
+import React, { useState } from 'react';
 
 const useStyles = makeStyles((theme) => ({
 	horsePanelRoot: {
@@ -22,10 +20,6 @@ export const DashboardPanel = ({ sendHorse }: IDashboardPanel) => {
 	const classes = useStyles();
 	const [inputValue, setInputValue] = useState('');
 
-	const getHorse = async (id: string)  => await axios.get('https://api.zed.run/api/v1/horses/get/62352');
-
-
-
 	return (
 		<div className={classes.horsePanelRoot}>
 			<TextField
@@ -38,8 +32,6 @@ export const DashboardPanel = ({ sendHorse }: IDashboardPanel) => {
 				variant="contained"
 				onClick={() => {
 					sendHorse (inputValue, 'horse');
-					//<setHorseId(inputValue!);
-					//</div>console.log(getHorse(inputValue!));
 				}}
 			>
 				{' '}
