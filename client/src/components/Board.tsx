@@ -99,6 +99,9 @@ interface IBoardProps {
 	waterfallChat: IWaterfallChat;
 	raceId: string;
 	horses: IBoardHorse[];
+	pinHorse: (horseKey: string) => void;
+	unpinHorse: (horseKey: string) => void;
+	updateHorses: (horses: IBoardHorse[]) => void;
 }
 
 export const Board = ({
@@ -152,7 +155,10 @@ export const Board = ({
 	onClickPresent,
 	waterfallChat,
 	raceId,
-	horses
+	horses,
+	pinHorse,
+	unpinHorse,
+	updateHorses
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -296,47 +302,36 @@ export const Board = ({
 			{!hideAllPins ? (
 				<TransitionGroup>
 					{horses.map((horse) => (
-						/*<CSSTransition
+						<CSSTransition
 							key={horse.key}
 							timeout={5000}
 							classNames="gif-transition"
 							onEntered={() => {
 								if (!horse.isPinned) {
 									const index = horses.findIndex(
-										(horse) => horse.key === horse.key
+										(_horse) => _horse.key === horse.key
 									);
-									updateImages([
-										...images.slice(0, index),
-										...images.slice(index + 1)
+									updateHorses([
+										...horses.slice(0, index),
+										...horses.slice(index + 1)
 									]);
 								}
 							}}
 						>
 							<BoardObject
-								{...image}
-								id={image.key}
-								type="image"
-								imgSrc={image.url}
+								{...horse}
+								id={horse.key}
+								type="horse"
+								horseData={horse.horseData}
 								onPin={() => {
-									pinImage(image.key);
+									pinHorse(horse.key);
 								}}
 								onUnpin={() => {
-									unpinImage(image.key);
+									unpinHorse(horse.key);
 								}}
 							/>
-						</CSSTransition>*/
-						<BoardObject
-							{...horse}
-							id={horse.key}
-							type="horse"
-							horseData={horse.horseData}
-							onPin={() => {
-								//pinImage(image.key);
-							}}
-							onUnpin={() => {
-								//unpinImage(image.key);
-							}}
-						/>
+						</CSSTransition>
+						
 					))}
 				</TransitionGroup>
 			) : null}
