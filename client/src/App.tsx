@@ -34,6 +34,7 @@ import {
 	PanelItemEnum,
 	PinTypes,
 	IOrder,
+	ITweet,
 	IMap,
 	IWaterfallChat,
 	IBoardHorse
@@ -234,8 +235,12 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-	>(undefined);
+		>(undefined);
 
+	//	>(PanelItemEnum.roomDirectory);
+
+	const [tweets, setTweets] = useState<ITweet[]>([]);
+	
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
@@ -470,6 +475,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'twitter':
 			case 'zedrun':
 			case "dashboard":
 			case 'youtube':
@@ -507,6 +513,17 @@ function App() {
 		const { prevX, prevY, currentX, currentY, color } = lineData;
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
+
+	const addTweet= useCallback((x: number, y:number, tweetId: string) => { 
+		const newTweet: ITweet = {
+				top: y,
+				left: x,
+				id: tweetId,//tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
+				isPinned: false,
+			};
+			setTweets((tweets) => tweets.concat(newTweet));
+		},[]);
+
 
 	const addGif = useCallback((gifId: string, gifKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -827,6 +844,7 @@ function App() {
 					}
 					break;
 
+
 				case 'image':
 					const index = images.findIndex((image) => image.key === itemKey);
 					const image = images[index];
@@ -937,10 +955,28 @@ function App() {
 							]);
 						}
 					}
+					break;			
+				case 'tweet':
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
+					const tweet = tweets[tweetIndex];
+					if (tweet) {
+						if (isUnpin) {
+							setTweets([
+								...tweets.slice(0, tweetIndex),
+								...tweets.slice(tweetIndex + 1)
+							]);
+						} else {
+							setTweets([
+								...tweets.slice(0, tweetIndex),
+								{ ...tweet, isPinned: true },
+								...tweets.slice(tweetIndex + 1)
+							]);
+						}
+					}
 					break;
 			}
 		},
-		[gifs, images, videos, pinnedText, NFTs, horses]
+		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
 	);
 
 	const getHorse = async (id: string)  => await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
@@ -1085,9 +1121,24 @@ function App() {
 						]);
 					}
 					break;
+				case 'tweet':
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
+					const tweet = tweets[tweetIndex];
+					if (tweet) {
+						setTweets([
+							...tweets.slice(0, tweetIndex),
+							{
+								...tweet,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+					break;
 			}
 		},
-		[images, videos, NFTs, gifs, pinnedText, horses]
+		[images, videos, NFTs, gifs, pinnedText, horses, tweets]
 	);
 
 	// const onBuy = async (orderId: string) => {
@@ -1224,7 +1275,7 @@ function App() {
 	// 	}
 	// };
 
-	useEffect(() => {
+	useEffect(() => { 
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
@@ -1283,6 +1334,11 @@ function App() {
 						addGif(message.value, message.gifKey);
 					}
 					break;
+				case 'tweet':
+					if (message.value && message.yt && message.xt) {
+						addTweet(message.xt, message.yt, message.value)
+						}
+						break;
 				case 'image':
 					if (message.value) {
 						addImage(message.value, message.imageKey);
@@ -1426,6 +1482,7 @@ function App() {
 	}, [
 		handleTowerDefenseEvents,
 		playEmoji,
+		addTweet,
 		playSound,
 		handleChatMessage,
 		addGif,
@@ -1627,6 +1684,23 @@ function App() {
 					url: window.location.href
 				});
 				break;
+			case 'tweet':
+				const id = args[0] as string;
+				const { x, y } = generateRandomXY(true, true);
+				addTweet(x, y, id);
+				socket.emit('event',{
+					key:'tweet',
+					value: id,
+					xt: x,
+					yt: y
+				});
+				setMovingBoardItem({
+					type: 'tweet',
+					itemKey: id,
+					value: id,
+					isNew: true
+				});
+				break;
 			case 'youtube':
 				const videoId = args[0] as string;
 				socket.emit('event', {
@@ -1642,7 +1716,6 @@ function App() {
 				});
 				break;
 			default:
-				break;
 		}
 	};
 
@@ -1780,6 +1853,7 @@ function App() {
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 				const pinnedHorses: IBoardHorse[] = [];
+				const pinnedTweets: ITweet[] =[];
 
 				let backgroundType: 'image' | 'map' | undefined;
 				let backgroundImg: string | undefined;
@@ -1803,6 +1877,15 @@ function App() {
 							isPinned: true,
 							key: item.key!,
 							url: item.url
+						});
+					}
+					else if(item.type ==='tweet'){
+						pinnedTweets.push({
+						...item,
+						top:  item.top! * window.innerHeight,
+						left: item.left! * window.innerWidth,
+						isPinned: true,
+						id: item.id
 						});
 					} else if (item.type === 'video') {
 						pinnedVideos.push({
@@ -1880,6 +1963,7 @@ function App() {
 
 				setGifs(pinnedGifs);
 				setImages(pinnedImages);
+				setTweets(pinnedTweets);
 				setPinnedText(pinnedText);
 				setVideos(pinnedVideos);
 				setBackground({
@@ -1961,6 +2045,38 @@ function App() {
 				setModalErrorMessage(result.message);
 			}
 		}
+	};
+		const pinTweet = async (tweetID: string) => {
+		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
+		const tweet = tweets[tweetIndex];
+		const room = roomId || 'default';
+
+		if (tweet && !tweet.isPinned) {
+			console.log('Tweet called pinRoomItem');
+			const result = await firebaseContext.pinRoomItem(room, {
+				...tweet,
+				key: tweet.id,
+				type: 'tweet',
+				left: tweet.left / window.innerWidth,
+				top: tweet.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setTweets([
+					...tweets.slice(0, tweetIndex),
+					{ ...tweet, isPinned: true },
+					...tweets.slice(tweetIndex + 1)
+				]);
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'tweet',
+					itemKey: tweet.id
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+
 	};
 
 	const pinImage = async (imageKey: string) => {
@@ -2068,9 +2184,7 @@ function App() {
 	}, [videoId, videos]);
 
 	const pinBackground = async () => {
-		/* if(background.isPinned===true){
-			unpinBackground();
-		} */
+
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
@@ -2166,6 +2280,30 @@ function App() {
 		}
 	};
 
+	
+	const unpinTweet = async (tweetID: string) => {
+		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
+		const tweet = tweets[tweetIndex];
+		const room = roomId || 'default';
+
+		if (tweet && tweet.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				tweet.id
+			);
+			if (isSuccessful) {
+				setTweets([...tweets.slice(0, tweetIndex), ...tweets.slice(tweetIndex + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'tweet',
+					itemKey: tweetID
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
 	const unpinGif = async (gifKey: string) => {
 		const gifIndex = gifs.findIndex((gif) => gif.key === gifKey);
 		const gif = gifs[gifIndex];
@@ -2330,6 +2468,19 @@ function App() {
 					...NFTs.slice(nftIndex + 1)
 				]);
 			}
+		} else if (type === 'tweet') {
+			const tweetIndex = tweets.findIndex((tweet) => tweet.id === id);
+			if (tweetIndex !== -1) {
+				setTweets([
+					...tweets.slice(0, tweetIndex),
+					{
+						...tweets[tweetIndex],
+						top,
+						left
+					},
+					...tweets.slice(tweetIndex + 1)
+				]);
+			}
 		}
 		else if (type === 'horse'){
 			const horseIndex = horses.findIndex((horse) => horse.key === id);
@@ -2416,7 +2567,21 @@ function App() {
 							...NFTs.slice(nftIndex + 1)
 						]);
 					}
-				}else if (type === 'horse'){
+				}else if (type === 'tweet') {
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === id);
+					if (tweetIndex !== -1) {
+						setTweets([
+							...tweets.slice(0, tweetIndex),
+							{
+								...tweets[tweetIndex],
+								top,
+								left
+							},
+							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+				}
+				else if (type === 'horse'){
 					const horseIndex = horses.findIndex((horse) => horse.key === id);
 					if (horseIndex !== -1) {
 						setHorses([
@@ -2617,6 +2782,9 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				tweets={tweets}
+				pinTweet={pinTweet}
+				unpinTweet={unpinTweet}
 				raceId={raceId}
 				horses={horses}
 				pinHorse={pinHorse}

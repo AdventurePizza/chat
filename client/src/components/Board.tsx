@@ -15,6 +15,7 @@ import {
 	IUserLocations,
 	IUserProfiles,
 	IWeather,
+	ITweet,
 	PinTypes,
 	IWaterfallChat,
 	IBoardHorse
@@ -96,7 +97,10 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
-	waterfallChat: IWaterfallChat;
+	tweets: ITweet[];
+	pinTweet: (tweetID: string) => void;
+	unpinTweet: (tweetID: string) => void;
+ 	waterfallChat: IWaterfallChat;
 	raceId: string;
 	horses: IBoardHorse[];
 	pinHorse: (horseKey: string) => void;
@@ -153,6 +157,9 @@ export const Board = ({
 	onCancel,
 	onClickNewRoom,
 	onClickPresent,
+	unpinTweet,
+	tweets,
+	pinTweet,
 	waterfallChat,
 	raceId,
 	horses,
@@ -444,7 +451,6 @@ export const Board = ({
 						setTimeout(() => {
 							setIntroState('appear');
 						}, 5000);
-
 						setTimeout(() => {
 							setIntroState('end');
 						}, 20000);
@@ -452,7 +458,6 @@ export const Board = ({
 				>
 					<div className="room-button">{renderIntro()}</div>
 				</CSSTransition>
-
 				<CSSTransition
 					appear
 					timeout={5000}
@@ -461,7 +466,6 @@ export const Board = ({
 						setTimeout(() => {
 							setPresentState('appear');
 						}, 5000);
-
 						setTimeout(() => {
 							setPresentState('end');
 						}, 20000);
@@ -494,6 +498,29 @@ export const Board = ({
 					))}
 				</TransitionGroup>
 			) : null}
+			{!hideAllPins ? (
+				<TransitionGroup>
+				{tweets.map((tweet) => (
+					<CSSTransition
+						key={tweet.id}
+						timeout={5000}
+						classNames="gif-transition"
+					>
+						<BoardObject
+							type="tweet"
+							{...tweet}
+							onPin={() => {
+								pinTweet(tweet.id);
+							}}
+							onUnpin={() => {
+								unpinTweet(tweet.id);
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+ ) : null}
+ 
 
 			{!hideAllPins ? (
 				<TransitionGroup>
