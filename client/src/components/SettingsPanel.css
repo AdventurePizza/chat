@@ -71,6 +71,7 @@
 
 .settings-rooms {
     display: flex;
+    overflow-x: scroll;
 }
 
 .settings-room-container {
