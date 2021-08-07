@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'musicPlayer';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'musicPlayer' | 'tweet';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -31,6 +31,13 @@ export interface IAnimation {
 	text?: string;
 }
 
+export interface ITweet {
+	id: string;
+	left: number;
+	top: number;
+	isPinned?: boolean;
+	
+}
 export interface IAvatarChatMessages {
 	[userId: string]: string[];
 }
@@ -60,9 +67,13 @@ export interface IMessageEvent {
 		| 'move-item'
 		| 'unpin-item'
 		| 'poem'
-		| 'change-playlist',
+		| 'change-playlist'
+		| 'tweet';
+		
 	value?: any;
 	[key: string]: any;
+	xt: number;
+	yt: number;
 }
 
 export interface IFigure {
@@ -174,13 +185,14 @@ export enum PanelItemEnum {
 	'chat' = 'chat',
 	'background' = 'background',
 	'youtube' = 'youtube',
-	'maps' = 'maps',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'zedrun' = 'zedrun',
 	'sound' = 'sound',
+	"maps" = "maps",
+	'twitter' = 'twitter',
 	'email' = 'email',
 	'new-room' = 'new-room',
 	'browseNFT' = 'browseNFT',

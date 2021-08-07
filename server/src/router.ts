@@ -86,6 +86,7 @@ interface IMessageEvent {
   key:
     | "sound"
     | "youtube"
+    | "tweet"
     | "map"
     | "emoji"
     | "chat"
@@ -290,7 +291,10 @@ export class Router {
           userId: socket.id,
           value: message.value,
         });
-        break;
+            break;
+        case "tweet":
+            socket.to(room).broadcast.emit("event", message);
+            break;
 
       case "emoji":
         // socket.broadcast.emit("event", message);
