@@ -359,14 +359,8 @@ function App() {
 		if(accountId && isLoggedIn){
 			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					//if(res.data.email){
-						setShowLoginModal(false);
-					//}
-					if(userProfile.email){
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
-					} else {
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
-					}
+					setShowLoginModal(false);
+					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
 					socket.emit('event', {
 						key: 'avatar',
 						value: res.data.avatar
@@ -1323,41 +1317,20 @@ function App() {
 					}));
 				break;
 				case 'weather':
-					let messageValue = message.value;
-					if(messageValue === "DELETE"){
-						messageValue = { temp: '', condition: ''}
-					}
-
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
 							...profile,
-							weather: messageValue
+							weather: message.value
 						}));
 					} else {
 						setUserProfiles((profiles) => ({
 							...profiles,
-							[message.id]: { ...profiles[message.id], weather: messageValue }
+							[message.id]: { ...profiles[message.id], weather: message.value }
 						}));
 					}
-
 					break;
 				case 'settings-url':
-					if(message.value === "DELETE"){
-						if(message.isSelf){
-							setUserProfile((profile) => ({
-								...profile,
-								musicMetadata: undefined
-							}));
-						} else {
-							setUserProfiles((profiles) => ({
-								...profiles,
-								[message.id]: {
-									...profiles[message.id],
-									musicMetadata: undefined
-								}
-							}));
-						}
-					} else if (message.value && message.isSelf) {
+					if (message.value && message.isSelf) {
 						setUserProfile((profile) => ({
 							...profile,
 							musicMetadata: message.value
@@ -1380,6 +1353,36 @@ function App() {
 					break;
 				case 'move-item':
 					handleMoveItemMessage(message);
+					break;
+				case 'clear-field':
+					if (message.field === 'music'){
+						if(message.isSelf){
+							setUserProfile((profile) => ({
+								...profile,
+								musicMetadata: undefined
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: {
+									...profiles[message.id],
+									musicMetadata: undefined
+								}
+							}));
+						}
+					} else if (message.field === 'weather'){
+						if (message.toSelf) {
+							setUserProfile((profile) => ({
+								...profile,
+								weather: { temp: '', condition: ''}
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: { ...profiles[message.id], weather: { temp: '', condition: ''} }
+							}));
+						}
+					}
 					break;
 			}
 		};
@@ -1600,18 +1603,14 @@ function App() {
 				} else if (type === "email") {
 					if(accountId){
 						firebaseContext.updateEmail(accountId, settingsValue)
-						.then(res => setUserProfile((profile) => ({ ...profile, email: settingsValue })))
+						.then(() => setUserProfile((profile) => ({ ...profile, email: settingsValue })))
 						.catch(err => console.log(err));
 					}
 				}
 				break;
 			case 'weather':
 				const location = args[0] as string;
-				if(location === "DELETE"){
-					setUserProfile((profile) => ({ ...profile, location: "" }))
-				} else {
-					setUserProfile((profile) => ({ ...profile, location: location }))
-				}
+				setUserProfile((profile) => ({ ...profile, location: location }));
 				
 				socket.emit('event', {
 					key: 'weather',
@@ -1657,6 +1656,26 @@ function App() {
 					key: 'youtube',
 					value: videoId
 				});
+				break;
+			case 'clear-field':
+				const field = args[0] as string;
+
+				if(field === "weather"){
+					setUserProfile((profile) => ({ ...profile, location: "" }))
+				}
+
+				if(field === "email"){
+					if(accountId){
+						firebaseContext.updateEmail(accountId, "")
+						.then(res => setUserProfile((profile) => ({ ...profile, email: "" })))
+						.catch(err => console.log(err));
+					}
+				} else {
+					socket.emit('event', {
+						key: 'clear-field',
+						field,
+					});
+				}
 				break;
 			default:
 		}
@@ -2525,19 +2544,18 @@ function App() {
 
 			<Route path="/settings">
 				<SettingsPanel 
+					setStep={setStep}
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
 					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
 					currentAvatar={userProfile.avatar}
-					setStep={setStep}
 					username={userProfile.name}
 					email={userProfile.email}
 					myLocation={userProfile.location}
-					setLocation={(location) => actionHandler('weather', location)}
 					music={userProfile.musicMetadata}
-					setMusic={(music) => actionHandler('sound', music)}
+					clearField={(field) => actionHandler('clear-field', field)}
 				/>
 			</Route>
 

@@ -67,7 +67,8 @@ export interface IMessageEvent {
 		| 'move-item'
 		| 'unpin-item'
 		| 'poem'
-		| 'tweet';
+		| 'tweet'
+		| 'clear-field';
 		
 	value?: any;
 	[key: string]: any;

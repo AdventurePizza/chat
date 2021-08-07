@@ -106,7 +106,8 @@ interface IMessageEvent {
     | "pin-item"
     | "move-item"
     | "send-email"
-    | "unpin-item";
+    | "unpin-item"
+    | "clear-field";
   value?: any;
   [key: string]: any;
 }
@@ -395,28 +396,17 @@ export class Router {
         clientProfiles[socket.id].currentRoom = message.value as string;
         break;
       case "settings-url":
-        if(message.value === "DELETE"){
-          clientProfiles[socket.id].musicMetadata = undefined;
-          const emitData = {
-            key: "settings-url",
-            id: socket.id,
-            value: "DELETE",
-          };
-          socket.to(room).emit("event", emitData);
+        const metadata = await resolveUrl(message.value as string);
+        clientProfiles[socket.id].musicMetadata = metadata;
+        const emitData = {
+          key: "settings-url",
+          id: socket.id,
+          value: metadata,
+        };
+        socket.to(room).emit("event", emitData);
 
-          socket.emit("event", { ...emitData, isSelf: true });
-        } else {
-          const metadata = await resolveUrl(message.value as string);
-          clientProfiles[socket.id].musicMetadata = metadata;
-          const emitData = {
-            key: "settings-url",
-            id: socket.id,
-            value: metadata,
-          };
-          socket.to(room).emit("event", emitData);
-  
-          socket.emit("event", { ...emitData, isSelf: true });
-        }
+        socket.emit("event", { ...emitData, isSelf: true });
+        
         break;
 
       case "tower defense":
@@ -506,36 +496,49 @@ export class Router {
             };
           })
           .catch((error) => {
-            if(message.value === "DELETE"){
-              socket.to(room).emit("event", {
-                key: "weather",
-                value: {
-                  temp: "",
-                  condition: "",
-                },
-                id: socket.id,
-              });
-  
-              io.to(socket.id).emit("event", {
-                key: "weather",
-                value: {
-                  temp: "",
-                  condition: "",
-                },
-                toSelf: true,
-              });
-              clientProfiles[socket.id].weather = {
-                temp: "",
-                condition: "",
-              };
-            } else {
-              console.error(error.response.data);
-            }
+            console.error(error.response.data);
           });
 
         break;
       case "animation":
         socket.to(room).broadcast.emit("event", message);
+        break;
+      case 'clear-field':
+        if(message.field === 'music'){
+          clientProfiles[socket.id].musicMetadata = undefined;
+          const emitData = {
+            key: "clear-field",
+            id: socket.id,
+            field: message.field,
+          };
+          socket.to(room).emit("event", emitData);
+
+          socket.emit("event", { ...emitData, isSelf: true });
+        } else if (message.field === 'weather'){
+          socket.to(room).emit("event", {
+            key: "clear-field",
+            field: message.field,
+            value: {
+              temp: "",
+              condition: "",
+            },
+            id: socket.id,
+          });
+
+          io.to(socket.id).emit("event", {
+            key: "clear-field",
+            field: message.field,
+            value: {
+              temp: "",
+              condition: "",
+            },
+            toSelf: true,
+          });
+          clientProfiles[socket.id].weather = {
+            temp: "",
+            condition: "",
+          };
+        }
         break;
     }
   };

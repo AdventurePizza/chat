@@ -28,19 +28,18 @@ import placeholder from "../assets/default-placeholder.png";
 import { IMetadata } from '../types';
 
 interface ISettingsPanelProps {
+	setStep: (step: number) => void;
 	onChangeName: (username: string) => void;
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void;
 	onSubmitEmail: (email: string) => void;
 	currentAvatar: string;
-	setStep: (step: number) => void;
 	username: string;
 	email: string;
 	myLocation?: string;
-	setLocation: (location: string) => void;
 	music?: IMetadata;
-	setMusic: (music: string) => void;
+	clearField: (field: string) => void;
 }
 
 interface IWalletItem {
@@ -92,9 +91,8 @@ export const SettingsPanel = ({
 	username,
 	email,
 	myLocation,
-	setLocation,
 	music,
-	setMusic
+	clearField
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -212,18 +210,21 @@ export const SettingsPanel = ({
 					placeholder={email ? email : "add email"}
 					onClick={onSubmitEmail}
 					containsRemove={true}
+					clearField={() => clearField("email")}
 				/>
 				<EditField 
 					prefix="LOCATION"
 					placeholder={myLocation ? myLocation : "add location"}
 					onClick={onSendLocation}
 					containsRemove={true}
+					clearField={() => clearField("weather")}
 				/>
 				<EditField 
 					prefix="MUSIC"
 					placeholder={music ? music.title : "add song url"}
 					onClick={onSubmitUrl}
 					containsRemove={true}
+					clearField={() => clearField("music")}
 				/>
 			</div>
 			<h2>AVATAR</h2>

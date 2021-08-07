@@ -11,7 +11,8 @@ interface IEditFieldProps {
     placeholder: string;
 	onClick: (value: string) => void;
 	setStep?: (step: number) => void;
-    containsRemove: boolean
+    containsRemove: boolean;
+    clearField?: () => void;
 }
 
 export const EditField = ({
@@ -20,6 +21,7 @@ export const EditField = ({
     onClick,
     setStep,
     containsRemove,
+    clearField
 }: IEditFieldProps) => {
     const [showInput, setShowInput] = useState(false);
 
@@ -41,9 +43,9 @@ export const EditField = ({
                         inputWidth="95%"
                         setStep={setStep}
                     />
-                    {containsRemove ? (
+                    {containsRemove && clearField ? (
                         <Fab onClick={() => {
-                            onClick("DELETE");
+                            clearField();
                             setShowInput(false);
                         }} aria-label="Delete" color="secondary" size="small">
                             <DeleteIcon />
