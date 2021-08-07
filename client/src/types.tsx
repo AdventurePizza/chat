@@ -47,6 +47,7 @@ export interface IMessageEvent {
 		| 'tower defense'
 		| 'background'
 		| 'messages'
+		| 'send-race'
 		| 'whiteboard'
 		| 'animation'
 		| 'isTyping'

@@ -282,14 +282,14 @@ const PanelContent = ({
 			return (
 				<iframe
 					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
-				  width='100%'
-				  height='100vh'
-				  frameBorder='0'
-				  allowFullScreen>
+				  	width='100%'
+					height='100vh'
+					frameBorder='0'
+					allowFullScreen>
 		    </iframe>
 			);
 		case 'zedrun':
-			return <ZedrunPanel setRaceId={setRaceId} />;
+			return <ZedrunPanel sendRace={(id) => onAction('send-race', id)} />;
 		default:
 			return null;
 	}

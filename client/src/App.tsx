@@ -1153,6 +1153,9 @@ function App() {
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
+				case 'send-race':
+					setRaceId(message.value);
+					break;
 				case 'whiteboard':
 					if (message.value) {
 						drawLineEvent(message.value);
@@ -1403,6 +1406,14 @@ function App() {
 				socket.emit('event', {
 					key: 'animation',
 					value: animationType
+				});
+				break;
+			case 'send-race':
+				const raceId = args[0] as string;
+				setRaceId(raceId);
+				socket.emit('event', {
+					key: 'send-race',
+					value: raceId
 				});
 				break;
 			case 'whiteboard':

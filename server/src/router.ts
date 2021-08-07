@@ -94,6 +94,7 @@ interface IMessageEvent {
     | "tower defense"
     | "background"
     | "messages"
+    | "send-race"
     | "whiteboard"
     | "animation"
     | "isTyping"
@@ -453,7 +454,9 @@ export class Router {
         socket.emit("event", message);
         removeImageAfter1Min(clientRooms[socket.id]);
         break;
-
+      case "send-race":
+        socket.to(clientRooms[socket.id]).emit("event", message);
+        break;
       case "whiteboard":
         // socket.broadcast.emit("event", message);
         socket.to(clientRooms[socket.id]).emit("event", message);
