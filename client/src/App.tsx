@@ -1411,6 +1411,7 @@ function App() {
 			case 'send-race':
 				const raceId = args[0] as string;
 				setRaceId(raceId);
+				pinRace(raceId);
 				socket.emit('event', {
 					key: 'send-race',
 					value: raceId
@@ -1653,6 +1654,8 @@ function App() {
 						backgroundType = item.subType;
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
+					} else if (item.type === 'race') {
+						setRaceId(item.raceId);
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1789,6 +1792,16 @@ function App() {
 			}
 		}
 	};
+
+	const pinRace = async (raceId: string) => {
+		const room = roomId || 'default';
+		await firebaseContext.pinRoomItem(room, {
+			raceId: raceId,
+			type: 'race',
+			top: 0,
+			left: 0
+		});
+	}
 
 	const pinBackground = async () => {
 		/* if(background.isPinned===true){

@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
+export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'text' | 'NFT' | 'map' | 'chat';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
