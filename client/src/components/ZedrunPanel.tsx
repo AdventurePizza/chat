@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
 const baseURLRace = 'https://3d-racing.zed.run/';
 
 interface IZedrunPanel {
-	setRaceId: (raceId: string) => void;
+	sendRace: (id: string) => void;
 }
 
 interface IRace {
@@ -31,7 +31,7 @@ interface INode {
 	};
 }
 
-export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
+export const ZedrunPanel = ({ sendRace }: IZedrunPanel) => {
 	const classes = useStyles();
 	const [inputValue, setInputValue] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
@@ -81,7 +81,7 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 			<Button
 				variant="contained"
 				onClick={() => {
-					setRaceId(roomId!);
+					sendRace(roomId!);
 				}}
 			>
 				{' '}
@@ -90,7 +90,7 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 			<Button
 				variant="contained"
 				onClick={() => {
-					setRaceId('');
+					sendRace('');
 				}}
 			>
 				{' '}
@@ -103,7 +103,7 @@ export const ZedrunPanel = ({ setRaceId }: IZedrunPanel) => {
 						{
 							<Button
 								onClick={() => {
-									setRaceId(race.id);
+									sendRace(race.id);
 								}}
 							>
 								{race.name}

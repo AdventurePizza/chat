@@ -339,7 +339,7 @@ const PanelContent = ({
 			updateIsTyping={updateIsTyping}/>
 			);
 		case 'zedrun':
-			return <ZedrunPanel setRaceId={setRaceId} />;
+			return <ZedrunPanel sendRace={(id) => onAction('send-race', id)} />;
 		default:
 			return null;
 	}

@@ -1281,6 +1281,9 @@ function App() {
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
+				case 'send-race':
+					setRaceId(message.value);
+					break;
 				case 'whiteboard':
 					if (message.value) {
 						drawLineEvent(message.value);
@@ -1532,6 +1535,15 @@ function App() {
 				socket.emit('event', {
 					key: 'animation',
 					value: animationType
+				});
+				break;
+			case 'send-race':
+				const raceId = args[0] as string;
+				setRaceId(raceId);
+				pinRace(raceId);
+				socket.emit('event', {
+					key: 'send-race',
+					value: raceId
 				});
 				break;
 			case 'whiteboard':
@@ -1807,7 +1819,9 @@ function App() {
 						backgroundType = item.subType;
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
-					} else if (item.type === 'text') {
+					} else if (item.type === 'race') {
+						setRaceId(item.raceId);
+					}else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
 							top: item.top! * window.innerHeight,
@@ -2051,6 +2065,16 @@ function App() {
 		}
 	}, [videoId, videos]);
 
+	const pinRace = async (raceId: string) => {
+		const room = roomId || 'default';
+		await firebaseContext.pinRoomItem(room, {
+			raceId: raceId,
+			type: 'race',
+			top: 0,
+			left: 0
+		});
+	}
+	
 	const pinBackground = async () => {
 
 		const room = roomId || 'default';
