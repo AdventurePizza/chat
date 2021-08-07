@@ -19,15 +19,9 @@ roomRouter.get("/:roomId", async (req, res) => {
   }
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
-  if (process.env.NODE_ENV !== "production") {
-    return res.status(200).send({
-      name: "default",
-    });
-  }
-
-  /* if (!ethers.utils.isAddress(address)) {
+   if (!ethers.utils.isAddress(address)) {
     return error(res, "Invalid user wallet address: " + address);
-  } */
+  } 
 
   const doc = await collection.doc(roomId).get();
   if (!doc.exists) {
@@ -35,7 +29,7 @@ roomRouter.get("/:roomId", async (req, res) => {
   }
   const contractAddress = await doc.get("contractAddress");
   let visible = true;
-  //If room has contract address set visibility to false until finds a permission.
+  //If room has contract address set visibility to false until finds a permission condition.
   if(contractAddress){
     visible = false;
 
@@ -50,7 +44,7 @@ roomRouter.get("/:roomId", async (req, res) => {
     );
     contractRequiredToken = new ethers.Contract(contractAddress, erc20abi, provider);
 
-    const balance = await contractRequiredToken.balanceOf(address);
+    const balance = Math.floor(await contractRequiredToken.balanceOf(address));
     if(balance !== 0){
       visible = true;
     }
