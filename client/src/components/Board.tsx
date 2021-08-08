@@ -18,7 +18,8 @@ import {
 	ITweet,
 	PinTypes,
 	IWaterfallChat,
-	IBoardHorse
+	IBoardHorse,
+	IMusicPlayer
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -97,6 +98,7 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	musicPlayer: IMusicPlayer;
 	tweets: ITweet[];
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
@@ -165,7 +167,8 @@ export const Board = ({
 	horses,
 	pinHorse,
 	unpinHorse,
-	updateHorses
+	updateHorses,
+	musicPlayer
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -305,7 +308,15 @@ export const Board = ({
 					left={waterfallChat.left}
 				/>
 			)}
-
+			{musicPlayer.playlist.length !== 0 && <BoardObject
+				id={'musicPlayer'}
+				type="musicPlayer"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				playlist={musicPlayer.playlist}
+				top={musicPlayer.top}
+				left={musicPlayer.left}
+			/>}
 			{!hideAllPins ? (
 				<TransitionGroup>
 					{horses.map((horse) => (

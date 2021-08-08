@@ -37,7 +37,8 @@ import {
 	ITweet,
 	IMap,
 	IWaterfallChat,
-	IBoardHorse
+	IBoardHorse,
+	IMusicPlayer
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -298,6 +299,11 @@ function App() {
 		show: true
 	});
 
+	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
+		top: 600,
+		left: 200,
+		playlist: []
+	});
 	const [raceId, setRaceId] = useState<string>('');
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
@@ -475,6 +481,7 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'musicPlayer':
 			case 'twitter':
 			case 'zedrun':
 			case "dashboard":
@@ -507,6 +514,22 @@ function App() {
 		const { avatar, value } = message;
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 	}, []);
+
+	const handleChangePlaylist = useCallback((message: IMessageEvent) => {
+		const music = message.value;
+		const index = parseInt(music);
+		//if it is number it means it is index should be removed
+		if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
+			if(musicPlayer.playlist.length === 0){
+				setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+			}
+		}
+		//it is url and should be added
+		else{
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: new Date().getTime().toString(), url: music})}));
+		}
+	}, [musicPlayer]);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -1136,10 +1159,11 @@ function App() {
 						]);
 					}
 					break;
-			}
-		},
-		[images, videos, NFTs, gifs, pinnedText, horses, tweets]
-	);
+				case 'musicPlayer':
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, top: relativeTop, left: relativeLeft}));
+					break;
+				}},
+		[images,videos, NFTs, gifs, pinnedText, tweets, horses]);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1438,7 +1462,10 @@ function App() {
 					if (message.value) {
 						addHorse(message.value, message.horseKey);
 					}
-				break;
+					break;
+				case 'change-playlist':
+					handleChangePlaylist(message);
+					break;
 			}
 		};
 
@@ -1502,7 +1529,8 @@ function App() {
 		deleteMarker,
 		updateMarkerText,
 		updateWaterfallChat,
-		addHorse
+		addHorse,
+		handleChangePlaylist
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1715,6 +1743,32 @@ function App() {
 					value: horseId
 				});
 				break;
+			case 'change-playlist':
+				const music = args[0] as string;
+				const index = parseInt(music);
+				//if it is number it means it is index should be removed
+				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+					if(musicPlayer.playlist.length === 1){
+						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+					}
+					else{
+						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
+					}
+				}
+				//it is url and should be added
+				else{
+					const timestamp = new Date().getTime().toString();
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: timestamp, url: music})}));
+					firebaseContext.addtoPlaylist(roomId || 'default', music, timestamp);
+				}
+				socket.emit('event', {
+					key: 'change-playlist',
+					value: music
+				});
+
+				break;
 			default:
 		}
 	};
@@ -1841,9 +1895,15 @@ function App() {
 		});
 		// }
 
+		
+
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
 
+			firebaseContext.getPlaylist(room).then((playlist) => {
+				if(playlist.data)
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
+			});
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -2501,6 +2561,9 @@ function App() {
 			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
 		}
 
+		else if (type === 'musicPlayer') {
+			setMusicPlayer((musicPlayer) => ({ ...musicPlayer, top: top, left: left}));
+		}
 		else{
 			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
 				roomId || 'default',
@@ -2720,7 +2783,7 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel 
+				<SettingsPanel
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
@@ -2782,6 +2845,7 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				musicPlayer={musicPlayer}
 				tweets={tweets}
 				pinTweet={pinTweet}
 				unpinTweet={unpinTweet}
@@ -2793,7 +2857,7 @@ function App() {
 				/>
 			</Route>
 
-			<Tour 
+			<Tour
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
@@ -2803,10 +2867,10 @@ function App() {
 				lastStepNextButton={<CloseIcon />}
 				showCloseButton={false}
 			/>
-			
+
 			{showLoginModal ? (
-				<Login 
-					beginTour={setShowTour} 
+				<Login
+					beginTour={setShowTour}
 					showModal={setShowLoginModal}
 					isFirstVisit={isFirstVisit}
 					userEmail={userProfile.email}
@@ -2903,6 +2967,7 @@ function App() {
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
+				musicPlayer = {musicPlayer}
 				setRaceId={setRaceId}
 			/>
 
