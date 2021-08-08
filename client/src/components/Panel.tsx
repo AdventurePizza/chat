@@ -15,7 +15,6 @@ import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
-import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
 import twitterIcon from '../assets/navbar/twitterIcon.png';
 import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
@@ -117,7 +116,6 @@ const panelIconSrcMap: {
 	// sound: soundIcon,
 	youtube: YouTubeIcon,
 	emoji: emojiIcon,
-	gifs: gifIcon,
 	chat: chatIcon,
 	twitter: twitterIcon,
 	// tower: towerIcon,

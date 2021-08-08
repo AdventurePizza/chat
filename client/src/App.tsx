@@ -468,7 +468,6 @@ function App() {
 			case 'sound':
 			case 'emoji':
 			case 'chat':
-			case 'gifs':
 			case 'tower':
 			case 'animation':
 			case 'background':
