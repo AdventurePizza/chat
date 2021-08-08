@@ -15,7 +15,6 @@ import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
-import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
@@ -225,14 +224,6 @@ const PanelContent = ({
 		case 'sound':
 			return <SoundPanel sendSound={onAction} />;
 
-		case 'gifs':
-			return (
-				<Gifs
-					sendGif={(gif: IGif) => {
-						onAction('gif', gif.id);
-					}}
-				/>
-			);
 		case 'tower':
 			return (
 				<TowerDefensePanel

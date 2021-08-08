@@ -2,33 +2,27 @@ import {
 	Avatar,
 	FormControlLabel,
 	IconButton,
-	Switch
+	Switch,
+	makeStyles, 
+	createStyles, 
+	Theme,
+	InputBase 
 } from '@material-ui/core';
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
-import React, { useEffect, useState, useContext } from 'react';
-
-import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/Search';
+import {
+	Carousel,
+	SearchContextManager,
+} from '@giphy/react-components';
+import { IGif } from '@giphy/js-types';
+import { GiphyFetch } from '@giphy/js-fetch-api'
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { backgroundIcons } from './BackgroundImages';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import loadingDots from '../assets/loading-dots.gif';
 
-import './Gifs.css';
-
-import {
-	Carousel,
-	SearchBar,
-	SearchContext,
-	SearchContextManager,
-	SuggestionBar
-} from '@giphy/react-components';
-
-import { IGif } from '@giphy/js-types';
-import { GiphyFetch } from '@giphy/js-fetch-api'
-
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
-const gf = new GiphyFetch(API_KEY)
+const giphyfetch = new GiphyFetch(API_KEY)
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -139,7 +133,7 @@ const BackgroundPanel = ({
 		if(!search){
 			search = "hello";
 		}
-		const fetchGifs = (offset: number) => gf.search(search, { offset, limit: 10 })
+		const fetchGifs = (offset: number) => giphyfetch.search(search, { offset, limit: 10 })
 
 		return (
 			<div className='background-icon-list'>

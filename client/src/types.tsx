@@ -181,7 +181,6 @@ export interface IGifs {
 export enum PanelItemEnum {
 	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	'gifs' = 'gifs',
 	'chat' = 'chat',
 	'background' = 'background',
 	'youtube' = 'youtube',
