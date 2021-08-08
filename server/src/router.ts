@@ -107,7 +107,8 @@ interface IMessageEvent {
     | "pin-item"
     | "move-item"
     | "send-email"
-    | "unpin-item";
+    | "unpin-item"
+    | "change-playlist";
   value?: any;
   [key: string]: any;
 }
@@ -502,6 +503,9 @@ export class Router {
 
         break;
       case "animation":
+        socket.to(room).broadcast.emit("event", message);
+        break;
+      case "change-playlist":
         socket.to(room).broadcast.emit("event", message);
         break;
     }

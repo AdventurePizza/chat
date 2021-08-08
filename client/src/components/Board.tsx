@@ -17,7 +17,8 @@ import {
 	IWeather,
 	ITweet,
 	PinTypes,
-	IWaterfallChat
+	IWaterfallChat,
+	IMusicPlayer
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -96,6 +97,7 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	musicPlayer: IMusicPlayer;
 	tweets: ITweet[];
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
@@ -156,6 +158,7 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
+	musicPlayer,
 	raceId
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
@@ -285,17 +288,25 @@ export const Board = ({
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
-			{waterfallChat.show && (
-				<BoardObject
-					id={'texteyId'}
-					type="chat"
-					onPin={() => {}}
-					onUnpin={() => {}}
-					chat={waterfallChat.messages}
-					top={waterfallChat.top}
-					left={waterfallChat.left}
-				/>
-			)}
+			{waterfallChat.show && <BoardObject
+				id={'texteyId'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>}
+			{musicPlayer.playlist.length !== 0 && <BoardObject
+				id={'musicPlayer'}
+				type="musicPlayer"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				playlist={musicPlayer.playlist}
+				top={musicPlayer.top}
+				left={musicPlayer.left}
+			/>}
+
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition

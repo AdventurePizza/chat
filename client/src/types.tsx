@@ -1,6 +1,8 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' | 'tweet';
+
+export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'musicPlayer' | 'tweet';
+
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -68,6 +70,7 @@ export interface IMessageEvent {
 		| 'move-item'
 		| 'unpin-item'
 		| 'poem'
+		| 'change-playlist'
 		| 'tweet';
 		
 	value?: any;
@@ -198,7 +201,8 @@ export enum PanelItemEnum {
 	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'tower' = 'tower',
-	'emoji' = 'emoji'
+	'emoji' = 'emoji',
+	'musicPlayer' = 'musicPlayer',
 }
 
 export interface IUserLocations {
@@ -316,6 +320,17 @@ export interface IWaterfallChat{
 export interface IChatroomData {
 	roomData: IChatRoom;
 	background?: any;
+}
+
+export interface IPlaylist{
+	timestamp: string;
+	url: string;
+}
+
+export interface IMusicPlayer{
+	top: number;
+	left: number;
+	playlist: IPlaylist[];
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
