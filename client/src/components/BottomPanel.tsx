@@ -3,7 +3,8 @@ import {
 	IChatRoom,
 	IEmojiDict,
 	ITowerDefenseState,
-	PanelItemEnum
+	PanelItemEnum,
+	IMusicPlayer
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
@@ -27,6 +28,7 @@ import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
+import { MusicPlayerPanel } from './MusicPlayerPanel';
 import TweetPanel from './TweetPanel';
 import { ZedrunPanel } from './ZedrunPanel';
 
@@ -51,6 +53,7 @@ export interface IBottomPanelProps {
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
 
@@ -79,6 +82,7 @@ export interface IPanelContentProps {
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
 
@@ -116,6 +120,7 @@ export const BottomPanel = ({
 	setHideAllPins,
 	roomData,
 	updateShowChat,
+	musicPlayer,
 	setRaceId
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
@@ -159,6 +164,7 @@ export const BottomPanel = ({
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
 					updateShowChat={updateShowChat}
+					musicPlayer={musicPlayer}
 					setRaceId={setRaceId}
 				/>
 			</div>
@@ -191,6 +197,7 @@ const PanelContent = ({
 	onNFTSuccess,
 	roomData,
 	updateShowChat,
+	musicPlayer,
 	setRaceId
 }: IPanelContentProps) => {
 	switch (type) {
@@ -337,6 +344,15 @@ const PanelContent = ({
 				onAction('tweet',id);
 			}}
 			updateIsTyping={updateIsTyping}/>
+			);
+		case 'musicPlayer':
+			return (
+				<MusicPlayerPanel
+					changePlaylist={(message) => {
+						onAction('change-playlist', message);
+					}}
+					musicPlayer={musicPlayer}
+				/>
 			);
 		case 'zedrun':
 			return <ZedrunPanel setRaceId={setRaceId} />;
