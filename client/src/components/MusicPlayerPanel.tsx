@@ -38,20 +38,20 @@ export const MusicPlayerPanel = ({
 	const textfieldRef = useRef<HTMLDivElement>(null);
 	const SMALL_SCREEN_WIDTH = 500;
 	const beethovenPlaylist = [
-		'http://www.download2mp3.com/beethoven_htm_files/Beethoven%20Military%20March.mp3',
-		'http://www.download2mp3.com/beethoven_htm_files/Beethoven%20Turkish%20March.mp3',
-		'http://www.download2mp3.com/beethoven_htm_files/Bagatelle%201.mp3',
-		'http://www.download2mp3.com/beethoven_htm_files/BeethovenRondo51_1.mp3',
-		'http://www.download2mp3.com/beethoven_htm_files/BeethovenMoonlight1.mp3',
-		'http://www.download2mp3.com/beethoven_htm_files/LVB_EmperorConcerto.mp3'];
+		'https://archive.org/download/BeethovenSymphonyNo.8/01.allegroVivaceEConBrio.mp3',
+		'https://archive.org/download/BeethovenSymphonyNo.8/02.scherzandoAllegretto.mp3',
+		'https://archive.org/download/BeethovenSymphonyNo.8/03.tempoDiMenuetto.mp3',
+		'https://archive.org/download/BeethovenPianoConcerto5Emperor/BeethovenEmperor.mp3',
+		'https://archive.org/download/cd_ligeti-beethoven_ligeti-beethoven-jeremy-denk-gyrgy-ligeti_0/disc1/01.%20Gy%C3%B6rgy%20Ligeti%20-%20Piano%20%C3%89tudes%20-%20Book%20One%20-%20I.%20D%C3%A9sordre_sample.mp3',
+		'https://archive.org/download/cd_ligeti-beethoven_ligeti-beethoven-jeremy-denk-gyrgy-ligeti_0/disc1/12.%20Gy%C3%B6rgy%20Ligeti%20-%20Piano%20%C3%89tudes%20-%20Book%20Two%20-%20X.%20Der%20Zauberlehrling_sample.mp3'];
 	const mozartPlaylist = 
-		['http://www.download2mp3.com/mozart_htm_files/Mozart%20Symphony%20No25-1.mp3',
-		'http://www.download2mp3.com/mozart_htm_files/Mozart%20Eine%20Kleine%20Nacht%20Musik.mp3',
-		'http://www.download2mp3.com/mozart_htm_files/Mozart%20Marriage%20of%20Figaro.mp3',
-		'http://www.download2mp3.com/mozart_htm_files/Mozart%20Mechanical%20Organ%20Piece.mp3',
-		'http://www.download2mp3.com/mozart_htm_files/Mozart%20K478%20Mvt%201.mp3',
-		'http://www.download2mp3.com/beethoven_htm_files/LVB_EmperorConcerto.mp3',
-		'http://www.download2mp3.com/mozart_htm_files/Mozart%20Bassoon%20Concerto.mp3'];
+		['https://archive.org/download/maurerischetrauermusik/09%20-%20Maurerische%20Trauermusik%2C%20K.%20477.mp3',
+		'https://archive.org/download/cd_mozart_wolfgang-amadeus-mozart-richard-goode/disc1/01.%20Wolfgang%20Amadeus%20Mozart%20-%20Sonata%20in%20A%20minor%2C%20K.%20310%20-%20Allegro%20maestoso_sample.mp3',
+		'https://archive.org/download/cd_mozart_wolfgang-amadeus-mozart-richard-goode/disc1/02.%20Wolfgang%20Amadeus%20Mozart%20-%20Sonata%20in%20A%20minor%2C%20K.%20310%20-%20Andante%20cantabile_sample.mp3',
+		'https://archive.org/download/cd_mozart_wolfgang-amadeus-mozart-richard-goode/disc1/03.%20Wolfgang%20Amadeus%20Mozart%20-%20Sonata%20in%20A%20minor%2C%20K.%20310%20-%20Presto_sample.mp3',
+		'https://archive.org/download/cd_mozart_wolfgang-amadeus-mozart-richard-goode/disc1/04.%20Wolfgang%20Amadeus%20Mozart%20-%20March%20in%20C%20major%2C%20K.%20408_sample.mp3',
+		'https://archive.org/download/cd_mozart_wolfgang-amadeus-mozart-richard-goode/disc1/10.%20Wolfgang%20Amadeus%20Mozart%20-%20Sonata%20in%20F%20major%2C%20K.%20533-494%20-%20Allegretto_sample.mp3',
+		'https://archive.org/download/cd_mozart_wolfgang-amadeus-mozart-richard-goode/disc1/07.%20Wolfgang%20Amadeus%20Mozart%20-%20Rondo%20in%20A%20minor%2C%20K.%20511_sample.mp3'];
 	const TRACK_NAME_LENGTH = 31;
 	const onChangeUrl = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setUrlValue(event.target.value);
