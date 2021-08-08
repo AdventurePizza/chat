@@ -6,7 +6,7 @@ import { IGif } from '@giphy/js-types';
 import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage, IPlaylist } from '../types';
+import { IOrder, IWaterfallMessage, IHorse , IPlaylist } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
@@ -15,6 +15,7 @@ import { Tweet} from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
 import { MusicPlayer } from "./MusicPlayer";
 import ReactPlayer from 'react-player';
+import { Horse } from "./Horse";
 
 
 const useStyles = makeStyles({
@@ -41,7 +42,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer' |'tweet';
+	type: 'horse' | 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer' |'tweet';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -61,6 +62,7 @@ interface BoardObjectProps {
 	onCancel?: (nftId: string) => void;
 
 	chat?: IWaterfallMessage[];
+	horseData?: IHorse;
 	playlist?: IPlaylist[];
 }
 
@@ -81,6 +83,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 		onBuy,
 		onCancel,
 		chat,
+		horseData,
 		playlist
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
@@ -152,6 +155,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				</div>
 					)
 				}
+				{type === 'horse' && horseData && <Horse horse= {horseData}/>}
 				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
 				{type === 'musicPlayer' && playlist &&
 					<div style={{ width: 400 }}>

@@ -28,6 +28,7 @@ import { NFTIcon } from './NFT/NFTPanel';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
 import horseIcon from '../assets/navbar/horse.svg';
 import browseNFTIcon from '../assets/navbar/browseNFTIcon.png';
+import dashboardIcon from '../assets/navbar/dashboardIcon.png';
 import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
 
 interface IPanelProps {
@@ -126,7 +127,9 @@ const panelIconSrcMap: {
 	animation: animationIcon,
 	// poem: poemIcon
 	maps: mapsIcon,
+	
 	browseNFT: browseNFTIcon,
+	dashboard: dashboardIcon,
 	musicPlayer: musicPlayerIcon
 };
 

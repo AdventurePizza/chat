@@ -84,6 +84,7 @@ let backgroundState: IBackgroundState = {};
 
 interface IMessageEvent {
   key:
+    | 'horse'
     | "sound"
     | "youtube"
     | "tweet"
@@ -502,6 +503,14 @@ export class Router {
       case "animation":
         socket.to(room).broadcast.emit("event", message);
         break;
+      case "horse":
+        const horseKey = uuidv4();
+        const newHorseMessage = {
+          ...message,
+          horseKey,
+        };
+        socket.to(room).emit("event", newHorseMessage);
+        socket.emit("event", newHorseMessage);
       case "change-playlist":
         socket.to(room).broadcast.emit("event", message);
         break;

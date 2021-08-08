@@ -31,6 +31,7 @@ import { ISubmit } from './NFT/OrderInput';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
 import TweetPanel from './TweetPanel';
 import { ZedrunPanel } from './ZedrunPanel';
+import { DashboardPanel } from './DashboardPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -356,6 +357,10 @@ const PanelContent = ({
 			);
 		case 'zedrun':
 			return <ZedrunPanel setRaceId={setRaceId} />;
+		case 'dashboard':
+			return <DashboardPanel sendHorse={(id) => {
+				onAction('horse', id);
+			}} />;
 		default:
 			return null;
 	}

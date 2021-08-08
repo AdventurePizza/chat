@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'musicPlayer' | 'tweet';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -44,6 +44,7 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
+		| 'horse'
 		| 'sound'
 		| 'youtube'
 		| 'emoji'
@@ -170,6 +171,42 @@ export interface IBoardVideo {
 	isPinned?: boolean;
 }
 
+export interface IHorse{
+	bloodline: string;
+	breed_type: string;
+	breeding_counter: string;
+	breeding_cycle_reset: string;
+	class: string;
+	genotype: string;
+	color: string;
+	hex_code: string;
+	name: string;
+	horse_type: string;
+	img_url: string;
+	is_approved_for_racing: string;
+	is_in_stud: string;
+	is_on_racing_contract: string;
+	mating_price: string;
+	number_of_races: string;
+	owner: string;
+	owner_stable: string;
+	owner_stable_slug: string;
+	rating: string;
+	super_coat: string;
+	tx: string;
+	tx_date: string;
+	win_rate: string;
+}
+
+export interface IBoardHorse {
+	top: number;
+	left: number;
+	horseData: IHorse;
+	key: string;
+	isPinned?: boolean;
+	id: string;
+}
+
 export interface IGifs {
 	top: number;
 	left: number;
@@ -199,7 +236,8 @@ export enum PanelItemEnum {
 	'NFT' = 'NFT',
 	'tower' = 'tower',
 	'emoji' = 'emoji',
-	'musicPlayer' = 'musicPlayer',
+	"dashboard" = "dashboard",
+	'musicPlayer' = 'musicPlayer'
 }
 
 export interface IUserLocations {

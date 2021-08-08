@@ -18,6 +18,7 @@ import {
 	ITweet,
 	PinTypes,
 	IWaterfallChat,
+	IBoardHorse,
 	IMusicPlayer
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -103,6 +104,10 @@ interface IBoardProps {
 	unpinTweet: (tweetID: string) => void;
  	waterfallChat: IWaterfallChat;
 	raceId: string;
+	horses: IBoardHorse[];
+	pinHorse: (horseKey: string) => void;
+	unpinHorse: (horseKey: string) => void;
+	updateHorses: (horses: IBoardHorse[]) => void;
 }
 
 export const Board = ({
@@ -158,8 +163,12 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
-	musicPlayer,
-	raceId
+	raceId,
+	horses,
+	pinHorse,
+	unpinHorse,
+	updateHorses,
+	musicPlayer
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -288,15 +297,17 @@ export const Board = ({
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
-			{waterfallChat.show && <BoardObject
-				id={'texteyId'}
-				type="chat"
-				onPin={() => {}}
-				onUnpin={() => {}}
-				chat={waterfallChat.messages}
-				top={waterfallChat.top}
-				left={waterfallChat.left}
-			/>}
+			{waterfallChat.show && (
+				<BoardObject
+					id={'texteyId'}
+					type="chat"
+					onPin={() => {}}
+					onUnpin={() => {}}
+					chat={waterfallChat.messages}
+					top={waterfallChat.top}
+					left={waterfallChat.left}
+				/>
+			)}
 			{musicPlayer.playlist.length !== 0 && <BoardObject
 				id={'musicPlayer'}
 				type="musicPlayer"
@@ -306,6 +317,42 @@ export const Board = ({
 				top={musicPlayer.top}
 				left={musicPlayer.left}
 			/>}
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{horses.map((horse) => (
+						<CSSTransition
+							key={horse.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!horse.isPinned) {
+									const index = horses.findIndex(
+										(_horse) => _horse.key === horse.key
+									);
+									updateHorses([
+										...horses.slice(0, index),
+										...horses.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...horse}
+								id={horse.key}
+								type="horse"
+								horseData={horse.horseData}
+								onPin={() => {
+									pinHorse(horse.key);
+								}}
+								onUnpin={() => {
+									unpinHorse(horse.key);
+								}}
+							/>
+						</CSSTransition>
+						
+					))}
+				</TransitionGroup>
+			) : null}
 
 			<TransitionGroup>
 				{emojis.map((emoji) => (
