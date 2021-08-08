@@ -252,6 +252,9 @@ const PanelContent = ({
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
+					sendGif={(gif: IGif) => {
+						onAction('gif', gif.id);
+					}}
 				/>
 			);
 		case 'animation':

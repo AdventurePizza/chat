@@ -4,6 +4,7 @@ import {
 	IconButton,
 	Switch
 } from '@material-ui/core';
+import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import React, { useEffect, useState, useContext } from 'react';
 
 import InputBase from '@material-ui/core/InputBase';
@@ -13,10 +14,42 @@ import { backgroundIcons } from './BackgroundImages';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import loadingDots from '../assets/loading-dots.gif';
 
+import './Gifs.css';
+
+import {
+	Carousel,
+	SearchBar,
+	SearchContext,
+	SearchContextManager,
+	SuggestionBar
+} from '@giphy/react-components';
+
+import { IGif } from '@giphy/js-types';
+import { GiphyFetch } from '@giphy/js-fetch-api'
+
+const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
+const gf = new GiphyFetch(API_KEY)
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      display: 'flex',
+      '& > *': {
+        margin: theme.spacing(1),
+      },
+    },
+    size: {
+      width: theme.spacing(12),
+      height: theme.spacing(12),
+    },
+  }),
+);
+
 interface IBackgroundPanelProps {
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
 	images: IImagesState[];
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
+	sendGif: (gif: IGif) => void;
 }
 
 export interface IResponseDataUnsplash {
@@ -50,6 +83,11 @@ export interface IIconsProps {
 	isSwitchChecked: boolean;
 }
 
+interface IGifsProps {
+	//Gif data IGif
+	sendGif: (gif: IGif) => void;
+}
+
 export type unsplashIconsProps = IIconsProps & { images: IImagesState[] };
 
 export const getSearchedUnsplashImages = async (text: string) =>
@@ -63,16 +101,18 @@ export const getSearchedUnsplashImages = async (text: string) =>
 const BackgroundPanel = ({
 	sendImage,
 	images,
-	setImages
+	setImages,
+	sendGif
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
 	const [searchByGoogle, setSearchByGoogle] = useState(false);
+	const [searchByUnsplash, setSearchByUnsplash] = useState(false);
+	const [searchByGiphy, setSearchByGiphy] = useState(false);
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
-
-
+	
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
 		const res = await firebaseContext.getImage(textToSearch);
@@ -94,15 +134,48 @@ const BackgroundPanel = ({
 		if (setImages) setImages(imageDataWanted);
 	}
 
+	const GifComponent = ({ sendGif }: IGifsProps) => {
+		let search = text;
+		if(!search){
+			search = "hello";
+		}
+		const fetchGifs = (offset: number) => gf.search(search, { offset, limit: 10 })
+
+		return (
+			<div className='background-icon-list'>
+				<Carousel
+					key={search}
+					gifHeight={130}
+					gutter={6}
+					fetchGifs={fetchGifs}
+					onGifClick={(gif: IGif) =>{
+						if(isSwitchChecked)
+							sendImage("https://i.giphy.com/media/" + gif.id + "/giphy.webp",  'background' );
+						else
+						sendGif(gif);
+					}}
+					noLink={true}
+				/>
+			</div>
+		);
+	};
+
 	useEffect(() => {
 		if (!isImagesEmpty) return;
-
 		searchSubmit('trending', setImages);
 	}, [isImagesEmpty, setImages]); // Wanted empty deps but warning said to put them in.....
 
 	return (
 		<div className="background-container" style={{overflowY: 'auto'}}>
 			<div className="background-search-settings">
+				<div style={{ display: 'flex' }}>
+					<FormControlLabel
+						checked={isSwitchChecked}
+						onChange={() => setIsSwitchChecked(!isSwitchChecked)}
+						control={<Switch color="primary" />}
+						label="background"
+					/>
+				</div>
 				<InputBase
 					placeholder="Search Images"
 					onChange={(e) => setText(e.target.value)}
@@ -120,22 +193,37 @@ const BackgroundPanel = ({
 				>
 					<SearchIcon />
 				</IconButton>
-				<div style={{ display: 'flex' }}>
-					<FormControlLabel
-						checked={isSwitchChecked}
-						onChange={() => setIsSwitchChecked(!isSwitchChecked)}
-						control={<Switch color="primary" />}
-						label="background"
-					/>
-				</div>
+				
 				<div style={{ display: 'flex' }}>
 					<FormControlLabel
 						checked={searchByGoogle}
 						onChange={() => {
-							setSearchByGoogle(!searchByGoogle);
+							setSearchByGoogle(true);
+							setSearchByUnsplash(false);
+							setSearchByGiphy(false);
 						}}
 						control={<Switch color="primary" />}
 						label="Google"
+					/>
+					<FormControlLabel
+						checked={searchByUnsplash}
+						onChange={() => {
+							setSearchByGoogle(false);
+							setSearchByUnsplash(true);
+							setSearchByGiphy(false);
+						}}
+						control={<Switch color="primary" />}
+						label="Unsplash"
+					/>
+					<FormControlLabel
+						checked={searchByGiphy}
+						onChange={() => {
+							setSearchByGoogle(false);
+							setSearchByUnsplash(false);
+							setSearchByGiphy(true);
+						}}
+						control={<Switch color="primary" />}
+						label="Giphy"
 					/>
 					{loading &&
 					<img
@@ -150,25 +238,34 @@ const BackgroundPanel = ({
 				</div>
 
 			</div>
-			<div className="background-icon-list" >
-				{isImagesEmpty ? (
-					<DefaultIcons
-						sendImage={sendImage}
-						isSwitchChecked={isSwitchChecked}
-					/>
-				) : (
-					<UnsplashIcons
-						sendImage={sendImage}
-						images={images}
-						isSwitchChecked={isSwitchChecked}
-					/>
-				)}
-			</div>
+			{!searchByGiphy && 
+				<div className="background-icon-list" >
+					{isImagesEmpty ? (
+						<DefaultIcons
+							sendImage={sendImage}
+							isSwitchChecked={isSwitchChecked}
+						/>
+					) : (
+						<UnsplashIcons
+							sendImage={sendImage}
+							images={images}
+							isSwitchChecked={isSwitchChecked}
+						/>
+					)
+					}
+				</div>
+			}
+			{searchByGiphy && 
+				<SearchContextManager apiKey={API_KEY}>
+					<GifComponent sendGif={sendGif} />
+				</SearchContextManager>
+			}
 		</div>
 	);
 };
 
 const DefaultIcons = ({ sendImage, isSwitchChecked }: IIconsProps) => {
+	const classes = useStyles();
 	const defaultIcons = Object.keys(backgroundIcons).map((backgroundName) => {
 		const backgroundIcon = backgroundIcons[backgroundName];
 		return (
@@ -182,6 +279,7 @@ const DefaultIcons = ({ sendImage, isSwitchChecked }: IIconsProps) => {
 					variant="rounded"
 					src={backgroundIcon}
 					alt={backgroundName + ' background'}
+					className={classes.size} 
 				/>
 			</IconButton>
 		);
@@ -195,6 +293,7 @@ const UnsplashIcons = ({
 	images,
 	isSwitchChecked
 }: unsplashIconsProps) => {
+	const classes = useStyles();
 	const unsplashIcons = images.map(({ alt, thumbnailLink, imageLink, id }) => (
 		<IconButton
 			key={id}
@@ -202,7 +301,7 @@ const UnsplashIcons = ({
 				sendImage(imageLink, isSwitchChecked ? 'background' : 'image')
 			}
 		>
-			<Avatar variant="rounded" src={thumbnailLink} alt={alt} />
+			<Avatar variant="rounded" src={thumbnailLink} alt={alt} className={classes.size} />
 		</IconButton>
 	));
 
