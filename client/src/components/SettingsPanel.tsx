@@ -1,4 +1,3 @@
-import { InputButton } from './shared/InputButton';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
 import { FirebaseContext } from '../contexts/FirebaseContext';
@@ -7,33 +6,40 @@ import './SettingsPanel.css';
 import Button from '@material-ui/core/Button';
 import { useHistory } from 'react-router-dom';
 import { Map } from './Maps';
+import { EditField } from './shared/EditField';
 
 import dollar from '../assets/dollar.png';
 
-import character1 from '../assets/character1.png';
-import character2 from '../assets/character2.png';
-import character3 from '../assets/character3.png';
-import character4 from '../assets/character4.png';
-import character5 from '../assets/character5.png';
-import character6 from '../assets/character6.png';
-import character7 from '../assets/character7.png';
-import character8 from '../assets/character8.png';
-import kirby from '../assets/kirby.gif';
-import link from '../assets/link-run.gif';
-import mario from '../assets/mario.gif';
-import nyancat from '../assets/nyancat_big.gif';
-import redghost from '../assets/red_ghost.gif';
-import yoshi from '../assets/yoshi.gif';
-/* import { _fetchData } from 'ethers/lib/utils'; */
-import placeholder from '../assets/default-placeholder.png';
+import character1 from "../assets/character1.png";
+import character2 from "../assets/character2.png";
+import character3 from "../assets/character3.png";
+import character4 from "../assets/character4.png";
+import character5 from "../assets/character5.png";
+import character6 from "../assets/character6.png";
+import character7 from "../assets/character7.png";
+import character8 from "../assets/character8.png";
+import kirby from "../assets/kirby.gif";
+import link from "../assets/link-run.gif";
+import mario from "../assets/mario.gif";
+import nyancat from "../assets/nyancat_big.gif";
+import redghost from "../assets/red_ghost.gif";
+import yoshi from "../assets/yoshi.gif";
+import placeholder from "../assets/default-placeholder.png";
+import { IMetadata } from '../types';
 
 interface ISettingsPanelProps {
+	setStep: (step: number) => void;
 	onChangeName: (username: string) => void;
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void;
+	onSubmitEmail: (email: string) => void;
 	currentAvatar: string;
-	setStep: (step: number) => void;
+	username: string;
+	email: string;
+	myLocation?: string;
+	music?: IMetadata;
+	clearField: (field: string) => void;
 }
 
 interface IWalletItem {
@@ -79,8 +85,14 @@ export const SettingsPanel = ({
 	onSubmitUrl,
 	onChangeAvatar,
 	onSendLocation,
+	onSubmitEmail,
 	currentAvatar,
-	setStep
+	setStep,
+	username,
+	email,
+	myLocation,
+	music,
+	clearField
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -186,30 +198,36 @@ export const SettingsPanel = ({
 	return (
 		<div className="settings-panel-container">
 			<div className="settings-input-container">
-				<div className="second-step">
-					<InputButton
-						buttonText="update"
-						placeholder="enter name"
-						onClick={onChangeName}
-						inputWidth={300}
-						setStep={setStep}
-					/>
-					{/* <input type="text" placeholder="add text"/> */}
-				</div>
-				<InputButton
-					buttonText="add"
-					placeholder="enter location"
-					onClick={onSendLocation}
-					inputWidth={300}
+				<EditField 
+					prefix="SCREEN NAME"
+					placeholder={username}
+					onClick={onChangeName}
+					setStep={setStep}
+					containsRemove={false}
 				/>
-				<InputButton
-					buttonText="add"
-					placeholder="enter music url"
+				<EditField 
+					prefix="EMAIL"
+					placeholder={email ? email : "add email"}
+					onClick={onSubmitEmail}
+					containsRemove={true}
+					clearField={() => clearField("email")}
+				/>
+				<EditField 
+					prefix="LOCATION"
+					placeholder={myLocation ? myLocation : "add location"}
+					onClick={onSendLocation}
+					containsRemove={true}
+					clearField={() => clearField("weather")}
+				/>
+				<EditField 
+					prefix="MUSIC"
+					placeholder={music ? music.title : "add song url"}
 					onClick={onSubmitUrl}
-					inputWidth={300}
+					containsRemove={true}
+					clearField={() => clearField("music")}
 				/>
 			</div>
-			<h2>AVATAR</h2>
+			<h2 className="settings-header">AVATAR</h2>
 			<div className="settings-avatar third-step">
 				{avatars.map((avatar, index) => {
 					let classes = 'settings-avatar-container';
@@ -221,7 +239,7 @@ export const SettingsPanel = ({
 						<div className={classes} key={index}>
 							<img
 								src={avatar.data}
-								height={100}
+								height={80}
 								onClick={() => setActiveAvatar(avatar.name)}
 								alt="user avatar"
 							/>
@@ -240,7 +258,7 @@ export const SettingsPanel = ({
 					GO!
 				</Button>
 			</div>
-			<h2>ROOMS</h2>
+			<h2 className="settings-header">ROOMS</h2>
 			{rooms ? (
 				<div className="settings-rooms">
 					{rooms.map((room, index) => (
@@ -265,7 +283,7 @@ export const SettingsPanel = ({
 					))}
 				</div>
 			) : null}
-			<h2>TOKENS</h2>
+			<h2 className="settings-header">TOKENS</h2>
 			{isWalletLoaded ? (
 				<div className="settings-wallet">
 					{items.map((item, index) => {

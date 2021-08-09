@@ -68,8 +68,9 @@ export interface IMessageEvent {
 		| 'move-item'
 		| 'unpin-item'
 		| 'poem'
+		| 'tweet'
 		| 'change-playlist'
-		| 'tweet';
+		| 'clear-field';
 		
 	value?: any;
 	[key: string]: any;
@@ -263,6 +264,7 @@ export interface IUserProfile {
 	musicMetadata?: IMetadata;
 	currentRoom?: string;
 	email: string;
+	location: string;
 }
 
 export interface IUserProfiles {
