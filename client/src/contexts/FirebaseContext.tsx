@@ -1,4 +1,4 @@
-import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext } from 'react';
@@ -53,6 +53,19 @@ export interface IFirebaseContext {
 	) => Promise<IFetchResponseBase>;
 	getImage:(query: string) => Promise<IFetchResponseBase>;
 
+	//music player routes
+	getPlaylist:(
+		roomName: string
+	) => Promise<IFetchResponseBase & { data?: IPlaylist[] }>;
+	addtoPlaylist:(
+		roomName: string,
+		track: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
+	removefromPlaylist:(
+		roomName: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
 	getRaces: () => Promise<IFetchResponseBase>;
 }
 
@@ -72,6 +85,9 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getUser: () => Promise.resolve({ isSuccessful: false }),
 	getUserRooms: () => Promise.resolve({ isSuccessful: false }),
 	getImage: () => Promise.resolve({ isSuccessful: false }),
+	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	getRaces: () => Promise.resolve({ isSuccessful: false })
 });
 
@@ -415,6 +431,69 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	//get playlist
+	const getPlaylist = useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase & { data?: IPlaylist[] }> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getPlaylist`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				const playlist = (await fetchRes.json());
+				return { isSuccessful: true, data: playlist };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//add a track to playlist
+	const addtoPlaylist = useCallback(
+		async (
+			roomName: string,
+			track: string,
+			timestamp: string
+		): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoPlaylist`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ track, timestamp })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	const removefromPlaylist = useCallback(
+		async (roomName: string, timestamp: string): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(
+				`/room/${roomName}/playlist/${timestamp}`,
+				{
+					method: 'DELETE'
+				}
+			);
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+
+		},
+		[fetchAuthenticated]
+	);
 
 
 	return (
@@ -435,6 +514,9 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getUser,
 				getUserRooms,
 				getImage,
+				getPlaylist,
+				addtoPlaylist,
+				removefromPlaylist,
 				getRaces
 			}}
 		>

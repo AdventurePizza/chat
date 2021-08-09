@@ -19,15 +19,9 @@ roomRouter.get("/:roomId", async (req, res) => {
   }
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
-  if (process.env.NODE_ENV !== "production") {
-    return res.status(200).send({
-      name: "default",
-    });
-  }
-
-  /* if (!ethers.utils.isAddress(address)) {
+   if (!ethers.utils.isAddress(address)) {
     return error(res, "Invalid user wallet address: " + address);
-  } */
+  } 
 
   const doc = await collection.doc(roomId).get();
   if (!doc.exists) {
@@ -35,7 +29,7 @@ roomRouter.get("/:roomId", async (req, res) => {
   }
   const contractAddress = await doc.get("contractAddress");
   let visible = true;
-  //If room has contract address set visibility to false until finds a permission.
+  //If room has contract address set visibility to false until finds a permission condition.
   if(contractAddress){
     visible = false;
 
@@ -50,7 +44,7 @@ roomRouter.get("/:roomId", async (req, res) => {
     );
     contractRequiredToken = new ethers.Contract(contractAddress, erc20abi, provider);
 
-    const balance = await contractRequiredToken.balanceOf(address);
+    const balance = Math.floor(await contractRequiredToken.balanceOf(address));
     if(balance !== 0){
       visible = true;
     }
@@ -214,6 +208,50 @@ roomRouter.patch("/:roomId/pin/:itemId", async (req, res) => {
 
   res.status(200).end();
 });
+
+// get playlist
+roomRouter.get("/:roomId/getPlaylist", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+
+  const snapshot = await collection.doc(roomId).collection("playlist").get();
+  const docs = snapshot.docs.map((doc) => doc.data() as IPinnedItem);
+
+  res.status(200).send(docs);
+});
+
+// add a track to playlist
+roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+  const { track } = req.body as { track: string };
+  const { timestamp } = req.body as { timestamp: string };
+
+  const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
+
+  if (!isVerifiedOwner) return;
+
+  const docRef = await collection.doc(roomId);
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+    await docRef.collection("playlist").doc(timestamp).set({ url: track, timestamp: timestamp });
+    res.status(200).end();
+  } else {
+    return error(res, "room does not exist");
+  }
+});
+
+//delete a track from playlist
+roomRouter.delete("/:roomId/playlist/:timestamp", async (req, res) => {
+  const { roomId, timestamp } = req.params as { roomId: string; timestamp: string };
+  const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
+
+  if (!isVerifiedOwner) return;
+
+  await collection.doc(roomId).collection("playlist").doc(timestamp).delete();
+
+  res.status(200).end();
+});
+
 
 const lockedRooms: { [roomId: string]: { ownerAddress: string } } = {};
 

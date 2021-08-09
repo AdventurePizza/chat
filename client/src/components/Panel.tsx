@@ -15,7 +15,6 @@ import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
-import gifIcon from '../assets/navbar/gifIcon.png';
 import pencilIcon from '../assets/navbar/pencil.png';
 import twitterIcon from '../assets/navbar/twitterIcon.png';
 import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
@@ -28,6 +27,8 @@ import { NFTIcon } from './NFT/NFTPanel';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
 import horseIcon from '../assets/navbar/horse.svg';
 import browseNFTIcon from '../assets/navbar/browseNFTIcon.png';
+import dashboardIcon from '../assets/navbar/dashboardIcon.png';
+import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -120,7 +121,6 @@ const panelIconSrcMap: {
 	// sound: soundIcon,
 	youtube: YouTubeIcon,
 	emoji: emojiIcon,
-	gifs: gifIcon,
 	chat: chatIcon,
 	twitter: twitterIcon,
 	// tower: towerIcon,
@@ -131,7 +131,9 @@ const panelIconSrcMap: {
 	// poem: poemIcon
 	maps: mapsIcon,
 	
-	browseNFT: browseNFTIcon
+	browseNFT: browseNFTIcon,
+	dashboard: dashboardIcon,
+	musicPlayer: musicPlayerIcon
 };
 
 const panelIconComponentMap: {
