@@ -3,6 +3,8 @@ import './Panel.css';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { EmailButton } from './EmailPanel';
+import { Link } from 'react-router-dom'
+
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
 import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
@@ -71,9 +73,9 @@ export const Panel = ({
 
 				<Tooltip title="home">
 					<IconButton >
-						<a href="home">
+						<Link to="" >
 							<img src={HomeIcon} alt="home avatar" className="panel-avatar" />
-						</a>
+						</Link>
 					</IconButton>
 				</Tooltip>
 
