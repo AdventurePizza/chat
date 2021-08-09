@@ -227,7 +227,7 @@ export const SettingsPanel = ({
 					clearField={() => clearField("music")}
 				/>
 			</div>
-			<h2>AVATAR</h2>
+			<h2 className="settings-header">AVATAR</h2>
 			<div className="settings-avatar third-step">
 				{avatars.map((avatar, index) => {
 					let classes = 'settings-avatar-container';
@@ -239,7 +239,7 @@ export const SettingsPanel = ({
 						<div className={classes} key={index}>
 							<img
 								src={avatar.data}
-								height={100}
+								height={80}
 								onClick={() => setActiveAvatar(avatar.name)}
 								alt="user avatar"
 							/>
@@ -258,7 +258,7 @@ export const SettingsPanel = ({
 					GO!
 				</Button>
 			</div>
-			<h2>ROOMS</h2>
+			<h2 className="settings-header">ROOMS</h2>
 			{rooms ? (
 				<div className="settings-rooms">
 					{rooms.map((room, index) => (
@@ -283,7 +283,7 @@ export const SettingsPanel = ({
 					))}
 				</div>
 			) : null}
-			<h2>TOKENS</h2>
+			<h2 className="settings-header">TOKENS</h2>
 			{isWalletLoaded ? (
 				<div className="settings-wallet">
 					{items.map((item, index) => {

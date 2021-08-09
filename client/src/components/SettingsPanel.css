@@ -33,8 +33,8 @@
 }
 
 .settings-avatar-container {
-    height: 125px;
-    width: 100px;
+    height: 100px;
+    width: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,6 +71,7 @@
 
 .settings-rooms {
     display: flex;
+    width: 100%;
     overflow-x: scroll;
 }
 
@@ -94,4 +95,8 @@
 .settings-image-container {
     height: 150px;
     width: 200px;
+}
+
+.settings-header {
+    margin: 0 0 10px 0;
 }
