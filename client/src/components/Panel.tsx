@@ -73,7 +73,7 @@ export const Panel = ({
 
 				<Tooltip title="home">
 					<IconButton >
-						<Link to="" >
+						<Link to="/" >
 							<img src={HomeIcon} alt="home avatar" className="panel-avatar" />
 						</Link>
 					</IconButton>
