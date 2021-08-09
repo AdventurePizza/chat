@@ -3,6 +3,8 @@ import './Panel.css';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { EmailButton } from './EmailPanel';
+import { Link } from 'react-router-dom'
+
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
 import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
@@ -24,6 +26,7 @@ import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import { NFTIcon } from './NFT/NFTPanel';
+import HomeIcon from '../assets/navbar/homeIcon.png';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
 import horseIcon from '../assets/navbar/horse.svg';
 import browseNFTIcon from '../assets/navbar/browseNFTIcon.png';
@@ -65,6 +68,14 @@ export const Panel = ({
 							src={backArrowIcon}
 							alt="back arrow icon"
 						/>
+					</IconButton>
+				</Tooltip>
+
+				<Tooltip title="home">
+					<IconButton >
+						<Link to="/" >
+							<img src={HomeIcon} alt="home avatar" className="panel-avatar" />
+						</Link>
 					</IconButton>
 				</Tooltip>
 
@@ -125,7 +136,7 @@ const panelIconSrcMap: {
 	animation: animationIcon,
 	// poem: poemIcon
 	maps: mapsIcon,
-	
+
 	browseNFT: browseNFTIcon,
 	dashboard: dashboardIcon,
 	musicPlayer: musicPlayerIcon
