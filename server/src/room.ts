@@ -19,10 +19,6 @@ roomRouter.get("/:roomId", async (req, res) => {
   }
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
-   if (!ethers.utils.isAddress(address)) {
-    return error(res, "Invalid user wallet address: " + address);
-  } 
-
   const doc = await collection.doc(roomId).get();
   if (!doc.exists) {
     return error(res, "room does not exist");
@@ -37,7 +33,9 @@ roomRouter.get("/:roomId", async (req, res) => {
     let wallet: ethers.Wallet;
     let contractRequiredToken: ethers.Contract;
 
-
+    if (!ethers.utils.isAddress(address)) {
+      return error(res, "Invalid user wallet address: " + address);
+    } 
     // matic mainnet
     provider = new ethers.providers.JsonRpcProvider(
       "https://rpc-mainnet.maticvigil.com/v1/3cd8c7560296ba08d4c7a0f0039927e09b385123"
