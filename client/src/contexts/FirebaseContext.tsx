@@ -1,4 +1,4 @@
-import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext } from 'react';
@@ -53,6 +53,10 @@ export interface IFirebaseContext {
 	) => Promise<IFetchResponseBase>;
 	getImage:(query: string) => Promise<IFetchResponseBase>;
 
+	getChat:(
+		roomName: string
+	) => Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }>;
+
 	//music player routes
 	getPlaylist:(
 		roomName: string
@@ -85,6 +89,7 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getUser: () => Promise.resolve({ isSuccessful: false }),
 	getUserRooms: () => Promise.resolve({ isSuccessful: false }),
 	getImage: () => Promise.resolve({ isSuccessful: false }),
+	getChat: () => Promise.resolve({ isSuccessful: false }),
 	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
@@ -431,6 +436,25 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	//get chat
+	const getChat = useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getChat`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				const messages = (await fetchRes.json());
+				return { isSuccessful: true, data: messages };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
 	//get playlist
 	const getPlaylist = useCallback(
 		async (
@@ -514,6 +538,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getUser,
 				getUserRooms,
 				getImage,
+				getChat,
 				getPlaylist,
 				addtoPlaylist,
 				removefromPlaylist,

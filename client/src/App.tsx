@@ -293,8 +293,8 @@ function App() {
 
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 400,
-		left: 800,
+		top: 10,
+		left: 110,
 		messages: [],
 		show: true
 	});
@@ -1903,6 +1903,12 @@ function App() {
 				if(playlist.data)
 					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
 			});
+
+			firebaseContext.getChat(room).then((messages) => {
+				if(messages.data)
+					setMusicPlayer((waterfallChat) => ({...waterfallChat, messages: messages!.data!}));
+			});
+			
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -2853,6 +2859,7 @@ function App() {
 				pinHorse={pinHorse}
 				unpinHorse={unpinHorse}
 				updateHorses={setHorses}
+				updateSelectedPanelItem={setSelectedPanelItem}
 				/>
 			</Route>
 

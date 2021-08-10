@@ -6,7 +6,7 @@ import { IGif } from '@giphy/js-types';
 import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage, IHorse , IPlaylist } from '../types';
+import { IOrder, IWaterfallMessage, IHorse , IPlaylist, PanelItemEnum } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
@@ -61,6 +61,7 @@ interface BoardObjectProps {
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
 
+	updateSelectedPanelItem?: (panelItem: PanelItemEnum | undefined) => void;
 	chat?: IWaterfallMessage[];
 	horseData?: IHorse;
 	playlist?: IPlaylist[];
@@ -84,7 +85,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		onCancel,
 		chat,
 		horseData,
-		playlist
+		playlist,
+		updateSelectedPanelItem
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -108,7 +110,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: isHovering ? 99999999 : 99999997
+				zIndex: (isHovering || type === 'chat') ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}
@@ -156,7 +158,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					)
 				}
 				{type === 'horse' && horseData && <Horse horse= {horseData}/>}
-				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
+				{type === 'chat' && chat && updateSelectedPanelItem && <WaterfallChat updateSelectedPanelItem={updateSelectedPanelItem} chat= {chat}/>}
 				{type === 'musicPlayer' && playlist &&
 					<div style={{ width: 400 }}>
 						<MusicPlayer
