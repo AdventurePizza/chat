@@ -2920,6 +2920,7 @@ function App() {
 				pinHorse={pinHorse}
 				unpinHorse={unpinHorse}
 				updateHorses={setHorses}
+				selectedPanelItem={selectedPanelItem}
 				updateSelectedPanelItem={setSelectedPanelItem}
 				/>
 			</Route>

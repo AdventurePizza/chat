@@ -16,6 +16,7 @@ const useStyles = makeStyles({
 		'& > *': {
 			marginRight: 10
 		}
+		
 	},
 	input: {
 		borderRadius: 20,

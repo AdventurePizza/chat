@@ -109,6 +109,7 @@ interface IBoardProps {
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
+	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 }
 
@@ -171,6 +172,7 @@ export const Board = ({
 	unpinHorse,
 	updateHorses,
 	musicPlayer,
+	selectedPanelItem,
 	updateSelectedPanelItem
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
@@ -306,6 +308,7 @@ export const Board = ({
 					type="chat"
 					onPin={() => {}}
 					onUnpin={() => {}}
+					selectedPanelItem={selectedPanelItem}
 					updateSelectedPanelItem={updateSelectedPanelItem}
 					chat={waterfallChat.messages}
 					top={waterfallChat.top}

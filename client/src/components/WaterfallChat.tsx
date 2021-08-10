@@ -5,15 +5,16 @@ import { avatarMap } from './UserCursors';
 
 interface IWaterfallChatProps {
 	chat: IWaterfallMessage[];
+	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 }
 
-export const WaterfallChat = ({ chat, updateSelectedPanelItem }: IWaterfallChatProps) => {
+export const WaterfallChat = ({ chat, selectedPanelItem, updateSelectedPanelItem }: IWaterfallChatProps) => {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const scrollToBottom = () => {
-			if(messagesEndRef && messagesEndRef.current){
-	    		messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-			}
+		if(messagesEndRef && messagesEndRef.current){
+	    	messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
+		}
 	}
 
 	useEffect(scrollToBottom, [chat]);
@@ -24,9 +25,16 @@ export const WaterfallChat = ({ chat, updateSelectedPanelItem }: IWaterfallChatP
 			<div>
 				<Button 
 					style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} 
-					size="medium" color="primary" onClick={() => { updateSelectedPanelItem('chat' as PanelItemEnum )}} > CHAT
+					size="medium" color="primary" onClick={() => { 
+						if(selectedPanelItem === 'chat'){
+							updateSelectedPanelItem(undefined);
+						}
+						else{
+							updateSelectedPanelItem('chat' as PanelItemEnum );
+						}
+					}} > CHAT
 				</Button>
-				<div style={{overflowY: 'auto', maxHeight: 300}}>
+				<div style={{overflowY: 'scroll', maxHeight: 300}}>
 				{
 					chat.map((ch, index) =>
 						<div key={index.toString()} style={{ width: 300, clear: 'left'}}>

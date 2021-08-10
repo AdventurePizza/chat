@@ -61,6 +61,7 @@ interface BoardObjectProps {
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
 
+	selectedPanelItem?: PanelItemEnum | undefined;
 	updateSelectedPanelItem?: (panelItem: PanelItemEnum | undefined) => void;
 	chat?: IWaterfallMessage[];
 	horseData?: IHorse;
@@ -86,6 +87,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 		chat,
 		horseData,
 		playlist,
+		selectedPanelItem,
 		updateSelectedPanelItem
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
@@ -158,7 +160,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					)
 				}
 				{type === 'horse' && horseData && <Horse horse= {horseData}/>}
-				{type === 'chat' && chat && updateSelectedPanelItem && <WaterfallChat updateSelectedPanelItem={updateSelectedPanelItem} chat= {chat}/>}
+				{type === 'chat' && chat && updateSelectedPanelItem && <WaterfallChat selectedPanelItem={selectedPanelItem} updateSelectedPanelItem={updateSelectedPanelItem} chat= {chat}/>}
 				{type === 'musicPlayer' && playlist &&
 					<div style={{ width: 400 }}>
 						<MusicPlayer
