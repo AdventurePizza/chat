@@ -6762,6 +6762,11 @@
   "resolved" "https://registry.npmjs.org/extsprintf/-/extsprintf-1.3.0.tgz"
   "version" "1.3.0"
 
+"fancy-canvas@^0.2.2", "fancy-canvas@0.2.2":
+  "integrity" "sha512-50qi8xA0QkHbjmb8h7XQ6k2fvD7y/yMfiUw9YTarJ7rWrq6o5/3CCXPouYk+XSLASvvxtjyiQLRBFt3qkE3oyA=="
+  "resolved" "https://registry.npmjs.org/fancy-canvas/-/fancy-canvas-0.2.2.tgz"
+  "version" "0.2.2"
+
 "fast-deep-equal@^3.1.1", "fast-deep-equal@^3.1.3":
   "integrity" "sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q=="
   "resolved" "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz"
@@ -9337,6 +9342,13 @@
     "prelude-ls" "~1.1.2"
     "type-check" "~0.3.2"
 
+"lightweight-charts@^3.3.0", "lightweight-charts@^3.5.0":
+  "integrity" "sha512-IK+Wqk0QNq2lPj0VKtgpg+mCCbA6T2+V788QA7M1PckcwHmAeLpjGz+/vpeEl4cBzmWSAEzCbN64aRbNP5yLwQ=="
+  "resolved" "https://registry.npmjs.org/lightweight-charts/-/lightweight-charts-3.5.0.tgz"
+  "version" "3.5.0"
+  dependencies:
+    "fancy-canvas" "0.2.2"
+
 "lines-and-columns@^1.1.6":
   "integrity" "sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA="
   "resolved" "https://registry.npmjs.org/lines-and-columns/-/lines-and-columns-1.1.6.tgz"
@@ -11812,6 +11824,13 @@
   dependencies:
     "@babel/runtime" "^7.12.13"
 
+"react-crypto-chart@^0.0.2":
+  "integrity" "sha512-/R9Zbbgk9iYRojXWVw24V7eWY0mDCnvroFVWpbXTvhwZCLEvAJtxkBxVXSCDxqYiiwQiTHCm2rdk2y2mnEYSZg=="
+  "resolved" "https://registry.npmjs.org/react-crypto-chart/-/react-crypto-chart-0.0.2.tgz"
+  "version" "0.0.2"
+  dependencies:
+    "lightweight-charts" "^3.3.0"
+
 "react-dev-utils@^11.0.0":
   "integrity" "sha512-dx0LvIGHcOPtKbeiSUM4jqpBl3TcY7CDjZdfOIcKeznE7BWr9dg0iPG90G5yfVQ+p/rGNMXdbfStvzQZEVEi4A=="
   "resolved" "https://registry.npmjs.org/react-dev-utils/-/react-dev-utils-11.0.4.tgz"
@@ -12062,11 +12081,6 @@
     "loose-envify" "^1.4.0"
     "prop-types" "^15.6.2"
 
-"react-tweet-embed@^1.2.2":
-  "integrity" "sha512-Y932BlSaJsDUsKDucC2opzzd+uhc0YNhrlTa/4Beb2be1od+AjLGo6Fhuo2wPT0D+fF4VTXOyoZyA8Yc88RdYA=="
-  "resolved" "https://registry.npmjs.org/react-tweet-embed/-/react-tweet-embed-1.2.2.tgz"
-  "version" "1.2.2"
-
 "react-twitter-widgets@^1.10.0":
   "integrity" "sha512-K7MAREhkKJxrhoiNWricKs1O++NyElnVpcplLzZ67gDrmeIsD3E4TUzlt0/nTZAHPOPPc86V4kEd4KIg4de7cQ=="
   "resolved" "https://registry.npmjs.org/react-twitter-widgets/-/react-twitter-widgets-1.10.0.tgz"
@@ -12099,7 +12113,7 @@
     "ts-easing" "^0.2.0"
     "tslib" "^2.0.0"
 
-"react@*", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0", "react@^15.3.0 || ^16.0.0 || ^17.0.0", "react@^15.6.1 || ^16.0.0 || ^17.0.0", "react@^16.0.0 || ^17.0.0", "react@^16.10.2", "react@^16.13.1", "react@^16.3.0 || ^17.0.0-0", "react@^16.8", "react@^16.8.0", "react@^16.8.0 || ^17", "react@^16.8.0 || ^17.0.0", "react@^17.0.1", "react@>= 16.8.0", "react@>= 16.9.0", "react@>=0.14.7", "react@>=15", "react@>=16.3.0", "react@>=16.6.0", "react@>=16.8.0", "react@>=16.8.1", "react@>0.14.0", "react@17.0.1":
+"react@*", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0", "react@^15.3.0 || ^16.0.0 || ^17.0.0", "react@^15.6.1 || ^16.0.0 || ^17.0.0", "react@^16.0.0 || ^17.0.0", "react@^16.10.2", "react@^16.13.1", "react@^16.3.0 || ^17.0.0-0", "react@^16.8", "react@^16.8.0", "react@^16.8.0 || ^17", "react@^16.8.0 || ^17.0.0", "react@^17.0.1", "react@>= 16.8.0", "react@>= 16.9.0", "react@>=0.14.7", "react@>=15", "react@>=16.3.0", "react@>=16.6.0", "react@>=16.8.0", "react@>=16.8.1", "react@17.0.1":
   "integrity" "sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w=="
   "resolved" "https://registry.npmjs.org/react/-/react-17.0.1.tgz"
   "version" "17.0.1"
