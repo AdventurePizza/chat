@@ -266,13 +266,16 @@ function App() {
 		weather: { temp: '', condition: '' },
 		soundType: '',
 		currentRoom: 'default',
-		email: ''
+		email: '',
+		location: ''
 	});
+
+	
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
-		condition: ''
+		condition: '',
 	});
 
 	// YouTube function to keep track of timestamps
@@ -310,6 +313,7 @@ function App() {
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
+		console.log(roomId);
 	}, [roomId]);
 
 	const playEmoji = useCallback((dict: IEmojiDict) => {
@@ -364,14 +368,8 @@ function App() {
 		if(accountId && isLoggedIn){
 			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					if(res.data.email){
-						setShowLoginModal(false);
-					}
-					if(userProfile.email){
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
-					} else {
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
-					}
+					setShowLoginModal(false);
+					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
 					socket.emit('event', {
 						key: 'avatar',
 						value: res.data.avatar
@@ -463,7 +461,7 @@ function App() {
 		audio.current.play();
 	}, []);
 
-	const onClickPanelItem = (key: string) => {
+	const onClickPanelItem = (key: string | undefined) => {
 		switch (key) {
 			case 'sound':
 			case 'emoji':
@@ -495,6 +493,8 @@ function App() {
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
+			case undefined :
+				setSelectedPanelItem(undefined);
 		}
 	};
 
@@ -1430,7 +1430,6 @@ function App() {
 							[message.id]: { ...profiles[message.id], weather: message.value }
 						}));
 					}
-
 					break;
 				case 'settings-url':
 					if (message.value && message.isSelf) {
@@ -1456,6 +1455,36 @@ function App() {
 					break;
 				case 'move-item':
 					handleMoveItemMessage(message);
+					break;
+				case 'clear-field':
+					if (message.field === 'music'){
+						if(message.isSelf){
+							setUserProfile((profile) => ({
+								...profile,
+								musicMetadata: undefined
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: {
+									...profiles[message.id],
+									musicMetadata: undefined
+								}
+							}));
+						}
+					} else if (message.field === 'weather'){
+						if (message.toSelf) {
+							setUserProfile((profile) => ({
+								...profile,
+								weather: { temp: '', condition: ''}
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: { ...profiles[message.id], weather: { temp: '', condition: ''} }
+							}));
+						}
+					}
 					break;
 				case 'horse':
 					if (message.value) {
@@ -1684,12 +1713,17 @@ function App() {
 						.catch(err => console.log(err));
 					}
 				} else if (type === "email") {
-					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
+					if(accountId){
+						firebaseContext.updateEmail(accountId, settingsValue)
+						.then(() => setUserProfile((profile) => ({ ...profile, email: settingsValue })))
+						.catch(err => console.log(err));
+					}
 				}
 				break;
 			case 'weather':
 				const location = args[0] as string;
-
+				setUserProfile((profile) => ({ ...profile, location: location }));
+				
 				socket.emit('event', {
 					key: 'weather',
 					value: location
@@ -1734,6 +1768,26 @@ function App() {
 					key: 'youtube',
 					value: videoId
 				});
+				break;
+			case 'clear-field':
+				const field = args[0] as string;
+
+				if(field === "weather"){
+					setUserProfile((profile) => ({ ...profile, location: "" }))
+				}
+
+				if(field === "email"){
+					if(accountId){
+						firebaseContext.updateEmail(accountId, "")
+						.then(res => setUserProfile((profile) => ({ ...profile, email: "" })))
+						.catch(err => console.log(err));
+					}
+				} else {
+					socket.emit('event', {
+						key: 'clear-field',
+						field,
+					});
+				}
 				break;
 			case 'horse':
 				const horseId = args[0] as string;
@@ -2788,13 +2842,19 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel
+				<SettingsPanel 
+					setStep={setStep}
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
+					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
 					currentAvatar={userProfile.avatar}
-					setStep={setStep}
+					username={userProfile.name}
+					email={userProfile.email}
+					myLocation={userProfile.location}
+					music={userProfile.musicMetadata}
+					clearField={(field) => actionHandler('clear-field', field)}
 				/>
 			</Route>
 
@@ -2879,7 +2939,6 @@ function App() {
 					beginTour={setShowTour}
 					showModal={setShowLoginModal}
 					isFirstVisit={isFirstVisit}
-					userEmail={userProfile.email}
 					setUserEmail={(email) => actionHandler('settings', 'email', email)}
 				/>
 			 ) : null }

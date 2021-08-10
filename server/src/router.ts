@@ -108,6 +108,7 @@ interface IMessageEvent {
     | "move-item"
     | "send-email"
     | "unpin-item"
+    | "clear-field"
     | "change-playlist";
   value?: any;
   [key: string]: any;
@@ -407,6 +408,7 @@ export class Router {
         socket.to(room).emit("event", emitData);
 
         socket.emit("event", { ...emitData, isSelf: true });
+        
         break;
 
       case "tower defense":
@@ -503,6 +505,42 @@ export class Router {
       case "animation":
         socket.to(room).broadcast.emit("event", message);
         break;
+      case 'clear-field':
+        if(message.field === 'music'){
+          clientProfiles[socket.id].musicMetadata = undefined;
+          const emitData = {
+            key: "clear-field",
+            id: socket.id,
+            field: message.field,
+          };
+          socket.to(room).emit("event", emitData);
+
+          socket.emit("event", { ...emitData, isSelf: true });
+        } else if (message.field === 'weather'){
+          socket.to(room).emit("event", {
+            key: "clear-field",
+            field: message.field,
+            value: {
+              temp: "",
+              condition: "",
+            },
+            id: socket.id,
+          });
+
+          io.to(socket.id).emit("event", {
+            key: "clear-field",
+            field: message.field,
+            value: {
+              temp: "",
+              condition: "",
+            },
+            toSelf: true,
+          });
+          clientProfiles[socket.id].weather = {
+            temp: "",
+            condition: "",
+          };
+        }
       case "horse":
         const horseKey = uuidv4();
         const newHorseMessage = {

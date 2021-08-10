@@ -35,7 +35,7 @@ import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
 interface IPanelProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onClick: (key: string) => void;
+	onClick: (key: string | undefined) => void;
 	selectedItem?: PanelItemEnum;
 	avatar?: string;
 }
@@ -88,8 +88,13 @@ export const Panel = ({
 					className="first-step"
 				>
 					<IconButton onClick={() => {
-						onClick('settings');
-						history.push('/settings');
+						if(selectedItem === "settings"){
+							onClick(undefined);
+							history.goBack();
+						} else {
+							onClick('settings');
+							history.push('/settings');
+						}
 					}}>
 						<div>
 							<img src={avatar} alt="user avatar" className="panel-avatar" />
