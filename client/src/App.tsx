@@ -510,8 +510,17 @@ function App() {
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
 	}
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
-		const { avatar, value } = message;
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
+		const { avatar, value, name } = message;
+
+		setWaterfallChat((waterfallChat) => (
+			{ ...waterfallChat, 
+				messages: waterfallChat.messages.concat( 
+					{ "avatar": avatar ,
+					 "message": value,
+					  "name": name
+				}
+			) }
+		));
 	}, []);
 
 	const handleChangePlaylist = useCallback((message: IMessageEvent) => {
@@ -1571,12 +1580,21 @@ function App() {
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
-					avatar: userProfile.avatar
+					avatar: userProfile.avatar,
+					name: userProfile.name
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				const timestamp = new Date().getTime().toString();
-				firebaseContext.addtoChat(roomId || 'default', chatValue, userProfile.avatar, timestamp);
-				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
+				firebaseContext.addtoChat(roomId || 'default', chatValue, userProfile.avatar, userProfile.name, timestamp);
+				setWaterfallChat((waterfallChat) => (
+					{ ...waterfallChat, 
+						messages: waterfallChat.messages.concat( 
+							{ "avatar": userProfile.avatar ,
+							 "message": chatValue,
+							  "name": userProfile.name
+						}
+					) }
+				));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;

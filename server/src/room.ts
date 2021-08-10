@@ -222,13 +222,14 @@ roomRouter.post("/:roomId/addtoChat", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
   const { message } = req.body as { message: string };
   const { avatar } = req.body as { avatar: string };
+  const { name } = req.body as { name: string };
   const { timestamp } = req.body as { timestamp: string };
 
   const docRef = await collection.doc(roomId);
   const doc = await docRef.get();
 
   if (doc.exists) {
-    await docRef.collection("chat").doc(timestamp).set({ message: message, avatar: avatar, timestamp: timestamp });
+    await docRef.collection("chat").doc(timestamp).set({ message: message, avatar: avatar, name: name, timestamp: timestamp });
     res.status(200).end();
   } else {
     return error(res, "room does not exist");

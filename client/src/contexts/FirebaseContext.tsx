@@ -61,6 +61,7 @@ export interface IFirebaseContext {
 		roomName: string,
 		text: string,
 		avatar: string,
+		name: string,
 		timestamp: string
 	) => Promise<IFetchResponseBase>;
 
@@ -469,6 +470,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 			roomName: string,
 			message: string,
 			avatar: string,
+			name: string,
 			timestamp: string
 		): Promise<IFetchResponseBase> => {
 
@@ -477,7 +479,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ message, avatar, timestamp })
+				body: JSON.stringify({ message, avatar, name, timestamp })
 			});
 
 			if (fetchRes.ok) {

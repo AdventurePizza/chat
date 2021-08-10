@@ -309,6 +309,7 @@ export class Router {
           userId: socket.id,
           value: message.value,
           avatar: message.avatar,
+          name: message.name
         });
 
         if (message.value) {

@@ -344,6 +344,7 @@ export interface INFTMetadata {
 export interface IWaterfallMessage{
 	avatar: string;
 	message: string;
+	name: string;
 }
 
 export interface IWaterfallChat{
