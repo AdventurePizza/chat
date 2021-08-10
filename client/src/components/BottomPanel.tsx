@@ -52,7 +52,8 @@ export interface IBottomPanelProps {
 	setHideAllPins: (value: boolean) => void;
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
-	updateShowChat: () => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
@@ -81,7 +82,8 @@ export interface IPanelContentProps {
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
-	updateShowChat: () => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
@@ -119,7 +121,8 @@ export const BottomPanel = ({
 	hideAllPins,
 	setHideAllPins,
 	roomData,
-	updateShowChat,
+	showWhiteboard,
+	updateShowWhiteboard,
 	musicPlayer,
 	setRaceId
 }: IBottomPanelProps) => {
@@ -163,7 +166,8 @@ export const BottomPanel = ({
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
-					updateShowChat={updateShowChat}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
 					musicPlayer={musicPlayer}
 					setRaceId={setRaceId}
 				/>
@@ -196,7 +200,8 @@ const PanelContent = ({
 	onNFTError,
 	onNFTSuccess,
 	roomData,
-	updateShowChat,
+	showWhiteboard,
+	updateShowWhiteboard,
 	musicPlayer,
 	setRaceId
 }: IPanelContentProps) => {
@@ -219,7 +224,9 @@ const PanelContent = ({
 						onAction('chat-pin', message);
 					}}
 					updateIsTyping={updateIsTyping}
-					showChat={updateShowChat}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					setBrushColor={setBrushColor}
 				/>
 			);
 		case 'sound':

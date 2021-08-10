@@ -4,6 +4,7 @@ import { PinButton } from './shared/PinButton';
 import { StyledButton } from './shared/StyledButton';
 import { TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import WhiteboardPanel from './WhiteboardPanel';
 
 const useStyles = makeStyles({
 	container: {
@@ -28,14 +29,18 @@ interface IChatProps {
 	pinMessage: (message: string) => void;
 	sendMessage: (message: string) => void;
 	updateIsTyping: (isTyping: boolean) => void;
-	showChat: () => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	setBrushColor: (color: string) => void;
 }
 
 export const Chat = ({
 	sendMessage,
 	updateIsTyping,
 	pinMessage,
-	showChat
+	showWhiteboard,
+	updateShowWhiteboard,
+	setBrushColor
 }: IChatProps) => {
 	const classes = useStyles();
 
@@ -80,26 +85,31 @@ export const Chat = ({
 		}
 	};
 
-	const onShowChat = () => {
-		showChat();
-	};
-
 	return (
 		<div className={classes.container}>
-			<TextField
-				autoFocus={window.innerWidth > 500}
-				ref={textfieldRef}
-				placeholder="type your message here"
-				variant="outlined"
-				value={chatValue}
-				onChange={onChangeChat}
-				onKeyPress={onKeyPressChat}
-				className={classes.input}
-				onFocus={onFocus}
-			/>
-			<StyledButton onClick={onButtonClickChat}>send</StyledButton>
-			<PinButton onPin={onPinMessage} isPinned={false} onUnpin={() => {}} />
-			<StyledButton onClick={onShowChat}>show chat</StyledButton>
+			<div className={classes.container}>
+				<TextField
+					autoFocus={window.innerWidth > 500}
+					ref={textfieldRef}
+					placeholder="type your message here"
+					variant="outlined"
+					value={chatValue}
+					onChange={onChangeChat}
+					onKeyPress={onKeyPressChat}
+					className={classes.input}
+					onFocus={onFocus}
+				/>
+				<StyledButton onClick={onButtonClickChat}>send</StyledButton>
+				<PinButton onPin={onPinMessage} isPinned={false} onUnpin={() => {}} />
+				<StyledButton onClick={() => { updateShowWhiteboard(!showWhiteboard)}}>marker</StyledButton>
+				{showWhiteboard &&
+					<WhiteboardPanel setBrushColor={setBrushColor} />
+				}
+			</div>
+			<div>
+				
+			</div>
+
 		</div>
 	);
 };

@@ -31,7 +31,7 @@ export function Whiteboard({
 }: IWhiteboardProps) {
 	const [isDrawing, setIsDrawing] = useState(false);
 	const position = useRef({ x: 0, y: 0 });
-
+	
 	useEffect(() => {
 		let canv = canvasRef.current!;
 		canv.width = window.innerWidth;

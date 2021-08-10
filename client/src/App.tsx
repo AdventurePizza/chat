@@ -301,6 +301,8 @@ function App() {
 		messages: [],
 		show: true
 	});
+	
+	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
 		top: 600,
@@ -508,6 +510,10 @@ function App() {
 
 	const onShowChat = () => {
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
+
+	const onShowMarker = (show: boolean) => {
+		setShowWhiteboard(show);
 	}
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value, name } = message;
@@ -1931,7 +1937,7 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.chat && showWhiteboard ;
 
 	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
 		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
@@ -3051,7 +3057,8 @@ function App() {
 				setIsVideoShowing={setIsVideoShowing}
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
-				updateShowChat = {onShowChat}
+				showWhiteboard = {showWhiteboard}
+				updateShowWhiteboard = {onShowMarker}
 				musicPlayer = {musicPlayer}
 				setRaceId={setRaceId}
 			/>

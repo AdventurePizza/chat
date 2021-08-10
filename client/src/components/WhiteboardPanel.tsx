@@ -22,10 +22,10 @@ function WhiteboardPanel({ setBrushColor }: IWhiteboardPanelProps) {
 			<IconButton
 				style={{
 					backgroundColor: color,
-					width: '51px',
-					height: '51px',
-					marginRight: '27px',
-					borderRadius: 4
+					width: '5px',
+					height: '5px',
+					marginRight: '2px',
+					borderRadius: 1
 				}}
 				key={color}
 				onClick={() => setBrushColor(color)}

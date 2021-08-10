@@ -26,11 +26,11 @@ export const WaterfallChat = ({ chat, selectedPanelItem, updateSelectedPanelItem
 				<Button 
 					style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} 
 					size="medium" color="primary" onClick={() => { 
-						if(selectedPanelItem === 'chat'){
+						if(selectedPanelItem === PanelItemEnum.chat){
 							updateSelectedPanelItem(undefined);
 						}
 						else{
-							updateSelectedPanelItem('chat' as PanelItemEnum );
+							updateSelectedPanelItem(PanelItemEnum.chat as PanelItemEnum );
 						}
 					}} > CHAT
 				</Button>
