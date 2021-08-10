@@ -1574,6 +1574,8 @@ function App() {
 					avatar: userProfile.avatar
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
+				const timestamp = new Date().getTime().toString();
+				firebaseContext.addtoChat(roomId || 'default', chatValue, userProfile.avatar, timestamp);
 				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
 				break;
 			case 'chat-pin':
@@ -1587,7 +1589,6 @@ function App() {
 						isNew: true
 					});
 				}
-
 				break;
 			case 'emoji':
 				const emoji = args[0] as IEmojiDict;
@@ -1960,7 +1961,7 @@ function App() {
 
 			firebaseContext.getChat(room).then((messages) => {
 				if(messages.data)
-					setMusicPlayer((waterfallChat) => ({...waterfallChat, messages: messages!.data!}));
+					setWaterfallChat((waterfallChat) => ({...waterfallChat, messages: messages!.data!}));
 			});
 			
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {

@@ -57,6 +57,13 @@ export interface IFirebaseContext {
 		roomName: string
 	) => Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }>;
 
+	addtoChat:(
+		roomName: string,
+		text: string,
+		avatar: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
+
 	//music player routes
 	getPlaylist:(
 		roomName: string
@@ -90,6 +97,7 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getUserRooms: () => Promise.resolve({ isSuccessful: false }),
 	getImage: () => Promise.resolve({ isSuccessful: false }),
 	getChat: () => Promise.resolve({ isSuccessful: false }),
+	addtoChat: () => Promise.resolve({ isSuccessful: false }),
 	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
@@ -455,6 +463,32 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	//add message to Chat
+	const addtoChat = useCallback(
+		async (
+			roomName: string,
+			message: string,
+			avatar: string,
+			timestamp: string
+		): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoChat`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ message, avatar, timestamp })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
 	//get playlist
 	const getPlaylist = useCallback(
 		async (
@@ -539,6 +573,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getUserRooms,
 				getImage,
 				getChat,
+				addtoChat,
 				getPlaylist,
 				addtoPlaylist,
 				removefromPlaylist,
