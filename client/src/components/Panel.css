@@ -207,8 +207,7 @@
 .background-icon-list {
 	display: flex;
 	overflow-x: scroll;
-	padding-left: 20%;
-	padding-right: 20%;
+	height: 150px;
 }
 
 .sound-category-list {

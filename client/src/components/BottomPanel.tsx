@@ -3,7 +3,8 @@ import {
 	IChatRoom,
 	IEmojiDict,
 	ITowerDefenseState,
-	PanelItemEnum
+	PanelItemEnum,
+	IMusicPlayer
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
@@ -14,7 +15,6 @@ import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
-import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
@@ -27,8 +27,10 @@ import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
+import { MusicPlayerPanel } from './MusicPlayerPanel';
 import TweetPanel from './TweetPanel';
 import { ZedrunPanel } from './ZedrunPanel';
+import { DashboardPanel } from './DashboardPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -51,6 +53,7 @@ export interface IBottomPanelProps {
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
 
@@ -79,6 +82,7 @@ export interface IPanelContentProps {
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
+	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
 
@@ -116,6 +120,7 @@ export const BottomPanel = ({
 	setHideAllPins,
 	roomData,
 	updateShowChat,
+	musicPlayer,
 	setRaceId
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
@@ -159,6 +164,7 @@ export const BottomPanel = ({
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
 					updateShowChat={updateShowChat}
+					musicPlayer={musicPlayer}
 					setRaceId={setRaceId}
 				/>
 			</div>
@@ -191,6 +197,7 @@ const PanelContent = ({
 	onNFTSuccess,
 	roomData,
 	updateShowChat,
+	musicPlayer,
 	setRaceId
 }: IPanelContentProps) => {
 	switch (type) {
@@ -218,14 +225,6 @@ const PanelContent = ({
 		case 'sound':
 			return <SoundPanel sendSound={onAction} />;
 
-		case 'gifs':
-			return (
-				<Gifs
-					sendGif={(gif: IGif) => {
-						onAction('gif', gif.id);
-					}}
-				/>
-			);
 		case 'tower':
 			return (
 				<TowerDefensePanel
@@ -252,6 +251,9 @@ const PanelContent = ({
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
+					sendGif={(gif: IGif) => {
+						onAction('gif', gif.id);
+					}}
 				/>
 			);
 		case 'animation':
@@ -338,8 +340,21 @@ const PanelContent = ({
 			}}
 			updateIsTyping={updateIsTyping}/>
 			);
+		case 'musicPlayer':
+			return (
+				<MusicPlayerPanel
+					changePlaylist={(message) => {
+						onAction('change-playlist', message);
+					}}
+					musicPlayer={musicPlayer}
+				/>
+			);
 		case 'zedrun':
 			return <ZedrunPanel sendRace={(id) => onAction('send-race', id)} />;
+		case 'dashboard':
+			return <DashboardPanel sendHorse={(id) => {
+				onAction('horse', id);
+			}} />;
 		default:
 			return null;
 	}

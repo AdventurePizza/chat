@@ -3,7 +3,7 @@ import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
-
+import axios from "axios";
 import { CustomToken as NFT } from './typechain/CustomToken';
 
 import {
@@ -36,7 +36,9 @@ import {
 	IOrder,
 	ITweet,
 	IMap,
-	IWaterfallChat
+	IWaterfallChat,
+	IBoardHorse,
+	IMusicPlayer
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -264,13 +266,16 @@ function App() {
 		weather: { temp: '', condition: '' },
 		soundType: '',
 		currentRoom: 'default',
-		email: ''
+		email: '',
+		location: ''
 	});
+
+	
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
-		condition: ''
+		condition: '',
 	});
 
 	// YouTube function to keep track of timestamps
@@ -297,10 +302,18 @@ function App() {
 		show: true
 	});
 
+	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
+		top: 600,
+		left: 200,
+		playlist: []
+	});
 	const [raceId, setRaceId] = useState<string>('');
+
+	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
+		console.log(roomId);
 	}, [roomId]);
 
 	const playEmoji = useCallback((dict: IEmojiDict) => {
@@ -355,14 +368,8 @@ function App() {
 		if(accountId && isLoggedIn){
 			firebaseContext.getUser(accountId)
 				.then((res: any) => {
-					if(res.data.email){
-						setShowLoginModal(false);
-					}
-					if(userProfile.email){
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
-					} else {
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
-					}
+					setShowLoginModal(false);
+					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
 					socket.emit('event', {
 						key: 'avatar',
 						value: res.data.avatar
@@ -454,12 +461,11 @@ function App() {
 		audio.current.play();
 	}, []);
 
-	const onClickPanelItem = (key: string) => {
+	const onClickPanelItem = (key: string | undefined) => {
 		switch (key) {
 			case 'sound':
 			case 'emoji':
 			case 'chat':
-			case 'gifs':
 			case 'tower':
 			case 'animation':
 			case 'background':
@@ -472,8 +478,10 @@ function App() {
 			case 'email':
 			case 'browseNFT':
 			case 'NFT':
+			case 'musicPlayer':
 			case 'twitter':
 			case 'zedrun':
+			case "dashboard":
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -485,6 +493,8 @@ function App() {
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
+			case undefined :
+				setSelectedPanelItem(undefined);
 		}
 	};
 
@@ -503,6 +513,22 @@ function App() {
 		const { avatar, value } = message;
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
 	}, []);
+
+	const handleChangePlaylist = useCallback((message: IMessageEvent) => {
+		const music = message.value;
+		const index = parseInt(music);
+		//if it is number it means it is index should be removed
+		if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
+			if(musicPlayer.playlist.length === 0){
+				setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+			}
+		}
+		//it is url and should be added
+		else{
+			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: new Date().getTime().toString(), url: music})}));
+		}
+	}, [musicPlayer]);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -934,11 +960,28 @@ function App() {
 						}
 					}
 					break;
-					case 'tweet':
+				case 'horse':
+					const horseIndex = horses.findIndex((horse) => horse.key === itemKey);
+					const horse = horses[horseIndex];
+					if (horse) {
+						if (isUnpin) {
+							setHorses([
+								...horses.slice(0, horseIndex),
+								...horses.slice(horseIndex + 1)
+							]);
+						} else {
+							setHorses([
+								...horses.slice(0, horseIndex),
+								{ ...horse, isPinned: true },
+								...horses.slice(horseIndex + 1)
+							]);
+						}
+					}
+					break;			
+				case 'tweet':
 					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
 					const tweet = tweets[tweetIndex];
 					if (tweet) {
-	
 						if (isUnpin) {
 							setTweets([
 								...tweets.slice(0, tweetIndex),
@@ -955,8 +998,50 @@ function App() {
 					break;
 			}
 		},
-		[gifs, images, videos, pinnedText, NFTs, tweets]
+		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
 	);
+
+	const getHorse = async (id: string)  => await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
+
+	const addHorse = useCallback((id: string, horseKey?: string) => {
+		const { x, y } = generateRandomXY(true, true);
+
+		getHorse(id).then((res) => {
+			const newHorse: IBoardHorse = {
+				top: y,
+				left: x,
+				key: horseKey || uuidv4(),
+				horseData:
+				{	bloodline: res.data.bloodline,
+					breed_type: res.data.breed_type,
+					breeding_counter: res.data.breeding_counter,
+					breeding_cycle_reset: res.data.breeding_cycle_reset,
+					class: res.data.class,
+					genotype: res.data.genotype,
+					color: res.data.hash_info.color,
+					hex_code: res.data.hash_info.hex_code,
+					name: res.data.hash_info.name,	
+					horse_type: res.data.horse_type,
+					img_url: res.data.img_url,
+					is_approved_for_racing: res.data.is_approved_for_racing.toString(),
+					is_in_stud: res.data.is_in_stud.toString(),
+					is_on_racing_contract: res.data.is_on_racing_contract.toString(),
+					mating_price: res.data.mating_price,
+					number_of_races: res.data.number_of_races,
+					owner: res.data.owner,
+					owner_stable: res.data.owner_stable,
+					owner_stable_slug: res.data.owner_stable_slug,
+					rating: res.data.rating,
+					super_coat: res.data.super_coat.toString(),
+					tx: res.data.tx,
+					tx_date: res.data.tx_date,
+					win_rate: res.data.win_rate,
+				},
+				id: id
+			};
+			setHorses((horses) => horses.concat(newHorse));
+		});
+	}, []);
 
 	const handleMoveItemMessage = useCallback(
 		(message: IMessageEvent) => {
@@ -1044,23 +1129,40 @@ function App() {
 				case 'chat':
 					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
 					break;
+				case 'horse':
+					const horseIndex = horses.findIndex((horse) => horse.key === itemKey);
+					if (horseIndex !== -1) {
+						setHorses([
+							...horses.slice(0, horseIndex),
+							{
+								...horses[horseIndex],
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...horses.slice(horseIndex + 1)
+						]);
+					}
+					break;
 				case 'tweet':
-						const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
-						const tweet = tweets[tweetIndex];
-						if (tweet) {
-							setTweets([
-								...tweets.slice(0, tweetIndex),
-								{
-									...tweet,
-									top: relativeTop,
-									left: relativeLeft
-								},
-								...tweets.slice(tweetIndex + 1)
-							]);
-						}
-						break;
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
+					const tweet = tweets[tweetIndex];
+					if (tweet) {
+						setTweets([
+							...tweets.slice(0, tweetIndex),
+							{
+								...tweet,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+					break;
+				case 'musicPlayer':
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, top: relativeTop, left: relativeLeft}));
+					break;
 				}},
-		[images,videos, NFTs, gifs, pinnedText, tweets]);
+		[images,videos, NFTs, gifs, pinnedText, tweets, horses]);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1331,7 +1433,6 @@ function App() {
 							[message.id]: { ...profiles[message.id], weather: message.value }
 						}));
 					}
-
 					break;
 				case 'settings-url':
 					if (message.value && message.isSelf) {
@@ -1357,6 +1458,44 @@ function App() {
 					break;
 				case 'move-item':
 					handleMoveItemMessage(message);
+					break;
+				case 'clear-field':
+					if (message.field === 'music'){
+						if(message.isSelf){
+							setUserProfile((profile) => ({
+								...profile,
+								musicMetadata: undefined
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: {
+									...profiles[message.id],
+									musicMetadata: undefined
+								}
+							}));
+						}
+					} else if (message.field === 'weather'){
+						if (message.toSelf) {
+							setUserProfile((profile) => ({
+								...profile,
+								weather: { temp: '', condition: ''}
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: { ...profiles[message.id], weather: { temp: '', condition: ''} }
+							}));
+						}
+					}
+					break;
+				case 'horse':
+					if (message.value) {
+						addHorse(message.value, message.horseKey);
+					}
+					break;
+				case 'change-playlist':
+					handleChangePlaylist(message);
 					break;
 			}
 		};
@@ -1420,7 +1559,9 @@ function App() {
 		addMarker,
 		deleteMarker,
 		updateMarkerText,
-		updateWaterfallChat
+		updateWaterfallChat,
+		addHorse,
+		handleChangePlaylist
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1584,12 +1725,17 @@ function App() {
 						.catch(err => console.log(err));
 					}
 				} else if (type === "email") {
-					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
+					if(accountId){
+						firebaseContext.updateEmail(accountId, settingsValue)
+						.then(() => setUserProfile((profile) => ({ ...profile, email: settingsValue })))
+						.catch(err => console.log(err));
+					}
 				}
 				break;
 			case 'weather':
 				const location = args[0] as string;
-
+				setUserProfile((profile) => ({ ...profile, location: location }));
+				
 				socket.emit('event', {
 					key: 'weather',
 					value: location
@@ -1634,6 +1780,59 @@ function App() {
 					key: 'youtube',
 					value: videoId
 				});
+				break;
+			case 'clear-field':
+				const field = args[0] as string;
+
+				if(field === "weather"){
+					setUserProfile((profile) => ({ ...profile, location: "" }))
+				}
+
+				if(field === "email"){
+					if(accountId){
+						firebaseContext.updateEmail(accountId, "")
+						.then(res => setUserProfile((profile) => ({ ...profile, email: "" })))
+						.catch(err => console.log(err));
+					}
+				} else {
+					socket.emit('event', {
+						key: 'clear-field',
+						field,
+					});
+				}
+				break;
+			case 'horse':
+				const horseId = args[0] as string;
+				socket.emit('event', {
+					key: 'horse',
+					value: horseId
+				});
+				break;
+			case 'change-playlist':
+				const music = args[0] as string;
+				const index = parseInt(music);
+				//if it is number it means it is index should be removed
+				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+					if(musicPlayer.playlist.length === 1){
+						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+					}
+					else{
+						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
+						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
+					}
+				}
+				//it is url and should be added
+				else{
+					const timestamp = new Date().getTime().toString();
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: timestamp, url: music})}));
+					firebaseContext.addtoPlaylist(roomId || 'default', music, timestamp);
+				}
+				socket.emit('event', {
+					key: 'change-playlist',
+					value: music
+				});
+
 				break;
 			default:
 		}
@@ -1761,9 +1960,15 @@ function App() {
 		});
 		// }
 
+		
+
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
 
+			firebaseContext.getPlaylist(room).then((playlist) => {
+				if(playlist.data)
+					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
+			});
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -1772,6 +1977,7 @@ function App() {
 				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
+				const pinnedHorses: IBoardHorse[] = [];
 				const pinnedTweets: ITweet[] =[];
 
 				let backgroundType: 'image' | 'map' | undefined;
@@ -1842,6 +2048,44 @@ function App() {
 							});
 						}
 					}
+					else if (item.type === 'horse') {
+						getHorse(item.id).then((res) => {
+							pinnedHorses.push({
+								...item,
+								top: item.top! * window.innerHeight,
+								left: item.left! * window.innerWidth,
+								isPinned: true,
+								key: item.key!,
+								horseData: 
+								{	bloodline: res.data.bloodline,
+									breed_type: res.data.breed_type,
+									breeding_counter: res.data.breeding_counter,
+									breeding_cycle_reset: res.data.breeding_cycle_reset,
+									class: res.data.class,
+									genotype: res.data.genotype,
+									color: res.data.hash_info.color,
+									hex_code: res.data.hash_info.hex_code,
+									name: res.data.hash_info.name,	
+									horse_type: res.data.horse_type,
+									img_url: res.data.img_url,
+									is_approved_for_racing: res.data.is_approved_for_racing.toString(),
+									is_in_stud: res.data.is_in_stud.toString(),
+									is_on_racing_contract: res.data.is_on_racing_contract.toString(),
+									mating_price: res.data.mating_price,
+									number_of_races: res.data.number_of_races,
+									owner: res.data.owner,
+									owner_stable: res.data.owner_stable,
+									owner_stable_slug: res.data.owner_stable_slug,
+									rating: res.data.rating,
+									super_coat: res.data.super_coat.toString(),
+									tx: res.data.tx,
+									tx_date: res.data.tx_date,
+									win_rate: res.data.win_rate,
+								},
+								id: item.id
+							});
+						});
+					}
 				});
 
 				setGifs(pinnedGifs);
@@ -1856,6 +2100,7 @@ function App() {
 					type: backgroundType
 				});
 				setNFTs(pinnedNFTs);
+				setHorses(pinnedHorses);
 			});
 		}
 	}, [
@@ -2301,7 +2546,7 @@ function App() {
 		deltaY: number
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
-
+		
 		if (type === 'text') {
 			setPinnedText(
 				update(pinnedText, {
@@ -2374,10 +2619,28 @@ function App() {
 				]);
 			}
 		}
+		else if (type === 'horse'){
+			const horseIndex = horses.findIndex((horse) => horse.key === id);
+			if (horseIndex !== -1) {
+				setHorses([
+					...horses.slice(0, horseIndex),
+					{
+						...horses[horseIndex],
+						top,
+						left
+					},
+					...horses.slice(horseIndex + 1)
+				]);
+			}
+		}
+
 		if (type === 'chat') {
 			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
 		}
 
+		else if (type === 'musicPlayer') {
+			setMusicPlayer((musicPlayer) => ({ ...musicPlayer, top: top, left: left}));
+		}
 		else{
 			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
 				roomId || 'default',
@@ -2444,7 +2707,35 @@ function App() {
 							...NFTs.slice(nftIndex + 1)
 						]);
 					}
+				}else if (type === 'tweet') {
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === id);
+					if (tweetIndex !== -1) {
+						setTweets([
+							...tweets.slice(0, tweetIndex),
+							{
+								...tweets[tweetIndex],
+								top,
+								left
+							},
+							...tweets.slice(tweetIndex + 1)
+						]);
+					}
 				}
+				else if (type === 'horse'){
+					const horseIndex = horses.findIndex((horse) => horse.key === id);
+					if (horseIndex !== -1) {
+						setHorses([
+							...horses.slice(0, horseIndex),
+							{
+								...horses[horseIndex],
+								top,
+								left
+							},
+							...horses.slice(horseIndex + 1)
+						]);
+					}
+				}
+				
 				return;
 			}
 		}
@@ -2455,6 +2746,62 @@ function App() {
 			left: x,
 			itemKey: id
 		});
+	};
+
+	const pinHorse = async (horseKey: string) => {
+		const horseIndex = horses.findIndex((horse) => horse.key === horseKey);
+		const horse = horses[horseIndex];
+		const room = roomId || 'default';
+
+		if (horse && !horse.isPinned) {
+			const result = await firebaseContext.pinRoomItem(room, {
+				...horse,
+				type: 'horse',
+				left: horse.left / window.innerWidth,
+				top: horse.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setHorses([
+					...horses.slice(0, horseIndex),
+					{ ...horse, isPinned: true },
+					...horses.slice(horseIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'horse',
+					itemKey: horseKey,
+					
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const unpinHorse = async (horseKey: string) => {
+		const index = horses.findIndex((horse) => horse.key === horseKey);
+		const horse = horses[index];
+		const room = roomId || 'default';
+
+		if (horse && horse.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				horse.key
+			);
+			if (isSuccessful) {
+				setHorses([...horses.slice(0, index), ...horses.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'horse',
+					itemKey: horseKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
 	};
 
 	const onClickPresent = async () => {
@@ -2514,12 +2861,18 @@ function App() {
 
 			<Route path="/settings">
 				<SettingsPanel 
+					setStep={setStep}
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
 					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
 					onSendLocation={(location) => actionHandler('weather', location)}
+					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
 					currentAvatar={userProfile.avatar}
-					setStep={setStep}
+					username={userProfile.name}
+					email={userProfile.email}
+					myLocation={userProfile.location}
+					music={userProfile.musicMetadata}
+					clearField={(field) => actionHandler('clear-field', field)}
 				/>
 			</Route>
 
@@ -2575,14 +2928,19 @@ function App() {
 				onClickNewRoom={() => setModalState('new-room')}
 				onClickPresent={onClickPresent}
 				waterfallChat={waterfallChat}
+				musicPlayer={musicPlayer}
 				tweets={tweets}
 				pinTweet={pinTweet}
 				unpinTweet={unpinTweet}
 				raceId={raceId}
+				horses={horses}
+				pinHorse={pinHorse}
+				unpinHorse={unpinHorse}
+				updateHorses={setHorses}
 				/>
 			</Route>
 
-			<Tour 
+			<Tour
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
@@ -2592,13 +2950,12 @@ function App() {
 				lastStepNextButton={<CloseIcon />}
 				showCloseButton={false}
 			/>
-			
+
 			{showLoginModal ? (
-				<Login 
-					beginTour={setShowTour} 
+				<Login
+					beginTour={setShowTour}
 					showModal={setShowLoginModal}
 					isFirstVisit={isFirstVisit}
-					userEmail={userProfile.email}
 					setUserEmail={(email) => actionHandler('settings', 'email', email)}
 				/>
 			 ) : null }
@@ -2692,6 +3049,7 @@ function App() {
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
+				musicPlayer = {musicPlayer}
 				setRaceId={setRaceId}
 			/>
 
