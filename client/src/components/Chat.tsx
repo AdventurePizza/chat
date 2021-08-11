@@ -34,6 +34,7 @@ interface IChatProps {
 	updateShowWhiteboard: (show: boolean) => void;
 	setBrushColor: (color: string) => void;
 	sendAnimation: (animationText: string, animationType: string) => void;
+	pinTweet: (id: string) => void; 
 }
 
 export const Chat = ({
@@ -43,7 +44,8 @@ export const Chat = ({
 	showWhiteboard,
 	updateShowWhiteboard,
 	setBrushColor,
-	sendAnimation
+	sendAnimation,
+	pinTweet
 }: IChatProps) => {
 	const classes = useStyles();
 
@@ -61,9 +63,7 @@ export const Chat = ({
 
 	const onKeyPressChat = (event: React.KeyboardEvent<HTMLInputElement>) => {
 		if (event.key === 'Enter') {
-			sendMessage(chatValue);
-			setChatValue('');
-			updateIsTyping(false);
+			onButtonClickChat();
 		}
 	};
 
@@ -73,8 +73,13 @@ export const Chat = ({
 	};
 
 	const onPinMessage = () => {
-		pinMessage(chatValue);
-		clearMessage();
+		if(chatValue.startsWith('https://twitter.com/')){
+			pinTweet(chatValue.split("/")[5]);
+		}
+		else{
+			pinMessage(chatValue);
+			clearMessage();
+		}
 	};
 
 	const clearMessage = () => {

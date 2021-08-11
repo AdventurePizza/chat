@@ -221,11 +221,15 @@ const PanelContent = ({
 					pinMessage={(message) => {
 						onAction('chat-pin', message);
 					}}
+					pinTweet={(id)=>{
+						onAction('tweet', id);
+					}}
 					updateIsTyping={updateIsTyping}
 					showWhiteboard={showWhiteboard}
 					updateShowWhiteboard={updateShowWhiteboard}
 					setBrushColor={setBrushColor}
 					sendAnimation={onAction}
+
 				/>
 			);
 		case 'sound':
