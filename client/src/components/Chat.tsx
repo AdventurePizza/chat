@@ -2,10 +2,12 @@ import React, { useRef, useState } from 'react';
 
 import { PinButton } from './shared/PinButton';
 import { StyledButton } from './shared/StyledButton';
-import { TextField } from '@material-ui/core';
+import { TextField, IconButton } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import WhiteboardPanel from './WhiteboardPanel';
 import AnimationPanel from './AnimationPanel';
+import animationIcon from '../assets/buttons/animation.png'
+import pencilIcon from '../assets/buttons/pencil.png'
 
 const useStyles = makeStyles({
 	container: {
@@ -110,17 +112,21 @@ export const Chat = ({
 				/>
 				<StyledButton onClick={onButtonClickChat}>send</StyledButton>
 				<PinButton onPin={onPinMessage} isPinned={false} onUnpin={() => {}} />
-				<StyledButton onClick={() => { updateShowWhiteboard(!showWhiteboard)}}>marker</StyledButton>
-				<StyledButton onClick={() => { setShowAnimations(!showAnimations)}}>animations</StyledButton>
+
+
+				<IconButton onClick={() => { setShowAnimations(!showAnimations)}}>
+					<img src={animationIcon} alt="animation" width= "25" height= "25"/>
+				</IconButton>
+				<IconButton onClick={() => { updateShowWhiteboard(!showWhiteboard)}}>
+					<img src={pencilIcon} alt="pencil" width= "25" height= "25"/>
+				</IconButton>
+
 				{showWhiteboard &&
 					<WhiteboardPanel setBrushColor={setBrushColor} />
 				}
 				{showAnimations &&
 					<AnimationPanel sendAnimation={sendAnimation} />
 				}
-			</div>
-			<div>
-				
 			</div>
 
 		</div>
