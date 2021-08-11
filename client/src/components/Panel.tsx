@@ -12,13 +12,9 @@ import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import SettingsIcon from '@material-ui/icons/Settings';
-import animationIcon from '../assets/navbar/animation.png';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import cameraRollIcon from '../assets/navbar/camera_roll.png';
-import chatIcon from '../assets/navbar/chatIcon.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
-import pencilIcon from '../assets/navbar/pencil.png';
-import twitterIcon from '../assets/navbar/twitterIcon.png';
 import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
@@ -132,13 +128,9 @@ const panelIconSrcMap: {
 	// sound: soundIcon,
 	youtube: YouTubeIcon,
 	emoji: emojiIcon,
-	chat: chatIcon,
-	twitter: twitterIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
-	whiteboard: pencilIcon,
 	// weather: weatherIcon,
-	animation: animationIcon,
 	// poem: poemIcon
 	maps: mapsIcon,
 

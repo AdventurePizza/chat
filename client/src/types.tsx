@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet';
+export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet'; 
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -55,6 +55,7 @@ export interface IMessageEvent {
 		| 'tower defense'
 		| 'background'
 		| 'messages'
+		| 'send-race'
 		| 'whiteboard'
 		| 'animation'
 		| 'isTyping'
@@ -222,14 +223,11 @@ export enum PanelItemEnum {
 	'chat' = 'chat',
 	'background' = 'background',
 	'youtube' = 'youtube',
-	'animation' = 'animation',
-	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
 	'zedrun' = 'zedrun',
 	'sound' = 'sound',
 	"maps" = "maps",
-	'twitter' = 'twitter',
 	'email' = 'email',
 	'new-room' = 'new-room',
 	'browseNFT' = 'browseNFT',
@@ -344,13 +342,13 @@ export interface INFTMetadata {
 export interface IWaterfallMessage{
 	avatar: string;
 	message: string;
+	name: string;
 }
 
 export interface IWaterfallChat{
 	top: number;
 	left: number;
 	messages: IWaterfallMessage[];
-	show?: boolean;
 }
 
 export interface IChatroomData {
