@@ -311,6 +311,8 @@ function App() {
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
+	const [showOpensea, setShowOpensea] = useState<boolean>(false);
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -2913,6 +2915,7 @@ function App() {
 				pinHorse={pinHorse}
 				unpinHorse={unpinHorse}
 				updateHorses={setHorses}
+				showOpensea={showOpensea}
 				/>
 			</Route>
 

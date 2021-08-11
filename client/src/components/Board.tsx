@@ -108,6 +108,7 @@ interface IBoardProps {
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
+	showOpensea: boolean;
 }
 
 export const Board = ({
@@ -168,7 +169,8 @@ export const Board = ({
 	pinHorse,
 	unpinHorse,
 	updateHorses,
-	musicPlayer
+	musicPlayer,
+	showOpensea
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -281,6 +283,16 @@ export const Board = ({
 					title="zed racing"
 					style={{ pointerEvents: 'none' }}
 				/>
+			)}
+
+			{showOpensea && (
+				<iframe className="opensea-listings"
+					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
+					width='100%'
+					height='100vh'
+					frameBorder='0'
+					allowFullScreen>
+				</iframe>
 			)}
 
 			<YouTubeBackground
