@@ -22,7 +22,6 @@ import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import { MapsPanel } from './MapsPanel';
-import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
@@ -263,8 +262,6 @@ const PanelContent = ({
 					}}
 				/>
 			);
-		case 'whiteboard':
-			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':
 			return null;
 		case 'weather':
