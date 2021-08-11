@@ -350,7 +350,7 @@ const PanelContent = ({
 				/>
 			);
 		case 'zedrun':
-			return <ZedrunPanel setRaceId={setRaceId} />;
+			return <ZedrunPanel sendRace={(id) => onAction('send-race', id)} />;
 		case 'dashboard':
 			return <DashboardPanel sendHorse={(id) => {
 				onAction('horse', id);

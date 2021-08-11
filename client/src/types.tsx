@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet';
+export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet'; 
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -55,6 +55,7 @@ export interface IMessageEvent {
 		| 'tower defense'
 		| 'background'
 		| 'messages'
+		| 'send-race'
 		| 'whiteboard'
 		| 'animation'
 		| 'isTyping'
