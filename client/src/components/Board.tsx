@@ -19,7 +19,8 @@ import {
 	PinTypes,
 	IWaterfallChat,
 	IBoardHorse,
-	IMusicPlayer
+	IMusicPlayer,
+	PanelItemEnum
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -108,6 +109,8 @@ interface IBoardProps {
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
+	selectedPanelItem: PanelItemEnum | undefined;
+	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 }
 
 export const Board = ({
@@ -168,7 +171,9 @@ export const Board = ({
 	pinHorse,
 	unpinHorse,
 	updateHorses,
-	musicPlayer
+	musicPlayer,
+	selectedPanelItem,
+	updateSelectedPanelItem
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -297,17 +302,19 @@ export const Board = ({
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
-			{waterfallChat.show && (
-				<BoardObject
-					id={'texteyId'}
-					type="chat"
-					onPin={() => {}}
-					onUnpin={() => {}}
-					chat={waterfallChat.messages}
-					top={waterfallChat.top}
-					left={waterfallChat.left}
-				/>
-			)}
+			
+			<BoardObject
+				id={'chat'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				selectedPanelItem={selectedPanelItem}
+				updateSelectedPanelItem={updateSelectedPanelItem}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>
+			
 			{musicPlayer.playlist.length !== 0 && <BoardObject
 				id={'musicPlayer'}
 				type="musicPlayer"

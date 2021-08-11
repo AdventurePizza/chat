@@ -296,11 +296,12 @@ function App() {
 
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 400,
-		left: 800,
-		messages: [],
-		show: true
+		top: 10,
+		left: 110,
+		messages: []
 	});
+	
+	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
 		top: 600,
@@ -467,9 +468,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'tower':
-			case 'animation':
 			case 'background':
-			case 'whiteboard':
 			case 'weather':
 			case 'maps':
 			case 'roomDirectory':
@@ -479,7 +478,6 @@ function App() {
 			case 'browseNFT':
 			case 'NFT':
 			case 'musicPlayer':
-			case 'twitter':
 			case 'zedrun':
 			case "dashboard":
 			case 'youtube':
@@ -506,12 +504,21 @@ function App() {
 		}));
 	}, []);
 
-	const onShowChat = () => {
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	const onShowMarker = (show: boolean) => {
+		setShowWhiteboard(show);
 	}
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
-		const { avatar, value } = message;
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
+		const { avatar, value, name } = message;
+
+		setWaterfallChat((waterfallChat) => (
+			{ ...waterfallChat, 
+				messages: waterfallChat.messages.concat( 
+					{ "avatar": avatar ,
+					 "message": value,
+					  "name": name
+				}
+			) }
+		));
 	}, []);
 
 	const handleChangePlaylist = useCallback((message: IMessageEvent) => {
@@ -1574,10 +1581,21 @@ function App() {
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
-					avatar: userProfile.avatar
+					avatar: userProfile.avatar,
+					name: userProfile.name
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
-				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
+				const timestamp = new Date().getTime().toString();
+				firebaseContext.addtoChat(roomId || 'default', chatValue, userProfile.avatar, userProfile.name, timestamp);
+				setWaterfallChat((waterfallChat) => (
+					{ ...waterfallChat, 
+						messages: waterfallChat.messages.concat( 
+							{ "avatar": userProfile.avatar ,
+							 "message": chatValue,
+							  "name": userProfile.name
+						}
+					) }
+				));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1590,7 +1608,6 @@ function App() {
 						isNew: true
 					});
 				}
-
 				break;
 			case 'emoji':
 				const emoji = args[0] as IEmojiDict;
@@ -1924,7 +1941,7 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.chat && showWhiteboard ;
 
 	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
 		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
@@ -1969,6 +1986,12 @@ function App() {
 				if(playlist.data)
 					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
 			});
+
+			firebaseContext.getChat(room).then((messages) => {
+				if(messages.data)
+					setWaterfallChat((waterfallChat) => ({...waterfallChat, messages: messages!.data!}));
+			});
+			
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -2937,6 +2960,8 @@ function App() {
 				pinHorse={pinHorse}
 				unpinHorse={unpinHorse}
 				updateHorses={setHorses}
+				selectedPanelItem={selectedPanelItem}
+				updateSelectedPanelItem={setSelectedPanelItem}
 				/>
 			</Route>
 
@@ -3048,7 +3073,8 @@ function App() {
 				setIsVideoShowing={setIsVideoShowing}
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
-				updateShowChat = {onShowChat}
+				showWhiteboard = {showWhiteboard}
+				updateShowWhiteboard = {onShowMarker}
 				musicPlayer = {musicPlayer}
 				setRaceId={setRaceId}
 			/>
