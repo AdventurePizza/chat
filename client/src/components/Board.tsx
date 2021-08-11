@@ -302,19 +302,19 @@ export const Board = ({
 			/>
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
-			{waterfallChat.show && (
-				<BoardObject
-					id={'chat'}
-					type="chat"
-					onPin={() => {}}
-					onUnpin={() => {}}
-					selectedPanelItem={selectedPanelItem}
-					updateSelectedPanelItem={updateSelectedPanelItem}
-					chat={waterfallChat.messages}
-					top={waterfallChat.top}
-					left={waterfallChat.left}
-				/>
-			)}
+			
+			<BoardObject
+				id={'chat'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				selectedPanelItem={selectedPanelItem}
+				updateSelectedPanelItem={updateSelectedPanelItem}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>
+			
 			{musicPlayer.playlist.length !== 0 && <BoardObject
 				id={'musicPlayer'}
 				type="musicPlayer"

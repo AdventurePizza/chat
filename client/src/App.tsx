@@ -298,8 +298,7 @@ function App() {
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 10,
 		left: 110,
-		messages: [],
-		show: true
+		messages: []
 	});
 	
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
@@ -507,10 +506,6 @@ function App() {
 			[userId]: (messages[userId] || []).concat(value)
 		}));
 	}, []);
-
-	const onShowChat = () => {
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
-	}
 
 	const onShowMarker = (show: boolean) => {
 		setShowWhiteboard(show);
