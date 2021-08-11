@@ -9,7 +9,6 @@ import {
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
 
-import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
@@ -227,6 +226,7 @@ const PanelContent = ({
 					showWhiteboard={showWhiteboard}
 					updateShowWhiteboard={updateShowWhiteboard}
 					setBrushColor={setBrushColor}
+					sendAnimation={onAction}
 				/>
 			);
 		case 'sound':
@@ -263,8 +263,6 @@ const PanelContent = ({
 					}}
 				/>
 			);
-		case 'animation':
-			return <AnimationPanel sendAnimation={onAction} />;
 		case 'whiteboard':
 			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':

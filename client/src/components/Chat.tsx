@@ -5,6 +5,7 @@ import { StyledButton } from './shared/StyledButton';
 import { TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import WhiteboardPanel from './WhiteboardPanel';
+import AnimationPanel from './AnimationPanel';
 
 const useStyles = makeStyles({
 	container: {
@@ -32,6 +33,7 @@ interface IChatProps {
 	showWhiteboard: boolean;
 	updateShowWhiteboard: (show: boolean) => void;
 	setBrushColor: (color: string) => void;
+	sendAnimation: (animationText: string, animationType: string) => void;
 }
 
 export const Chat = ({
@@ -40,12 +42,14 @@ export const Chat = ({
 	pinMessage,
 	showWhiteboard,
 	updateShowWhiteboard,
-	setBrushColor
+	setBrushColor,
+	sendAnimation
 }: IChatProps) => {
 	const classes = useStyles();
 
 	const [chatValue, setChatValue] = useState('');
 	const textfieldRef = useRef<HTMLDivElement>(null);
+	const [showAnimations, setShowAnimations] = useState<boolean>(false);
 
 	const onChangeChat = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setChatValue(event.target.value);
@@ -102,8 +106,12 @@ export const Chat = ({
 				<StyledButton onClick={onButtonClickChat}>send</StyledButton>
 				<PinButton onPin={onPinMessage} isPinned={false} onUnpin={() => {}} />
 				<StyledButton onClick={() => { updateShowWhiteboard(!showWhiteboard)}}>marker</StyledButton>
+				<StyledButton onClick={() => { setShowAnimations(!showAnimations)}}>animations</StyledButton>
 				{showWhiteboard &&
 					<WhiteboardPanel setBrushColor={setBrushColor} />
+				}
+				{showAnimations &&
+					<AnimationPanel sendAnimation={sendAnimation} />
 				}
 			</div>
 			<div>
