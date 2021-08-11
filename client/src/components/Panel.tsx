@@ -15,7 +15,6 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import cameraRollIcon from '../assets/navbar/camera_roll.png';
 import emojiIcon from '../assets/navbar/emojiIcon.png';
-import twitterIcon from '../assets/navbar/twitterIcon.png';
 import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
