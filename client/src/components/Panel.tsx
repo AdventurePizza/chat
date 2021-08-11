@@ -129,7 +129,6 @@ const panelIconSrcMap: {
 	// sound: soundIcon,
 	youtube: YouTubeIcon,
 	emoji: emojiIcon,
-	twitter: twitterIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	// weather: weatherIcon,

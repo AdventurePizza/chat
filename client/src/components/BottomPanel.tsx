@@ -26,7 +26,6 @@ import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
-import TweetPanel from './TweetPanel';
 import { ZedrunPanel } from './ZedrunPanel';
 import { DashboardPanel } from './DashboardPanel';
 
@@ -338,13 +337,6 @@ const PanelContent = ({
 					frameBorder='0'
 					allowFullScreen>
 				</iframe>
-			);
-		case 'twitter':
-			return (<TweetPanel 
-			pinTweet={(id: string)=>{
-				onAction('tweet',id);
-			}}
-			updateIsTyping={updateIsTyping}/>
 			);
 		case 'musicPlayer':
 			return (

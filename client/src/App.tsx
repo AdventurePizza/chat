@@ -468,9 +468,7 @@ function App() {
 			case 'emoji':
 			case 'chat':
 			case 'tower':
-			case 'animation':
 			case 'background':
-			case 'whiteboard':
 			case 'weather':
 			case 'maps':
 			case 'roomDirectory':
@@ -480,7 +478,6 @@ function App() {
 			case 'browseNFT':
 			case 'NFT':
 			case 'musicPlayer':
-			case 'twitter':
 			case 'zedrun':
 			case "dashboard":
 			case 'youtube':
