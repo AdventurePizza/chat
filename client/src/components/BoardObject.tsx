@@ -6,16 +6,18 @@ import { IGif } from '@giphy/js-types';
 import { Paper} from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage } from '../types';
+import { IOrder, IWaterfallMessage, IHorse , IPlaylist, PanelItemEnum } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
 import { Tweet } from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
+import { MusicPlayer } from "./MusicPlayer";
 import ReactPlayer from 'react-player';
 import { AppStateContext } from '../contexts/AppStateContext';
 import { useEffect } from 'react';
+import { Horse } from "./Horse";
 
 
 const useStyles = makeStyles({
@@ -42,7 +44,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet';
+	type: 'horse' | 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer' |'tweet';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -64,7 +66,11 @@ interface BoardObjectProps {
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
 
+	selectedPanelItem?: PanelItemEnum | undefined;
+	updateSelectedPanelItem?: (panelItem: PanelItemEnum | undefined) => void;
 	chat?: IWaterfallMessage[];
+	horseData?: IHorse;
+	playlist?: IPlaylist[];
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -86,7 +92,11 @@ export const BoardObject = (props: BoardObjectProps) => {
 		addNewContract,
 		onBuy,
 		onCancel,
-		chat
+		chat,
+		horseData,
+		playlist,
+		selectedPanelItem,
+		updateSelectedPanelItem
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const [pinPlaying, setPinPlaying] = useState(isPinnedPlaying);
@@ -117,7 +127,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: isHovering ? 99999999 : 99999997
+				zIndex: (isHovering || type === 'chat') ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}
@@ -182,7 +192,15 @@ export const BoardObject = (props: BoardObjectProps) => {
 				</div>
 					)
 				}
-				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
+				{type === 'horse' && horseData && <Horse horse= {horseData}/>}
+				{type === 'chat' && chat && updateSelectedPanelItem && <WaterfallChat selectedPanelItem={selectedPanelItem} updateSelectedPanelItem={updateSelectedPanelItem} chat= {chat}/>}
+				{type === 'musicPlayer' && playlist &&
+					<div style={{ width: 400 }}>
+						<MusicPlayer
+							playlist={playlist}
+						/>
+					</div>
+				}
 			</Paper>
 
 			{isHovering && (
@@ -193,9 +211,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{type !== 'chat' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
+					{type !== 'chat' && type !== 'musicPlayer' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
 					{/*@ts-ignore needs better typing for innerRef*/}
-					{(isPinned || type === 'chat') && <MoveButton innerRef={drag} />}
+					{(isPinned || type === 'chat' || type === 'musicPlayer') && <MoveButton innerRef={drag} />}
 				</div>
 			)}
 

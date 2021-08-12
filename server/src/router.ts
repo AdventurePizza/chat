@@ -84,6 +84,7 @@ let backgroundState: IBackgroundState = {};
 
 interface IMessageEvent {
   key:
+    | 'horse'
     | "sound"
     | "youtube"
     | "tweet"
@@ -95,6 +96,7 @@ interface IMessageEvent {
     | "tower defense"
     | "background"
     | "messages"
+    | "send-race"
     | "whiteboard"
     | "animation"
     | "isTyping"
@@ -106,7 +108,9 @@ interface IMessageEvent {
     | "pin-item"
     | "move-item"
     | "send-email"
-    | "unpin-item";
+    | "unpin-item"
+    | "clear-field"
+    | "change-playlist";
   value?: any;
   [key: string]: any;
 }
@@ -306,6 +310,7 @@ export class Router {
           userId: socket.id,
           value: message.value,
           avatar: message.avatar,
+          name: message.name
         });
 
         if (message.value) {
@@ -405,6 +410,7 @@ export class Router {
         socket.to(room).emit("event", emitData);
 
         socket.emit("event", { ...emitData, isSelf: true });
+        
         break;
 
       case "tower defense":
@@ -457,7 +463,9 @@ export class Router {
         socket.emit("event", message);
         removeImageAfter1Min(clientRooms[socket.id]);
         break;
-
+      case "send-race":
+        socket.to(clientRooms[socket.id]).emit("event", message);
+        break;
       case "whiteboard":
         // socket.broadcast.emit("event", message);
         socket.to(clientRooms[socket.id]).emit("event", message);
@@ -499,6 +507,53 @@ export class Router {
 
         break;
       case "animation":
+        socket.to(room).broadcast.emit("event", message);
+        break;
+      case 'clear-field':
+        if(message.field === 'music'){
+          clientProfiles[socket.id].musicMetadata = undefined;
+          const emitData = {
+            key: "clear-field",
+            id: socket.id,
+            field: message.field,
+          };
+          socket.to(room).emit("event", emitData);
+
+          socket.emit("event", { ...emitData, isSelf: true });
+        } else if (message.field === 'weather'){
+          socket.to(room).emit("event", {
+            key: "clear-field",
+            field: message.field,
+            value: {
+              temp: "",
+              condition: "",
+            },
+            id: socket.id,
+          });
+
+          io.to(socket.id).emit("event", {
+            key: "clear-field",
+            field: message.field,
+            value: {
+              temp: "",
+              condition: "",
+            },
+            toSelf: true,
+          });
+          clientProfiles[socket.id].weather = {
+            temp: "",
+            condition: "",
+          };
+        }
+      case "horse":
+        const horseKey = uuidv4();
+        const newHorseMessage = {
+          ...message,
+          horseKey,
+        };
+        socket.to(room).emit("event", newHorseMessage);
+        socket.emit("event", newHorseMessage);
+      case "change-playlist":
         socket.to(room).broadcast.emit("event", message);
         break;
     }
