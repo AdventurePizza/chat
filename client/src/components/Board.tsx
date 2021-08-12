@@ -294,9 +294,10 @@ export const Board = ({
 				<iframe className="opensea-listings"
 					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
 					width='100%'
-					height='100vh'
+					height='100%'
 					frameBorder='0'
-					allowFullScreen>
+					allowFullScreen
+				>
 				</iframe>
 			)}
 

@@ -477,11 +477,9 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case 'browseNFT':
 			case 'NFT':
 			case 'musicPlayer':
-			case 'zedrun':
-			case "dashboard":
+			case 'crypto':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -1954,8 +1952,6 @@ function App() {
 		return result;
 	};
 
-	const onBrowseNFTPanel = selectedPanelItem === PanelItemEnum.browseNFT;
-
 	useEffect(() => {
 		const room = roomId || 'default';
 
@@ -3080,10 +3076,12 @@ function App() {
 				updateShowWhiteboard = {onShowMarker}
 				musicPlayer = {musicPlayer}
 				setRaceId={setRaceId}
+				showOpensea={showOpensea}
+				setShowOpensea={setShowOpensea}
 			/>
 
 
-			{userProfile && !onBrowseNFTPanel && (
+			{userProfile && !showOpensea && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}

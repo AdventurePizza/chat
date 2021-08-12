@@ -26,8 +26,7 @@ import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
-import { ZedrunPanel } from './ZedrunPanel';
-import { DashboardPanel } from './DashboardPanel';
+import { CryptoPanel } from './Crypto';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -53,6 +52,8 @@ export interface IBottomPanelProps {
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
+	showOpensea: boolean;
+	setShowOpensea: (value: boolean) => void;
 }
 
 export interface IPanelContentProps {
@@ -83,6 +84,8 @@ export interface IPanelContentProps {
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
+	showOpensea: boolean;
+	setShowOpensea: (value: boolean) => void;
 }
 
 export interface ISoundPairs {
@@ -121,7 +124,9 @@ export const BottomPanel = ({
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
-	setRaceId
+	setRaceId,
+	showOpensea,
+	setShowOpensea
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -167,6 +172,8 @@ export const BottomPanel = ({
 					updateShowWhiteboard={updateShowWhiteboard}
 					musicPlayer={musicPlayer}
 					setRaceId={setRaceId}
+					showOpensea={showOpensea}
+					setShowOpensea={setShowOpensea}
 				/>
 			</div>
 		</Drawer>
@@ -200,7 +207,9 @@ const PanelContent = ({
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
-	setRaceId
+	setRaceId,
+	showOpensea,
+	setShowOpensea
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -328,16 +337,6 @@ const PanelContent = ({
 					setHideAllPins={setHideAllPins}
 				/>
 			);
-		case 'browseNFT':
-			return (
-				<iframe className="opensea-listings"
-					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
-					width='100%'
-					height='100vh'
-					frameBorder='0'
-					allowFullScreen>
-				</iframe>
-			);
 		case 'musicPlayer':
 			return (
 				<MusicPlayerPanel
@@ -347,12 +346,14 @@ const PanelContent = ({
 					musicPlayer={musicPlayer}
 				/>
 			);
-		case 'zedrun':
-			return <ZedrunPanel sendRace={(id) => onAction('send-race', id)} />;
-		case 'dashboard':
-			return <DashboardPanel sendHorse={(id) => {
-				onAction('horse', id);
-			}} />;
+		case 'crypto':
+			return (<CryptoPanel 
+						sendRace={(id) => onAction('send-race', id)}
+						sendHorse={(id) => {onAction('horse', id);}}
+						showOpensea={showOpensea}
+						setShowOpensea={setShowOpensea}
+						setHideAllPins={setHideAllPins}
+					/>);
 		default:
 			return null;
 	}
