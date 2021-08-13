@@ -3,22 +3,26 @@ import React, { useState, useContext } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
-import { Paper} from '@material-ui/core';
+import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage, IHorse , IPlaylist, PanelItemEnum } from '../types';
+import {
+	IOrder,
+	IWaterfallMessage,
+	IHorse,
+	IPlaylist,
+	PanelItemEnum
+} from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { Map } from "./Maps";
+import { Map } from './Maps';
 import { Tweet } from 'react-twitter-widgets';
-import { WaterfallChat } from "./WaterfallChat";
-import { MusicPlayer } from "./MusicPlayer";
+import { WaterfallChat } from './WaterfallChat';
+import { MusicPlayer } from './MusicPlayer';
 import ReactPlayer from 'react-player';
 import { AppStateContext } from '../contexts/AppStateContext';
-import { useEffect } from 'react';
-import { Horse } from "./Horse";
-
+import { Horse } from './Horse';
 
 const useStyles = makeStyles({
 	container: {
@@ -44,7 +48,17 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'horse' | 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' | 'musicPlayer' |'tweet';
+	type:
+		| 'horse'
+		| 'gif'
+		| 'image'
+		| 'video'
+		| 'text'
+		| 'NFT'
+		| 'map'
+		| 'chat'
+		| 'musicPlayer'
+		| 'tweet';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -81,8 +95,6 @@ export const BoardObject = (props: BoardObjectProps) => {
 		onPin,
 		onUnpin,
 		isPinnedPlaying,
-		pinnedVideoId,
-		setPinnedVideoId,
 		isPinned,
 		type,
 		imgSrc,
@@ -98,8 +110,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		selectedPanelItem,
 		updateSelectedPanelItem
 	} = props;
+
 	const [isHovering, setIsHovering] = useState(false);
-	const [pinPlaying, setPinPlaying] = useState(isPinnedPlaying);
 	const classes = useStyles();
 
 	const { socket } = useContext(AppStateContext);
@@ -119,7 +131,14 @@ export const BoardObject = (props: BoardObjectProps) => {
 		return <div ref={preview} />;
 	}
 
-	const noLinkPrev = <div className={classes.text} style={{ width: 180 }}>{text}</div>;
+	const noLinkPrev = (
+		<div className={classes.text} style={{ width: 180 }}>
+			{text}
+		</div>
+	);
+
+	const shouldShowMoveButton =
+		isPinned || type === 'chat' || type === 'musicPlayer';
 
 	return (
 		<div
@@ -127,7 +146,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: (isHovering || type === 'chat') ? 99999999 : 99999997
+				zIndex: isHovering || type === 'chat' ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}
@@ -146,7 +165,17 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 200 }}>
-						<div>{text && <LinkPreview url= {text!}fallback= {noLinkPrev} descriptionLength= {50} imageHeight= {100} showLoader= {false} />}</div>
+						<div>
+							{text && (
+								<LinkPreview
+									url={text!}
+									fallback={noLinkPrev}
+									descriptionLength={50}
+									imageHeight={100}
+									showLoader={false}
+								/>
+							)}
+						</div>
 					</div>
 				)}
 				{type === 'NFT' && order && (
@@ -158,49 +187,51 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>
 				)}
 				{type === 'map' && data && <Map />}
-				{type==='tweet' && id && (<Tweet tweetId={id} />)}
+				{type === 'tweet' && id && <Tweet tweetId={id} />}
 				{type === 'video' && id && (
-				<div className="pinned-video-player"
-					style={{
-						height: "225px",
-						width: "400px"
-					}}
-				>
-					<ReactPlayer width="100%" height="100%"
-						url={`https://www.youtube.com/watch/${id}`}
-						controls={true}
-						playing={isPinnedPlaying}
-						onPlay={
-							() => {
+					<div
+						className="pinned-video-player"
+						style={{
+							height: '225px',
+							width: '400px'
+						}}
+					>
+						<ReactPlayer
+							width="100%"
+							height="100%"
+							url={`https://www.youtube.com/watch/${id}`}
+							controls={true}
+							playing={isPinnedPlaying}
+							onPlay={() => {
 								socket.emit('event', {
 									key: 'youtube',
 									value: id,
 									playPin: true
-								})
-							}
-						}
-						onPause={
-							() => {
+								});
+							}}
+							onPause={() => {
 								socket.emit('event', {
 									key: 'youtube',
 									value: id,
 									playPin: false
-								})
-							}
-						}
-					/>
-				</div>
-					)
-				}
-				{type === 'horse' && horseData && <Horse horse= {horseData}/>}
-				{type === 'chat' && chat && updateSelectedPanelItem && <WaterfallChat selectedPanelItem={selectedPanelItem} updateSelectedPanelItem={updateSelectedPanelItem} chat= {chat}/>}
-				{type === 'musicPlayer' && playlist &&
-					<div style={{ width: 400 }}>
-						<MusicPlayer
-							playlist={playlist}
+								});
+							}}
 						/>
 					</div>
-				}
+				)}
+				{type === 'horse' && horseData && <Horse horse={horseData} />}
+				{type === 'chat' && chat && updateSelectedPanelItem && (
+					<WaterfallChat
+						selectedPanelItem={selectedPanelItem}
+						updateSelectedPanelItem={updateSelectedPanelItem}
+						chat={chat}
+					/>
+				)}
+				{type === 'musicPlayer' && playlist && (
+					<div style={{ width: 400 }}>
+						<MusicPlayer playlist={playlist} />
+					</div>
+				)}
 			</Paper>
 
 			{isHovering && (
@@ -211,12 +242,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{type !== 'chat' && type !== 'musicPlayer' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
+					{type !== 'chat' && type !== 'musicPlayer' && (
+						<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
+					)}
 					{/*@ts-ignore needs better typing for innerRef*/}
-					{(isPinned || type === 'chat' || type === 'musicPlayer') && <MoveButton innerRef={drag} />}
+					{shouldShowMoveButton && <MoveButton innerRef={drag} />}
 				</div>
 			)}
-
 		</div>
 	);
 };

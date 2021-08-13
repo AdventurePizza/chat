@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import { AuthContext } from '../contexts/AuthProvider';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import axios from 'axios';
@@ -11,21 +10,21 @@ import { EditField } from './shared/EditField';
 
 import dollar from '../assets/dollar.png';
 
-import character1 from "../assets/character1.png";
-import character2 from "../assets/character2.png";
-import character3 from "../assets/character3.png";
-import character4 from "../assets/character4.png";
-import character5 from "../assets/character5.png";
-import character6 from "../assets/character6.png";
-import character7 from "../assets/character7.png";
-import character8 from "../assets/character8.png";
-import kirby from "../assets/kirby.gif";
-import link from "../assets/link-run.gif";
-import mario from "../assets/mario.gif";
-import nyancat from "../assets/nyancat_big.gif";
-import redghost from "../assets/red_ghost.gif";
-import yoshi from "../assets/yoshi.gif";
-import placeholder from "../assets/default-placeholder.png";
+import character1 from '../assets/character1.png';
+import character2 from '../assets/character2.png';
+import character3 from '../assets/character3.png';
+import character4 from '../assets/character4.png';
+import character5 from '../assets/character5.png';
+import character6 from '../assets/character6.png';
+import character7 from '../assets/character7.png';
+import character8 from '../assets/character8.png';
+import kirby from '../assets/kirby.gif';
+import link from '../assets/link-run.gif';
+import mario from '../assets/mario.gif';
+import nyancat from '../assets/nyancat_big.gif';
+import redghost from '../assets/red_ghost.gif';
+import yoshi from '../assets/yoshi.gif';
+import placeholder from '../assets/default-placeholder.png';
 import { IMetadata } from '../types';
 
 interface ISettingsPanelProps {
@@ -82,26 +81,11 @@ interface IWalletItem {
 }
 
 interface IWalletItem {
-	contract_name? : string,
-	balance? : string,
-	contract_decimals? : number,
-	type?: string
+	contract_name?: string;
+	balance?: string;
+	contract_decimals?: number;
+	type?: string;
 }
-
-const useStyles = makeStyles({
-	container: {
-		'& > *:not(:last-child)': {
-			marginRight: 10
-		},
-		display: 'flex',
-		alignItems: 'center',
-		overflowX: 'auto',
-		background: 'var(--background)',
-		width: '100%',
-		justifyContent: 'center',
-		height: 100
-	}
-});
 
 export const SettingsPanel = ({
 	onChangeName,
@@ -221,33 +205,33 @@ export const SettingsPanel = ({
 	return (
 		<div className="settings-panel-container">
 			<div className="settings-input-container">
-				<EditField 
+				<EditField
 					prefix="SCREEN NAME"
 					placeholder={username}
 					onClick={onChangeName}
 					setStep={setStep}
 					containsRemove={false}
 				/>
-				<EditField 
+				<EditField
 					prefix="EMAIL"
-					placeholder={email ? email : "add email"}
+					placeholder={email ? email : 'add email'}
 					onClick={onSubmitEmail}
 					containsRemove={true}
-					clearField={() => clearField("email")}
+					clearField={() => clearField('email')}
 				/>
-				<EditField 
+				<EditField
 					prefix="LOCATION"
-					placeholder={myLocation ? myLocation : "add location"}
+					placeholder={myLocation ? myLocation : 'add location'}
 					onClick={onSendLocation}
 					containsRemove={true}
-					clearField={() => clearField("weather")}
+					clearField={() => clearField('weather')}
 				/>
-				<EditField 
+				<EditField
 					prefix="MUSIC"
-					placeholder={music ? music.title : "add song url"}
+					placeholder={music ? music.title : 'add song url'}
 					onClick={onSubmitUrl}
 					containsRemove={true}
-					clearField={() => clearField("music")}
+					clearField={() => clearField('music')}
 				/>
 			</div>
 			<h2 className="settings-header">AVATAR</h2>

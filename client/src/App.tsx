@@ -3,7 +3,7 @@ import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
-import axios from "axios";
+import axios from 'axios';
 import { CustomToken as NFT } from './typechain/CustomToken';
 
 import {
@@ -49,7 +49,7 @@ import React, {
 	useEffect,
 	useMemo,
 	useRef,
-	useState,
+	useState
 } from 'react';
 import {
 	Route,
@@ -172,18 +172,20 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
-		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
+		setUserProfile((profile) => ({ ...profile, currentRoom: roomId }));
 		socket.emit('event', {
 			key: 'currentRoom',
 			value: roomId
-		})
+		});
 		return history.listen(() => {
 			resetMap();
 		});
 	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
-	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<
+		string | undefined
+	>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -228,7 +230,7 @@ function App() {
 	const clearVideo = () => {
 		setVideoId('');
 		setLastVideoId('');
-	}
+	};
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -237,12 +239,12 @@ function App() {
 	const [avatarMessages, setAvatarMessages] = useState<IAvatarChatMessages>({});
 	const [selectedPanelItem, setSelectedPanelItem] = useState<
 		PanelItemEnum | undefined
-		>(undefined);
+	>(undefined);
 
 	//	>(PanelItemEnum.roomDirectory);
 
 	const [tweets, setTweets] = useState<ITweet[]>([]);
-	
+
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
@@ -271,12 +273,11 @@ function App() {
 		location: ''
 	});
 
-	
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [weather, setWeather] = useState<IWeather>({
 		temp: '',
-		condition: '',
+		condition: ''
 	});
 
 	// YouTube function to keep track of timestamps
@@ -286,7 +287,7 @@ function App() {
 			// console.log('updating timestamp');
 			setLastTime(videoRef.current.getCurrentTime());
 		}
-	}
+	};
 
 	/* const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true); */
@@ -295,13 +296,12 @@ function App() {
 	const [isFirstVisit, setIsFirstVisit] = useState(false);
 	const [step, setStep] = useState(0);
 
-
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 10,
 		left: 110,
 		messages: []
 	});
-	
+
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
@@ -369,11 +369,17 @@ function App() {
 
 	//FETCH USER DATA
 	useEffect(() => {
-		if(accountId && isLoggedIn){
-			firebaseContext.getUser(accountId)
+		if (accountId && isLoggedIn) {
+			firebaseContext
+				.getUser(accountId)
 				.then((res: any) => {
 					setShowLoginModal(false);
-					setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
+					setUserProfile((profile) => ({
+						...profile,
+						name: res.data.screenName,
+						avatar: res.data.avatar,
+						email: res.data.email
+					}));
 					socket.emit('event', {
 						key: 'avatar',
 						value: res.data.avatar
@@ -384,13 +390,22 @@ function App() {
 					});
 				})
 				.catch((err: any) => {
-					firebaseContext.createUser(accountId, userProfile.name, userProfile.avatar)
+					firebaseContext
+						.createUser(accountId, userProfile.name, userProfile.avatar)
 						.then(() => setIsFirstVisit(true))
-						.catch(err => console.log(err));
-					console.log(err)
+						.catch((err) => console.log(err));
+					console.log(err);
 				});
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, userProfile.email, socket, firebaseContext])
+	}, [
+		accountId,
+		isLoggedIn,
+		userProfile.avatar,
+		userProfile.name,
+		userProfile.email,
+		socket,
+		firebaseContext
+	]);
 
 	useEffect(() => {
 		async function onAddOrder(order: IOrder) {
@@ -492,7 +507,7 @@ function App() {
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
-			case undefined :
+			case undefined:
 				setSelectedPanelItem(undefined);
 		}
 	};
@@ -507,36 +522,50 @@ function App() {
 
 	const onShowMarker = (show: boolean) => {
 		setShowWhiteboard(show);
-	}
+	};
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value, name } = message;
 
-		setWaterfallChat((waterfallChat) => (
-			{ ...waterfallChat, 
-				messages: waterfallChat.messages.concat( 
-					{ "avatar": avatar ,
-					 "message": value,
-					  "name": name
-				}
-			) }
-		));
+		setWaterfallChat((waterfallChat) => ({
+			...waterfallChat,
+			messages: waterfallChat.messages.concat({
+				avatar: avatar,
+				message: value,
+				name: name
+			})
+		}));
 	}, []);
 
-	const handleChangePlaylist = useCallback((message: IMessageEvent) => {
-		const music = message.value;
-		const index = parseInt(music);
-		//if it is number it means it is index should be removed
-		if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
-			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
-			if(musicPlayer.playlist.length === 0){
-				setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
+	const handleChangePlaylist = useCallback(
+		(message: IMessageEvent) => {
+			const music = message.value;
+			const index = parseInt(music);
+			//if it is number it means it is index should be removed
+			if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+				setMusicPlayer((musicPlayer) => ({
+					...musicPlayer,
+					playlist: [
+						...musicPlayer.playlist.slice(0, index),
+						...musicPlayer.playlist.slice(index + 1)
+					]
+				}));
+				if (musicPlayer.playlist.length === 0) {
+					setMusicPlayer((musicPlayer) => ({ ...musicPlayer, playlist: [] }));
+				}
 			}
-		}
-		//it is url and should be added
-		else{
-			setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: new Date().getTime().toString(), url: music})}));
-		}
-	}, [musicPlayer]);
+			//it is url and should be added
+			else {
+				setMusicPlayer((musicPlayer) => ({
+					...musicPlayer,
+					playlist: musicPlayer.playlist.concat({
+						timestamp: new Date().getTime().toString(),
+						url: music
+					})
+				}));
+			}
+		},
+		[musicPlayer]
+	);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -544,16 +573,15 @@ function App() {
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
 
-	const addTweet= useCallback((x: number, y:number, tweetId: string) => { 
+	const addTweet = useCallback((x: number, y: number, tweetId: string) => {
 		const newTweet: ITweet = {
-				top: y,
-				left: x,
-				id: tweetId,//tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
-				isPinned: false,
-			};
-			setTweets((tweets) => tweets.concat(newTweet));
-		},[]);
-
+			top: y,
+			left: x,
+			id: tweetId, //tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
+			isPinned: false
+		};
+		setTweets((tweets) => tweets.concat(newTweet));
+	}, []);
 
 	const addGif = useCallback((gifId: string, gifKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -589,7 +617,7 @@ function App() {
 			url: `https://img.youtube.com/vi/${videoId}/default.jpg`
 		};
 		setVideos((videos) => videos.concat(newVideo));
-	}, [])
+	}, []);
 
 	const updateCursorPosition = useMemo(
 		() =>
@@ -650,11 +678,11 @@ function App() {
 				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
 			);
 		}
-		if(selectedPanelItem === "settings"){
+		if (selectedPanelItem === 'settings') {
 			setStep(1);
-		} else if (selectedPanelItem === "roomDirectory"){
+		} else if (selectedPanelItem === 'roomDirectory') {
 			setStep(4);
-		} else if (selectedPanelItem === "youtube"){
+		} else if (selectedPanelItem === 'youtube') {
 			setStep(5);
 		}
 	}, [selectedPanelItem]);
@@ -874,7 +902,6 @@ function App() {
 					}
 					break;
 
-
 				case 'image':
 					const index = images.findIndex((image) => image.key === itemKey);
 					const image = images[index];
@@ -985,7 +1012,7 @@ function App() {
 							]);
 						}
 					}
-					break;			
+					break;
 				case 'tweet':
 					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
 					const tweet = tweets[tweetIndex];
@@ -1009,7 +1036,8 @@ function App() {
 		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
 	);
 
-	const getHorse = async (id: string)  => await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
+	const getHorse = async (id: string) =>
+		await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
 
 	const addHorse = useCallback((id: string, horseKey?: string) => {
 		const { x, y } = generateRandomXY(true, true);
@@ -1019,8 +1047,8 @@ function App() {
 				top: y,
 				left: x,
 				key: horseKey || uuidv4(),
-				horseData:
-				{	bloodline: res.data.bloodline,
+				horseData: {
+					bloodline: res.data.bloodline,
 					breed_type: res.data.breed_type,
 					breeding_counter: res.data.breeding_counter,
 					breeding_cycle_reset: res.data.breeding_cycle_reset,
@@ -1028,7 +1056,7 @@ function App() {
 					genotype: res.data.genotype,
 					color: res.data.hash_info.color,
 					hex_code: res.data.hash_info.hex_code,
-					name: res.data.hash_info.name,	
+					name: res.data.hash_info.name,
 					horse_type: res.data.horse_type,
 					img_url: res.data.img_url,
 					is_approved_for_racing: res.data.is_approved_for_racing.toString(),
@@ -1043,7 +1071,7 @@ function App() {
 					super_coat: res.data.super_coat.toString(),
 					tx: res.data.tx,
 					tx_date: res.data.tx_date,
-					win_rate: res.data.win_rate,
+					win_rate: res.data.win_rate
 				},
 				id: id
 			};
@@ -1135,7 +1163,11 @@ function App() {
 					}
 					break;
 				case 'chat':
-					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						top: relativeTop,
+						left: relativeLeft
+					}));
 					break;
 				case 'horse':
 					const horseIndex = horses.findIndex((horse) => horse.key === itemKey);
@@ -1167,10 +1199,16 @@ function App() {
 					}
 					break;
 				case 'musicPlayer':
-					setMusicPlayer((musicPlayer) => ({...musicPlayer, top: relativeTop, left: relativeLeft}));
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						top: relativeTop,
+						left: relativeLeft
+					}));
 					break;
-				}},
-		[images,videos, NFTs, gifs, pinnedText, tweets, horses]);
+			}
+		},
+		[images, videos, NFTs, gifs, pinnedText, tweets, horses]
+	);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1306,7 +1344,7 @@ function App() {
 	// 	}
 	// };
 
-	useEffect(() => { 
+	useEffect(() => {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
@@ -1346,7 +1384,9 @@ function App() {
 					}
 					break;
 				case 'youtube':
-					const currVideo = videos.filter((video) => video.key === message.value)[0]
+					const currVideo = videos.filter(
+						(video) => video.key === message.value
+					)[0];
 
 					if (message.playBackground) {
 						setVideoId(message.value);
@@ -1358,12 +1398,12 @@ function App() {
 					if (message.playPin) {
 						setPinnedVideoId(message.value);
 						if (currVideo) {
-							currVideo.isPlaying = true
+							currVideo.isPlaying = true;
 						}
 					} else if (message.playPin === false) {
 						setPinnedVideoId(message.value);
 						if (currVideo) {
-							currVideo.isPlaying = false
+							currVideo.isPlaying = false;
 						}
 					}
 					break;
@@ -1385,9 +1425,9 @@ function App() {
 					break;
 				case 'tweet':
 					if (message.value && message.yt && message.xt) {
-						addTweet(message.xt, message.yt, message.value)
-						}
-						break;
+						addTweet(message.xt, message.yt, message.value);
+					}
+					break;
 				case 'image':
 					if (message.value) {
 						addImage(message.value, message.imageKey);
@@ -1444,9 +1484,12 @@ function App() {
 				case 'currentRoom':
 					setUserProfiles((profiles) => ({
 						...profiles,
-						[message.id]: { ...profiles[message.id], currentRoom: message.value }
+						[message.id]: {
+							...profiles[message.id],
+							currentRoom: message.value
+						}
 					}));
-				break;
+					break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1486,8 +1529,8 @@ function App() {
 					handleMoveItemMessage(message);
 					break;
 				case 'clear-field':
-					if (message.field === 'music'){
-						if(message.isSelf){
+					if (message.field === 'music') {
+						if (message.isSelf) {
 							setUserProfile((profile) => ({
 								...profile,
 								musicMetadata: undefined
@@ -1501,16 +1544,19 @@ function App() {
 								}
 							}));
 						}
-					} else if (message.field === 'weather'){
+					} else if (message.field === 'weather') {
 						if (message.toSelf) {
 							setUserProfile((profile) => ({
 								...profile,
-								weather: { temp: '', condition: ''}
+								weather: { temp: '', condition: '' }
 							}));
 						} else {
 							setUserProfiles((profiles) => ({
 								...profiles,
-								[message.id]: { ...profiles[message.id], weather: { temp: '', condition: ''} }
+								[message.id]: {
+									...profiles[message.id],
+									weather: { temp: '', condition: '' }
+								}
 							}));
 						}
 					}
@@ -1588,14 +1634,15 @@ function App() {
 		updateMarkerText,
 		updateWaterfallChat,
 		addHorse,
-		handleChangePlaylist
+		handleChangePlaylist,
+		videos
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
-				if(chatValue === ''){
+				if (chatValue === '') {
 					return;
 				}
 				socket.emit('event', {
@@ -1606,16 +1653,21 @@ function App() {
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
 				const timestamp = new Date().getTime().toString();
-				firebaseContext.addtoChat(roomId || 'default', chatValue, userProfile.avatar, userProfile.name, timestamp);
-				setWaterfallChat((waterfallChat) => (
-					{ ...waterfallChat, 
-						messages: waterfallChat.messages.concat( 
-							{ "avatar": userProfile.avatar ,
-							 "message": chatValue,
-							  "name": userProfile.name
-						}
-					) }
-				));
+				firebaseContext.addtoChat(
+					roomId || 'default',
+					chatValue,
+					userProfile.avatar,
+					userProfile.name,
+					timestamp
+				);
+				setWaterfallChat((waterfallChat) => ({
+					...waterfallChat,
+					messages: waterfallChat.messages.concat({
+						avatar: userProfile.avatar,
+						message: chatValue,
+						name: userProfile.name
+					})
+				}));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1746,33 +1798,51 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					if(accountId){
-						firebaseContext.updateScreenname(accountId, settingsValue)
-						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
-						.catch(err => console.log(err));
+					if (accountId) {
+						firebaseContext
+							.updateScreenname(accountId, settingsValue)
+							.then((res) =>
+								setUserProfile((profile) => ({
+									...profile,
+									name: settingsValue
+								}))
+							)
+							.catch((err) => console.log(err));
 					}
 				} else if (type === 'avatar') {
 					socket.emit('event', {
 						key: 'avatar',
 						value: settingsValue
 					});
-					if(accountId){
-						firebaseContext.updateAvatar(accountId, settingsValue)
-						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
-						.catch(err => console.log(err));
+					if (accountId) {
+						firebaseContext
+							.updateAvatar(accountId, settingsValue)
+							.then((res) =>
+								setUserProfile((profile) => ({
+									...profile,
+									avatar: settingsValue
+								}))
+							)
+							.catch((err) => console.log(err));
 					}
-				} else if (type === "email") {
-					if(accountId){
-						firebaseContext.updateEmail(accountId, settingsValue)
-						.then(() => setUserProfile((profile) => ({ ...profile, email: settingsValue })))
-						.catch(err => console.log(err));
+				} else if (type === 'email') {
+					if (accountId) {
+						firebaseContext
+							.updateEmail(accountId, settingsValue)
+							.then(() =>
+								setUserProfile((profile) => ({
+									...profile,
+									email: settingsValue
+								}))
+							)
+							.catch((err) => console.log(err));
 					}
 				}
 				break;
 			case 'weather':
 				const location = args[0] as string;
 				setUserProfile((profile) => ({ ...profile, location: location }));
-				
+
 				socket.emit('event', {
 					key: 'weather',
 					value: location
@@ -1798,8 +1868,8 @@ function App() {
 				const id = args[0] as string;
 				const { x, y } = generateRandomXY(true, true);
 				addTweet(x, y, id);
-				socket.emit('event',{
-					key:'tweet',
+				socket.emit('event', {
+					key: 'tweet',
 					value: id,
 					xt: x,
 					yt: y
@@ -1822,20 +1892,23 @@ function App() {
 			case 'clear-field':
 				const field = args[0] as string;
 
-				if(field === "weather"){
-					setUserProfile((profile) => ({ ...profile, location: "" }))
+				if (field === 'weather') {
+					setUserProfile((profile) => ({ ...profile, location: '' }));
 				}
 
-				if(field === "email"){
-					if(accountId){
-						firebaseContext.updateEmail(accountId, "")
-						.then(res => setUserProfile((profile) => ({ ...profile, email: "" })))
-						.catch(err => console.log(err));
+				if (field === 'email') {
+					if (accountId) {
+						firebaseContext
+							.updateEmail(accountId, '')
+							.then((res) =>
+								setUserProfile((profile) => ({ ...profile, email: '' }))
+							)
+							.catch((err) => console.log(err));
 					}
 				} else {
 					socket.emit('event', {
 						key: 'clear-field',
-						field,
+						field
 					});
 				}
 				break;
@@ -1851,19 +1924,36 @@ function App() {
 				const index = parseInt(music);
 				//if it is number it means it is index should be removed
 				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
-					if(musicPlayer.playlist.length === 1){
-						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
-						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: []}));
-					}
-					else{
-						firebaseContext.removefromPlaylist(roomId || 'default', musicPlayer.playlist[index].timestamp);
-						setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: [...musicPlayer.playlist.slice(0, index), ...musicPlayer.playlist.slice(index + 1)] }));
+					if (musicPlayer.playlist.length === 1) {
+						firebaseContext.removefromPlaylist(
+							roomId || 'default',
+							musicPlayer.playlist[index].timestamp
+						);
+						setMusicPlayer((musicPlayer) => ({ ...musicPlayer, playlist: [] }));
+					} else {
+						firebaseContext.removefromPlaylist(
+							roomId || 'default',
+							musicPlayer.playlist[index].timestamp
+						);
+						setMusicPlayer((musicPlayer) => ({
+							...musicPlayer,
+							playlist: [
+								...musicPlayer.playlist.slice(0, index),
+								...musicPlayer.playlist.slice(index + 1)
+							]
+						}));
 					}
 				}
 				//it is url and should be added
-				else{
+				else {
 					const timestamp = new Date().getTime().toString();
-					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: musicPlayer.playlist.concat({timestamp: timestamp, url: music})}));
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						playlist: musicPlayer.playlist.concat({
+							timestamp: timestamp,
+							url: music
+						})
+					}));
 					firebaseContext.addtoPlaylist(roomId || 'default', music, timestamp);
 				}
 				socket.emit('event', {
@@ -1962,10 +2052,19 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.chat && showWhiteboard ;
+	const onWhiteboardPanel =
+		selectedPanelItem === PanelItemEnum.chat && showWhiteboard;
 
-	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
-		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
+	const onCreateRoom = async (
+		roomName: string,
+		isAccessLocked: boolean,
+		contractAddress?: string
+	) => {
+		const result = await firebaseContext.createRoom(
+			roomName,
+			isAccessLocked,
+			contractAddress
+		);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
@@ -1996,21 +2095,25 @@ function App() {
 		});
 		// }
 
-		
-
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
 
 			firebaseContext.getPlaylist(room).then((playlist) => {
-				if(playlist.data)
-					setMusicPlayer((musicPlayer) => ({...musicPlayer, playlist: playlist!.data!}));
+				if (playlist.data)
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						playlist: playlist!.data!
+					}));
 			});
 
 			firebaseContext.getChat(room).then((messages) => {
-				if(messages.data)
-					setWaterfallChat((waterfallChat) => ({...waterfallChat, messages: messages!.data!}));
+				if (messages.data)
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						messages: messages!.data!
+					}));
 			});
-			
+
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -2020,7 +2123,7 @@ function App() {
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 				const pinnedHorses: IBoardHorse[] = [];
-				const pinnedTweets: ITweet[] =[];
+				const pinnedTweets: ITweet[] = [];
 
 				let backgroundType: 'image' | 'map' | undefined;
 				let backgroundImg: string | undefined;
@@ -2045,14 +2148,13 @@ function App() {
 							key: item.key!,
 							url: item.url
 						});
-					}
-					else if(item.type ==='tweet'){
+					} else if (item.type === 'tweet') {
 						pinnedTweets.push({
-						...item,
-						top:  item.top! * window.innerHeight,
-						left: item.left! * window.innerWidth,
-						isPinned: true,
-						id: item.id
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							id: item.id
 						});
 					} else if (item.type === 'video') {
 						pinnedVideos.push({
@@ -2070,7 +2172,7 @@ function App() {
 						backgroundMap = item.mapData;
 					} else if (item.type === 'race') {
 						setRaceId(item.raceId);
-					}else if (item.type === 'text') {
+					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
 							top: item.top! * window.innerHeight,
@@ -2090,8 +2192,7 @@ function App() {
 								text: item.value
 							});
 						}
-					}
-					else if (item.type === 'horse') {
+					} else if (item.type === 'horse') {
 						getHorse(item.id).then((res) => {
 							pinnedHorses.push({
 								...item,
@@ -2099,8 +2200,8 @@ function App() {
 								left: item.left! * window.innerWidth,
 								isPinned: true,
 								key: item.key!,
-								horseData: 
-								{	bloodline: res.data.bloodline,
+								horseData: {
+									bloodline: res.data.bloodline,
 									breed_type: res.data.breed_type,
 									breeding_counter: res.data.breeding_counter,
 									breeding_cycle_reset: res.data.breeding_cycle_reset,
@@ -2108,7 +2209,7 @@ function App() {
 									genotype: res.data.genotype,
 									color: res.data.hash_info.color,
 									hex_code: res.data.hash_info.hex_code,
-									name: res.data.hash_info.name,	
+									name: res.data.hash_info.name,
 									horse_type: res.data.horse_type,
 									img_url: res.data.img_url,
 									is_approved_for_racing: res.data.is_approved_for_racing.toString(),
@@ -2123,7 +2224,7 @@ function App() {
 									super_coat: res.data.super_coat.toString(),
 									tx: res.data.tx,
 									tx_date: res.data.tx_date,
-									win_rate: res.data.win_rate,
+									win_rate: res.data.win_rate
 								},
 								id: item.id
 							});
@@ -2216,7 +2317,7 @@ function App() {
 			}
 		}
 	};
-		const pinTweet = async (tweetID: string) => {
+	const pinTweet = async (tweetID: string) => {
 		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
 		const tweet = tweets[tweetIndex];
 		const room = roomId || 'default';
@@ -2246,7 +2347,6 @@ function App() {
 				setModalErrorMessage(result.message);
 			}
 		}
-
 	};
 
 	const pinImage = async (imageKey: string) => {
@@ -2305,12 +2405,10 @@ function App() {
 					type: 'video',
 					itemKey: videoId
 				});
-
 			} else if (result.message) {
 				setModalErrorMessage(result.message);
 			}
 		}
-
 	};
 
 	const unpinVideo = async (videoId: string | undefined) => {
@@ -2324,7 +2422,10 @@ function App() {
 				video.key
 			);
 			if (isSuccessful) {
-				setVideos([...videos.slice(0, videoIndex), ...videos.slice(videoIndex + 1)]);
+				setVideos([
+					...videos.slice(0, videoIndex),
+					...videos.slice(videoIndex + 1)
+				]);
 
 				socket.emit('event', {
 					key: 'unpin-item',
@@ -2338,16 +2439,16 @@ function App() {
 	};
 
 	useEffect(() => {
-		const videoIndex = videos.findIndex((video: IBoardVideo) => video.key === videoId);
+		const videoIndex = videos.findIndex(
+			(video: IBoardVideo) => video.key === videoId
+		);
 		const video = videos[videoIndex];
 
-		if (videoId === "") {
+		if (videoId === '') {
 			setIsVideoShowing(false);
 			setHideAllPins(false);
-
-		} else if (video && videoId !== "" && video.isPinned) {
+		} else if (video && videoId !== '' && video.isPinned) {
 			setIsVidPinned(true);
-
 		} else {
 			setIsVidPinned(false);
 		}
@@ -2361,10 +2462,9 @@ function App() {
 			top: 0,
 			left: 0
 		});
-	}
-	
-	const pinBackground = async () => {
+	};
 
+	const pinBackground = async () => {
 		const room = roomId || 'default';
 
 		let backgroundType: 'image' | 'map' | undefined;
@@ -2431,8 +2531,8 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				let oldBackgroundType = "";
-				if(background.type){
+				let oldBackgroundType = '';
+				if (background.type) {
 					oldBackgroundType = background.type.valueOf();
 				}
 
@@ -2447,7 +2547,7 @@ function App() {
 					type: 'background'
 				});
 
-				if(oldBackgroundType === "map"){
+				if (oldBackgroundType === 'map') {
 					updateIsMapShowing(true);
 					socket.emit('event', {
 						key: 'map',
@@ -2460,7 +2560,6 @@ function App() {
 		}
 	};
 
-	
 	const unpinTweet = async (tweetID: string) => {
 		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
 		const tweet = tweets[tweetIndex];
@@ -2472,7 +2571,10 @@ function App() {
 				tweet.id
 			);
 			if (isSuccessful) {
-				setTweets([...tweets.slice(0, tweetIndex), ...tweets.slice(tweetIndex + 1)]);
+				setTweets([
+					...tweets.slice(0, tweetIndex),
+					...tweets.slice(tweetIndex + 1)
+				]);
 
 				socket.emit('event', {
 					key: 'unpin-item',
@@ -2589,7 +2691,7 @@ function App() {
 		deltaY: number
 	) => {
 		const { x, y } = getRelativePos(left, top, 0, 0);
-		
+
 		if (type === 'text') {
 			setPinnedText(
 				update(pinnedText, {
@@ -2661,8 +2763,7 @@ function App() {
 					...tweets.slice(tweetIndex + 1)
 				]);
 			}
-		}
-		else if (type === 'horse'){
+		} else if (type === 'horse') {
 			const horseIndex = horses.findIndex((horse) => horse.key === id);
 			if (horseIndex !== -1) {
 				setHorses([
@@ -2678,22 +2779,27 @@ function App() {
 		}
 
 		if (type === 'chat') {
-			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
-		}
-
-		else if (type === 'musicPlayer') {
-			setMusicPlayer((musicPlayer) => ({ ...musicPlayer, top: top, left: left}));
-		}
-		else{
-			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-				roomId || 'default',
-				{
-					type,
-					top: y,
-					left: x,
-					key: id
-				}
-			);
+			setWaterfallChat((waterfallChat) => ({
+				...waterfallChat,
+				top: top,
+				left: left
+			}));
+		} else if (type === 'musicPlayer') {
+			setMusicPlayer((musicPlayer) => ({
+				...musicPlayer,
+				top: top,
+				left: left
+			}));
+		} else {
+			const {
+				isSuccessful,
+				message
+			} = await firebaseContext.movePinnedRoomItem(roomId || 'default', {
+				type,
+				top: y,
+				left: x,
+				key: id
+			});
 
 			//reverse the changes in client in case has no permission to edit
 			if (!isSuccessful) {
@@ -2750,7 +2856,7 @@ function App() {
 							...NFTs.slice(nftIndex + 1)
 						]);
 					}
-				}else if (type === 'tweet') {
+				} else if (type === 'tweet') {
 					const tweetIndex = tweets.findIndex((tweet) => tweet.id === id);
 					if (tweetIndex !== -1) {
 						setTweets([
@@ -2763,8 +2869,7 @@ function App() {
 							...tweets.slice(tweetIndex + 1)
 						]);
 					}
-				}
-				else if (type === 'horse'){
+				} else if (type === 'horse') {
 					const horseIndex = horses.findIndex((horse) => horse.key === id);
 					if (horseIndex !== -1) {
 						setHorses([
@@ -2778,7 +2883,7 @@ function App() {
 						]);
 					}
 				}
-				
+
 				return;
 			}
 		}
@@ -2814,8 +2919,7 @@ function App() {
 				socket.emit('event', {
 					key: 'pin-item',
 					type: 'horse',
-					itemKey: horseKey,
-					
+					itemKey: horseKey
 				});
 			} else if (result.message) {
 				setModalErrorMessage(result.message);
@@ -2866,31 +2970,40 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
-
+		return (
+			<div>
+				Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection />{' '}
+			</div>
+		);
 	}
 
 	const steps = [
 		{
-			selector: ".first-step",
-			content: "Click on the settings tab to customize your avatar and name"
-		},{
-			selector: ".second-step",
-			content: "Enter a screen name and press update"
-		},{
-			selector: ".third-step",
-			content: "Select an avatar and click go"
-		},{
-			selector: ".fourth-step",
-			content: "Create and enter rooms here"
-		},{
-			selector: ".fifth-step",
-			content: "You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner"
-		}, {
-			selector: ".sixth-step",
-			content: "Invite the homies and earn tokens"
-		}]
-
+			selector: '.first-step',
+			content: 'Click on the settings tab to customize your avatar and name'
+		},
+		{
+			selector: '.second-step',
+			content: 'Enter a screen name and press update'
+		},
+		{
+			selector: '.third-step',
+			content: 'Select an avatar and click go'
+		},
+		{
+			selector: '.fourth-step',
+			content: 'Create and enter rooms here'
+		},
+		{
+			selector: '.fifth-step',
+			content:
+				'You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner'
+		},
+		{
+			selector: '.sixth-step',
+			content: 'Invite the homies and earn tokens'
+		}
+	];
 
 	return (
 		<div
@@ -2903,11 +3016,13 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel 
+				<SettingsPanel
 					setStep={setStep}
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+					onChangeAvatar={(avatar) =>
+						actionHandler('settings', 'avatar', avatar)
+					}
 					onSendLocation={(location) => actionHandler('weather', location)}
 					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
 					currentAvatar={userProfile.avatar}
@@ -2919,72 +3034,72 @@ function App() {
 				/>
 			</Route>
 
-			<Route exact path={["/room/:roomId", "/"]}>
-			<Board
-				videoId={videoId}
-				isVideoPinned={isVidPinned}
-				pinnedVideoId={pinnedVideoId}
-				setPinnedVideoId={setPinnedVideoId}
-				hideAllPins={hideAllPins}
-				videoRef={videoRef}
-				lastTime={lastTime}
-				volume={volume}
-				background={background}
-				musicNotes={musicNotes}
-				updateNotes={setMusicNotes}
-				emojis={emojis}
-				updateEmojis={setEmojis}
-				gifs={gifs}
-				updateGifs={setGifs}
-				images={images}
-				updateImages={setImages}
-				videos={videos}
-				updateVideos={setVideos}
-				addVideo={addVideo}
-				chatMessages={chatMessages}
-				updateChatMessages={setChatMessages}
-				userLocations={userLocations}
-				userProfiles={userProfiles}
-				setUserProfiles={setUserProfiles}
-				animations={animations}
-				updateAnimations={setAnimations}
-				avatarMessages={avatarMessages}
-				weather={weather}
-				updateWeather={setWeather}
-				pinGif={pinGif}
-				unpinGif={unpinGif}
-				pinImage={pinImage}
-				unpinImage={unpinImage}
-				pinVideo={pinVideo}
-				unpinVideo={unpinVideo}
-				pinBackground={pinBackground}
-				unpinBackground={unpinBackground}
-				pinnedText={pinnedText}
-				unpinText={unpinText}
-				moveItem={moveItem}
-				NFTs={NFTs}
-				updateNFTs={setNFTs}
-				pinNFT={pinNFT}
-				unpinNFT={unpinNFT}
-				addNewContract={addNewContract}
-				loadingNFT={loadingNFT}
-				onBuy={() => {}}
-				onCancel={() => {}}
-				onClickNewRoom={() => setModalState('new-room')}
-				onClickPresent={onClickPresent}
-				waterfallChat={waterfallChat}
-				musicPlayer={musicPlayer}
-				tweets={tweets}
-				pinTweet={pinTweet}
-				unpinTweet={unpinTweet}
-				raceId={raceId}
-				horses={horses}
-				pinHorse={pinHorse}
-				unpinHorse={unpinHorse}
-				updateHorses={setHorses}
-				showOpensea={showOpensea}
-				selectedPanelItem={selectedPanelItem}
-				updateSelectedPanelItem={setSelectedPanelItem}
+			<Route exact path={['/room/:roomId', '/']}>
+				<Board
+					videoId={videoId}
+					isVideoPinned={isVidPinned}
+					pinnedVideoId={pinnedVideoId}
+					setPinnedVideoId={setPinnedVideoId}
+					hideAllPins={hideAllPins}
+					videoRef={videoRef}
+					lastTime={lastTime}
+					volume={volume}
+					background={background}
+					musicNotes={musicNotes}
+					updateNotes={setMusicNotes}
+					emojis={emojis}
+					updateEmojis={setEmojis}
+					gifs={gifs}
+					updateGifs={setGifs}
+					images={images}
+					updateImages={setImages}
+					videos={videos}
+					updateVideos={setVideos}
+					addVideo={addVideo}
+					chatMessages={chatMessages}
+					updateChatMessages={setChatMessages}
+					userLocations={userLocations}
+					userProfiles={userProfiles}
+					setUserProfiles={setUserProfiles}
+					animations={animations}
+					updateAnimations={setAnimations}
+					avatarMessages={avatarMessages}
+					weather={weather}
+					updateWeather={setWeather}
+					pinGif={pinGif}
+					unpinGif={unpinGif}
+					pinImage={pinImage}
+					unpinImage={unpinImage}
+					pinVideo={pinVideo}
+					unpinVideo={unpinVideo}
+					pinBackground={pinBackground}
+					unpinBackground={unpinBackground}
+					pinnedText={pinnedText}
+					unpinText={unpinText}
+					moveItem={moveItem}
+					NFTs={NFTs}
+					updateNFTs={setNFTs}
+					pinNFT={pinNFT}
+					unpinNFT={unpinNFT}
+					addNewContract={addNewContract}
+					loadingNFT={loadingNFT}
+					onBuy={() => {}}
+					onCancel={() => {}}
+					onClickNewRoom={() => setModalState('new-room')}
+					onClickPresent={onClickPresent}
+					waterfallChat={waterfallChat}
+					musicPlayer={musicPlayer}
+					tweets={tweets}
+					pinTweet={pinTweet}
+					unpinTweet={unpinTweet}
+					raceId={raceId}
+					horses={horses}
+					pinHorse={pinHorse}
+					unpinHorse={unpinHorse}
+					updateHorses={setHorses}
+					showOpensea={showOpensea}
+					selectedPanelItem={selectedPanelItem}
+					updateSelectedPanelItem={setSelectedPanelItem}
 				/>
 			</Route>
 
@@ -3006,7 +3121,7 @@ function App() {
 					isFirstVisit={isFirstVisit}
 					setUserEmail={(email) => actionHandler('settings', 'email', email)}
 				/>
-			 ) : null }
+			) : null}
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -3036,7 +3151,8 @@ function App() {
 								setIsPanelOpen(true);
 							}}
 							style={{
-								backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none"
+								backgroundColor:
+									videoId !== '' ? 'rgb(211, 211, 211, 0.6)' : 'none'
 							}}
 						>
 							<ChevronRight />
@@ -3068,7 +3184,7 @@ function App() {
 					rel="noreferrer"
 					className="adventure-logo"
 					style={{
-						visibility: isVideoShowing ? "hidden" : "visible"
+						visibility: isVideoShowing ? 'hidden' : 'visible'
 					}}
 				>
 					<div>adventure</div>
@@ -3096,14 +3212,13 @@ function App() {
 				setIsVideoShowing={setIsVideoShowing}
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
-				showWhiteboard = {showWhiteboard}
-				updateShowWhiteboard = {onShowMarker}
-				musicPlayer = {musicPlayer}
+				showWhiteboard={showWhiteboard}
+				updateShowWhiteboard={onShowMarker}
+				musicPlayer={musicPlayer}
 				setRaceId={setRaceId}
 				showOpensea={showOpensea}
 				setShowOpensea={setShowOpensea}
 			/>
-
 
 			{userProfile && !showOpensea && (
 				<UserCursor
