@@ -340,8 +340,11 @@ const PanelContent = ({
 		case 'musicPlayer':
 			return (
 				<MusicPlayerPanel
-					changePlaylist={(message) => {
-						onAction('change-playlist', message);
+					changePlaylist={(url, name) => {
+						onAction('change-playlist', {
+							url: url,
+							name: name
+						})
 					}}
 					musicPlayer={musicPlayer}
 				/>

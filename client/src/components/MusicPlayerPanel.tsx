@@ -4,18 +4,33 @@ import { makeStyles } from '@material-ui/core/styles';
 import { TextField, Button } from '@material-ui/core';
 import { IMusicPlayer } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
 const useStyles = makeStyles({
 	container: {
 		display: 'flex',
 		alignItems: 'center',
-		justifyContent: 'center',
 		padding: 10,
 		background: 'var(--background)',
 		width: '100%',
 		'& > *': {
 			marginRight: 10
 		}
+	},
+	urlpanel: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingLeft: 50,
+		background: 'var(--background)',
+		'& > *': {
+			marginRight: 10
+		}
+	},
+	musicPlayer:{
+		overflowY: 'auto',
+		height: 100,
+		paddingLeft: 25,
 	},
 	input: {
 		borderRadius: 20,
@@ -24,7 +39,7 @@ const useStyles = makeStyles({
 });
 
 interface IMusicPlayerPanelProps {
-	changePlaylist: (message: string) => void;
+	changePlaylist: (url: string, name?: string) => void;
 	musicPlayer: IMusicPlayer;
 }
 
@@ -35,6 +50,12 @@ export const MusicPlayerPanel = ({
 	const classes = useStyles();
 
 	const [urlValue, setUrlValue] = useState('');
+	const [showURLPanel, setShowURLPanel] = useState<boolean>(false);
+	const [showNFTPanel, setShowNFTPanel] = useState<boolean>(false);
+
+	const [valueAddress, setValueAddress] = useState('');
+	const [valueTokenId, setValueTokenId] = useState('');
+
 	const textfieldRef = useRef<HTMLDivElement>(null);
 	const SMALL_SCREEN_WIDTH = 500;
 	const beethovenPlaylist = [
@@ -86,25 +107,25 @@ export const MusicPlayerPanel = ({
 		changePlaylist(mozartPlaylist[(Math.floor(Math.random() * 6))]);
 	};
 
+
+	const getNFT = async (address: string, tokenId: string) =>
+		await axios.get('https://api.opensea.io/api/v1/assets?token_ids=' + tokenId + '&asset_contract_address=' + address + '&order_direction=desc&offset=0&limit=20');
+
+	const addNFT = (address: string, tokenId: string) => {
+		getNFT(address, tokenId).then((res) => {
+			console.log("nny: " +  res.data.assets[0].name);
+			console.log("add: " +  address);
+			console.log("tok: " +  tokenId);
+			changePlaylist(res.data.assets[0].animation_url, res.data.assets[0].name);
+		});
+	};
+	
 	return (
 		<div className={classes.container}>
-			<StyledButton onClick={Beethoven}>Beethoven</StyledButton>
-			<StyledButton onClick={Mozart}>Mozart</StyledButton>
+			<StyledButton onClick={() => { setShowURLPanel(!showURLPanel)}}>URL</StyledButton>
+			<StyledButton onClick={() => { setShowNFTPanel(!showNFTPanel)}}>NFT</StyledButton>
 
-			<TextField
-				autoFocus={window.innerWidth > SMALL_SCREEN_WIDTH}
-				ref={textfieldRef}
-				placeholder="type music url here"
-				variant="outlined"
-				value={urlValue}
-				onChange={onChangeUrl}
-				onKeyPress={onKeyPressEnter}
-				className={classes.input}
-				onFocus={onFocus}
-			/>
-			<StyledButton onClick={addMusic}>Add Music</StyledButton>
-
-			<div style={{overflowY: 'auto', height: 100}} > 
+			<div  className={classes.musicPlayer}>
 				{musicPlayer &&
 					musicPlayer.playlist.map((track, index) => (
 						<div key={uuidv4()} style={{ width: 300, clear: 'left'}}>
@@ -122,6 +143,56 @@ export const MusicPlayerPanel = ({
 					))
 				}
 			</div>	
+
+			{showURLPanel && <div className={classes.urlpanel}>
+				<StyledButton onClick={Beethoven}>Beethoven</StyledButton>
+				<StyledButton onClick={Mozart}>Mozart</StyledButton>
+
+				<TextField
+					autoFocus={window.innerWidth > SMALL_SCREEN_WIDTH}
+					ref={textfieldRef}
+					placeholder="type music url here"
+					variant="outlined"
+					value={urlValue}
+					onChange={onChangeUrl}
+					className={classes.input}
+					onFocus={onFocus}
+				/>
+				<StyledButton onClick={addMusic}>Add Music</StyledButton>
+
+			</div>
+			}
+
+			{showNFTPanel && <div className={classes.urlpanel}>
+				<TextField
+					autoFocus={window.innerWidth > SMALL_SCREEN_WIDTH}
+					ref={textfieldRef}
+					placeholder="enter contract address"
+					variant="outlined"
+					value={valueAddress}
+					onChange={(e) => setValueAddress(e.target.value)}
+					onKeyPress={onKeyPressEnter}
+					className={classes.input}
+					onFocus={onFocus}
+				/>
+
+				<TextField
+					autoFocus={window.innerWidth > SMALL_SCREEN_WIDTH}
+					ref={textfieldRef}
+					placeholder="enter token id"
+					variant="outlined"
+					value={valueTokenId}
+					onChange={(e) => setValueTokenId(e.target.value)}
+					className={classes.input}
+					onFocus={onFocus}
+				/>
+
+				<StyledButton onClick={() => { addNFT(valueAddress, valueTokenId) }}>Add</StyledButton>
+
+			</div>
+			}
+
+
 		</div>
 	);
 };
