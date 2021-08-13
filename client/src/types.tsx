@@ -226,16 +226,14 @@ export enum PanelItemEnum {
 	'youtube' = 'youtube',
 	'weather' = 'weather',
 	'poem' = 'poem',
-	'zedrun' = 'zedrun',
+	'crypto' = 'crypto',
 	'sound' = 'sound',
 	"maps" = "maps",
 	'email' = 'email',
 	'new-room' = 'new-room',
-	'browseNFT' = 'browseNFT',
 	'NFT' = 'NFT',
 	'tower' = 'tower',
 	'emoji' = 'emoji',
-	"dashboard" = "dashboard",
 	'musicPlayer' = 'musicPlayer'
 }
 

@@ -210,3 +210,43 @@
 	z-index: 99999999999;
 }
 
+
+
+/* unvisited link */
+a:link {
+	color: rgb(0, 0, 0);
+	text-decoration: none;
+}
+  
+/* visited link */
+a:visited {
+	color: rgb(0, 37, 0);
+	text-decoration: none;
+}
+  
+/* mouse over link */
+a:hover {
+	color: rgb(46, 0, 23);
+	text-decoration: none;
+}
+  
+/* selected link */
+a:active {
+	color: rgb(0, 0, 41);
+	text-decoration: none;
+}
+
+.horse-view{
+	font-family: 'Open Sans', sans-serif;
+}
+
+.horse-spec{
+	display: flex;
+	align-items: center;
+	padding-top: 5px;
+}
+
+.horse-spec-text{
+	display: block;
+	margin-left: 15px;
+}

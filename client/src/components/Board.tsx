@@ -113,6 +113,7 @@ interface IBoardProps {
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
+	showOpensea: boolean;
 	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 }
@@ -178,6 +179,7 @@ export const Board = ({
 	unpinHorse,
 	updateHorses,
 	musicPlayer,
+	showOpensea,
 	selectedPanelItem,
 	updateSelectedPanelItem
 }: IBoardProps) => {
@@ -292,6 +294,17 @@ export const Board = ({
 					title="zed racing"
 					style={{ pointerEvents: 'none' }}
 				/>
+			)}
+
+			{showOpensea && (
+				<iframe className="opensea-listings"
+					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
+					width='100%'
+					height='100%'
+					frameBorder='0'
+					allowFullScreen
+				>
+				</iframe>
 			)}
 
 			<YouTubeBackground

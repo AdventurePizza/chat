@@ -313,6 +313,8 @@ function App() {
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
+	const [showOpensea, setShowOpensea] = useState<boolean>(false);
+
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -476,11 +478,9 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case 'browseNFT':
 			case 'NFT':
 			case 'musicPlayer':
-			case 'zedrun':
-			case "dashboard":
+			case 'crypto':
 			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
@@ -1973,8 +1973,6 @@ function App() {
 		return result;
 	};
 
-	const onBrowseNFTPanel = selectedPanelItem === PanelItemEnum.browseNFT;
-
 	useEffect(() => {
 		const room = roomId || 'default';
 
@@ -2984,6 +2982,7 @@ function App() {
 				pinHorse={pinHorse}
 				unpinHorse={unpinHorse}
 				updateHorses={setHorses}
+				showOpensea={showOpensea}
 				selectedPanelItem={selectedPanelItem}
 				updateSelectedPanelItem={setSelectedPanelItem}
 				/>
@@ -3101,10 +3100,12 @@ function App() {
 				updateShowWhiteboard = {onShowMarker}
 				musicPlayer = {musicPlayer}
 				setRaceId={setRaceId}
+				showOpensea={showOpensea}
+				setShowOpensea={setShowOpensea}
 			/>
 
 
-			{userProfile && !onBrowseNFTPanel && (
+			{userProfile && !showOpensea && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
