@@ -171,6 +171,7 @@ export interface IBoardVideo {
 	key: string;
 	url: string;
 	isPinned?: boolean;
+	isPlaying?: boolean;
 }
 
 export interface IHorse{

@@ -216,6 +216,7 @@ function App() {
 
 	const [videos, setVideos] = useState<IBoardVideo[]>([]);
 	const [videoId, setVideoId] = useState<string>('');
+	const [pinnedVideoId, setPinnedVideoId] = useState<string>('');
 	const [isVidPinned, setIsVidPinned] = useState<boolean>(false);
 	const [lastVideoId, setLastVideoId] = useState<string>('');
 	const [lastTime, setLastTime] = useState<number>(0);
@@ -1345,8 +1346,26 @@ function App() {
 					}
 					break;
 				case 'youtube':
-					setVideoId(message.value);
-					setLastVideoId(message.value);
+					const currVideo = videos.filter((video) => video.key === message.value)[0]
+
+					if (message.playBackground) {
+						setVideoId(message.value);
+						setLastVideoId(message.value);
+					}
+					if (message.pin) {
+						addVideo(message.value);
+					}
+					if (message.playPin) {
+						setPinnedVideoId(message.value);
+						if (currVideo) {
+							currVideo.isPlaying = true
+						}
+					} else if (message.playPin === false) {
+						setPinnedVideoId(message.value);
+						if (currVideo) {
+							currVideo.isPlaying = false
+						}
+					}
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -1551,6 +1570,7 @@ function App() {
 		playSound,
 		handleChatMessage,
 		addGif,
+		addVideo,
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
@@ -1795,7 +1815,8 @@ function App() {
 				const videoId = args[0] as string;
 				socket.emit('event', {
 					key: 'youtube',
-					value: videoId
+					value: videoId,
+					playBackground: true
 				});
 				break;
 			case 'clear-field':
@@ -2041,6 +2062,7 @@ function App() {
 							top: item.top! * window.innerHeight,
 							left: item.left! * window.innerWidth,
 							isPinned: true,
+							isPlaying: false,
 							key: item.key!,
 							url: item.url
 						});
@@ -2903,6 +2925,8 @@ function App() {
 			<Board
 				videoId={videoId}
 				isVideoPinned={isVidPinned}
+				pinnedVideoId={pinnedVideoId}
+				setPinnedVideoId={setPinnedVideoId}
 				hideAllPins={hideAllPins}
 				videoRef={videoRef}
 				lastTime={lastTime}

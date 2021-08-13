@@ -1,5 +1,5 @@
 import { MoveButton, PinButton } from './shared/PinButton';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
@@ -11,10 +11,12 @@ import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { Map } from "./Maps";
-import { Tweet} from 'react-twitter-widgets';
+import { Tweet } from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
 import { MusicPlayer } from "./MusicPlayer";
 import ReactPlayer from 'react-player';
+import { AppStateContext } from '../contexts/AppStateContext';
+import { useEffect } from 'react';
 import { Horse } from "./Horse";
 
 
@@ -49,10 +51,13 @@ interface BoardObjectProps {
 
 	onPin: () => void;
 	onUnpin: () => void;
+	setPinnedVideoId?: (id: string) => void;
 
 	top: number;
 	left: number;
 
+	isPinnedPlaying?: boolean;
+	pinnedVideoId?: string;
 	isPinned?: boolean;
 	order?: IOrder;
 
@@ -75,6 +80,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 		data,
 		onPin,
 		onUnpin,
+		isPinnedPlaying,
+		pinnedVideoId,
+		setPinnedVideoId,
 		isPinned,
 		type,
 		imgSrc,
@@ -91,7 +99,14 @@ export const BoardObject = (props: BoardObjectProps) => {
 		updateSelectedPanelItem
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
+	const [pinPlaying, setPinPlaying] = useState(isPinnedPlaying);
 	const classes = useStyles();
+
+	const { socket } = useContext(AppStateContext);
+
+	// useEffect(() => {
+
+	// }, [isPinned ])
 
 	const [{ isDragging }, drag, preview] = useDrag({
 		item: { id, left, top, itemType: type, type: 'item' },
@@ -154,7 +169,25 @@ export const BoardObject = (props: BoardObjectProps) => {
 					<ReactPlayer width="100%" height="100%"
 						url={`https://www.youtube.com/watch/${id}`}
 						controls={true}
-						playing={false}	// Autoplay video
+						playing={isPinnedPlaying}
+						onPlay={
+							() => {
+								socket.emit('event', {
+									key: 'youtube',
+									value: id,
+									playPin: true
+								})
+							}
+						}
+						onPause={
+							() => {
+								socket.emit('event', {
+									key: 'youtube',
+									value: id,
+									playPin: false
+								})
+							}
+						}
 					/>
 				</div>
 					)

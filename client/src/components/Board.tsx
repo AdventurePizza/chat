@@ -29,6 +29,7 @@ import { XYCoord, useDrop } from 'react-dnd';
 import { BoardObject } from './BoardObject';
 import { PinButton } from './shared/PinButton';
 import React, { useState } from 'react';
+import ReactPlayer from 'react-player';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
 import { ISubmit } from './NFT/OrderInput';
@@ -38,13 +39,16 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 // import present from '../assets/intro/present.gif';
 import { useContext } from 'react';
 import { MapsContext } from '../contexts/MapsContext';
-import { Map } from './Maps';
-import YouTubeBackground from './YouTubeBackground';
-import { useEffect } from 'react';
+import { Map } from "./Maps";
+import YouTubeBackground from "./YouTubeBackground";
+import present from '../assets/intro/present.gif';
+import { useEffect, useRef } from 'react';
 
 interface IBoardProps {
 	videoId: string;
 	hideAllPins: boolean;
+	setPinnedVideoId: React.Dispatch<React.SetStateAction<string>>;
+	pinnedVideoId: string;
 	lastTime: number;
 	videoRef: React.Ref<any>;
 	volume: number;
@@ -116,6 +120,8 @@ interface IBoardProps {
 export const Board = ({
 	videoId,
 	hideAllPins,
+	setPinnedVideoId,
+	pinnedVideoId,
 	videoRef,
 	lastTime,
 	volume,
@@ -218,7 +224,7 @@ export const Board = ({
 		if (isYouTubeShowing) {
 			setIsPaused(!isPaused);
 		}
-	};
+	}
 
 	const backgroundImg = background.name?.startsWith('http')
 		? background.name
@@ -524,6 +530,7 @@ export const Board = ({
 						timeout={5000}
 						classNames="gif-transition"
 					>
+						
 						<BoardObject
 							type="tweet"
 							{...tweet}
@@ -536,9 +543,7 @@ export const Board = ({
 						/>
 					</CSSTransition>
 				))}
-			</TransitionGroup>
- ) : null}
- 
+			</TransitionGroup>) : null}
 
 			{!hideAllPins ? (
 				<TransitionGroup>
@@ -573,7 +578,7 @@ export const Board = ({
 				</TransitionGroup>
 			) : null}
 
-			{!hideAllPins ? (
+{!hideAllPins ? (
 				<TransitionGroup>
 					{images.map((image) => (
 						<CSSTransition
@@ -609,40 +614,37 @@ export const Board = ({
 				</TransitionGroup>
 			) : null}
 
-			{!hideAllPins ? (
-				<TransitionGroup>
-					{videos.map((video) => (
-						<CSSTransition
-							key={video.key}
-							timeout={5000}
-							classNames="gif-transition"
-							onEntered={() => {
-								if (!video.isPinned) {
-									const index = videos.findIndex(
-										(_video) => _video.key === video.key
-									);
-									updateVideos([
-										...videos.slice(0, index),
-										...videos.slice(index + 1)
-									]);
-								}
+			{!hideAllPins ? 
+			<TransitionGroup>
+				{videos.map((video) => (
+					<CSSTransition
+						key={video.key}
+						timeout={5000}
+						classNames="gif-transition"
+						onEntered={() => {
+							if (!video.isPinned) {
+								const index = videos.findIndex((_video) => _video.key === video.key);
+								updateVideos([...videos.slice(0, index), ...videos.slice(index + 1)]);
+							}
+						}}
+					>
+						<BoardObject
+							type="video"
+							isPinnedPlaying={video.isPlaying}
+							setPinnedVideoId={setPinnedVideoId}
+							pinnedVideoId={pinnedVideoId}
+							id={video.key}
+							{...video}
+							onPin={() => {
+								pinVideo(video.key);
 							}}
-						>
-							<BoardObject
-								type="video"
-								id={video.key}
-								{...video}
-								onPin={() => {
-									pinVideo(video.key);
-								}}
-								onUnpin={() => {
-									unpinVideo(video.key);
-								}}
-							/>
-						</CSSTransition>
-					))}
-				</TransitionGroup>
-			) : null}
+							onUnpin={() => {
+								unpinVideo(video.key);
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup> : null}
 
 			<TransitionGroup>
 				{animations.map((animation) => (

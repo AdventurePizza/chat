@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 import { AuthContext } from '../contexts/AuthProvider';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import axios from 'axios';
@@ -79,6 +80,28 @@ interface IWalletItem {
 	contract_decimals?: number;
 	type?: string;
 }
+
+interface IWalletItem {
+	contract_name? : string,
+	balance? : string,
+	contract_decimals? : number,
+	type?: string
+}
+
+const useStyles = makeStyles({
+	container: {
+		'& > *:not(:last-child)': {
+			marginRight: 10
+		},
+		display: 'flex',
+		alignItems: 'center',
+		overflowX: 'auto',
+		background: 'var(--background)',
+		width: '100%',
+		justifyContent: 'center',
+		height: 100
+	}
+});
 
 export const SettingsPanel = ({
 	onChangeName,
