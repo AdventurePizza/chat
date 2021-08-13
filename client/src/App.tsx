@@ -67,7 +67,7 @@ import {
 } from './components/Animation';
 import { cymbalHit, sounds } from './components/Sounds';
 
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -105,9 +105,9 @@ const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
 
-const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
-	transports: ['websocket']
-});
+// const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
+// 	transports: ['websocket']
+// });
 
 function App() {
 	const { socket } = useContext(AppStateContext);
@@ -407,47 +407,47 @@ function App() {
 		firebaseContext
 	]);
 
-	useEffect(() => {
-		async function onAddOrder(order: IOrder) {
-			if (order.ownerAddress.toLowerCase() === accountId?.toLowerCase()) {
-				const { x, y } = generateRandomXY(true, true);
-				const { x: relativeX, y: relativeY } = getRelativePos(x, y, 0, 0);
-				const { isSuccessful, message } = await firebaseContext.pinRoomItem(
-					roomId || 'default',
-					{
-						type: 'NFT',
-						top: relativeY,
-						left: relativeX,
-						order
-					}
-				);
+	// useEffect(() => {
+	// 	async function onAddOrder(order: IOrder) {
+	// 		if (order.ownerAddress.toLowerCase() === accountId?.toLowerCase()) {
+	// 			const { x, y } = generateRandomXY(true, true);
+	// 			const { x: relativeX, y: relativeY } = getRelativePos(x, y, 0, 0);
+	// 			const { isSuccessful, message } = await firebaseContext.pinRoomItem(
+	// 				roomId || 'default',
+	// 				{
+	// 					type: 'NFT',
+	// 					top: relativeY,
+	// 					left: relativeX,
+	// 					order
+	// 				}
+	// 			);
 
-				if (isSuccessful) {
-					setNFTs((nfts) =>
-						nfts.concat({ ...order, top: y, left: x, type: 'NFT' })
-					);
+	// 			if (isSuccessful) {
+	// 				setNFTs((nfts) =>
+	// 					nfts.concat({ ...order, top: y, left: x, type: 'NFT' })
+	// 				);
 
-					socket.emit('event', {
-						key: 'pin-item',
-						type: 'NFT',
-						top: y,
-						left: x,
-						itemKey: (order as IOrder & IPinnedItem).key!,
-						isNew: true
-					});
-					setLoadingNFT(undefined);
-				} else if (message) {
-					setModalErrorMessage(message);
-				}
-			}
-		}
+	// 				socket.emit('event', {
+	// 					key: 'pin-item',
+	// 					type: 'NFT',
+	// 					top: y,
+	// 					left: x,
+	// 					itemKey: (order as IOrder & IPinnedItem).key!,
+	// 					isNew: true
+	// 				});
+	// 				setLoadingNFT(undefined);
+	// 			} else if (message) {
+	// 				setModalErrorMessage(message);
+	// 			}
+	// 		}
+	// 	}
 
-		marketplaceSocket.on('add-order', onAddOrder);
+	// 	// marketplaceSocket.on('add-order', onAddOrder);
 
-		return () => {
-			marketplaceSocket.off('add-order', onAddOrder);
-		};
-	}, [firebaseContext, accountId, roomId, socket]);
+	// 	// return () => {
+	// 	// 	marketplaceSocket.off('add-order', onAddOrder);
+	// 	// };
+	// }, [firebaseContext, accountId, roomId, socket]);
 
 	const onNFTSuccess = (submission: ISubmit) => {
 		setLoadingNFT(submission);
