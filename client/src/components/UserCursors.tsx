@@ -297,7 +297,7 @@ const UserCursorContent = ({
 						style={{ width: 30, height: 30, marginBottom: '5px' }}
 					/>
 				)}
-				<img src={avatarMap[avatar]} alt="avatar" />
+				<img src={avatar.startsWith("https") ? avatar : avatarMap[avatar]} alt="avatar" />
 				<div
 					style={{
 						textDecoration: 'bold',

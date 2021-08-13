@@ -26,6 +26,11 @@ import redghost from '../assets/red_ghost.gif';
 import yoshi from '../assets/yoshi.gif';
 import placeholder from '../assets/default-placeholder.png';
 import { IMetadata } from '../types';
+import { InputButton } from './shared/InputButton';
+import { Opensea } from './Opensea';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+
 
 interface ISettingsPanelProps {
 	setStep: (step: number) => void;
@@ -106,6 +111,9 @@ export const SettingsPanel = ({
 	const [isWalletLoaded, setIsWalletLoaded] = useState(false);
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 	const [rooms, setRooms] = useState<IRoomData[]>([]);
+	const [showNftModal, setShowNftModal] = useState(false);
+	const [showImageUrlModal, setShowImageUrlModal] = useState(false);
+
 	const firebaseContext = useContext(FirebaseContext);
 
 	const [activeAvatar, setActiveAvatar] = useState(currentAvatar);
@@ -204,6 +212,19 @@ export const SettingsPanel = ({
 
 	return (
 		<div className="settings-panel-container">
+			{showNftModal ? (
+				<Opensea 
+					onChangeAvatar={onChangeAvatar}
+					setShowNftModal={setShowNftModal}
+					setActiveAvatar={setActiveAvatar}
+				/>
+			 ) : null}
+			{showImageUrlModal ? (
+				<ImageUrlModal 
+					onChangeAvatar={onChangeAvatar}
+					setShowImageUrlModal={setShowImageUrlModal}
+				/>
+			) : null}
 			<div className="settings-input-container">
 				<EditField
 					prefix="SCREEN NAME"
@@ -264,6 +285,23 @@ export const SettingsPanel = ({
 				>
 					GO!
 				</Button>
+				<Button
+					className="settings-avatar-button"
+					onClick={() => setShowNftModal(true)}
+					variant="contained"
+					color="primary"
+				>
+					Choose from your Ethereum NFT's
+				</Button>
+				<Button
+					className="settings-avatar-button"
+					onClick={() => setShowImageUrlModal(true)}
+					variant="contained"
+					color="primary"
+				>
+					Add Image Url
+				</Button>
+				
 			</div>
 			<h2 className="settings-header">ROOMS</h2>
 			{rooms ? (
@@ -334,3 +372,29 @@ export const SettingsPanel = ({
 		</div>
 	);
 };
+
+interface IImageUrlModalProps {
+	onChangeAvatar: (imageUrl: string) => void;
+	setShowImageUrlModal: (val: boolean) => void;
+}
+
+const ImageUrlModal = ({
+	onChangeAvatar,
+	setShowImageUrlModal
+}: IImageUrlModalProps) => {
+	return(
+		<div className="image-url-modal-container">
+			<div className="image-url-modal-close">
+                <IconButton onClick={() => setShowImageUrlModal(false)} color="primary">
+                    <CloseIcon />
+                </IconButton>
+            </div>
+			<InputButton 
+					placeholder="image url"
+					onClick={onChangeAvatar}
+					buttonText="set"
+					onSubmit={setShowImageUrlModal}
+				/>
+		</div>
+	)
+}
