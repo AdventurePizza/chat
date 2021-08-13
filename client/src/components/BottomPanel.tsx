@@ -3,18 +3,17 @@ import {
 	IChatRoom,
 	IEmojiDict,
 	ITowerDefenseState,
-	PanelItemEnum
+	PanelItemEnum,
+	IMusicPlayer
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
 
-import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
-import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
@@ -23,12 +22,12 @@ import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import { MapsPanel } from './MapsPanel';
-import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-import TweetPanel from './TweetPanel';
+import { MusicPlayerPanel } from './MusicPlayerPanel';
 import { ZedrunPanel } from './ZedrunPanel';
+import { DashboardPanel } from './DashboardPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -50,7 +49,9 @@ export interface IBottomPanelProps {
 	setHideAllPins: (value: boolean) => void;
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
-	updateShowChat: () => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
 
@@ -78,7 +79,9 @@ export interface IPanelContentProps {
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
-	updateShowChat: () => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
 }
 
@@ -115,7 +118,9 @@ export const BottomPanel = ({
 	hideAllPins,
 	setHideAllPins,
 	roomData,
-	updateShowChat,
+	showWhiteboard,
+	updateShowWhiteboard,
+	musicPlayer,
 	setRaceId
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
@@ -158,7 +163,9 @@ export const BottomPanel = ({
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
-					updateShowChat={updateShowChat}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					musicPlayer={musicPlayer}
 					setRaceId={setRaceId}
 				/>
 			</div>
@@ -190,7 +197,9 @@ const PanelContent = ({
 	onNFTError,
 	onNFTSuccess,
 	roomData,
-	updateShowChat,
+	showWhiteboard,
+	updateShowWhiteboard,
+	musicPlayer,
 	setRaceId
 }: IPanelContentProps) => {
 	switch (type) {
@@ -211,21 +220,20 @@ const PanelContent = ({
 					pinMessage={(message) => {
 						onAction('chat-pin', message);
 					}}
+					pinTweet={(id)=>{
+						onAction('tweet', id);
+					}}
 					updateIsTyping={updateIsTyping}
-					showChat={updateShowChat}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					setBrushColor={setBrushColor}
+					sendAnimation={onAction}
+
 				/>
 			);
 		case 'sound':
 			return <SoundPanel sendSound={onAction} />;
 
-		case 'gifs':
-			return (
-				<Gifs
-					sendGif={(gif: IGif) => {
-						onAction('gif', gif.id);
-					}}
-				/>
-			);
 		case 'tower':
 			return (
 				<TowerDefensePanel
@@ -252,12 +260,11 @@ const PanelContent = ({
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
+					sendGif={(gif: IGif) => {
+						onAction('gif', gif.id);
+					}}
 				/>
 			);
-		case 'animation':
-			return <AnimationPanel sendAnimation={onAction} />;
-		case 'whiteboard':
-			return <WhiteboardPanel setBrushColor={setBrushColor} />;
 		case 'settings':
 			return null;
 		case 'weather':
@@ -331,15 +338,21 @@ const PanelContent = ({
 					allowFullScreen>
 				</iframe>
 			);
-		case 'twitter':
-			return (<TweetPanel 
-			pinTweet={(id: string)=>{
-				onAction('tweet',id);
-			}}
-			updateIsTyping={updateIsTyping}/>
+		case 'musicPlayer':
+			return (
+				<MusicPlayerPanel
+					changePlaylist={(message) => {
+						onAction('change-playlist', message);
+					}}
+					musicPlayer={musicPlayer}
+				/>
 			);
 		case 'zedrun':
-			return <ZedrunPanel setRaceId={setRaceId} />;
+			return <ZedrunPanel sendRace={(id) => onAction('send-race', id)} />;
+		case 'dashboard':
+			return <DashboardPanel sendHorse={(id) => {
+				onAction('horse', id);
+			}} />;
 		default:
 			return null;
 	}
