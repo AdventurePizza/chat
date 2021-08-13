@@ -5827,11 +5827,7 @@
     "dom-serializer" "0"
     "domelementtype" "1"
 
-<<<<<<< HEAD
-"domutils@^2.5.2", "domutils@^2.6.0":
-=======
 "domutils@^2.5.2":
->>>>>>> af6c878fc06bcd4d5ed7ad9dfb71711a280c67b3
   "integrity" "sha512-8eaHa17IwJUPAiB+SoTYBo5mCdeMgdcAoXJ59m6DT1vw+5iLS3gNoqYaRowaBKtGVrOF1Jz4yDTgYKLK2kvfJg=="
   "resolved" "https://registry.npmjs.org/domutils/-/domutils-2.7.0.tgz"
   "version" "2.7.0"
@@ -5839,8 +5835,6 @@
     "dom-serializer" "^1.0.1"
     "domelementtype" "^2.2.0"
     "domhandler" "^4.2.0"
-<<<<<<< HEAD
-=======
 
 "domutils@^2.6.0":
   "integrity" "sha512-8eaHa17IwJUPAiB+SoTYBo5mCdeMgdcAoXJ59m6DT1vw+5iLS3gNoqYaRowaBKtGVrOF1Jz4yDTgYKLK2kvfJg=="
@@ -5850,7 +5844,6 @@
     "dom-serializer" "^1.0.1"
     "domelementtype" "^2.2.0"
     "domhandler" "^4.2.0"
->>>>>>> af6c878fc06bcd4d5ed7ad9dfb71711a280c67b3
 
 "dot-case@^3.0.3":
   "integrity" "sha512-7hwEmg6RiSQfm/GwPL4AAWXKy3YNNZA3oFv2Pdiey0mwkRCPZ9x6SZbkLcn8Ma5PYeVokzoD4Twv2n7LKp5WeA=="
@@ -5936,22 +5929,6 @@
   "integrity" "sha512-XPKwjX6pHezJWB4FLVuSil9gGmU6XYl27ahUwEHODXF4KjCEB8RuIT05MkU1au2Tdye57o49yY0uCMK+bwUt+A=="
   "resolved" "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.760.tgz"
   "version" "1.3.760"
-<<<<<<< HEAD
-
-"elliptic@^6.4.0", "elliptic@^6.5.2", "elliptic@^6.5.3":
-  "integrity" "sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ=="
-  "resolved" "https://registry.npmjs.org/elliptic/-/elliptic-6.5.4.tgz"
-  "version" "6.5.4"
-  dependencies:
-    "bn.js" "^4.11.9"
-    "brorand" "^1.1.0"
-    "hash.js" "^1.0.0"
-    "hmac-drbg" "^1.0.1"
-    "inherits" "^2.0.4"
-    "minimalistic-assert" "^1.0.1"
-    "minimalistic-crypto-utils" "^1.0.1"
-=======
->>>>>>> af6c878fc06bcd4d5ed7ad9dfb71711a280c67b3
 
 "elliptic@^6.4.0", "elliptic@^6.5.2", "elliptic@^6.5.3", "elliptic@6.5.4":
   "integrity" "sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ=="
@@ -10006,14 +9983,11 @@
     "multibase" "^0.7.0"
     "varint" "^5.0.0"
 
-<<<<<<< HEAD
-=======
 "nan@^2.12.1":
   "integrity" "sha512-M2ufzIiINKCuDfBSAUr1vWQ+vuVcA9kqx8JJUsbQi6yf1uGRyb7HfpdfUr5qLXf3B/t8dPvcjhKMmlfnP47EzQ=="
   "resolved" "https://registry.npmjs.org/nan/-/nan-2.14.2.tgz"
   "version" "2.14.2"
 
->>>>>>> af6c878fc06bcd4d5ed7ad9dfb71711a280c67b3
 "nano-css@^5.2.1":
   "integrity" "sha512-uM/9NGK9/E9/sTpbIZ/bQ9xOLOIHZwrrb/CRlbDHBU/GFS7Gshl24v/WJhwsVViWkpOXUmiZ66XO7fSB4Wd92Q=="
   "resolved" "https://registry.npmjs.org/nano-css/-/nano-css-5.3.0.tgz"
@@ -11917,15 +11891,9 @@
     "use-sidecar" "^1.0.5"
 
 "react-hotkeys-hook@^3.3.2":
-<<<<<<< HEAD
-  "integrity" "sha512-sR98wtrz3qyVZ5G3I5TTRy7Odm1I9poGt1VwT4RN1ztnobRV/pNGja+6B+LONv+IBIyHLvidzW8IZRB7AuAUkw=="
-  "resolved" "https://registry.npmjs.org/react-hotkeys-hook/-/react-hotkeys-hook-3.3.2.tgz"
-  "version" "3.3.2"
-=======
   "integrity" "sha512-TFtMNb9ALuL3uvtqGpaehwCeua3uYCrG3dKUqd+hEI2UgbVU94ifA1AEeemXSF6K81llPDX1RZvp7teUEQzAPA=="
   "resolved" "https://registry.npmjs.org/react-hotkeys-hook/-/react-hotkeys-hook-3.4.0.tgz"
   "version" "3.4.0"
->>>>>>> af6c878fc06bcd4d5ed7ad9dfb71711a280c67b3
   dependencies:
     "hotkeys-js" "3.8.7"
 
@@ -12131,11 +12099,7 @@
     "ts-easing" "^0.2.0"
     "tslib" "^2.0.0"
 
-<<<<<<< HEAD
-"react@*", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0", "react@^15.3.0 || ^16.0.0 || ^17.0.0", "react@^15.6.1 || ^16.0.0 || ^17.0.0", "react@^16.0.0 || ^17.0.0", "react@^16.10.2", "react@^16.13.1", "react@^16.3.0 || ^17.0.0-0", "react@^16.8", "react@^16.8.0", "react@^16.8.0 || ^17.0.0", "react@^17.0.1", "react@>= 16.8.0", "react@>= 16.9.0", "react@>=0.14.7", "react@>=15", "react@>=16.3.0", "react@>=16.6.0", "react@>=16.8.0", "react@>=16.8.1", "react@17.0.1":
-=======
 "react@*", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0", "react@^15.3.0 || ^16.0.0 || ^17.0.0", "react@^15.6.1 || ^16.0.0 || ^17.0.0", "react@^16.0.0 || ^17.0.0", "react@^16.10.2", "react@^16.13.1", "react@^16.3.0 || ^17.0.0-0", "react@^16.8", "react@^16.8.0", "react@^16.8.0 || ^17", "react@^16.8.0 || ^17.0.0", "react@^17.0.1", "react@>= 16.8.0", "react@>= 16.9.0", "react@>=0.14.7", "react@>=15", "react@>=16.3.0", "react@>=16.6.0", "react@>=16.8.0", "react@>=16.8.1", "react@>0.14.0", "react@17.0.1":
->>>>>>> af6c878fc06bcd4d5ed7ad9dfb71711a280c67b3
   "integrity" "sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w=="
   "resolved" "https://registry.npmjs.org/react/-/react-17.0.1.tgz"
   "version" "17.0.1"
