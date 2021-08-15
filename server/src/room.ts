@@ -5,6 +5,7 @@ import { twitterClient } from "./twitter";
 import axios from "axios";
 import * as ethers from "ethers";
 import erc20abi from "./erc20abi.json";
+import { v4 as uuidv4 } from 'uuid';
 const collection = db.collection("chatrooms");
 
 const roomRouter = express.Router();
@@ -53,6 +54,49 @@ roomRouter.get("/:roomId", async (req, res) => {
   else{
     return error(res, "To view this room visitors should have token with contract address: " + contractAddress + " and logged in via metamask");
   }
+});
+
+// generate room
+roomRouter.post("/generate", async (req, res) => {
+  
+  const { collectionName } = req.body as { collectionName: string };
+  const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
+  const isLocked = true;
+  let go = true;
+  const batch = db.batch()
+  let offset = 0;
+  let amount = 50;
+  do{
+    await axios.get('https://api.opensea.io/api/v1/assets?order_by=token_id&order_direction=asc&offset=' + offset + '&limit=' + amount + '&collection=' + collectionName).then((res) => {
+      console.log("aaaaaa");
+      for(let j = 0; j < amount; j++){
+        collection
+        .doc(res.data.assets[j].name)
+        .set({ name: res.data.assets[j].name, isLocked });
+        console.log( res.data.assets[j].name);
+
+        let key = uuidv4();
+
+        collection
+        .doc(res.data.assets[j].name)
+        .collection("pinnedItems")
+        .doc(key)
+        .set({key: key, left: 0.5, top: 0.5, type: "image", url: res.data.assets[j].image_url});
+
+      }
+      }).catch((error) => {
+        go = false;
+        console.error("The Promise is rejected!", error);
+      });
+      offset += amount;
+      if(!go){
+        amount = amount/2;
+        go = true;
+      }
+    }while(amount > 0)
+
+  batch.commit();
+  res.status(200).end();
 });
 
 // create room
@@ -171,13 +215,13 @@ roomRouter.get("/:roomId/pinned-background", async (req, res) => {
 
 // get all rooms
 roomRouter.get("/", async (req, res) => {
-  if (process.env.NODE_ENV !== "production") {
+  /*if (process.env.NODE_ENV !== "production") {
     return res.status(200).send([
       {
         name: "test",
       },
     ]);
-  }
+  }*/
 
   const snapshot = await collection.get();
   const docs = snapshot.docs.map((doc) => doc.data() as IChatRoom);

@@ -5,6 +5,9 @@ import React, { useCallback, useContext } from 'react';
 import { AuthContext } from './AuthProvider';
 
 export interface IFirebaseContext {
+	generateRooms: (
+		collectionName: string,
+	) => Promise<IFetchResponseBase>;
 	createRoom: (
 		roomName: string,
 		isLocked: boolean,
@@ -82,6 +85,7 @@ export interface IFirebaseContext {
 }
 
 export const FirebaseContext = React.createContext<IFirebaseContext>({
+	generateRooms: () => Promise.resolve({ isSuccessful: false }),
 	createRoom: () => Promise.resolve({ isSuccessful: false }),
 	getRoom: () => Promise.resolve({ isSuccessful: false }),
 	pinRoomItem: () => Promise.resolve({ isSuccessful: false }),
@@ -180,6 +184,28 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		},
 		[fetchAuthenticated]
 	);
+
+	const generateRooms = useCallback(
+		async (
+			collectionName: string,
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/room/generate`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ collectionName })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
 
 	const createRoom = useCallback(
 		async (
@@ -559,6 +585,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 	return (
 		<FirebaseContext.Provider
 			value={{
+				generateRooms,
 				createRoom,
 				getRoom,
 				pinRoomItem,

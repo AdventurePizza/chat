@@ -2055,6 +2055,20 @@ function App() {
 	const onWhiteboardPanel =
 		selectedPanelItem === PanelItemEnum.chat && showWhiteboard;
 
+
+	const onGenerateRooms = async (
+		collectionName: string,
+	) => {
+		const result = await firebaseContext.generateRooms(
+			collectionName
+		);
+		if (result.isSuccessful) {
+			setModalState(null);
+			console.log("great success");
+		}
+		return result;
+	};
+
 	const onCreateRoom = async (
 		roomName: string,
 		isAccessLocked: boolean,
@@ -3239,6 +3253,7 @@ function App() {
 						<NewChatroom
 							onClickCancel={() => setModalState(null)}
 							onCreate={onCreateRoom}
+							onGenerate={onGenerateRooms}
 						/>
 					)}
 					{modalState === 'enter-room' && (

@@ -9,6 +9,8 @@ import { AuthContext } from '../contexts/AuthProvider';
 import { MetamaskButton } from './MetamaskButton';
 import { IFetchResponseBase } from '../types';
 import { Token } from './Token';
+import { StyledButton } from './shared/StyledButton';
+import axios from 'axios';
 
 const useStyles = makeStyles({
 	container: {
@@ -121,9 +123,10 @@ interface INewChatroomProps {
 		isLocked: boolean,
 		contractAddress?: string
 	) => Promise<IFetchResponseBase>;
+	onGenerate: (collectionName: string) => Promise<IFetchResponseBase>;
 }
 
-export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
+export const NewChatroom = ({ onClickCancel, onCreate, onGenerate }: INewChatroomProps) => {
 	const classes = useStyles();
 	const { isLoggedIn } = useContext(AuthContext);
 	// const isLoggedIn = false;
@@ -138,6 +141,9 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 	const [visitorAllowed, setVisitorAllowed] = useState(false);
 	const [contractAddress, setContractAddress] = useState('');
 	const [contractAddressInput, setContractAddressInput] = useState('');
+	const [generateRooms, setGenerateRooms] = useState(false);
+	const [collectionNameInput, setCollectionNameInput] = useState('');
+	
 
 	useEffect(() => {
 		if (isAccessLocked && !isLoggedIn) {
@@ -174,6 +180,35 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 		}
 		else{
 			setContractAddress(contractAddressInput);
+		}
+	};
+	
+	const getNFT = async (collection: string) =>
+		await axios.get('https://api.opensea.io/api/v1/assets?order_by=token_id&order_direction=asc&offset=0&limit=50&collection=' + collection);
+
+	const addNFT = (collection: string) => {
+		getNFT(collection).then((res) => {
+			console.log(res);
+		});
+	};
+
+	const onClickGenerate = async (collectionNameInput: string) => {
+		if (!collectionNameInput){
+			setErrorMsg('Please enter the collection slug');
+		}
+		else{
+			const { message } = await onGenerate(collectionNameInput);
+			addNFT(collectionNameInput);
+			if (message === 'success') {
+				setErrorMsg('');
+				//setSuccessMsg({ name: inputValue, message });
+	
+			} else {
+				setSuccessMsg(undefined);
+				if (message) {
+					setErrorMsg(message);
+				}
+			}
 		}
 	};
 
@@ -220,6 +255,8 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 				<span>restrict</span>
 			</div>
 
+			{!generateRooms && <StyledButton onClick={()=>{setGenerateRooms(!generateRooms)}}>Generate Rooms</StyledButton>}
+
 			{hasAttemptedLock && (
 				<div
 					className={classes.loginContainer}
@@ -247,6 +284,17 @@ export const NewChatroom = ({ onClickCancel, onCreate }: INewChatroomProps) => {
 						contractAddress={contractAddress}
 					/>
 
+				</div>
+			}
+
+			{generateRooms &&
+				<div>
+					<InputButton
+						onClick={onClickGenerate}
+						buttonText="Generate"
+						updateValue={setCollectionNameInput}
+						placeholder="enter collection slug"
+					/>
 				</div>
 			}
 
