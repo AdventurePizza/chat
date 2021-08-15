@@ -36,7 +36,7 @@ export const Horse = ({ horse }: IHorseProps) => {
                 <div><img alt={horse.name} src={horse.img_url} style={{ width: 180 }} /> </div>
 
 				{horseSpecs.map((h, index) =>
-					<div className='horse-spec' >
+					<div key={index.toString()} className='horse-spec' >
 						<img alt={horse.name} src={h.image} style={{ width: 23}}/>
 						<div className= 'horse-spec-text'>
 							<div style={{ fontSize:12, fontWeight: 'bold', color: '#' + horse.hex_code}}> {h.title} </div>

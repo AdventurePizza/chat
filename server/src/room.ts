@@ -2,7 +2,6 @@ import express, { Request, Response } from "express";
 import { IChatRoom, IPinnedItem, error } from "./types";
 import db from "./firebase";
 import { twitterClient } from "./twitter";
-import axios from "axios";
 import * as ethers from "ethers";
 import erc20abi from "./erc20abi.json";
 const collection = db.collection("chatrooms");
@@ -30,7 +29,6 @@ roomRouter.get("/:roomId", async (req, res) => {
     visible = false;
 
     let provider: ethers.providers.JsonRpcProvider;
-    let wallet: ethers.Wallet;
     let contractRequiredToken: ethers.Contract;
 
     if (!ethers.utils.isAddress(address)) {
@@ -252,6 +250,7 @@ roomRouter.get("/:roomId/getPlaylist", async (req, res) => {
 roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
   const { roomId } = req.params as { roomId: string };
   const { track } = req.body as { track: string };
+  const { name } = req.body as { name: string };
   const { timestamp } = req.body as { timestamp: string };
 
   const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
@@ -262,7 +261,7 @@ roomRouter.post("/:roomId/addtoPlaylist", async (req, res) => {
   const doc = await docRef.get();
 
   if (doc.exists) {
-    await docRef.collection("playlist").doc(timestamp).set({ url: track, timestamp: timestamp });
+    await docRef.collection("playlist").doc(timestamp).set({ url: track, name: name, timestamp: timestamp });
     res.status(200).end();
   } else {
     return error(res, "room does not exist");
