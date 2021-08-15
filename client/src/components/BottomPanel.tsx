@@ -355,6 +355,7 @@ const PanelContent = ({
 						sendHorse={(id) => {onAction('horse', id);}}
 						showOpensea={showOpensea}
 						setShowOpensea={setShowOpensea}
+						hideAllPins={hideAllPins}
 						setHideAllPins={setHideAllPins}
 					/>);
 		default:
