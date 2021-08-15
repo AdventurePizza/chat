@@ -1,6 +1,6 @@
 .edit-field-container {
     width: calc(50% - 40px);
-    min-width: 350px;
+    min-width: 250px;
     height: 50px;
     display: flex;
     justify-content: space-between;

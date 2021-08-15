@@ -3168,9 +3168,9 @@ function App() {
 				}}
 				selectedItem={selectedPanelItem}
 				avatar={
-					userProfile && userProfile.avatar
+					userProfile && !userProfile.avatar.startsWith("https")
 						? avatarMap[userProfile.avatar]
-						: undefined
+						: userProfile.avatar
 				}
 			/>
 
