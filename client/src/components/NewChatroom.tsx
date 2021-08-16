@@ -10,7 +10,6 @@ import { MetamaskButton } from './MetamaskButton';
 import { IFetchResponseBase } from '../types';
 import { Token } from './Token';
 import { StyledButton } from './shared/StyledButton';
-import axios from 'axios';
 
 const useStyles = makeStyles({
 	container: {
@@ -183,26 +182,15 @@ export const NewChatroom = ({ onClickCancel, onCreate, onGenerate }: INewChatroo
 		}
 	};
 	
-	const getNFT = async (collection: string) =>
-		await axios.get('https://api.opensea.io/api/v1/assets?order_by=token_id&order_direction=asc&offset=0&limit=50&collection=' + collection);
 
-	const addNFT = (collection: string) => {
-		getNFT(collection).then((res) => {
-			console.log(res);
-		});
-	};
-
-	const onClickGenerate = async (collectionNameInput: string) => {
+	const onClickGenerate = async () => {
 		if (!collectionNameInput){
 			setErrorMsg('Please enter the collection slug');
 		}
 		else{
 			const { message } = await onGenerate(collectionNameInput);
-			addNFT(collectionNameInput);
 			if (message === 'success') {
 				setErrorMsg('');
-				//setSuccessMsg({ name: inputValue, message });
-	
 			} else {
 				setSuccessMsg(undefined);
 				if (message) {

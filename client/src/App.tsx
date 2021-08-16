@@ -2069,7 +2069,6 @@ function App() {
 		);
 		if (result.isSuccessful) {
 			setModalState(null);
-			console.log("great success");
 		}
 		return result;
 	};

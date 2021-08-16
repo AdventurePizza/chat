@@ -5,6 +5,7 @@ import { twitterClient } from "./twitter";
 import * as ethers from "ethers";
 import erc20abi from "./erc20abi.json";
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 const collection = db.collection("chatrooms");
 
 const roomRouter = express.Router();
@@ -58,7 +59,6 @@ roomRouter.get("/:roomId", async (req, res) => {
 roomRouter.post("/generate", async (req, res) => {
   
   const { collectionName } = req.body as { collectionName: string };
-  const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
   const isLocked = true;
   let go = true;
   const batch = db.batch()
@@ -66,29 +66,45 @@ roomRouter.post("/generate", async (req, res) => {
   let amount = 50;
   do{
     await axios.get('https://api.opensea.io/api/v1/assets?order_by=token_id&order_direction=asc&offset=' + offset + '&limit=' + amount + '&collection=' + collectionName).then((res) => {
-      console.log("aaaaaa");
       for(let j = 0; j < amount; j++){
+
+        let name = collectionName + " " + res.data.assets[j].token_id;
+
         collection
-        .doc(res.data.assets[j].name)
-        .set({ name: res.data.assets[j].name, isLocked });
-        console.log( res.data.assets[j].name);
+        .doc(name)
+        .set({ name: name, isLocked, lockedOwnerAddress: "dynamic" });
 
         let key = uuidv4();
 
         collection
-        .doc(res.data.assets[j].name)
+        .doc(name)
         .collection("pinnedItems")
         .doc(key)
         .set({key: key, left: 0.5, top: 0.5, type: "image", url: res.data.assets[j].image_url});
 
+        if(res.data.assets[j].animation_url){
+          let timestamp = new Date().getTime().toString();
+          let trackName = name;
+          if(res.data.assets[j].name){
+            trackName = res.data.assets[j].name;
+          }
+
+          collection
+          .doc(name)
+          .collection("playlist")
+          .doc( timestamp )
+          .set({ url: res.data.assets[j].animation_url, name: trackName, timestamp: timestamp });
+        }
+
       }
+      offset += amount;
       }).catch((error) => {
         go = false;
-        console.error("The Promise is rejected!", error);
+        //console.error("The Promise is rejected!", error);
       });
-      offset += amount;
+      
       if(!go){
-        amount = amount/2;
+        amount = (amount/2) | 0;
         go = true;
       }
     }while(amount > 0)
@@ -342,7 +358,11 @@ const getLockedOwnerAddress = async (
 
   const docData = doc.data() as IChatRoom;
 
-  if (docData.lockedOwnerAddress && docData.isLocked) {
+  if(docData.lockedOwnerAddress === "dynamic"){
+    return docData.lockedOwnerAddress;
+  }
+
+  else if (docData.lockedOwnerAddress && docData.isLocked) {
     lockedRooms[roomId] = { ownerAddress: docData.lockedOwnerAddress };
     return docData.lockedOwnerAddress;
   }
@@ -359,9 +379,36 @@ const verifyLockedOwner = async (
 ): Promise<boolean> => {
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
-  const lockedOwnerAddress = await getLockedOwnerAddress(roomId);
+  let lockedOwnerAddress = await getLockedOwnerAddress(roomId);
 
-  if (lockedOwnerAddress && lockedOwnerAddress !== address.toLowerCase()) {
+  if(lockedOwnerAddress === "dynamic"){
+    const words = roomId.split(' ');
+    const tokenId = words[words.length-1];
+    const collectionName = roomId.replace(' ' + tokenId, '');
+
+    if(!address){
+      error(res, "unauthorized user for locked room");
+      return false;
+    }
+    await axios.get('https://api.opensea.io/api/v1/assets?owner=' + address + '&order_direction=desc&offset=0&limit=50').then((result) => {
+      let permission = false;
+      for(let i = 0; i < result.data.assets.length; i++){
+        if(tokenId === result.data.assets[i].token_id && collectionName === result.data.assets[i].collection.slug){
+          permission = true;
+        }
+      }
+      if(permission){
+        return true;
+      } 
+      else{
+        error(res, "unauthorized user for locked room");
+        return false;
+      }
+    });
+    
+  }
+
+  else if (lockedOwnerAddress && lockedOwnerAddress !== address.toLowerCase()) {
     error(res, "unauthorized user for locked room");
     return false;
   }
