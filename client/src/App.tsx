@@ -538,8 +538,9 @@ function App() {
 
 	const handleChangePlaylist = useCallback(
 		(message: IMessageEvent) => {
-			const music = message.value;
-			const index = parseInt(music);
+			const url = message.value.url;
+			const name = message.value.name;
+			const index = parseInt(url);
 			//if it is number it means it is index should be removed
 			if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
 				setMusicPlayer((musicPlayer) => ({
@@ -559,7 +560,8 @@ function App() {
 					...musicPlayer,
 					playlist: musicPlayer.playlist.concat({
 						timestamp: new Date().getTime().toString(),
-						url: music
+						url: url,
+						name: name
 					})
 				}));
 			}
@@ -1920,8 +1922,10 @@ function App() {
 				});
 				break;
 			case 'change-playlist':
-				const music = args[0] as string;
-				const index = parseInt(music);
+				const url = args[0].url as string;
+				const name = args[0].name as string;
+				const index = parseInt(url);
+				
 				//if it is number it means it is index should be removed
 				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
 					if (musicPlayer.playlist.length === 1) {
@@ -1951,14 +1955,15 @@ function App() {
 						...musicPlayer,
 						playlist: musicPlayer.playlist.concat({
 							timestamp: timestamp,
-							url: music
+							url: url,
+							name: name
 						})
 					}));
-					firebaseContext.addtoPlaylist(roomId || 'default', music, timestamp);
+					firebaseContext.addtoPlaylist(roomId || 'default', url, name, timestamp);
 				}
 				socket.emit('event', {
 					key: 'change-playlist',
-					value: music
+					value: {url: url, name: name}
 				});
 
 				break;
@@ -3182,9 +3187,9 @@ function App() {
 				}}
 				selectedItem={selectedPanelItem}
 				avatar={
-					userProfile && userProfile.avatar
+					userProfile && !userProfile.avatar.startsWith("https")
 						? avatarMap[userProfile.avatar]
-						: undefined
+						: userProfile.avatar
 				}
 			/>
 

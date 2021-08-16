@@ -5,7 +5,7 @@ import broswseNFTIcon from '../assets/buttons/browseNFTIcon.png'
 import horseIcon from '../assets/buttons/horse.svg'
 import watchIcon from '../assets/buttons/watch.png'
 import closeIcon from '../assets/buttons/close.png'
-
+import hide from '../assets/buttons/hide.png'
 
 const useStyles = makeStyles({
 	container: {
@@ -32,6 +32,7 @@ interface ICryptoPanel {
 	sendRace: (id: string) => void;
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
+	hideAllPins: boolean;
 	setHideAllPins: (value: boolean) => void;
 	sendHorse: (id: string, type: 'horse') => void;
 }
@@ -48,7 +49,7 @@ interface INode {
 	};
 }
 
-export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, setHideAllPins, sendHorse }: ICryptoPanel) => {
+export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, hideAllPins, setHideAllPins, sendHorse }: ICryptoPanel) => {
 	const classes = useStyles();
 	const [inputRace, setinputRace] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
@@ -96,7 +97,6 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, setHideAllP
 			<IconButton 
 					onClick={() => { 
 						setShowOpensea(!showOpensea);
-						setHideAllPins(!showOpensea);
 						setShowHorsePanel(false);
 						setShowRacePanel(false);
 					}}>
@@ -121,6 +121,13 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, setHideAllP
 					<img src={horseIcon} alt="Horse-panel" width= "50" height= "50"/>
 			</IconButton>
 
+			<IconButton 
+					onClick={() => { 
+						setHideAllPins(!hideAllPins);
+					}}>
+					<img src={hide} alt="Hide" width= "50" height= "50"/>
+			</IconButton>
+
 			{showRacePanel && <div className={classes.container}>
 				<TextField
 					value={inputRace}
@@ -132,7 +139,6 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, setHideAllP
 
 				<IconButton 
 					onClick={() => { 
-						setHideAllPins(true);
 						sendRace(roomId!);
 					}}>
 					<img src={watchIcon} alt="watch" width= "30" height= "30"/>
@@ -141,7 +147,6 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, setHideAllP
 				<IconButton 
 					onClick={() => { 
 						sendRace('');
-						setHideAllPins(false);
 					}}>
 					<img src={closeIcon} alt="close" width= "30" height= "30"/>
 				</IconButton>
@@ -154,7 +159,6 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, setHideAllP
 									variant="contained" color="primary"
 									onClick={() => {
 										sendRace(race.id);
-										setHideAllPins(true);
 									}}
 								>
 									{race.name}

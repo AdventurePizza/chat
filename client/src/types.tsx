@@ -358,6 +358,7 @@ export interface IChatroomData {
 export interface IPlaylist{
 	timestamp: string;
 	url: string;
+	name: string;
 }
 
 export interface IMusicPlayer{

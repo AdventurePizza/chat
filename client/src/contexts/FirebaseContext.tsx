@@ -75,6 +75,7 @@ export interface IFirebaseContext {
 	addtoPlaylist:(
 		roomName: string,
 		track: string,
+		name: string,
 		timestamp: string
 	) => Promise<IFetchResponseBase>;
 	removefromPlaylist:(
@@ -541,6 +542,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		async (
 			roomName: string,
 			track: string,
+			name: string,
 			timestamp: string
 		): Promise<IFetchResponseBase> => {
 
@@ -549,7 +551,7 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ track, timestamp })
+				body: JSON.stringify({ track, name, timestamp })
 			});
 
 			if (fetchRes.ok) {

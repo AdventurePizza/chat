@@ -40,7 +40,7 @@ export const WaterfallChat = ({ chat, selectedPanelItem, updateSelectedPanelItem
 						<div key={index.toString()} style={{ width: 300, clear: 'left'}}>
 							{
 								<Box color={boxColors[ch.avatar.charCodeAt(ch.avatar.length -1) % 4]}  mt={5} style={{fontSize: 16 }}>
-									<Avatar alt= {ch.avatar} src= {avatarMap[ch.avatar]} style={{ float: 'left' }} /> {ch.name + ": "} {ch.message}
+									<Avatar alt= {ch.avatar} src= {!ch.avatar.startsWith("https") ? avatarMap[ch.avatar] : ch.avatar} style={{ float: 'left' }} /> {ch.name + ": "} {ch.message}
 								</Box>
 							}
 						</div>
