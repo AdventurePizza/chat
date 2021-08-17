@@ -272,7 +272,8 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			{background.type === 'map' && <Map mapData={background.mapData} />}
+			{(background.type === 'map' || isMapShowing) && <Map mapData={background.mapData} />}
+
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton
@@ -318,8 +319,6 @@ export const Board = ({
 				unpinVideo={unpinVideo}
 				videoRef={videoRef}
 			/>
-
-			{background.type === 'map' && <Map mapData={background.mapData} />}
 
 			<BoardObject
 				id={'chat'}
