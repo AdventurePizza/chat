@@ -89,24 +89,70 @@ function YouTubeMusicPanel({
 
 	return (
 		<div className="youtube-container">
-			<div className="youtube-search">
-				<InputBase
-					className="searchbar"
-					placeholder="Search YouTube"
-					onChange={(e) => setText(e.target.value)}
-					onKeyPress={(e) => e.key === 'Enter' && queryYouTube(text)}
-					value={text}
+
+			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+				<div style={{ paddingRight: 20 }} >
+					<VolumeDown />
+					<Slider
+						style={{
+							width: '200px'
+						}}
+						value={value}
+						onChange={handleChange}
+					/>
+					<VolumeUp />
+				</div>
+				<div style={{ paddingInline: 50 }} >
+					<InputBase 
+						className="searchbar"
+						placeholder="Search YouTube"
+						onChange={(e) => setText(e.target.value)}
+						onKeyPress={(e) => e.key === 'Enter' && queryYouTube(text)}
+						value={text}
+					/>				
+
+					<IconButton color="primary" onClick={() => queryYouTube(text)}>
+						<SearchIcon />
+					</IconButton>
+				</div>
+				<FormControlLabel
+					checked={isVideoShowing}
+					onChange={() => {
+						const newVal = !isVideoShowing;
+						setIsVideoShowing(newVal);
+
+						if (newVal) {
+							setVideoId(lastVideoId);
+							// console.log({lastTime})
+						} else {
+							setVideoId('');
+							updateLastTime();
+						}
+					}}
+					control={<Switch color="primary" />}
+					label="Show Video"
 				/>
-				<IconButton color="primary" onClick={() => queryYouTube(text)}>
-					<SearchIcon />
-				</IconButton>
+
+				<FormControlLabel
+					checked={hideAllPins}
+					onChange={() => {
+						const newVal = !hideAllPins;
+						setHideAllPins(newVal);
+
+						if (newVal) {
+							console.log('pins hidden');
+						} else {
+							console.log('pins shown');
+						}
+					}}
+					control={<Switch color="primary" />}
+					label="Hide Pins"
+				/>
 			</div>
+
 			<div
 				className="youtube-list-container"
-				style={{
-					display: 'inline-block',
-					height: lastQuery !== '' ? '134px' : 'auto'
-				}}
+				style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}
 			>
 				<div className="button-wrapper">
 					<IconButton
@@ -156,57 +202,7 @@ function YouTubeMusicPanel({
 					</IconButton>
 				</div>
 			</div>
-			<div className="youtube-controls">
-				<VolumeDown />
-				<Slider
-					style={{
-						width: '200px'
-					}}
-					value={value}
-					onChange={handleChange}
-				/>
-				<VolumeUp />
-			</div>
-			<div
-				style={{
-					marginTop: '10px',
-					marginBottom: '20px'
-				}}
-			>
-				<FormControlLabel
-					checked={isVideoShowing}
-					onChange={() => {
-						const newVal = !isVideoShowing;
-						setIsVideoShowing(newVal);
 
-						if (newVal) {
-							setVideoId(lastVideoId);
-							// console.log({lastTime})
-						} else {
-							setVideoId('');
-							updateLastTime();
-						}
-					}}
-					control={<Switch color="primary" />}
-					label="Show Video"
-				/>
-
-				<FormControlLabel
-					checked={hideAllPins}
-					onChange={() => {
-						const newVal = !hideAllPins;
-						setHideAllPins(newVal);
-
-						if (newVal) {
-							console.log('pins hidden');
-						} else {
-							console.log('pins shown');
-						}
-					}}
-					control={<Switch color="primary" />}
-					label="Hide Pins"
-				/>
-			</div>
 		</div>
 	);
 }

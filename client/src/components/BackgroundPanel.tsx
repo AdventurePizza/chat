@@ -21,6 +21,15 @@ import { backgroundIcons } from './BackgroundImages';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import loadingDots from '../assets/loading-dots.gif';
 import YouTubeMusicPanel from './YouTubeMusicPanel';
+import { NFTPanel } from './NFT/NFTPanel';
+import { ISubmit } from './NFT/OrderInput';
+import { IChatRoom } from '../types';
+import googleIcon from '../assets/buttons/google.png'
+import giphyIcon from '../assets/buttons/giphy.png'
+import unsplashIcon from '../assets/buttons/unsplash.png'
+import youtubeIcon from '../assets/buttons/youtube.png'
+import mapsIcon from '../assets/buttons/maps.png'
+import { MapsPanel } from './MapsPanel';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -39,6 +48,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
   }),
 );
+
 
 interface IBackgroundPanelProps {
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
@@ -60,6 +70,17 @@ interface IBackgroundPanelProps {
 	setHideAllPins: (value: boolean) => void;
 	setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
 	updateLastTime: () => void;
+	//+NFT
+	onError: (message: string) => void;
+	onSuccess: (submission: ISubmit) => void;
+	roomData?: IChatRoom;
+}
+
+type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | '+NFT';
+
+interface IPanel {
+	type: PanelTypes;
+	icon?: string;
 }
 
 export interface IResponseDataUnsplash {
@@ -127,17 +148,27 @@ const BackgroundPanel = ({
 	isVideoShowing,
 	updateLastTime,
 	hideAllPins,
-	setHideAllPins
+	setHideAllPins,
+	//+NFT
+	onError, 
+	onSuccess, 
+	roomData
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
-	const [searchByGoogle, setSearchByGoogle] = useState(false);
-	const [searchByUnsplash, setSearchByUnsplash] = useState(true);
-	const [searchByGiphy, setSearchByGiphy] = useState(false);
-	const [searchByYoutube, setSearchByYoutube] = useState(false);
+	const [activePanel, setActivePanel] = useState<PanelTypes>('unsplash');
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
+	const [panels] =  useState<IPanel[]>(
+		[
+			{type: 'google', icon: googleIcon},
+			{type: 'unsplash', icon: unsplashIcon},
+			{type: 'giphy', icon: giphyIcon},
+			{type: 'youtube', icon: youtubeIcon}, 
+			{type: 'maps', icon: mapsIcon}, 
+			{type: '+NFT'} 
+		]); 
 
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
@@ -194,91 +225,71 @@ const BackgroundPanel = ({
 	return (
 		<div className="background-container" style={{overflowY: 'auto'}}>
 			<div className="background-search-settings">
-				<div style={{ display: 'flex' }}>
-					<FormControlLabel
-						checked={isSwitchChecked}
-						onChange={() => setIsSwitchChecked(!isSwitchChecked)}
-						control={<Switch color="primary" />}
-						label="background"
-					/>
-				</div>
-				<InputBase
-					placeholder="Search Images"
-					onChange={(e) => setText(e.target.value)}
-					onKeyPress={(e) => {
-							if(e.key === 'Enter'){
-								if(!searchByGoogle){searchSubmit(text, setImages);} else{googleSearch(text);}
-							}
-						}
-					}
-					value={text}
-				/>
-				<IconButton
-					color="primary"
-					onClick={() => {if(!searchByGoogle){searchSubmit(text, setImages);} else{googleSearch(text);}}}
-				>
-					<SearchIcon />
-				</IconButton>
 				
-				<div style={{ display: 'flex' }}>
-					<FormControlLabel
-						checked={searchByGoogle}
-						onChange={() => {
-							setSearchByGoogle(true);
-							setSearchByUnsplash(false);
-							setSearchByGiphy(false);
-							setSearchByYoutube(false);
-						}}
-						control={<Switch color="primary" />}
-						label="Google"
-					/>
-					<FormControlLabel
-						checked={searchByUnsplash}
-						onChange={() => {
-							setSearchByGoogle(false);
-							setSearchByUnsplash(true);
-							setSearchByGiphy(false);
-							setSearchByYoutube(false);
-						}}
-						control={<Switch color="primary" />}
-						label="Unsplash"
-					/>
-					<FormControlLabel
-						checked={searchByGiphy}
-						onChange={() => {
-							setSearchByGoogle(false);
-							setSearchByUnsplash(false);
-							setSearchByGiphy(true);
-							setSearchByYoutube(false);
-						}}
-						control={<Switch color="primary" />}
-						label="Giphy"
-					/>
-					<FormControlLabel
-						checked={searchByYoutube}
-						onChange={() => {
-							setSearchByGoogle(false);
-							setSearchByUnsplash(false);
-							setSearchByGiphy(false);
-							setSearchByYoutube(true);
-						}}
-						control={<Switch color="primary" />}
-						label="Youtube"
-					/>
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+					<div>
+						<FormControlLabel
+							checked={isSwitchChecked}
+							onChange={() => setIsSwitchChecked(!isSwitchChecked)}
+							control={<Switch color="primary" />}
+							label="background"
+						/>
+					</div>
+					{panels.map((panel, index) => (
+						<IconButton
+							color= { "primary" }
+							disabled= {activePanel === panel.type ? true : false }
+							onClick={() => {setActivePanel(panel.type)}}
+							key= {index}
+						>
+							{panel.icon ? 
+								<img className = {activePanel === panel.type ? "button-disabled" : "" } src={ panel.icon } alt= { panel.type }  width= "30" height= "30"/> 
+								: panel.type
+							}
+							
+						</IconButton>
+					))}
+
+
+					{(activePanel !== 'maps' && activePanel !== 'youtube') ? 
+						<div style={{ paddingInline: 20 }}> 
+							<InputBase
+								placeholder={"Search by " + activePanel}
+								onChange={(e) => setText(e.target.value)}
+								onKeyPress={(e) => {
+										if(e.key === 'Enter'){
+											if(activePanel === 'unsplash'){searchSubmit(text, setImages);} else if (activePanel === 'google') {googleSearch(text);}
+										}
+									}
+								}
+								value={text}
+							/>
+							<IconButton
+								color="primary"
+								onClick={() => {if(activePanel === 'unsplash'){searchSubmit(text, setImages);} else if (activePanel === 'google') {googleSearch(text);}}}
+							>
+								<SearchIcon />
+							</IconButton>
+
+						</div> : <div style={{ width: 289 }}> </div> 
+					}
+					
 					{loading &&
-					<img
-						style={{
-							height: 8,
-							width: 30,
-							paddingTop: 20
-						}}
-						src={loadingDots}
-						alt="three dots"
-					/>}
+						<img
+							style={{
+								height: 8,
+								width: 30,
+								
+							}}
+							src={loadingDots}
+							alt="three dots"
+						/>
+					}
+
 				</div>
 
 			</div>
-			{(searchByGoogle || searchByUnsplash) && 
+			{(activePanel === 'google' || activePanel === 'unsplash') && 
 				<div className="background-icon-list" >
 					{isImagesEmpty ? (
 						<DefaultIcons
@@ -295,29 +306,46 @@ const BackgroundPanel = ({
 					}
 				</div>
 			}
-			{searchByGiphy && 
+			{activePanel === 'giphy' && 
 				<SearchContextManager apiKey={API_KEY}>
 					<GifComponent sendGif={sendGif} />
 				</SearchContextManager>
 			}
-			{searchByYoutube && 
-				<YouTubeMusicPanel
-					setVolume={setVolume}
-					setVideoId={setVideoId}
-					sendVideo={sendVideo}
-					queriedVideos={queriedVideos}
-					setQueriedVideos={setQueriedVideos}
-					lastQuery={lastQuery}
-					setLastQuery={setLastQuery}
-					setIsVideoShowing={setIsVideoShowing}
-					isVideoShowing={isVideoShowing}
-					lastVideoId={lastVideoId}
-					setLastVideoId={setLastVideoId}
-					updateLastTime={updateLastTime}
-					hideAllPins={hideAllPins}
-					setHideAllPins={setHideAllPins}
+			{activePanel === 'youtube' && 
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+					<YouTubeMusicPanel
+						setVolume={setVolume}
+						setVideoId={setVideoId}
+						sendVideo={sendVideo}
+						queriedVideos={queriedVideos}
+						setQueriedVideos={setQueriedVideos}
+						lastQuery={lastQuery}
+						setLastQuery={setLastQuery}
+						setIsVideoShowing={setIsVideoShowing}
+						isVideoShowing={isVideoShowing}
+						lastVideoId={lastVideoId}
+						setLastVideoId={setLastVideoId}
+						updateLastTime={updateLastTime}
+						hideAllPins={hideAllPins}
+						setHideAllPins={setHideAllPins}
+					/>
+				</div>
+			}
+
+			{activePanel === '+NFT' && 
+				<NFTPanel
+					roomData={roomData}
+					onError={onError}
+					onSuccess={onSuccess}
 				/>
 			}
+
+			{activePanel === 'maps' && 
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
+					<MapsPanel />
+				</div>
+			}
+			
 		</div>
 	);
 };

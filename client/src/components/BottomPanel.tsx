@@ -287,7 +287,10 @@ const PanelContent = ({
 					updateLastTime={updateLastTime}
 					hideAllPins={hideAllPins}
 					setHideAllPins={setHideAllPins}
-					
+					//+NFT
+					roomData={roomData}
+					onError={onNFTError}
+					onSuccess={onNFTSuccess}
 				/>
 			);
 		case 'settings':
