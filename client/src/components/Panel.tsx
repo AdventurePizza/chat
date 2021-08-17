@@ -26,6 +26,7 @@ import HomeIcon from '../assets/navbar/homeIcon.png';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
 import cryptoIcon from '../assets/navbar/crypto.png';
 import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
+import chatIcon from '../assets/navbar/chatIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -124,6 +125,7 @@ const panelIconSrcMap: {
 	[key: string]: string;
 } = {
 	// sound: soundIcon,
+	chat: chatIcon,
 	youtube: YouTubeIcon,
 	emoji: emojiIcon,
 	// tower: towerIcon,
