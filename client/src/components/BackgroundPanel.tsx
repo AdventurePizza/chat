@@ -20,6 +20,7 @@ import axios from 'axios';
 import { backgroundIcons } from './BackgroundImages';
 import { FirebaseContext } from '../contexts/FirebaseContext';
 import loadingDots from '../assets/loading-dots.gif';
+import YouTubeMusicPanel from './YouTubeMusicPanel';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -44,6 +45,21 @@ interface IBackgroundPanelProps {
 	images: IImagesState[];
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
 	sendGif: (gif: IGif) => void;
+	//youtube
+	sendVideo: (id: string) => void; // Sends video id to socket event to be set as background and played
+	lastQuery: string; // Last entered query in the search bar
+	queriedVideos: Array<any>; // Videos returned from search query
+	isVideoShowing: boolean;
+	lastVideoId: string;
+	hideAllPins: boolean;
+	setVideoId: (id: string) => void;
+	setLastVideoId: (id: string) => void;
+	setIsVideoShowing: (value: boolean) => void;
+	setLastQuery: (query: string) => void; // modifies BottomPanel state so last queried videos can persist
+	setVolume: (volume: number) => void;
+	setHideAllPins: (value: boolean) => void;
+	setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
+	updateLastTime: () => void;
 }
 
 export interface IResponseDataUnsplash {
@@ -96,17 +112,33 @@ const BackgroundPanel = ({
 	sendImage,
 	images,
 	setImages,
-	sendGif
+	sendGif,
+	//youtube
+	setVideoId,
+	setLastVideoId,
+	lastVideoId,
+	setVolume,
+	sendVideo,
+	queriedVideos,
+	setQueriedVideos,
+	lastQuery,
+	setLastQuery,
+	setIsVideoShowing,
+	isVideoShowing,
+	updateLastTime,
+	hideAllPins,
+	setHideAllPins
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
 	const [searchByGoogle, setSearchByGoogle] = useState(false);
-	const [searchByUnsplash, setSearchByUnsplash] = useState(false);
+	const [searchByUnsplash, setSearchByUnsplash] = useState(true);
 	const [searchByGiphy, setSearchByGiphy] = useState(false);
+	const [searchByYoutube, setSearchByYoutube] = useState(false);
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
-	
+
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
 		const res = await firebaseContext.getImage(textToSearch);
@@ -195,6 +227,7 @@ const BackgroundPanel = ({
 							setSearchByGoogle(true);
 							setSearchByUnsplash(false);
 							setSearchByGiphy(false);
+							setSearchByYoutube(false);
 						}}
 						control={<Switch color="primary" />}
 						label="Google"
@@ -205,6 +238,7 @@ const BackgroundPanel = ({
 							setSearchByGoogle(false);
 							setSearchByUnsplash(true);
 							setSearchByGiphy(false);
+							setSearchByYoutube(false);
 						}}
 						control={<Switch color="primary" />}
 						label="Unsplash"
@@ -215,9 +249,21 @@ const BackgroundPanel = ({
 							setSearchByGoogle(false);
 							setSearchByUnsplash(false);
 							setSearchByGiphy(true);
+							setSearchByYoutube(false);
 						}}
 						control={<Switch color="primary" />}
 						label="Giphy"
+					/>
+					<FormControlLabel
+						checked={searchByYoutube}
+						onChange={() => {
+							setSearchByGoogle(false);
+							setSearchByUnsplash(false);
+							setSearchByGiphy(false);
+							setSearchByYoutube(true);
+						}}
+						control={<Switch color="primary" />}
+						label="Youtube"
 					/>
 					{loading &&
 					<img
@@ -232,7 +278,7 @@ const BackgroundPanel = ({
 				</div>
 
 			</div>
-			{!searchByGiphy && 
+			{(searchByGoogle || searchByUnsplash) && 
 				<div className="background-icon-list" >
 					{isImagesEmpty ? (
 						<DefaultIcons
@@ -253,6 +299,24 @@ const BackgroundPanel = ({
 				<SearchContextManager apiKey={API_KEY}>
 					<GifComponent sendGif={sendGif} />
 				</SearchContextManager>
+			}
+			{searchByYoutube && 
+				<YouTubeMusicPanel
+					setVolume={setVolume}
+					setVideoId={setVideoId}
+					sendVideo={sendVideo}
+					queriedVideos={queriedVideos}
+					setQueriedVideos={setQueriedVideos}
+					lastQuery={lastQuery}
+					setLastQuery={setLastQuery}
+					setIsVideoShowing={setIsVideoShowing}
+					isVideoShowing={isVideoShowing}
+					lastVideoId={lastVideoId}
+					setLastVideoId={setLastVideoId}
+					updateLastTime={updateLastTime}
+					hideAllPins={hideAllPins}
+					setHideAllPins={setHideAllPins}
+				/>
 			}
 		</div>
 	);

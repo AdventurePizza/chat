@@ -272,6 +272,22 @@ const PanelContent = ({
 					sendGif={(gif: IGif) => {
 						onAction('gif', gif.id);
 					}}
+					//youtube
+					setVolume={setVolume}
+					setVideoId={setVideoId}
+					sendVideo={(id) => onAction('youtube', id)}
+					queriedVideos={queriedVideos}
+					setQueriedVideos={setQueriedVideos}
+					lastQuery={lastQuery}
+					setLastQuery={setLastQuery}
+					setIsVideoShowing={setIsVideoShowing}
+					isVideoShowing={isVideoShowing}
+					lastVideoId={lastVideoId}
+					setLastVideoId={setLastVideoId}
+					updateLastTime={updateLastTime}
+					hideAllPins={hideAllPins}
+					setHideAllPins={setHideAllPins}
+					
 				/>
 			);
 		case 'settings':
