@@ -350,6 +350,7 @@ export interface IWaterfallChat{
 	top: number;
 	left: number;
 	messages: IWaterfallMessage[];
+	show: boolean;
 }
 
 export interface IChatroomData {

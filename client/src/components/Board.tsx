@@ -320,7 +320,7 @@ export const Board = ({
 				videoRef={videoRef}
 			/>
 
-			<BoardObject
+			{waterfallChat.show &&<BoardObject
 				id={'chat'}
 				type="chat"
 				onPin={() => {}}
@@ -330,7 +330,7 @@ export const Board = ({
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
-			/>
+			/>}
 
 			{musicPlayer.playlist.length !== 0 && (
 				<BoardObject

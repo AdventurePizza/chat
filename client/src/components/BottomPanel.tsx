@@ -48,6 +48,7 @@ export interface IBottomPanelProps {
 	setHideAllPins: (value: boolean) => void;
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
+	updateShowChat: () => void;
 	showWhiteboard: boolean;
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
@@ -81,6 +82,7 @@ export interface IPanelContentProps {
 	onNFTError: (message: string) => void;
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
+	updateShowChat: () => void;
 	showWhiteboard: boolean;
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
@@ -123,6 +125,7 @@ export const BottomPanel = ({
 	hideAllPins,
 	setHideAllPins,
 	roomData,
+	updateShowChat,
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
@@ -171,6 +174,7 @@ export const BottomPanel = ({
 					onNFTError={onNFTError}
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
+					updateShowChat={updateShowChat}
 					showWhiteboard={showWhiteboard}
 					updateShowWhiteboard={updateShowWhiteboard}
 					musicPlayer={musicPlayer}
@@ -208,6 +212,7 @@ const PanelContent = ({
 	onNFTError,
 	onNFTSuccess,
 	roomData,
+	updateShowChat,
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
@@ -242,6 +247,7 @@ const PanelContent = ({
 					updateShowWhiteboard={updateShowWhiteboard}
 					setBrushColor={setBrushColor}
 					sendAnimation={onAction}
+					showChat={updateShowChat}
 
 				/>
 			);
