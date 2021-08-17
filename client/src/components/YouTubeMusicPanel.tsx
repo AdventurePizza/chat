@@ -24,6 +24,7 @@ interface IYouTubePanelProps {
 	isVideoShowing: boolean;
 	lastVideoId: string;
 	hideAllPins: boolean;
+	isBackground: boolean;
 
 	setVideoId: (id: string) => void;
 	setLastVideoId: (id: string) => void;
@@ -33,6 +34,7 @@ interface IYouTubePanelProps {
 	setHideAllPins: (value: boolean) => void;
 	setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
 	updateLastTime: () => void;
+	addVideo: (videoId: string | undefined) => void;
 }
 
 function YouTubeMusicPanel({
@@ -49,7 +51,9 @@ function YouTubeMusicPanel({
 	isVideoShowing,
 	updateLastTime,
 	hideAllPins,
-	setHideAllPins
+	setHideAllPins,
+	isBackground,
+	addVideo
 }: IYouTubePanelProps) {
 	// Displays 5 of the 15 videos at a time
 	const [selectedVideos, setSelectedVideos] = useState<Array<any>>(
@@ -180,10 +184,15 @@ function YouTubeMusicPanel({
 									src={video.snippet.thumbnails.default.url}
 									onClick={() => {
 										const videoId = video.id.videoId;
-										sendVideo(videoId);
-										setVideoId(videoId);
-										setLastVideoId(videoId);
-										setIsVideoShowing(true);
+										if(isBackground){
+											sendVideo(videoId);
+											setVideoId(videoId);
+											setLastVideoId(videoId);
+											setIsVideoShowing(true);
+										}
+										else{
+											addVideo(videoId);
+										}
 									}}
 								/>
 							</li>

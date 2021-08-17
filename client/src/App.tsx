@@ -3223,6 +3223,7 @@ function App() {
 				setRaceId={setRaceId}
 				showOpensea={showOpensea}
 				setShowOpensea={setShowOpensea}
+				addVideo={addVideo}
 			/>
 
 			{userProfile && !showOpensea && (

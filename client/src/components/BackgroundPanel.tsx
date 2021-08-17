@@ -70,6 +70,7 @@ interface IBackgroundPanelProps {
 	setHideAllPins: (value: boolean) => void;
 	setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
 	updateLastTime: () => void;
+	addVideo: (videoId: string | undefined) => void;
 	//+NFT
 	onError: (message: string) => void;
 	onSuccess: (submission: ISubmit) => void;
@@ -149,6 +150,7 @@ const BackgroundPanel = ({
 	updateLastTime,
 	hideAllPins,
 	setHideAllPins,
+	addVideo,
 	//+NFT
 	onError, 
 	onSuccess, 
@@ -312,7 +314,7 @@ const BackgroundPanel = ({
 				</SearchContextManager>
 			}
 			{activePanel === 'youtube' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 150}} >
 					<YouTubeMusicPanel
 						setVolume={setVolume}
 						setVideoId={setVideoId}
@@ -328,6 +330,8 @@ const BackgroundPanel = ({
 						updateLastTime={updateLastTime}
 						hideAllPins={hideAllPins}
 						setHideAllPins={setHideAllPins}
+						isBackground={isSwitchChecked}
+						addVideo={addVideo}
 					/>
 				</div>
 			}

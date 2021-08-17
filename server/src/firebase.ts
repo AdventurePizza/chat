@@ -10,7 +10,7 @@ admin.initializeApp({
       )
     )
   ),
-  databaseURL: "https://adventure-ea7cd.firebaseio.com",
+  databaseURL: "https://chat-test-f2267.firebaseio.com",
 });
 
 const db = admin.firestore();

@@ -54,6 +54,7 @@ export interface IBottomPanelProps {
 	setRaceId: (raceId: string) => void;
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
+	addVideo: (videoId: string | undefined) => void;
 }
 
 export interface IPanelContentProps {
@@ -86,6 +87,7 @@ export interface IPanelContentProps {
 	setRaceId: (raceId: string) => void;
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
+	addVideo: (videoId: string | undefined) => void;
 }
 
 export interface ISoundPairs {
@@ -126,7 +128,8 @@ export const BottomPanel = ({
 	musicPlayer,
 	setRaceId,
 	showOpensea,
-	setShowOpensea
+	setShowOpensea,
+	addVideo
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -174,6 +177,7 @@ export const BottomPanel = ({
 					setRaceId={setRaceId}
 					showOpensea={showOpensea}
 					setShowOpensea={setShowOpensea}
+					addVideo={addVideo}
 				/>
 			</div>
 		</Drawer>
@@ -209,7 +213,8 @@ const PanelContent = ({
 	musicPlayer,
 	setRaceId,
 	showOpensea,
-	setShowOpensea
+	setShowOpensea,
+	addVideo
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -287,6 +292,7 @@ const PanelContent = ({
 					updateLastTime={updateLastTime}
 					hideAllPins={hideAllPins}
 					setHideAllPins={setHideAllPins}
+					addVideo={addVideo}
 					//+NFT
 					roomData={roomData}
 					onError={onNFTError}
@@ -339,22 +345,7 @@ const PanelContent = ({
 			);
 		case 'youtube':
 			return (
-				<YouTubeMusicPanel
-					setVolume={setVolume}
-					setVideoId={setVideoId}
-					sendVideo={(id) => onAction('youtube', id)}
-					queriedVideos={queriedVideos}
-					setQueriedVideos={setQueriedVideos}
-					lastQuery={lastQuery}
-					setLastQuery={setLastQuery}
-					setIsVideoShowing={setIsVideoShowing}
-					isVideoShowing={isVideoShowing}
-					lastVideoId={lastVideoId}
-					setLastVideoId={setLastVideoId}
-					updateLastTime={updateLastTime}
-					hideAllPins={hideAllPins}
-					setHideAllPins={setHideAllPins}
-				/>
+				<div>lol</div>
 			);
 		case 'musicPlayer':
 			return (
