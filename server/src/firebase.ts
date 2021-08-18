@@ -10,7 +10,7 @@ admin.initializeApp({
       )
     )
   ),
-  databaseURL: "https://private2-e25c9.firebaseio.com",
+  databaseURL: "https://adventure-ea7cd.firebaseio.com",
 });
 
 const db = admin.firestore();
