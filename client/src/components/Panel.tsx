@@ -8,13 +8,13 @@ import { Link } from 'react-router-dom'
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
 import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
-
+//import { SportsEsports } from '@material-ui/icons';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import SettingsIcon from '@material-ui/icons/Settings';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import cameraRollIcon from '../assets/navbar/camera_roll.png';
-import emojiIcon from '../assets/navbar/emojiIcon.png';
+//import emojiIcon from '../assets/navbar/emojiIcon.png';
 import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
@@ -26,6 +26,7 @@ import HomeIcon from '../assets/navbar/homeIcon.png';
 import mapsIcon from '../assets/navbar/mapsIcon.png';
 import cryptoIcon from '../assets/navbar/crypto.png';
 import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
+import chatIcon from '../assets/navbar/chatIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -124,8 +125,9 @@ const panelIconSrcMap: {
 	[key: string]: string;
 } = {
 	// sound: soundIcon,
+	chat: chatIcon,
 	youtube: YouTubeIcon,
-	emoji: emojiIcon,
+	//emoji: emojiIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	// weather: weatherIcon,
@@ -141,7 +143,7 @@ const panelIconComponentMap: {
 	email: <div className="sixth-step"><EmailButton /></div>,
 	NFT: <NFTIcon />,
 	background: <Image style={{ fontSize: 32 }} />,
-	tower: <SportsEsports style={{ fontSize: 36 }} />,
+	//tower: <SportsEsports style={{ fontSize: 36 }} />,
 	roomDirectory: <div className="fourth-step"><MeetingRoom style={{ fontSize: 36 }} /></div>,
 	crypto: (
 		<img

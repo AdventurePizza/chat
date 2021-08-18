@@ -37,6 +37,7 @@ interface IChatProps {
 	setBrushColor: (color: string) => void;
 	sendAnimation: (animationText: string, animationType: string) => void;
 	pinTweet: (id: string) => void; 
+	showChat: () => void;
 }
 
 export const Chat = ({
@@ -47,7 +48,8 @@ export const Chat = ({
 	updateShowWhiteboard,
 	setBrushColor,
 	sendAnimation,
-	pinTweet
+	pinTweet,
+	showChat
 }: IChatProps) => {
 	const classes = useStyles();
 
@@ -112,7 +114,7 @@ export const Chat = ({
 				/>
 				<StyledButton onClick={onButtonClickChat}>send</StyledButton>
 				<PinButton onPin={onPinMessage} isPinned={false} onUnpin={() => {}} />
-
+				<StyledButton onClick={showChat}>show chat</StyledButton>
 
 				<IconButton onClick={() => { setShowAnimations(!showAnimations)}}>
 					<img src={animationIcon} alt="animation" width= "25" height= "25"/>

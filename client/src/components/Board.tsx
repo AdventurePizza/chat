@@ -321,7 +321,7 @@ export const Board = ({
 
 			{background.type === 'map' && <Map mapData={background.mapData} />}
 
-			<BoardObject
+			{waterfallChat.show &&<BoardObject
 				id={'chat'}
 				type="chat"
 				onPin={() => {}}
@@ -331,7 +331,7 @@ export const Board = ({
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
-			/>
+			/>}
 
 			{musicPlayer.playlist.length !== 0 && (
 				<BoardObject

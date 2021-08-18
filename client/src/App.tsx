@@ -299,7 +299,8 @@ function App() {
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 10,
 		left: 110,
-		messages: []
+		messages: [],
+		show: true
 	});
 
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
@@ -520,9 +521,14 @@ function App() {
 		}));
 	}, []);
 
+	const onShowChat = () => {
+		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
+	}
+
 	const onShowMarker = (show: boolean) => {
 		setShowWhiteboard(show);
 	};
+
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
 		const { avatar, value, name } = message;
 
@@ -3217,6 +3223,7 @@ function App() {
 				setIsVideoShowing={setIsVideoShowing}
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
+				updateShowChat = {onShowChat}
 				showWhiteboard={showWhiteboard}
 				updateShowWhiteboard={onShowMarker}
 				musicPlayer={musicPlayer}
