@@ -489,15 +489,11 @@ function App() {
 			case 'tower':
 			case 'background':
 			case 'weather':
-			case 'maps':
 			case 'roomDirectory':
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case 'NFT':
 			case 'musicPlayer':
-			case 'crypto':
-			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -690,7 +686,8 @@ function App() {
 			setStep(1);
 		} else if (selectedPanelItem === 'roomDirectory') {
 			setStep(4);
-		} else if (selectedPanelItem === 'youtube') {
+		} // since we removed youtube panel I used random panel name 
+		else if (selectedPanelItem === 'email') {
 			setStep(5);
 		}
 	}, [selectedPanelItem]);

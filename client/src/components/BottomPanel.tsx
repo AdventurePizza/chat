@@ -20,12 +20,9 @@ import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
-import { MapsPanel } from './MapsPanel';
 import { Poem } from './Poem';
-import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
-import { CryptoPanel } from './Crypto';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -315,10 +312,6 @@ const PanelContent = ({
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
-		case 'maps':
-			return (
-				<MapsPanel />
-			);
 		case 'poem':
 			return (
 				<Poem
@@ -344,19 +337,6 @@ const PanelContent = ({
 					sendEmail={(email, message) => onAction('send-email', email, message)}
 				/>
 			);
-
-		case 'NFT':
-			return (
-				<NFTPanel
-					roomData={roomData}
-					onError={onNFTError}
-					onSuccess={onNFTSuccess}
-				/>
-			);
-		case 'youtube':
-			return (
-				<div>lol</div>
-			);
 		case 'musicPlayer':
 			return (
 				<MusicPlayerPanel
@@ -369,15 +349,6 @@ const PanelContent = ({
 					musicPlayer={musicPlayer}
 				/>
 			);
-		case 'crypto':
-			return (<CryptoPanel 
-						sendRace={(id) => onAction('send-race', id)}
-						sendHorse={(id) => {onAction('horse', id);}}
-						showOpensea={showOpensea}
-						setShowOpensea={setShowOpensea}
-						hideAllPins={hideAllPins}
-						setHideAllPins={setHideAllPins}
-					/>);
 		default:
 			return null;
 	}

@@ -48,9 +48,6 @@ export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins }: IRacePanel)
 	const [inputRace, setinputRace] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
 	const [races, setRaces] = useState<IRace[]>([]);
-	const [showRacePanel, setShowRacePanel] = useState<boolean>(false);
-	const [showHorsePanel, setShowHorsePanel] = useState<boolean>(false);
-	const [inputHorse, setInputHorse] = useState('');
 
 	const roomId = useMemo(() => {
 		if (inputRace.includes(baseURLRace)) {
