@@ -36,7 +36,8 @@ import {
 	IOrder,
 	ITweet,
 	IMap,
-	IWaterfallChat
+	IWaterfallChat,
+	ICoin
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -239,7 +240,7 @@ function App() {
 	//	>(PanelItemEnum.roomDirectory);
 
 	const [tweets, setTweets] = useState<ITweet[]>([]);
-	
+	const [coins, setCoins] =useState<ICoin[]>([]);
 	const [animations, setAnimations] = useState<IAnimation[]>([]);
 	const [roomToEnter, setRoomToEnter] = useState<string>('');
 	const audio = useRef<HTMLAudioElement>(new Audio(cymbalHit));
@@ -510,6 +511,36 @@ function App() {
 		const { prevX, prevY, currentX, currentY, color } = lineData;
 		drawLine(true, canvasRef, prevX, prevY, currentX, currentY, color, false);
 	}, []);
+
+	const addCoin= useCallback((
+		xcoord: number,
+		ycoord: number,
+		name: string,
+		image:string, 	
+		current_price:number,
+		price_change_percentage_24h:number,
+		) => { 
+			if(xcoord === -1 && ycoord === -1)
+			{
+				const { x , y } = generateRandomXY(true,false);
+				xcoord = x;
+				ycoord = y;
+			}
+
+
+		const newCoin: ICoin = {
+				top: ycoord,
+				left: xcoord,
+				name: name,
+				isPinned: false,
+				image:image,
+				price: current_price,
+				priceChange: price_change_percentage_24h	
+			};
+			setCoins((coins) => coins.concat(newCoin));
+			return {xcoord: xcoord, ycoord: ycoord};
+		}
+		,[]);
 
 	const addTweet= useCallback((x: number, y:number, tweetId: string) => { 
 		const newTweet: ITweet = {
@@ -936,6 +967,7 @@ function App() {
 					}
 					break;
 					case 'tweet':
+					console.log("pin item message tweet")
 					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
 					const tweet = tweets[tweetIndex];
 					if (tweet) {
@@ -954,9 +986,29 @@ function App() {
 						}
 					}
 					break;
+					case 'coin':
+					console.log("pin item message coin")
+					const coinIndex = coins.findIndex((coin) => coin.name === itemKey);
+					const coin = coins[coinIndex];
+					if (coin) {
+	
+						if (isUnpin) {
+							setCoins([
+								...coins.slice(0, coinIndex),
+								...coins.slice(coinIndex + 1)
+							]);
+						} else {
+							setCoins([
+								...coins.slice(0, coinIndex),
+								{ ...coin, isPinned: true },
+								...coins.slice(coinIndex + 1)
+							]);
+						}
+					}
+					break;
 			}
 		},
-		[gifs, images, videos, pinnedText, NFTs, tweets]
+		[gifs, images, videos, pinnedText, NFTs, tweets, coins]
 	);
 
 	const handleMoveItemMessage = useCallback(
@@ -1060,8 +1112,24 @@ function App() {
 							]);
 						}
 						break;
+				case 'coin':
+						const coinIndex = coins.findIndex((coin) => coin.name === itemKey);
+						const coin = coins[coinIndex];
+						if (coin) {
+							setCoins([
+								...coins.slice(0, coinIndex),
+								{
+									...coin,
+									top: relativeTop,
+									left: relativeLeft
+								},
+								...coins.slice(coinIndex + 1)
+							]);
+						}
+						break;
+				
 				}},
-		[images,videos, NFTs, gifs, pinnedText, tweets]);
+		[images,videos, NFTs, gifs, pinnedText, tweets, coins]);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1261,6 +1329,13 @@ function App() {
 						addTweet(message.xt, message.yt, message.value)
 						}
 						break;
+				case 'coin':
+					console.log('socket message received');
+					if(message.value &&message.xt&& message.yt&&message.image&& message.current_price&&message.price_change_percentage_24h) {
+						addCoin(message.xt, message.yt, message.value, message.image, message.current_price,message.price_change_percentage_24h);
+						console.log('coin added');
+					}
+						break;
 				case 'image':
 					if (message.value) {
 						addImage(message.value, message.imageKey);
@@ -1400,6 +1475,7 @@ function App() {
 		handleTowerDefenseEvents,
 		playEmoji,
 		addTweet,
+		addCoin,
 		playSound,
 		handleChatMessage,
 		addGif,
@@ -1521,10 +1597,10 @@ function App() {
 				firebaseContext.unpinRoomItem(roomId || 'default', 'background');
 				break;
 			case 'image':
-				const image = args[0] as string;
+				const imagee = args[0] as string;
 				socket.emit('event', {
 					key: 'image',
-					value: image
+					value: imagee
 				});
 				break;
 			case 'animation':
@@ -1623,6 +1699,31 @@ function App() {
 					key: 'youtube',
 					value: videoId
 				});
+				break;
+			case 'coin':
+				const name = args[0] as string;
+				const image = args[1] as string;
+				const current_price = args[2] as number;
+				const price_change_percentage_24h = args[3] as number;
+				console.log(`name: ${name}, image: ${image}, current_price: ${current_price}, priceChange: ${price_change_percentage_24h}`);
+				const { xcoord, ycoord } = addCoin(-1,-1,name,image,current_price,price_change_percentage_24h);
+				socket.emit('event', {
+					key: 'coin',
+					value: name
+				});
+				/*
+				socket.emit('event', {
+					key: 'coin',
+					value: name,
+					xt: xcoord,
+					yt: ycoord,
+					image: image,
+					current_price: current_price,
+					price_change_percentage_24h: price_change_percentage_24h
+				});
+				*/
+				console.log('socket message sent');
+				pinCoin(name);
 				break;
 			default:
 		}
@@ -1762,6 +1863,7 @@ function App() {
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 				const pinnedTweets: ITweet[] =[];
+				const pinnedCoins: ICoin[]=[];
 
 				let backgroundType: 'image' | 'map' | undefined;
 				let backgroundImg: string | undefined;
@@ -1795,6 +1897,17 @@ function App() {
 						isPinned: true,
 						id: item.id
 						});
+					}else if(item.type ==='coin'){
+							pinnedCoins.push({
+							...item,
+							top:  item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							name: item.name,
+							image:item.image,
+							price: item.current_price,
+							priceChange: item.price_change_percentage_24h
+							});
 					} else if (item.type === 'video') {
 						pinnedVideos.push({
 							...item,
@@ -1915,6 +2028,39 @@ function App() {
 			}
 		}
 	};
+		const pinCoin = async(name: string) => {
+		const coinIndex = coins.findIndex((coin) => coin.name === name);
+		const coin = coins[coinIndex];
+		const room = roomId || 'default';
+		console.log("async"+name)
+		console.log(coinIndex)
+		if (coin && !coin.isPinned) {
+			console.log('Coin called pinRoomItem');
+			const result = await firebaseContext.pinRoomItem(room, {
+				...coin,
+				key: coin.name,
+				type: 'coin',
+				left: coin.left / window.innerWidth,
+				top: coin.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setCoins([
+					...coins.slice(0, coinIndex),
+					{ ...coin, isPinned: true },
+					...coins.slice(coinIndex + 1)
+				]);
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'coin',
+				
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+
+		}
 		const pinTweet = async (tweetID: string) => {
 		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
 		const tweet = tweets[tweetIndex];
@@ -2148,7 +2294,30 @@ function App() {
 			}
 		}
 	};
+	
+	const unpinCoin = async (name: string) => {
+		const coinIndex = coins.findIndex((coin) => coin.name === name);
+		const coin = coins[coinIndex];
+		const room = roomId || 'default';
 
+		if (coin && coin.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				coin.name
+			);
+			if (isSuccessful) {
+				setCoins([...coins.slice(0, coinIndex), ...coins.slice(coinIndex + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'coin',
+					itemKey: coin.name
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
 	
 	const unpinTweet = async (tweetID: string) => {
 		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
@@ -2348,6 +2517,20 @@ function App() {
 						left
 					},
 					...tweets.slice(tweetIndex + 1)
+				]);
+			}
+		}
+		else if (type==='coin'){
+			const coinIndex = coins.findIndex((coin) => coin.name === id);
+			if (coinIndex !== -1) {
+				setCoins([
+					...coins.slice(0, coinIndex),
+					{
+						...coins[coinIndex],
+						top,
+						left
+					},
+					...coins.slice(coinIndex + 1)
 				]);
 			}
 		}
@@ -2556,6 +2739,10 @@ function App() {
 				pinTweet={pinTweet}
 				unpinTweet={unpinTweet}
 				raceId={raceId}
+				pinCoin={pinCoin}
+				coins={coins}
+				unpinCoin={unpinCoin}
+
 				/>
 			</Route>
 

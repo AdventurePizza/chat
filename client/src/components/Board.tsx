@@ -17,6 +17,7 @@ import {
 	IWeather,
 	ITweet,
 	PinTypes,
+	ICoin,
 	IWaterfallChat
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
@@ -101,6 +102,9 @@ interface IBoardProps {
 	unpinTweet: (tweetID: string) => void;
  	waterfallChat: IWaterfallChat;
 	raceId: string;
+	pinCoin: (name: string) => void;
+	coins: ICoin[];
+	unpinCoin: (name: string)=>void;
 }
 
 export const Board = ({
@@ -156,7 +160,10 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
-	raceId
+	raceId,
+	pinCoin,
+	coins,
+	unpinCoin
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -467,6 +474,33 @@ export const Board = ({
 							}}
 							onUnpin={() => {
 								unpinTweet(tweet.id);
+							}}
+						/>
+					</CSSTransition>
+				))}
+			</TransitionGroup>
+ ) : null}
+			{!hideAllPins ? (
+				<TransitionGroup>
+				{coins.map((coin) => (
+					<CSSTransition
+						name={coin.name}
+						timeout={5000}
+						classNames="gif-transition"
+					>
+						<BoardObject
+							id={coin.name}
+							images={coin.image}
+							currentPrice={coin.price}
+							price_change_percentage_24h={coin.priceChange}
+
+							type="coin"
+							{...coin}
+							onPin={() => {
+								pinCoin(coin.name);
+							}}
+							onUnpin={() => {
+								unpinCoin(coin.name);
 							}}
 						/>
 					</CSSTransition>

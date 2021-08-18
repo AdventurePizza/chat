@@ -342,8 +342,10 @@ const PanelContent = ({
 		case 'zedrun':
 			return <ZedrunPanel setRaceId={setRaceId} />;
 		case 'crypto':
-			return <CryptoPanel />;
-		default:
+			return (<CryptoPanel pinCoin = {(name: string, image: string, price: number, priceChange: number) => {
+				onAction('coin',name, image,price, priceChange );
+			}}/>);		
+			default:
 			return null;
 	}
 };

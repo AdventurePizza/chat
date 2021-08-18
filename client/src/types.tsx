@@ -1,6 +1,6 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet';
+export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet' |'coin';
 
 export interface IBackgroundState {
 	type?: 'image' | 'map';
@@ -36,7 +36,16 @@ export interface ITweet {
 	left: number;
 	top: number;
 	isPinned?: boolean;
-	
+}
+
+export interface ICoin {
+	name: string,
+	image:string,
+	price: number,
+	priceChange: number,
+	left:number;
+	top:number;
+	isPinned?: boolean;
 }
 export interface IAvatarChatMessages {
 	[userId: string]: string[];
@@ -67,12 +76,17 @@ export interface IMessageEvent {
 		| 'move-item'
 		| 'unpin-item'
 		| 'poem'
-		| 'tweet';
+		| 'tweet'
+		| 'coin';
 		
 	value?: any;
 	[key: string]: any;
 	xt: number;
 	yt: number;
+	image?:string,
+    current_price?: number,
+    price_change_percentage_24h?: number,
+
 }
 
 export interface IFigure {

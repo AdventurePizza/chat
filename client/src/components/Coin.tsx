@@ -1,17 +1,23 @@
 import React from 'react'
 import './Coin.css';
 import { PinButton } from './shared/PinButton';
-interface ICoin{
+interface ICoinProps{
     name: string,
     image:string,
     symbol: string,
     price: number,
     volume: number,
     priceChange: number,
-    marketCap: number
+    marketCap: number,
+    pinCoin: (name:string, image: string, price: number, priceChange: number) => void
 }
 
-export const Coin = ({name, image, symbol, price, volume, priceChange, marketCap}: ICoin) => {
+
+export const Coin = ({name, image, symbol, price, volume, priceChange, marketCap, pinCoin}: ICoinProps) => {
+    const onPinCoin =() =>{
+        console.log(name)
+        pinCoin(name, image, price, Math.round(priceChange*100)/100);
+    }
     return (
         <div className="coin-container">
             <div className="coin-row">
@@ -27,6 +33,7 @@ export const Coin = ({name, image, symbol, price, volume, priceChange, marketCap
                          <p className='coin-percent red'>{priceChange.toFixed(2)}%</p>
                     ):<p className='coin-percent green'>{priceChange.toFixed(2)}%</p>}
                     <p className='coin-market-cap'>Mkt Cap: {marketCap.toLocaleString()}</p>
+                    <PinButton onPin={onPinCoin} isPinned={false} onUnpin={() => { }} />
                 </div>
             </div>  
         </div>

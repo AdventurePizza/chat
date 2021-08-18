@@ -1,0 +1,54 @@
+.box {
+    box-sizing: border-box;
+    border-box: 40;
+    border: 1px solid black;
+    width: 500px;
+    display: inline-block;
+}
+
+.coin-image {
+    padding-top: 0 px;
+    padding-left: 0 px;
+    height: 80px;
+    width: 80px;
+    display: inline-block;
+    margin-top: 25px;
+
+}
+
+.title {
+     font-family: 'Quicksand', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    display: inline-block;
+    padding-right: 40px;
+}
+
+.text {
+    font-family: 'Judson', serif;
+    font-size: 30px;
+    display:inline-block;
+   align-items: left;
+}
+
+
+.arrow-image {
+    display:inline-block;
+}
+
+#parent{
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background-color:#808080;
+    color: white;
+}
+h1{
+    float:left;
+}
+img{
+    float:right;
+}
+body{
+    float: left;
+}

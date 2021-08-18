@@ -14,6 +14,7 @@ import { Map } from "./Maps";
 import { Tweet} from 'react-twitter-widgets';
 import { WaterfallChat } from "./WaterfallChat";
 import ReactPlayer from 'react-player';
+import CoinWidget from './CoinWidget';
 
 
 const useStyles = makeStyles({
@@ -40,7 +41,7 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet';
+	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet' |'coin';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
@@ -60,6 +61,11 @@ interface BoardObjectProps {
 	onCancel?: (nftId: string) => void;
 
 	chat?: IWaterfallMessage[];
+
+	name?: string,
+    images?:string,
+    currentPrice?: number,
+    price_change_percentage_24h?: number,
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -78,7 +84,12 @@ export const BoardObject = (props: BoardObjectProps) => {
 		addNewContract,
 		onBuy,
 		onCancel,
-		chat
+		chat,
+		name,
+		images,
+		currentPrice,
+		price_change_percentage_24h,
+
 	} = props;
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
@@ -134,6 +145,14 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'map' && data && <Map />}
 				{type==='tweet' && id && (<Tweet tweetId={id} />)}
+				{type ==='coin' && name&& images && price_change_percentage_24h &&currentPrice&&(	
+					<CoinWidget
+						name={name}
+						image={images}
+						currentPrice={currentPrice}
+						priceChange={price_change_percentage_24h}
+					/>)}
+			
 				{type === 'video' && id && (
 				<div className="pinned-video-player"
 					style={{
