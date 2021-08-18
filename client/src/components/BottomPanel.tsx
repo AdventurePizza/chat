@@ -296,6 +296,12 @@ const PanelContent = ({
 					roomData={roomData}
 					onError={onNFTError}
 					onSuccess={onNFTSuccess}
+					//race
+					sendRace={(id) => onAction('send-race', id)}
+					//horse
+					sendHorse={(id) => {onAction('horse', id)}}
+					//marketplace
+					setShowOpensea={setShowOpensea}
 				/>
 			);
 		case 'settings':

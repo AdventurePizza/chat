@@ -29,7 +29,12 @@ import giphyIcon from '../assets/buttons/giphy.png'
 import unsplashIcon from '../assets/buttons/unsplash.png'
 import youtubeIcon from '../assets/buttons/youtube.png'
 import mapsIcon from '../assets/buttons/maps.png'
+import marketplaceIcon from '../assets/buttons/marketplace.png'
+import raceIcon from '../assets/buttons/watch.png'
+import horseIcon from '../assets/buttons/horse.png'
 import { MapsPanel } from './MapsPanel';
+import { RacePanel } from './RacePanel';
+import { HorsePanel } from './HorsePanel';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -75,9 +80,15 @@ interface IBackgroundPanelProps {
 	onError: (message: string) => void;
 	onSuccess: (submission: ISubmit) => void;
 	roomData?: IChatRoom;
+	//race
+	sendRace: (id: string) => void;
+	//horse
+	sendHorse: (id: string, type: 'horse') => void;
+	//marketplace
+	setShowOpensea: (value: boolean) => void;
 }
 
-type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | '+NFT';
+type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' |'+NFT';
 
 interface IPanel {
 	type: PanelTypes;
@@ -154,7 +165,14 @@ const BackgroundPanel = ({
 	//+NFT
 	onError, 
 	onSuccess, 
-	roomData
+	roomData,
+	//race
+	sendRace,
+	//horse
+	sendHorse,
+	//marketplace
+	setShowOpensea
+
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
@@ -169,6 +187,9 @@ const BackgroundPanel = ({
 			{type: 'giphy', icon: giphyIcon},
 			{type: 'youtube', icon: youtubeIcon}, 
 			{type: 'maps', icon: mapsIcon}, 
+			{type: 'marketplace', icon: marketplaceIcon}, 
+			{type: 'race', icon: raceIcon}, 
+			{type: 'horse', icon: horseIcon}, 
 			{type: '+NFT'} 
 		]); 
 
@@ -219,6 +240,18 @@ const BackgroundPanel = ({
 		);
 	};
 
+	const checked = () => {
+		if(activePanel === "maps" || activePanel === "race" || activePanel === "marketplace" ){
+			return true;
+		}
+		else if(activePanel === "+NFT" || activePanel === "horse" ){
+			return false;
+		}
+		else{
+			return isSwitchChecked;
+		}
+	};
+
 	useEffect(() => {
 		if (!isImagesEmpty) return;
 		searchSubmit('trending', setImages);
@@ -231,7 +264,7 @@ const BackgroundPanel = ({
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
 					<div>
 						<FormControlLabel
-							checked={ (activePanel === "maps") ? true : isSwitchChecked}
+							checked={checked()}
 							onChange={() => setIsSwitchChecked(!isSwitchChecked)}
 							control={<Switch color="primary" />}
 							label="background"
@@ -241,7 +274,10 @@ const BackgroundPanel = ({
 						<IconButton
 							color= { "primary" }
 							disabled= {activePanel === panel.type ? true : false }
-							onClick={() => {setActivePanel(panel.type)}}
+							onClick={() => {setActivePanel(panel.type); 
+								if(panel.type === "marketplace"){setShowOpensea(true);}
+								else{setShowOpensea(false);}
+							}} 
 							key= {index}
 						>
 							{panel.icon ? 
@@ -253,7 +289,7 @@ const BackgroundPanel = ({
 					))}
 
 
-					{(activePanel !== 'maps' && activePanel !== 'youtube') ? 
+					{(activePanel === 'unsplash' || activePanel === 'google' ||  activePanel === 'giphy') ? 
 						<div style={{ paddingInline: 20 }}> 
 							<InputBase
 								placeholder={"Search by " + activePanel}
@@ -349,7 +385,28 @@ const BackgroundPanel = ({
 					<MapsPanel />
 				</div>
 			}
-			
+
+			{activePanel === 'marketplace' && 
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
+					<HorsePanel sendHorse= {sendHorse}/>
+				</div>
+			}
+
+			{activePanel === 'race' && 
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
+					<RacePanel 
+						sendRace={sendRace}
+						hideAllPins={hideAllPins}
+						setHideAllPins={setHideAllPins}
+					/>
+				</div>
+			}
+
+			{activePanel === 'horse' &&
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
+					<HorsePanel sendHorse= {sendHorse}/>
+				</div>
+			}
 		</div>
 	);
 };
