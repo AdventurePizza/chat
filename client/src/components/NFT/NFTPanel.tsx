@@ -40,10 +40,6 @@ const useStyles = makeStyles((theme) => ({
 	}
 }));
 
-export const NFTIcon = () => {
-	return <div>+NFT</div>;
-};
-
 interface INFTPanelProps {
 	onError: (message: string) => void;
 	onSuccess: (submission: ISubmit) => void;
@@ -216,7 +212,7 @@ export const NFTPanel = ({ onError, onSuccess, roomData }: INFTPanelProps) => {
 		accountId?.toLowerCase() !== roomData.lockedOwnerAddress.toLowerCase();
 
 	return (
-		<div className={classes.nftPanelRoot}>
+		<div style={{height: 150}} className={classes.nftPanelRoot}>
 			<OrderInput
 				disabledMessage={
 					isAddOrderDisabled

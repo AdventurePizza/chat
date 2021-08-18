@@ -1,8 +1,6 @@
 import { Button, TextField, makeStyles, IconButton } from '@material-ui/core';
 import React, { useMemo, useState, useEffect, useContext } from 'react';
 import { FirebaseContext } from '../contexts/FirebaseContext';
-import broswseNFTIcon from '../assets/buttons/browseNFTIcon.png'
-import horseIcon from '../assets/buttons/horse.svg'
 import watchIcon from '../assets/buttons/watch.png'
 import closeIcon from '../assets/buttons/close.png'
 import hide from '../assets/buttons/hide.png'
@@ -13,7 +11,6 @@ const useStyles = makeStyles({
 		alignItems: 'center',
 		justifyContent: 'left',
 		padding: 10,
-		background: 'var(--background)',
 		width: '100%',
 		'& > *': {
 			marginRight: 10
@@ -28,13 +25,10 @@ const useStyles = makeStyles({
 
 const baseURLRace = 'https://3d-racing.zed.run/';
 
-interface ICryptoPanel {
+interface IRacePanel {
 	sendRace: (id: string) => void;
-	showOpensea: boolean;
-	setShowOpensea: (value: boolean) => void;
 	hideAllPins: boolean;
 	setHideAllPins: (value: boolean) => void;
-	sendHorse: (id: string, type: 'horse') => void;
 }
 
 interface IRace {
@@ -49,14 +43,11 @@ interface INode {
 	};
 }
 
-export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, hideAllPins, setHideAllPins, sendHorse }: ICryptoPanel) => {
+export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins }: IRacePanel) => {
 	const classes = useStyles();
 	const [inputRace, setinputRace] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
 	const [races, setRaces] = useState<IRace[]>([]);
-	const [showRacePanel, setShowRacePanel] = useState<boolean>(false);
-	const [showHorsePanel, setShowHorsePanel] = useState<boolean>(false);
-	const [inputHorse, setInputHorse] = useState('');
 
 	const roomId = useMemo(() => {
 		if (inputRace.includes(baseURLRace)) {
@@ -96,39 +87,12 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, hideAllPins
 			
 			<IconButton 
 					onClick={() => { 
-						setShowOpensea(!showOpensea);
-						setShowHorsePanel(false);
-						setShowRacePanel(false);
-					}}>
-					<img src={broswseNFTIcon} alt="opensea" width= "50" height= "50"/>
-			</IconButton>
-
-			<IconButton 
-					onClick={() => { 
-						setShowRacePanel(!showRacePanel);
-						setShowHorsePanel(false);
-						setShowOpensea(false);
-					}}>
-					<img src={watchIcon} alt="zedrun" width= "50" height= "50"/>
-			</IconButton>
-
-			<IconButton 
-					onClick={() => { 
-						setShowHorsePanel(!showHorsePanel);
-						setShowRacePanel(false);
-						setShowOpensea(false);
-					}}>
-					<img src={horseIcon} alt="Horse-panel" width= "50" height= "50"/>
-			</IconButton>
-
-			<IconButton 
-					onClick={() => { 
 						setHideAllPins(!hideAllPins);
 					}}>
-					<img src={hide} alt="Hide" width= "50" height= "50"/>
+					<img src={hide} alt="Hide" width= "30" height= "30"/>
 			</IconButton>
 
-			{showRacePanel && <div className={classes.container}>
+			<div className={classes.container}>
 				<TextField
 					value={inputRace}
 					onChange={(e) => setinputRace(e.target.value)}
@@ -167,25 +131,7 @@ export const CryptoPanel = ({ sendRace, showOpensea, setShowOpensea, hideAllPins
 						</div>
 					))}
 			</div>
-			}
-			{showHorsePanel && <div className={classes.container}>
-				<TextField
-					value={inputHorse}
-					onChange={(e) => setInputHorse(e.target.value)}
-					variant="outlined"
-					placeholder="enter horse id"
-					className={classes.input}
-				/>
-				<Button
-					variant="contained" color="primary"
-					onClick={() => {
-						sendHorse (inputHorse, 'horse');
-					}}
-				>
-					Add
-				</Button>
-			</div>
-			}
+			
 
 		</div>
 	);

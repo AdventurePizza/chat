@@ -15,16 +15,12 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import cameraRollIcon from '../assets/navbar/camera_roll.png';
 //import emojiIcon from '../assets/navbar/emojiIcon.png';
-import YouTubeIcon from '../assets/navbar/YouTubeIcon.png';
 // import roomDirectoryIcon from '../assets/navbar/roomDirectory.png';
 // import soundIcon from '../assets/navbar/soundIcon.png';
 // import towerIcon from '../assets/navbar/towerIcon.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
-import { NFTIcon } from './NFT/NFTPanel';
 import HomeIcon from '../assets/navbar/homeIcon.png';
-import mapsIcon from '../assets/navbar/mapsIcon.png';
-import cryptoIcon from '../assets/navbar/crypto.png';
 import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 
@@ -128,13 +124,12 @@ const panelIconSrcMap: {
 } = {
 	// sound: soundIcon,
 	chat: chatIcon,
-	youtube: YouTubeIcon,
+	//youtube: YouTubeIcon,
 	//emoji: emojiIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	// weather: weatherIcon,
 	// poem: poemIcon
-	maps: mapsIcon,
 	musicPlayer: musicPlayerIcon
 };
 
@@ -147,22 +142,12 @@ const panelIconComponentMap: {
 			<EmailButton />
 		</div>
 	),
-	NFT: <NFTIcon />,
 	background: <Image style={{ fontSize: 32 }} />,
 	//tower: <SportsEsports style={{ fontSize: 36 }} />,
 	roomDirectory: (
 		<div className="fourth-step">
 			<MeetingRoom style={{ fontSize: 36 }} />
 		</div>
-	),
-	crypto: (
-		<img
-			alt="crypto"
-			className="panel-icon"
-			src={cryptoIcon}
-			width="40"
-			height="40"
-		/>
 	)
 };
 

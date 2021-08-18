@@ -489,15 +489,11 @@ function App() {
 			case 'tower':
 			case 'background':
 			case 'weather':
-			case 'maps':
 			case 'roomDirectory':
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case 'NFT':
 			case 'musicPlayer':
-			case 'crypto':
-			case 'youtube':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -690,7 +686,8 @@ function App() {
 			setStep(1);
 		} else if (selectedPanelItem === 'roomDirectory') {
 			setStep(4);
-		} else if (selectedPanelItem === 'youtube') {
+		} // since we removed youtube panel I used random panel name 
+		else if (selectedPanelItem === 'email') {
 			setStep(5);
 		}
 	}, [selectedPanelItem]);
@@ -954,7 +951,8 @@ function App() {
 							name: '',
 							isPinned: false,
 							type: undefined,
-							mapData: undefined
+							mapData: undefined,
+							videoId:  undefined
 						});
 					} else {
 						console.log(message);
@@ -962,7 +960,8 @@ function App() {
 							name: message.name,
 							isPinned: true,
 							type: message.subType,
-							mapData: message.mapData
+							mapData: message.mapData,
+							videoId:  message.videoId
 						});
 					}
 					break;
@@ -1896,6 +1895,13 @@ function App() {
 					value: videoId,
 					playBackground: true
 				});
+				setBackground((background) => ({
+					name: backgroundName,
+					isPinned: false,
+					type: "video",
+					mapData: undefined,
+					videoId: videoId
+				}))
 				break;
 			case 'clear-field':
 				const field = args[0] as string;
@@ -2136,9 +2142,10 @@ function App() {
 				const pinnedHorses: IBoardHorse[] = [];
 				const pinnedTweets: ITweet[] = [];
 
-				let backgroundType: 'image' | 'map' | undefined;
+				let backgroundType: 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
+				let backgroundVideo: string | undefined;
 
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
@@ -2181,6 +2188,7 @@ function App() {
 						backgroundType = item.subType;
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
+						backgroundVideo = item.videoId;
 					} else if (item.type === 'race') {
 						setRaceId(item.raceId);
 					} else if (item.type === 'text') {
@@ -2250,10 +2258,12 @@ function App() {
 				setVideos(pinnedVideos);
 				setBackground({
 					name: backgroundImg,
-					isPinned: !!backgroundImg || !!backgroundMap,
+					isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
 					mapData: backgroundMap,
-					type: backgroundType
+					type: backgroundType,
+					videoId: backgroundVideo
 				});
+				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
 				setHorses(pinnedHorses);
 			});
@@ -2478,9 +2488,11 @@ function App() {
 	const pinBackground = async () => {
 		const room = roomId || 'default';
 
-		let backgroundType: 'image' | 'map' | undefined;
+		let backgroundType: 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 		if (isMapShowing) {
 			backgroundType = 'map';
+		} else if (isVideoShowing) {
+			backgroundType = 'video';
 		} else if (background.name) {
 			backgroundType = 'image';
 		}
@@ -2503,7 +2515,8 @@ function App() {
 			top: 0,
 			left: 0,
 			subType: backgroundType,
-			mapData: mapCoordinates
+			mapData: mapCoordinates,
+			videoId: videoId
 		});
 
 		if (result.isSuccessful) {
@@ -2511,7 +2524,8 @@ function App() {
 				name: backgroundName,
 				isPinned: true,
 				type: backgroundType,
-				mapData: mapCoordinates
+				mapData: mapCoordinates,
+				videoId: videoId
 			}));
 
 			socket.emit('event', {
@@ -2519,7 +2533,8 @@ function App() {
 				type: 'background',
 				name: backgroundName,
 				subType: backgroundType,
-				mapData: mapCoordinates
+				mapData: mapCoordinates,
+				videoId: videoId
 			});
 			updateIsMapShowing(false);
 			socket.emit('event', {
@@ -2551,8 +2566,10 @@ function App() {
 					name: '',
 					isPinned: false,
 					type: undefined,
-					mapData: undefined
+					mapData: undefined,
+					videoId: undefined
 				});
+				setVideoId('');
 				socket.emit('event', {
 					key: 'unpin-item',
 					type: 'background'
@@ -3230,6 +3247,7 @@ function App() {
 				setRaceId={setRaceId}
 				showOpensea={showOpensea}
 				setShowOpensea={setShowOpensea}
+				addVideo={addVideo}
 			/>
 
 			{userProfile && !showOpensea && (

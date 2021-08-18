@@ -272,7 +272,8 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			{background.type === 'map' && <Map mapData={background.mapData} />}
+			{(background.type === 'map' || isMapShowing) && <Map mapData={background.mapData} />}
+
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton
@@ -301,12 +302,10 @@ export const Board = ({
 					src="https://opensea.io/assets?embed=true"
 					width="100%"
 					height="100%"
-					frameBorder="0"
-					allowFullScreen
 				></iframe>
 			)}
 
-			<YouTubeBackground
+			{background.type === 'video' && <YouTubeBackground
 				isVideoPinned={isVideoPinned}
 				lastTime={lastTime}
 				videoId={videoId}
@@ -317,9 +316,7 @@ export const Board = ({
 				onPinVideo={addVideo}
 				unpinVideo={unpinVideo}
 				videoRef={videoRef}
-			/>
-
-			{background.type === 'map' && <Map mapData={background.mapData} />}
+			/>}
 
 			{waterfallChat.show &&<BoardObject
 				id={'chat'}
@@ -731,7 +728,7 @@ export const Board = ({
 			{/* </TransitionGroup> */}
 
 			<div className="board-container-pin">
-				{(isMapShowing || background.name || background.mapData) && (
+				{(videoId || isMapShowing || background.name || background.mapData) && (
 					<PinButton
 						isPinned={background.isPinned}
 						onPin={pinBackground}

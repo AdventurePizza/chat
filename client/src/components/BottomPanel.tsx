@@ -18,15 +18,11 @@ import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
 import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import SoundPanel from './SoundPanel';
-import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
-import { MapsPanel } from './MapsPanel';
 import { Poem } from './Poem';
-import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
-import { CryptoPanel } from './Crypto';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -55,6 +51,7 @@ export interface IBottomPanelProps {
 	setRaceId: (raceId: string) => void;
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
+	addVideo: (videoId: string | undefined) => void;
 }
 
 export interface IPanelContentProps {
@@ -88,6 +85,7 @@ export interface IPanelContentProps {
 	setRaceId: (raceId: string) => void;
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
+	addVideo: (videoId: string | undefined) => void;
 }
 
 export interface ISoundPairs {
@@ -129,7 +127,8 @@ export const BottomPanel = ({
 	musicPlayer,
 	setRaceId,
 	showOpensea,
-	setShowOpensea
+	setShowOpensea,
+	addVideo
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -178,6 +177,7 @@ export const BottomPanel = ({
 					setRaceId={setRaceId}
 					showOpensea={showOpensea}
 					setShowOpensea={setShowOpensea}
+					addVideo={addVideo}
 				/>
 			</div>
 		</Drawer>
@@ -214,7 +214,8 @@ const PanelContent = ({
 	musicPlayer,
 	setRaceId,
 	showOpensea,
-	setShowOpensea
+	setShowOpensea,
+	addVideo
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -277,6 +278,32 @@ const PanelContent = ({
 					sendGif={(gif: IGif) => {
 						onAction('gif', gif.id);
 					}}
+					//youtube
+					setVolume={setVolume}
+					setVideoId={setVideoId}
+					sendVideo={(id) => onAction('youtube', id)}
+					queriedVideos={queriedVideos}
+					setQueriedVideos={setQueriedVideos}
+					lastQuery={lastQuery}
+					setLastQuery={setLastQuery}
+					setIsVideoShowing={setIsVideoShowing}
+					isVideoShowing={isVideoShowing}
+					lastVideoId={lastVideoId}
+					setLastVideoId={setLastVideoId}
+					updateLastTime={updateLastTime}
+					hideAllPins={hideAllPins}
+					setHideAllPins={setHideAllPins}
+					addVideo={addVideo}
+					//+NFT
+					roomData={roomData}
+					onError={onNFTError}
+					onSuccess={onNFTSuccess}
+					//race
+					sendRace={(id) => onAction('send-race', id)}
+					//horse
+					sendHorse={(id) => {onAction('horse', id)}}
+					//marketplace
+					setShowOpensea={setShowOpensea}
 				/>
 			);
 		case 'settings':
@@ -284,10 +311,6 @@ const PanelContent = ({
 		case 'weather':
 			return (
 				<Weather sendLocation={(location) => onAction('weather', location)} />
-			);
-		case 'maps':
-			return (
-				<MapsPanel />
 			);
 		case 'poem':
 			return (
@@ -314,34 +337,6 @@ const PanelContent = ({
 					sendEmail={(email, message) => onAction('send-email', email, message)}
 				/>
 			);
-
-		case 'NFT':
-			return (
-				<NFTPanel
-					roomData={roomData}
-					onError={onNFTError}
-					onSuccess={onNFTSuccess}
-				/>
-			);
-		case 'youtube':
-			return (
-				<YouTubeMusicPanel
-					setVolume={setVolume}
-					setVideoId={setVideoId}
-					sendVideo={(id) => onAction('youtube', id)}
-					queriedVideos={queriedVideos}
-					setQueriedVideos={setQueriedVideos}
-					lastQuery={lastQuery}
-					setLastQuery={setLastQuery}
-					setIsVideoShowing={setIsVideoShowing}
-					isVideoShowing={isVideoShowing}
-					lastVideoId={lastVideoId}
-					setLastVideoId={setLastVideoId}
-					updateLastTime={updateLastTime}
-					hideAllPins={hideAllPins}
-					setHideAllPins={setHideAllPins}
-				/>
-			);
 		case 'musicPlayer':
 			return (
 				<MusicPlayerPanel
@@ -354,15 +349,6 @@ const PanelContent = ({
 					musicPlayer={musicPlayer}
 				/>
 			);
-		case 'crypto':
-			return (<CryptoPanel 
-						sendRace={(id) => onAction('send-race', id)}
-						sendHorse={(id) => {onAction('horse', id);}}
-						showOpensea={showOpensea}
-						setShowOpensea={setShowOpensea}
-						hideAllPins={hideAllPins}
-						setHideAllPins={setHideAllPins}
-					/>);
 		default:
 			return null;
 	}

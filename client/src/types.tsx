@@ -2,11 +2,14 @@ import { IGif } from '@giphy/js-types';
 
 export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet'; 
 
+
 export interface IBackgroundState {
-	type?: 'image' | 'map';
+	type?: 'image' | 'map' | 'race' | 'marketplace' | 'video';
 	name?: string;
 	isPinned?: boolean;
 	mapData?: IMap;
+	raceId?: string;
+	videoId?: string;
 }
 
 export interface IPinnedItem {
@@ -223,15 +226,11 @@ export enum PanelItemEnum {
 	'settings' = 'settings',
 	'chat' = 'chat',
 	'background' = 'background',
-	'youtube' = 'youtube',
 	'weather' = 'weather',
 	'poem' = 'poem',
-	'crypto' = 'crypto',
 	'sound' = 'sound',
-	"maps" = "maps",
 	'email' = 'email',
 	'new-room' = 'new-room',
-	'NFT' = 'NFT',
 	'tower' = 'tower',
 	'emoji' = 'emoji',
 	'musicPlayer' = 'musicPlayer'
