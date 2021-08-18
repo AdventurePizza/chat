@@ -307,7 +307,7 @@ export const Board = ({
 				></iframe>
 			)}
 
-			<YouTubeBackground
+			{background.type === 'video' && <YouTubeBackground
 				isVideoPinned={isVideoPinned}
 				lastTime={lastTime}
 				videoId={videoId}
@@ -318,7 +318,7 @@ export const Board = ({
 				onPinVideo={addVideo}
 				unpinVideo={unpinVideo}
 				videoRef={videoRef}
-			/>
+			/>}
 
 			<BoardObject
 				id={'chat'}
@@ -730,7 +730,7 @@ export const Board = ({
 			{/* </TransitionGroup> */}
 
 			<div className="board-container-pin">
-				{(isMapShowing || background.name || background.mapData) && (
+				{(videoId || isMapShowing || background.name || background.mapData) && (
 					<PinButton
 						isPinned={background.isPinned}
 						onPin={pinBackground}

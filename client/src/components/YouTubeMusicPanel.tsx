@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import youtube from './youtube';
 
 import {
@@ -15,6 +15,7 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import Slider from '@material-ui/core/Slider';
 import VolumeDown from '@material-ui/icons/VolumeDown';
 import VolumeUp from '@material-ui/icons/VolumeUp';
+import { AppStateContext } from '../contexts/AppStateContext';
 
 interface IYouTubePanelProps {
 	sendVideo: (id: string) => void; // Sends video id to socket event to be set as background and played
@@ -62,6 +63,7 @@ function YouTubeMusicPanel({
 	const [text, setText] = useState<string>(lastQuery);
 	const [leftIndex, setLeftIndex] = useState<any>(0);
 	const [value, setValue] = useState<number>(30);
+	const { socket } = useContext(AppStateContext);
 
 	// Function called when search icon is clicked
 	const queryYouTube = (ytquery: string) => {
@@ -192,6 +194,11 @@ function YouTubeMusicPanel({
 										}
 										else{
 											addVideo(videoId);
+											socket.emit('event', {
+												key: 'youtube',
+												value: videoId,
+												pin: true
+											  });
 										}
 									}}
 								/>

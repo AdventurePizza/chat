@@ -169,13 +169,13 @@ roomRouter.get("/:roomId/pinned-background", async (req, res) => {
 
 // get all rooms
 roomRouter.get("/", async (req, res) => {
-  /*if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production") {
     return res.status(200).send([
       {
         name: "test",
       },
     ]);
-  }*/
+  }
 
   const snapshot = await collection.get();
   const docs = snapshot.docs.map((doc) => doc.data() as IChatRoom);

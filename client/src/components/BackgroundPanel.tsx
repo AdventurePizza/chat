@@ -231,7 +231,7 @@ const BackgroundPanel = ({
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
 					<div>
 						<FormControlLabel
-							checked={isSwitchChecked}
+							checked={ (activePanel === "maps") ? true : isSwitchChecked}
 							onChange={() => setIsSwitchChecked(!isSwitchChecked)}
 							control={<Switch color="primary" />}
 							label="background"

@@ -4,11 +4,12 @@ export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text
 
 
 export interface IBackgroundState {
-	type?: 'image' | 'map' | 'race' | 'marketplace' | 'youtube';
+	type?: 'image' | 'map' | 'race' | 'marketplace' | 'video';
 	name?: string;
 	isPinned?: boolean;
 	mapData?: IMap;
 	raceId?: string;
+	videoId?: string;
 }
 
 export interface IPinnedItem {

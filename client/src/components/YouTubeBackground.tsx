@@ -1,9 +1,6 @@
 import ReactPlayer from 'react-player';
-import React, { useState, useContext } from 'react';
-import { IconButton, Tooltip } from '@material-ui/core';
-import { PinButtonImage } from './shared/PinButton';
-import { Cancel } from '@material-ui/icons';
-import { AppStateContext } from '../contexts/AppStateContext';
+import React, { useState } from 'react';
+
 
 interface IYouTubeBackgroundProps {
   isVideoPinned: boolean;
@@ -30,7 +27,7 @@ function YouTubeBackground({
   pausePlayVideo,
   videoRef
 }: IYouTubeBackgroundProps) {
-  const { socket } = useContext(AppStateContext);
+
 
   const [isHovering, setIsHovering] = useState<boolean>(false);
 
@@ -63,50 +60,7 @@ function YouTubeBackground({
           }}
         />) : null
       }
-      {videoId !== "" ?
-      <div className="pin-video-button-wrapper"
-        style={{
-          position: "absolute",
-          // backgroundColor: "red",
-          width: "10%",
-          height: "10%",
-          top: "70px",
-          right: 0,
-          margin: "10px"
-        }}
-      >
-        {videoId !== "" && !isVideoPinned ? 
-        <Tooltip title="Pin Video">
-					<IconButton 
-          style={{
-            backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none",
-            float: "right",
-          }}
-          onClick={() => {
-            onPinVideo(videoId);
-            socket.emit('event', {
-              key: 'youtube',
-              value: videoId,
-              pin: true
-            });
-          }}>
-						<PinButtonImage />
-					</IconButton>
-				</Tooltip> : 
-        <Tooltip title="Unpin Video">
-        <IconButton 
-        style={{
-          backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none",
-          float: "right",
-        }}
-        onClick={() => {
-          unpinVideo(videoId);
-        }}>
-          <Cancel />
-        </IconButton>
-        </Tooltip>
-        }
-      </div> : null}
+     
     </div>
   )
 }
