@@ -3,11 +3,11 @@ import './Panel.css';
 import { Drawer, IconButton, Tooltip } from '@material-ui/core';
 
 import { EmailButton } from './EmailPanel';
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
-import { Image, SportsEsports, MeetingRoom } from '@material-ui/icons';
+import { Image, MeetingRoom } from '@material-ui/icons';
 //import { SportsEsports } from '@material-ui/icons';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -67,8 +67,8 @@ export const Panel = ({
 				</Tooltip>
 
 				<Tooltip title="home">
-					<IconButton >
-						<Link to="/" >
+					<IconButton>
+						<Link to="/">
 							<img src={HomeIcon} alt="home avatar" className="panel-avatar" />
 						</Link>
 					</IconButton>
@@ -83,15 +83,17 @@ export const Panel = ({
 					}}
 					className="first-step"
 				>
-					<IconButton onClick={() => {
-						if(selectedItem === "settings"){
-							onClick(undefined);
-							history.goBack();
-						} else {
-							onClick('settings');
-							history.push('/settings');
-						}
-					}}>
+					<IconButton
+						onClick={() => {
+							if (selectedItem === 'settings') {
+								onClick(undefined);
+								history.goBack();
+							} else {
+								onClick('settings');
+								history.push('/settings');
+							}
+						}}
+					>
 						<div>
 							<img src={avatar} alt="user avatar" className="panel-avatar" />
 
@@ -140,11 +142,19 @@ const panelIconComponentMap: {
 	[key: string]: JSX.Element;
 } = {
 	'new-room': <NewRoomPanelButton />,
-	email: <div className="sixth-step"><EmailButton /></div>,
+	email: (
+		<div className="sixth-step">
+			<EmailButton />
+		</div>
+	),
 	NFT: <NFTIcon />,
 	background: <Image style={{ fontSize: 32 }} />,
 	//tower: <SportsEsports style={{ fontSize: 36 }} />,
-	roomDirectory: <div className="fourth-step"><MeetingRoom style={{ fontSize: 36 }} /></div>,
+	roomDirectory: (
+		<div className="fourth-step">
+			<MeetingRoom style={{ fontSize: 36 }} />
+		</div>
+	),
 	crypto: (
 		<img
 			alt="crypto"
@@ -184,7 +194,11 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 
 		return (
 			<div
-				className={title === "maps" || title === "youtube" ? "panel-icon-container fifth-step" : "panel-icon-container"}
+				className={
+					title === 'maps' || title === 'youtube'
+						? 'panel-icon-container fifth-step'
+						: 'panel-icon-container'
+				}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
 			>
 				{iconSrc && renderIconImage()}
