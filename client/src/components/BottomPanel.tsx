@@ -16,7 +16,7 @@ import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
-import { RoomDirectoryPanel } from './RoomDirectoryPanel';
+//import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
@@ -324,13 +324,13 @@ const PanelContent = ({
 					updateIsTyping={updateIsTyping}
 				/>
 			);
-		case 'roomDirectory':
+		/* case 'roomDirectory':
 			return (
 				<RoomDirectoryPanel
 					sendRoomDirectory={onAction}
 					onClickNewRoom={() => onAction('new-room')}
 				/>
-			);
+			); */
 		case 'email':
 			return (
 				<EmailPanel

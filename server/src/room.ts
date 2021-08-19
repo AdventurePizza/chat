@@ -168,7 +168,7 @@ roomRouter.get("/:roomId/pinned-background", async (req, res) => {
 })
 
 // get all rooms
-roomRouter.get("/", async (req, res) => {
+/* roomRouter.get("/", async (req, res) => {
   if (process.env.NODE_ENV !== "production") {
     return res.status(200).send([
       {
@@ -181,7 +181,7 @@ roomRouter.get("/", async (req, res) => {
   const docs = snapshot.docs.map((doc) => doc.data() as IChatRoom);
 
   res.status(200).send(docs);
-});
+}); */
 
 // move pinned item
 roomRouter.patch("/:roomId/pin/:itemId", async (req, res) => {

@@ -222,7 +222,7 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
-	'roomDirectory' = 'roomDirectory',
+	//'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
 	'chat' = 'chat',
 	'background' = 'background',
