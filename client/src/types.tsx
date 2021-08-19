@@ -73,6 +73,7 @@ export interface IMessageEvent {
 		| 'unpin-item'
 		| 'poem'
 		| 'tweet'
+		| 'marketplace'
 		| 'change-playlist'
 		| 'clear-field';
 		

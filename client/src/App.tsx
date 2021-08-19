@@ -1573,6 +1573,15 @@ function App() {
 						addHorse(message.value, message.horseKey);
 					}
 					break;
+				case 'marketplace':
+					setBackground({
+						name: '',
+						isPinned: false,
+						type: 'marketplace',
+						mapData: undefined,
+						videoId: undefined
+					});
+					break;
 				case 'change-playlist':
 					handleChangePlaylist(message);
 					break;
@@ -1931,6 +1940,31 @@ function App() {
 				socket.emit('event', {
 					key: 'horse',
 					value: horseId
+				});
+				break;
+			case 'marketplace':
+				const room = roomId || 'default';
+
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: 'marketplace',
+					mapData: undefined,
+					videoId: undefined
+				});
+
+				socket.emit('event', {
+					key: 'marketplace'
+				});
+
+				firebaseContext.pinRoomItem(room, {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "marketplace",
+					mapData: background.mapData,
+					videoId: background.videoId
 				});
 				break;
 			case 'change-playlist':

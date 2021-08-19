@@ -304,6 +304,7 @@ const PanelContent = ({
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace
 					setShowOpensea={setShowOpensea}
+					pinMarketplace={() => {onAction('marketplace')}}
 				/>
 			);
 		case 'settings':

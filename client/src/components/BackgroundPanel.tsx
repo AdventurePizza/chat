@@ -86,6 +86,7 @@ interface IBackgroundPanelProps {
 	sendHorse: (id: string, type: 'horse') => void;
 	//marketplace
 	setShowOpensea: (value: boolean) => void;
+	pinMarketplace: () => void;
 }
 
 type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' |'+NFT';
@@ -171,7 +172,8 @@ const BackgroundPanel = ({
 	//horse
 	sendHorse,
 	//marketplace
-	setShowOpensea
+	setShowOpensea,
+	pinMarketplace
 
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
@@ -275,7 +277,8 @@ const BackgroundPanel = ({
 							color= { "primary" }
 							disabled= {activePanel === panel.type ? true : false }
 							onClick={() => {setActivePanel(panel.type); 
-								if(panel.type === "marketplace"){setShowOpensea(true);}
+								if(panel.type === "marketplace"){
+									pinMarketplace()}
 								else{setShowOpensea(false);}
 							}} 
 							key= {index}

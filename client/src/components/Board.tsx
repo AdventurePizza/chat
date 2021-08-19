@@ -295,7 +295,7 @@ export const Board = ({
 				/>
 			)}
 
-			{showOpensea && (
+			{background.type === 'marketplace' && (
 				<iframe
 					className="opensea-listings"
 					title="Opensea Listings"
