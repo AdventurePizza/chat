@@ -3248,6 +3248,7 @@ function App() {
 				showOpensea={showOpensea}
 				setShowOpensea={setShowOpensea}
 				addVideo={addVideo}
+				setBottomPanelHeight={setBottomPanelHeight}
 			/>
 
 			{userProfile && !showOpensea && (

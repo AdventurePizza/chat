@@ -52,6 +52,7 @@ export interface IBottomPanelProps {
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
+	setBottomPanelHeight: (height: number) => void;
 }
 
 export interface IPanelContentProps {
@@ -86,6 +87,7 @@ export interface IPanelContentProps {
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
+	setBottomPanelHeight: (height: number) => void;
 }
 
 export interface ISoundPairs {
@@ -128,7 +130,8 @@ export const BottomPanel = ({
 	setRaceId,
 	showOpensea,
 	setShowOpensea,
-	addVideo
+	addVideo,
+	setBottomPanelHeight
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -178,6 +181,7 @@ export const BottomPanel = ({
 					showOpensea={showOpensea}
 					setShowOpensea={setShowOpensea}
 					addVideo={addVideo}
+					setBottomPanelHeight={setBottomPanelHeight}
 				/>
 			</div>
 		</Drawer>
@@ -215,7 +219,8 @@ const PanelContent = ({
 	setRaceId,
 	showOpensea,
 	setShowOpensea,
-	addVideo
+	addVideo,
+	setBottomPanelHeight
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -272,6 +277,8 @@ const PanelContent = ({
 		case 'background':
 			return (
 				<BackgroundPanel
+					setBottomPanelHeight={setBottomPanelHeight}
+					//update bottom panel size so board backgroudn can renders correct
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
@@ -304,6 +311,8 @@ const PanelContent = ({
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace
 					setShowOpensea={setShowOpensea}
+
+
 				/>
 			);
 		case 'settings':

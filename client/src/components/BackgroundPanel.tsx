@@ -15,7 +15,7 @@ import {
 } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
 import { GiphyFetch } from '@giphy/js-fetch-api'
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import axios from 'axios';
 import { backgroundIcons } from './BackgroundImages';
 import { FirebaseContext } from '../contexts/FirebaseContext';
@@ -43,9 +43,6 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
-      '& > *': {
-        margin: theme.spacing(1),
-      },
     },
     size: {
       width: theme.spacing(12),
@@ -56,6 +53,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 
 interface IBackgroundPanelProps {
+	setBottomPanelHeight: (height: number) => void;
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
 	images: IImagesState[];
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
@@ -142,6 +140,7 @@ export const getSearchedUnsplashImages = async (text: string) =>
 	});
 
 const BackgroundPanel = ({
+	setBottomPanelHeight,
 	sendImage,
 	images,
 	setImages,
@@ -192,6 +191,7 @@ const BackgroundPanel = ({
 			{type: 'horse', icon: horseIcon}, 
 			{type: '+NFT'} 
 		]); 
+	const panelRef = useRef<HTMLDivElement>(null);
 
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
@@ -253,12 +253,96 @@ const BackgroundPanel = ({
 	};
 
 	useEffect(() => {
+		if(panelRef.current){
+			setBottomPanelHeight(panelRef.current.offsetHeight);
+			console.log("haha" + panelRef.current.offsetHeight);
+		}
+	}, [activePanel, setBottomPanelHeight]);
+
+	useEffect(() => {
 		if (!isImagesEmpty) return;
 		searchSubmit('trending', setImages);
 	}, [isImagesEmpty, setImages]); // Wanted empty deps but warning said to put them in.....
 
 	return (
-		<div className="background-container" style={{overflowY: 'auto'}}>
+		<div ref={panelRef} className="background-container" style={{overflowY: 'auto'}}>
+			
+			{(activePanel === 'google' || activePanel === 'unsplash') && 
+				<div className="background-icon-list" >
+					{isImagesEmpty ? (
+						<DefaultIcons
+							sendImage={sendImage}
+							isSwitchChecked={isSwitchChecked}
+						/>
+					) : (
+						<UnsplashIcons
+							sendImage={sendImage}
+							images={images}
+							isSwitchChecked={isSwitchChecked}
+						/>
+					)
+					}
+				</div>
+			}
+			{activePanel === 'giphy' && 
+				<SearchContextManager apiKey={API_KEY}>
+					<GifComponent sendGif={sendGif} />
+				</SearchContextManager>
+			}
+			{activePanel === 'youtube' && 
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 150}} >
+					<YouTubeMusicPanel
+						setVolume={setVolume}
+						setVideoId={setVideoId}
+						sendVideo={sendVideo}
+						queriedVideos={queriedVideos}
+						setQueriedVideos={setQueriedVideos}
+						lastQuery={lastQuery}
+						setLastQuery={setLastQuery}
+						setIsVideoShowing={setIsVideoShowing}
+						isVideoShowing={isVideoShowing}
+						lastVideoId={lastVideoId}
+						setLastVideoId={setLastVideoId}
+						updateLastTime={updateLastTime}
+						hideAllPins={hideAllPins}
+						setHideAllPins={setHideAllPins}
+						isBackground={isSwitchChecked}
+						addVideo={addVideo}
+					/>
+				</div>
+			}
+
+			{activePanel === '+NFT' && 
+				<NFTPanel
+					roomData={roomData}
+					onError={onError}
+					onSuccess={onSuccess}
+				/>
+			}
+
+			{activePanel === 'maps' && 
+				<div  className="background-icon-list" >
+					<MapsPanel />
+				</div>
+			}
+
+
+			{activePanel === 'race' && 
+				<div  className="background-icon-list" >
+					<RacePanel 
+						sendRace={sendRace}
+						hideAllPins={hideAllPins}
+						setHideAllPins={setHideAllPins}
+					/>
+				</div>
+			}
+
+			{activePanel === 'horse' &&
+				<div  className="background-icon-list" >
+					<HorsePanel sendHorse= {sendHorse}/>
+				</div>
+			}
+
 			<div className="background-search-settings">
 				
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
@@ -327,86 +411,6 @@ const BackgroundPanel = ({
 				</div>
 
 			</div>
-			{(activePanel === 'google' || activePanel === 'unsplash') && 
-				<div className="background-icon-list" >
-					{isImagesEmpty ? (
-						<DefaultIcons
-							sendImage={sendImage}
-							isSwitchChecked={isSwitchChecked}
-						/>
-					) : (
-						<UnsplashIcons
-							sendImage={sendImage}
-							images={images}
-							isSwitchChecked={isSwitchChecked}
-						/>
-					)
-					}
-				</div>
-			}
-			{activePanel === 'giphy' && 
-				<SearchContextManager apiKey={API_KEY}>
-					<GifComponent sendGif={sendGif} />
-				</SearchContextManager>
-			}
-			{activePanel === 'youtube' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 150}} >
-					<YouTubeMusicPanel
-						setVolume={setVolume}
-						setVideoId={setVideoId}
-						sendVideo={sendVideo}
-						queriedVideos={queriedVideos}
-						setQueriedVideos={setQueriedVideos}
-						lastQuery={lastQuery}
-						setLastQuery={setLastQuery}
-						setIsVideoShowing={setIsVideoShowing}
-						isVideoShowing={isVideoShowing}
-						lastVideoId={lastVideoId}
-						setLastVideoId={setLastVideoId}
-						updateLastTime={updateLastTime}
-						hideAllPins={hideAllPins}
-						setHideAllPins={setHideAllPins}
-						isBackground={isSwitchChecked}
-						addVideo={addVideo}
-					/>
-				</div>
-			}
-
-			{activePanel === '+NFT' && 
-				<NFTPanel
-					roomData={roomData}
-					onError={onError}
-					onSuccess={onSuccess}
-				/>
-			}
-
-			{activePanel === 'maps' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<MapsPanel />
-				</div>
-			}
-
-			{activePanel === 'marketplace' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<HorsePanel sendHorse= {sendHorse}/>
-				</div>
-			}
-
-			{activePanel === 'race' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<RacePanel 
-						sendRace={sendRace}
-						hideAllPins={hideAllPins}
-						setHideAllPins={setHideAllPins}
-					/>
-				</div>
-			}
-
-			{activePanel === 'horse' &&
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<HorsePanel sendHorse= {sendHorse}/>
-				</div>
-			}
 		</div>
 	);
 };
