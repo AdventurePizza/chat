@@ -49,6 +49,7 @@ h1{
 img{
     float:right;
 }
-body{
+#numbers{
     float: left;
+    font-size: 30px;
 }
