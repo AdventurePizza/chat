@@ -138,7 +138,7 @@ const panelIconComponentMap: {
 } = {
 	'new-room': <NewRoomPanelButton />,
 	email: (
-		<div className="sixth-step">
+		<div className="fifth-step">
 			<EmailButton />
 		</div>
 	),
@@ -181,7 +181,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 			<div
 				className={
 					title === 'maps' || title === 'youtube'
-						? 'panel-icon-container fifth-step'
+						? 'panel-icon-container fourth-step'
 						: 'panel-icon-container'
 				}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}

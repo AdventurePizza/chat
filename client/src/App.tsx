@@ -684,11 +684,9 @@ function App() {
 		}
 		if (selectedPanelItem === 'settings') {
 			setStep(1);
-		} else if (selectedPanelItem === 'roomDirectory') {
-			setStep(4);
 		} // since we removed youtube panel I used random panel name 
 		else if (selectedPanelItem === 'email') {
-			setStep(5);
+			setStep(4);
 		}
 	}, [selectedPanelItem]);
 
@@ -3020,15 +3018,11 @@ function App() {
 		},
 		{
 			selector: '.fourth-step',
-			content: 'Create and enter rooms here'
-		},
-		{
-			selector: '.fifth-step',
 			content:
 				'You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner'
 		},
 		{
-			selector: '.sixth-step',
+			selector: '.fifth-step',
 			content: 'Invite the homies and earn tokens'
 		}
 	];
