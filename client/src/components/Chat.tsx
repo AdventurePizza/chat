@@ -15,7 +15,6 @@ const useStyles = makeStyles({
 		alignItems: 'center',
 		justifyContent: 'center',
 		padding: 10,
-		background: 'var(--background)',
 		width: '100%',
 		'& > *': {
 			marginRight: 10

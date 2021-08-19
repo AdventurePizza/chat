@@ -23,7 +23,7 @@ import loadingDots from '../assets/loading-dots.gif';
 import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom } from '../types';
+import { IChatRoom, newPanelTypes } from '../types';
 import googleIcon from '../assets/buttons/google.png'
 import giphyIcon from '../assets/buttons/giphy.png'
 import unsplashIcon from '../assets/buttons/unsplash.png'
@@ -32,9 +32,11 @@ import mapsIcon from '../assets/buttons/maps.png'
 import marketplaceIcon from '../assets/buttons/marketplace.png'
 import raceIcon from '../assets/buttons/watch.png'
 import horseIcon from '../assets/buttons/horse.png'
+import chatIcon from '../assets/buttons/chat.png'
 import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { HorsePanel } from './HorsePanel';
+import { Chat } from './Chat';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -53,7 +55,11 @@ const useStyles = makeStyles((theme: Theme) =>
 
 
 interface IBackgroundPanelProps {
+	//panel
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
 	setBottomPanelHeight: (height: number) => void;
+	//google, unsplash, giphy
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
 	images: IImagesState[];
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
@@ -84,12 +90,22 @@ interface IBackgroundPanelProps {
 	sendHorse: (id: string, type: 'horse') => void;
 	//marketplace
 	setShowOpensea: (value: boolean) => void;
+	//chat
+	pinMessage: (message: string) => void;
+	sendMessage: (message: string) => void;
+	updateIsTyping: (isTyping: boolean) => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	setBrushColor: (color: string) => void;
+	sendAnimation: (animationText: string, animationType: string) => void;
+	pinTweet: (id: string) => void; 
+	showChat: () => void;
 }
 
-type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' |'+NFT';
+
 
 interface IPanel {
-	type: PanelTypes;
+	type: newPanelTypes;
 	icon?: string;
 }
 
@@ -139,8 +155,27 @@ export const getSearchedUnsplashImages = async (text: string) =>
 		}
 	});
 
+
+const panels: IPanel[] =
+	[
+		{type: 'chat', icon: chatIcon},
+		{type: 'google', icon: googleIcon},
+		{type: 'unsplash', icon: unsplashIcon},
+		{type: 'giphy', icon: giphyIcon},
+		{type: 'youtube', icon: youtubeIcon}, 
+		{type: 'maps', icon: mapsIcon}, 
+		{type: 'marketplace', icon: marketplaceIcon}, 
+		{type: 'race', icon: raceIcon}, 
+		{type: 'horse', icon: horseIcon}, 
+		{type: '+NFT'} 
+	] 
+
 const BackgroundPanel = ({
+	//panel
+	activePanel,
+	setActivePanel,
 	setBottomPanelHeight,
+	//google, unsplash, giphy
 	sendImage,
 	images,
 	setImages,
@@ -170,27 +205,26 @@ const BackgroundPanel = ({
 	//horse
 	sendHorse,
 	//marketplace
-	setShowOpensea
+	setShowOpensea,
+	//chat
+	sendMessage,
+	updateIsTyping,
+	pinMessage,
+	showWhiteboard,
+	updateShowWhiteboard,
+	setBrushColor,
+	sendAnimation,
+	pinTweet,
+	showChat
 
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
-	const [activePanel, setActivePanel] = useState<PanelTypes>('unsplash');
+	//const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
-	const [panels] =  useState<IPanel[]>(
-		[
-			{type: 'google', icon: googleIcon},
-			{type: 'unsplash', icon: unsplashIcon},
-			{type: 'giphy', icon: giphyIcon},
-			{type: 'youtube', icon: youtubeIcon}, 
-			{type: 'maps', icon: mapsIcon}, 
-			{type: 'marketplace', icon: marketplaceIcon}, 
-			{type: 'race', icon: raceIcon}, 
-			{type: 'horse', icon: horseIcon}, 
-			{type: '+NFT'} 
-		]); 
+
 	const panelRef = useRef<HTMLDivElement>(null);
 
 	const googleSearch = async (textToSearch: string) => {
@@ -267,6 +301,22 @@ const BackgroundPanel = ({
 	return (
 		<div ref={panelRef} className="background-container" style={{overflowY: 'auto'}}>
 			
+			{activePanel === 'chat' &&
+				<div  className="background-icon-list" >
+					<Chat
+						sendMessage={sendMessage}
+						pinMessage={pinMessage}
+						pinTweet={pinTweet}
+						updateIsTyping={updateIsTyping}
+						showWhiteboard={showWhiteboard}
+						updateShowWhiteboard={updateShowWhiteboard}
+						setBrushColor={setBrushColor}
+						sendAnimation={sendAnimation}
+						showChat={showChat}
+					/>
+				</div>
+			}
+
 			{(activePanel === 'google' || activePanel === 'unsplash') && 
 				<div className="background-icon-list" >
 					{isImagesEmpty ? (
@@ -321,7 +371,7 @@ const BackgroundPanel = ({
 			}
 
 			{activePanel === 'maps' && 
-				<div  className="background-icon-list" >
+				<div  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
 					<MapsPanel />
 				</div>
 			}

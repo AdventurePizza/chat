@@ -4,13 +4,13 @@ import {
 	IEmojiDict,
 	ITowerDefenseState,
 	PanelItemEnum,
-	IMusicPlayer
+	IMusicPlayer,
+	newPanelTypes
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
 
 import BackgroundPanel from './BackgroundPanel';
-import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
@@ -53,6 +53,8 @@ export interface IBottomPanelProps {
 	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
 	setBottomPanelHeight: (height: number) => void;
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
 export interface IPanelContentProps {
@@ -88,6 +90,8 @@ export interface IPanelContentProps {
 	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
 	setBottomPanelHeight: (height: number) => void;
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
 export interface ISoundPairs {
@@ -131,7 +135,9 @@ export const BottomPanel = ({
 	showOpensea,
 	setShowOpensea,
 	addVideo,
-	setBottomPanelHeight
+	setBottomPanelHeight,	
+	activePanel,
+	setActivePanel
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -182,6 +188,8 @@ export const BottomPanel = ({
 					setShowOpensea={setShowOpensea}
 					addVideo={addVideo}
 					setBottomPanelHeight={setBottomPanelHeight}
+					activePanel={activePanel}
+					setActivePanel={setActivePanel}
 				/>
 			</div>
 		</Drawer>
@@ -220,7 +228,9 @@ const PanelContent = ({
 	showOpensea,
 	setShowOpensea,
 	addVideo,
-	setBottomPanelHeight
+	setBottomPanelHeight,
+	activePanel,
+	setActivePanel
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -233,23 +243,7 @@ const PanelContent = ({
 			);
 		case 'chat':
 			return (
-				<Chat
-					sendMessage={(message) => {
-						onAction('chat', message);
-					}}
-					pinMessage={(message) => {
-						onAction('chat-pin', message);
-					}}
-					pinTweet={(id)=>{
-						onAction('tweet', id);
-					}}
-					updateIsTyping={updateIsTyping}
-					showWhiteboard={showWhiteboard}
-					updateShowWhiteboard={updateShowWhiteboard}
-					setBrushColor={setBrushColor}
-					sendAnimation={onAction}
-					showChat={updateShowChat}
-				/>
+				<div>keks</div>
 			);
 		case 'sound':
 			return <SoundPanel sendSound={onAction} />;
@@ -277,8 +271,9 @@ const PanelContent = ({
 		case 'background':
 			return (
 				<BackgroundPanel
+					//update bottom panel size so board background can renders correct
 					setBottomPanelHeight={setBottomPanelHeight}
-					//update bottom panel size so board backgroudn can renders correct
+					//giphy unsplash google
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
@@ -311,8 +306,24 @@ const PanelContent = ({
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace
 					setShowOpensea={setShowOpensea}
-
-
+					//chat
+					sendMessage={(message) => {
+						onAction('chat', message);
+					}}
+					pinMessage={(message) => {
+						onAction('chat-pin', message);
+					}}
+					pinTweet={(id)=>{
+						onAction('tweet', id);
+					}}
+					updateIsTyping={updateIsTyping}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					setBrushColor={setBrushColor}
+					sendAnimation={onAction}
+					showChat={updateShowChat}
+					activePanel={activePanel}
+					setActivePanel={setActivePanel}
 				/>
 			);
 		case 'settings':
