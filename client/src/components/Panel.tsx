@@ -123,14 +123,12 @@ const panelIconSrcMap: {
 	[key: string]: string;
 } = {
 	// sound: soundIcon,
-	chat: chatIcon,
 	//youtube: YouTubeIcon,
 	//emoji: emojiIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	// weather: weatherIcon,
 	// poem: poemIcon
-	musicPlayer: musicPlayerIcon
 };
 
 const panelIconComponentMap: {

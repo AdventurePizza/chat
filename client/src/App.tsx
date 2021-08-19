@@ -487,7 +487,6 @@ function App() {
 		switch (key) {
 			case 'sound':
 			case 'emoji':
-			case 'chat':
 			case 'tower':
 			case 'background':
 			case 'weather':
@@ -495,7 +494,6 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case 'musicPlayer':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);

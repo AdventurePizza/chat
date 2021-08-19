@@ -22,7 +22,6 @@ import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import { Poem } from './Poem';
 import { ISubmit } from './NFT/OrderInput';
-import { MusicPlayerPanel } from './MusicPlayerPanel';
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -241,10 +240,6 @@ const PanelContent = ({
 					}}
 				/>
 			);
-		case 'chat':
-			return (
-				<div>keks</div>
-			);
 		case 'sound':
 			return <SoundPanel sendSound={onAction} />;
 
@@ -363,18 +358,6 @@ const PanelContent = ({
 			return (
 				<EmailPanel
 					sendEmail={(email, message) => onAction('send-email', email, message)}
-				/>
-			);
-		case 'musicPlayer':
-			return (
-				<MusicPlayerPanel
-					changePlaylist={(url, name) => {
-						onAction('change-playlist', {
-							url: url,
-							name: name
-						})
-					}}
-					musicPlayer={musicPlayer}
 				/>
 			);
 		default:

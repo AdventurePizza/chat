@@ -108,24 +108,6 @@ export const MusicPlayerPanel = ({
 					<img src={url} alt="url" width= "40" height= "40"/>
 			</IconButton>
 
-			<div className={classes.playlist}>
-				{musicPlayer &&
-					musicPlayer.playlist.map((track, index) => (
-						<div key={uuidv4()} style={{ width: 300, clear: 'left'}}>
-							{
-								<Button
-									onClick={() => {
-										remove(index);
-									}}
-									variant="contained" color="primary"  style={{width: 300}}
-								>
-									{track.name}
-								</Button>
-							}
-						</div>
-					))
-				}
-			</div>	
 
 			{showURLPanel && <div className={classes.urlpanel}>
 
@@ -150,7 +132,7 @@ export const MusicPlayerPanel = ({
 					className={classes.input}
 					onFocus={onFocus}
 				/>
-				<StyledButton onClick={addMusic}>Add Music</StyledButton>
+				<StyledButton onClick={addMusic}>Add</StyledButton>
 
 			</div>
 			}
@@ -184,6 +166,24 @@ export const MusicPlayerPanel = ({
 			</div>
 			}
 
+			<div className={classes.playlist}>
+				{musicPlayer &&
+					musicPlayer.playlist.map((track, index) => (
+						<div key={uuidv4()} style={{ width: 300, clear: 'left'}}>
+							{
+								<Button
+									onClick={() => {
+										remove(index);
+									}}
+									variant="contained" color="primary"  style={{width: 300}}
+								>
+									{track.name}
+								</Button>
+							}
+						</div>
+					))
+				}
+			</div>	
 
 		</div>
 	);

@@ -224,7 +224,6 @@ export interface IGifs {
 export enum PanelItemEnum {
 	'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	'chat' = 'chat',
 	'background' = 'background',
 	'weather' = 'weather',
 	'poem' = 'poem',
@@ -233,7 +232,6 @@ export enum PanelItemEnum {
 	'new-room' = 'new-room',
 	'tower' = 'tower',
 	'emoji' = 'emoji',
-	'musicPlayer' = 'musicPlayer'
 }
 
 export interface IUserLocations {
