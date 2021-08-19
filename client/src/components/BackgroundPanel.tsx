@@ -15,7 +15,7 @@ import {
 } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
 import { GiphyFetch } from '@giphy/js-fetch-api'
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import axios from 'axios';
 import { backgroundIcons } from './BackgroundImages';
 import { FirebaseContext } from '../contexts/FirebaseContext';
@@ -23,7 +23,7 @@ import loadingDots from '../assets/loading-dots.gif';
 import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom } from '../types';
+import { IChatRoom, newPanelTypes, IMusicPlayer } from '../types';
 import googleIcon from '../assets/buttons/google.png'
 import giphyIcon from '../assets/buttons/giphy.png'
 import unsplashIcon from '../assets/buttons/unsplash.png'
@@ -32,9 +32,13 @@ import mapsIcon from '../assets/buttons/maps.png'
 import marketplaceIcon from '../assets/buttons/marketplace.png'
 import raceIcon from '../assets/buttons/watch.png'
 import horseIcon from '../assets/buttons/horse.png'
+import chatIcon from '../assets/buttons/chat.png'
+import musicIcon from '../assets/buttons/music.png'
 import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { HorsePanel } from './HorsePanel';
+import { MusicPlayerPanel } from './MusicPlayerPanel';
+import { Chat } from './Chat';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -43,9 +47,6 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
-      '& > *': {
-        margin: theme.spacing(1),
-      },
     },
     size: {
       width: theme.spacing(12),
@@ -54,8 +55,12 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-
 interface IBackgroundPanelProps {
+	//panel
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
+	setBottomPanelHeight: (height: number) => void;
+	//google, unsplash, giphy
 	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
 	images: IImagesState[];
 	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
@@ -86,12 +91,25 @@ interface IBackgroundPanelProps {
 	sendHorse: (id: string, type: 'horse') => void;
 	//marketplace
 	setShowOpensea: (value: boolean) => void;
+	//chat
+	pinMessage: (message: string) => void;
+	sendMessage: (message: string) => void;
+	updateIsTyping: (isTyping: boolean) => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	setBrushColor: (color: string) => void;
+	sendAnimation: (animationText: string, animationType: string) => void;
+	pinTweet: (id: string) => void; 
+	showChat: () => void;
+	//musicplayer
+	changePlaylist: (url: string, name: string) => void;
+	musicPlayer: IMusicPlayer;
 }
 
-type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' |'+NFT';
+
 
 interface IPanel {
-	type: PanelTypes;
+	type: newPanelTypes;
 	icon?: string;
 }
 
@@ -141,7 +159,28 @@ export const getSearchedUnsplashImages = async (text: string) =>
 		}
 	});
 
+
+const panels: IPanel[] =
+	[
+		{type: 'chat', icon: chatIcon},
+		{type: 'google', icon: googleIcon},
+		{type: 'unsplash', icon: unsplashIcon},
+		{type: 'giphy', icon: giphyIcon},
+		{type: 'youtube', icon: youtubeIcon}, 
+		{type: 'maps', icon: mapsIcon}, 
+		{type: 'marketplace', icon: marketplaceIcon}, 
+		{type: 'race', icon: raceIcon}, 
+		{type: 'horse', icon: horseIcon}, 
+		{type: 'music', icon: musicIcon}, 
+		{type: '+NFT'} 
+	] 
+
 const BackgroundPanel = ({
+	//panel
+	activePanel,
+	setActivePanel,
+	setBottomPanelHeight,
+	//google, unsplash, giphy
 	sendImage,
 	images,
 	setImages,
@@ -171,27 +210,29 @@ const BackgroundPanel = ({
 	//horse
 	sendHorse,
 	//marketplace
-	setShowOpensea
+	setShowOpensea,
+	//chat
+	sendMessage,
+	updateIsTyping,
+	pinMessage,
+	showWhiteboard,
+	updateShowWhiteboard,
+	setBrushColor,
+	sendAnimation,
+	pinTweet,
+	showChat,
+	//musicplayer
+	changePlaylist,
+	musicPlayer
 
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
-	const [activePanel, setActivePanel] = useState<PanelTypes>('unsplash');
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
-	const [panels] =  useState<IPanel[]>(
-		[
-			{type: 'google', icon: googleIcon},
-			{type: 'unsplash', icon: unsplashIcon},
-			{type: 'giphy', icon: giphyIcon},
-			{type: 'youtube', icon: youtubeIcon}, 
-			{type: 'maps', icon: mapsIcon}, 
-			{type: 'marketplace', icon: marketplaceIcon}, 
-			{type: 'race', icon: raceIcon}, 
-			{type: 'horse', icon: horseIcon}, 
-			{type: '+NFT'} 
-		]); 
+
+	const panelRef = useRef<HTMLDivElement>(null);
 
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
@@ -253,12 +294,120 @@ const BackgroundPanel = ({
 	};
 
 	useEffect(() => {
+		if(panelRef.current){
+			setBottomPanelHeight(panelRef.current.offsetHeight);
+		}
+	}, [activePanel, setBottomPanelHeight]);
+
+	useEffect(() => {
 		if (!isImagesEmpty) return;
 		searchSubmit('trending', setImages);
 	}, [isImagesEmpty, setImages]); // Wanted empty deps but warning said to put them in.....
 
 	return (
-		<div className="background-container" style={{overflowY: 'auto'}}>
+		<div ref={panelRef} className="background-container" style={{overflowY: 'auto'}}>
+			
+			{activePanel === 'chat' &&
+				<div  className="background-icon-list" >
+					<Chat
+						sendMessage={sendMessage}
+						pinMessage={pinMessage}
+						pinTweet={pinTweet}
+						updateIsTyping={updateIsTyping}
+						showWhiteboard={showWhiteboard}
+						updateShowWhiteboard={updateShowWhiteboard}
+						setBrushColor={setBrushColor}
+						sendAnimation={sendAnimation}
+						showChat={showChat}
+					/>
+				</div>
+			}
+
+			{(activePanel === 'google' || activePanel === 'unsplash') && 
+				<div className="background-icon-list" >
+					{isImagesEmpty ? (
+						<DefaultIcons
+							sendImage={sendImage}
+							isSwitchChecked={isSwitchChecked}
+						/>
+					) : (
+						<UnsplashIcons
+							sendImage={sendImage}
+							images={images}
+							isSwitchChecked={isSwitchChecked}
+						/>
+					)
+					}
+				</div>
+			}
+			{activePanel === 'giphy' && 
+				<SearchContextManager apiKey={API_KEY}>
+					<GifComponent sendGif={sendGif} />
+				</SearchContextManager>
+			}
+			{activePanel === 'youtube' && 
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 150}} >
+					<YouTubeMusicPanel
+						setVolume={setVolume}
+						setVideoId={setVideoId}
+						sendVideo={sendVideo}
+						queriedVideos={queriedVideos}
+						setQueriedVideos={setQueriedVideos}
+						lastQuery={lastQuery}
+						setLastQuery={setLastQuery}
+						setIsVideoShowing={setIsVideoShowing}
+						isVideoShowing={isVideoShowing}
+						lastVideoId={lastVideoId}
+						setLastVideoId={setLastVideoId}
+						updateLastTime={updateLastTime}
+						hideAllPins={hideAllPins}
+						setHideAllPins={setHideAllPins}
+						isBackground={isSwitchChecked}
+						addVideo={addVideo}
+					/>
+				</div>
+			}
+
+
+			{activePanel === 'maps' && 
+				<div  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
+					<MapsPanel />
+				</div>
+			}
+
+
+			{activePanel === 'race' && 
+				<div  className="background-icon-list" >
+					<RacePanel 
+						sendRace={sendRace}
+						hideAllPins={hideAllPins}
+						setHideAllPins={setHideAllPins}
+					/>
+				</div>
+			}
+
+			{activePanel === 'horse' &&
+				<div  className="background-icon-list" >
+					<HorsePanel sendHorse= {sendHorse}/>
+				</div>
+			}
+
+			{activePanel === 'music' &&
+				<div  className="background-icon-list" >
+					<MusicPlayerPanel
+						changePlaylist={changePlaylist}
+						musicPlayer={musicPlayer}
+					/>
+				</div>
+			}
+
+			{activePanel === '+NFT' && 
+				<NFTPanel
+					roomData={roomData}
+					onError={onError}
+					onSuccess={onSuccess}
+				/>
+			}
 			<div className="background-search-settings">
 				
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
@@ -327,86 +476,6 @@ const BackgroundPanel = ({
 				</div>
 
 			</div>
-			{(activePanel === 'google' || activePanel === 'unsplash') && 
-				<div className="background-icon-list" >
-					{isImagesEmpty ? (
-						<DefaultIcons
-							sendImage={sendImage}
-							isSwitchChecked={isSwitchChecked}
-						/>
-					) : (
-						<UnsplashIcons
-							sendImage={sendImage}
-							images={images}
-							isSwitchChecked={isSwitchChecked}
-						/>
-					)
-					}
-				</div>
-			}
-			{activePanel === 'giphy' && 
-				<SearchContextManager apiKey={API_KEY}>
-					<GifComponent sendGif={sendGif} />
-				</SearchContextManager>
-			}
-			{activePanel === 'youtube' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 150}} >
-					<YouTubeMusicPanel
-						setVolume={setVolume}
-						setVideoId={setVideoId}
-						sendVideo={sendVideo}
-						queriedVideos={queriedVideos}
-						setQueriedVideos={setQueriedVideos}
-						lastQuery={lastQuery}
-						setLastQuery={setLastQuery}
-						setIsVideoShowing={setIsVideoShowing}
-						isVideoShowing={isVideoShowing}
-						lastVideoId={lastVideoId}
-						setLastVideoId={setLastVideoId}
-						updateLastTime={updateLastTime}
-						hideAllPins={hideAllPins}
-						setHideAllPins={setHideAllPins}
-						isBackground={isSwitchChecked}
-						addVideo={addVideo}
-					/>
-				</div>
-			}
-
-			{activePanel === '+NFT' && 
-				<NFTPanel
-					roomData={roomData}
-					onError={onError}
-					onSuccess={onSuccess}
-				/>
-			}
-
-			{activePanel === 'maps' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<MapsPanel />
-				</div>
-			}
-
-			{activePanel === 'marketplace' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<HorsePanel sendHorse= {sendHorse}/>
-				</div>
-			}
-
-			{activePanel === 'race' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<RacePanel 
-						sendRace={sendRace}
-						hideAllPins={hideAllPins}
-						setHideAllPins={setHideAllPins}
-					/>
-				</div>
-			}
-
-			{activePanel === 'horse' &&
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<HorsePanel sendHorse= {sendHorse}/>
-				</div>
-			}
 		</div>
 	);
 };

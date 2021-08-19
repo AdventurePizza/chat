@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from 'react'
-import { IWaterfallMessage, PanelItemEnum } from '../types';
+import { IWaterfallMessage, PanelItemEnum, newPanelTypes } from '../types';
 import { Box, Avatar, Button } from '@material-ui/core';
 import { avatarMap } from './UserCursors';
 
 interface IWaterfallChatProps {
 	chat: IWaterfallMessage[];
-	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
-export const WaterfallChat = ({ chat, selectedPanelItem, updateSelectedPanelItem }: IWaterfallChatProps) => {
+export const WaterfallChat = ({ chat, updateSelectedPanelItem, setActivePanel }: IWaterfallChatProps) => {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const scrollToBottom = () => {
 		if(messagesEndRef && messagesEndRef.current){
@@ -26,12 +26,8 @@ export const WaterfallChat = ({ chat, selectedPanelItem, updateSelectedPanelItem
 				<Button 
 					style={{ maxWidth: 300, maxHeight: 40 , minWidth: 300, minHeight: 40, fontSize: 20 }} 
 					size="medium" color="primary" onClick={() => { 
-						if(selectedPanelItem === PanelItemEnum.chat){
-							updateSelectedPanelItem(undefined);
-						}
-						else{
-							updateSelectedPanelItem(PanelItemEnum.chat as PanelItemEnum );
-						}
+						updateSelectedPanelItem(PanelItemEnum.background as PanelItemEnum );
+						setActivePanel('chat');
 					}} > CHAT
 				</Button>
 				<div style={{overflowY: 'scroll', maxHeight: 300}}>

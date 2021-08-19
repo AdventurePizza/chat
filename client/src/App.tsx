@@ -38,7 +38,8 @@ import {
 	IMap,
 	IWaterfallChat,
 	IBoardHorse,
-	IMusicPlayer
+	IMusicPlayer,
+	newPanelTypes
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -316,6 +317,7 @@ function App() {
 
 	const [showOpensea, setShowOpensea] = useState<boolean>(false);
 
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -485,7 +487,6 @@ function App() {
 		switch (key) {
 			case 'sound':
 			case 'emoji':
-			case 'chat':
 			case 'tower':
 			case 'background':
 			case 'weather':
@@ -493,7 +494,6 @@ function App() {
 			case 'settings':
 			case 'poem':
 			case 'email':
-			case 'musicPlayer':
 				setSelectedPanelItem(
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
@@ -2068,7 +2068,7 @@ function App() {
 	);
 
 	const onWhiteboardPanel =
-		selectedPanelItem === PanelItemEnum.chat && showWhiteboard;
+		selectedPanelItem === PanelItemEnum.background && activePanel === 'chat' && showWhiteboard;
 
 	const onCreateRoom = async (
 		roomName: string,
@@ -3120,8 +3120,8 @@ function App() {
 					unpinHorse={unpinHorse}
 					updateHorses={setHorses}
 					showOpensea={showOpensea}
-					selectedPanelItem={selectedPanelItem}
 					updateSelectedPanelItem={setSelectedPanelItem}
+					setActivePanel= {setActivePanel}
 				/>
 			</Route>
 
@@ -3242,6 +3242,9 @@ function App() {
 				showOpensea={showOpensea}
 				setShowOpensea={setShowOpensea}
 				addVideo={addVideo}
+				setBottomPanelHeight={setBottomPanelHeight}
+				activePanel={activePanel}
+				setActivePanel={setActivePanel}
 			/>
 
 			{userProfile && !showOpensea && (

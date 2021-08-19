@@ -11,7 +11,8 @@ import {
 	IWaterfallMessage,
 	IHorse,
 	IPlaylist,
-	PanelItemEnum
+	PanelItemEnum,
+	newPanelTypes
 } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
@@ -80,7 +81,7 @@ interface BoardObjectProps {
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
 
-	selectedPanelItem?: PanelItemEnum | undefined;
+	setActivePanel?: (panel: newPanelTypes) => void;
 	updateSelectedPanelItem?: (panelItem: PanelItemEnum | undefined) => void;
 	chat?: IWaterfallMessage[];
 	horseData?: IHorse;
@@ -107,8 +108,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		chat,
 		horseData,
 		playlist,
-		selectedPanelItem,
-		updateSelectedPanelItem
+		updateSelectedPanelItem,
+		setActivePanel
 	} = props;
 
 	const [isHovering, setIsHovering] = useState(false);
@@ -220,10 +221,10 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</div>
 				)}
 				{type === 'horse' && horseData && <Horse horse={horseData} />}
-				{type === 'chat' && chat && updateSelectedPanelItem && (
+				{type === 'chat' && chat && updateSelectedPanelItem && setActivePanel &&(
 					<WaterfallChat
-						selectedPanelItem={selectedPanelItem}
 						updateSelectedPanelItem={updateSelectedPanelItem}
+						setActivePanel={setActivePanel}
 						chat={chat}
 					/>
 				)}

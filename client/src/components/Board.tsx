@@ -20,7 +20,8 @@ import {
 	IWaterfallChat,
 	IBoardHorse,
 	IMusicPlayer,
-	PanelItemEnum
+	PanelItemEnum,
+	newPanelTypes
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -112,8 +113,8 @@ interface IBoardProps {
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
 	showOpensea: boolean;
-	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
 export const Board = ({
@@ -178,8 +179,9 @@ export const Board = ({
 	updateHorses,
 	musicPlayer,
 	showOpensea,
-	selectedPanelItem,
-	updateSelectedPanelItem
+	updateSelectedPanelItem,
+	setActivePanel
+
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -323,8 +325,8 @@ export const Board = ({
 				type="chat"
 				onPin={() => {}}
 				onUnpin={() => {}}
-				selectedPanelItem={selectedPanelItem}
 				updateSelectedPanelItem={updateSelectedPanelItem}
+				setActivePanel={setActivePanel}
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
