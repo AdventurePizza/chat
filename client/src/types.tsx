@@ -369,4 +369,4 @@ export interface IMusicPlayer{
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
 
-export type newPanelTypes= 'chat' | 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' |'+NFT';
+export type newPanelTypes= 'chat' | 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT';

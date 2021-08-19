@@ -324,6 +324,14 @@ const PanelContent = ({
 					showChat={updateShowChat}
 					activePanel={activePanel}
 					setActivePanel={setActivePanel}
+					//musicplayer
+					changePlaylist={(url, name) => {
+						onAction('change-playlist', {
+							url: url,
+							name: name
+						})
+					}}
+					musicPlayer={musicPlayer}
 				/>
 			);
 		case 'settings':

@@ -23,7 +23,7 @@ import loadingDots from '../assets/loading-dots.gif';
 import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom, newPanelTypes } from '../types';
+import { IChatRoom, newPanelTypes, IMusicPlayer } from '../types';
 import googleIcon from '../assets/buttons/google.png'
 import giphyIcon from '../assets/buttons/giphy.png'
 import unsplashIcon from '../assets/buttons/unsplash.png'
@@ -33,9 +33,11 @@ import marketplaceIcon from '../assets/buttons/marketplace.png'
 import raceIcon from '../assets/buttons/watch.png'
 import horseIcon from '../assets/buttons/horse.png'
 import chatIcon from '../assets/buttons/chat.png'
+import musicIcon from '../assets/buttons/music.png'
 import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { HorsePanel } from './HorsePanel';
+import { MusicPlayerPanel } from './MusicPlayerPanel';
 import { Chat } from './Chat';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
@@ -52,7 +54,6 @@ const useStyles = makeStyles((theme: Theme) =>
     },
   }),
 );
-
 
 interface IBackgroundPanelProps {
 	//panel
@@ -100,6 +101,9 @@ interface IBackgroundPanelProps {
 	sendAnimation: (animationText: string, animationType: string) => void;
 	pinTweet: (id: string) => void; 
 	showChat: () => void;
+	//musicplayer
+	changePlaylist: (url: string, name: string) => void;
+	musicPlayer: IMusicPlayer;
 }
 
 
@@ -167,6 +171,7 @@ const panels: IPanel[] =
 		{type: 'marketplace', icon: marketplaceIcon}, 
 		{type: 'race', icon: raceIcon}, 
 		{type: 'horse', icon: horseIcon}, 
+		{type: 'music', icon: musicIcon}, 
 		{type: '+NFT'} 
 	] 
 
@@ -215,13 +220,15 @@ const BackgroundPanel = ({
 	setBrushColor,
 	sendAnimation,
 	pinTweet,
-	showChat
+	showChat,
+	//musicplayer
+	changePlaylist,
+	musicPlayer
 
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
 	const [isSwitchChecked, setIsSwitchChecked] = useState(false);
 	const isImagesEmpty = images.length === 0;
-	//const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
 
@@ -289,7 +296,6 @@ const BackgroundPanel = ({
 	useEffect(() => {
 		if(panelRef.current){
 			setBottomPanelHeight(panelRef.current.offsetHeight);
-			console.log("haha" + panelRef.current.offsetHeight);
 		}
 	}, [activePanel, setBottomPanelHeight]);
 
@@ -362,13 +368,6 @@ const BackgroundPanel = ({
 				</div>
 			}
 
-			{activePanel === '+NFT' && 
-				<NFTPanel
-					roomData={roomData}
-					onError={onError}
-					onSuccess={onSuccess}
-				/>
-			}
 
 			{activePanel === 'maps' && 
 				<div  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
@@ -393,6 +392,22 @@ const BackgroundPanel = ({
 				</div>
 			}
 
+			{activePanel === 'music' &&
+				<div  className="background-icon-list" >
+					<MusicPlayerPanel
+						changePlaylist={changePlaylist}
+						musicPlayer={musicPlayer}
+					/>
+				</div>
+			}
+
+			{activePanel === '+NFT' && 
+				<NFTPanel
+					roomData={roomData}
+					onError={onError}
+					onSuccess={onSuccess}
+				/>
+			}
 			<div className="background-search-settings">
 				
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >

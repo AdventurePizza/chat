@@ -303,7 +303,7 @@ export const Board = ({
 					title="Opensea Listings"
 					src="https://opensea.io/assets?embed=true"
 					width="100%"
-					height="1200vh"
+					height="100%"
 				></iframe>
 			)}
 

@@ -12,7 +12,6 @@ const useStyles = makeStyles({
 		display: 'flex',
 		alignItems: 'center',
 		padding: 10,
-		background: 'var(--background)',
 		width: '100%',
 		'& > *': {
 			marginRight: 10
@@ -23,7 +22,6 @@ const useStyles = makeStyles({
 		alignItems: 'center',
 		justifyContent: 'center',
 		paddingLeft: 50,
-		background: 'var(--background)',
 		'& > *': {
 			marginRight: 10
 		}
@@ -99,7 +97,7 @@ export const MusicPlayerPanel = ({
 					setShowNFTPanel(!showNFTPanel);
 					setShowURLPanel(false);
 					}}>
-					<div style={{color: '#FFFFFF'}}>NFT</div>
+					<div style={{color: '#000000'}}>NFT</div>
 			</IconButton>
 
 			<IconButton 
