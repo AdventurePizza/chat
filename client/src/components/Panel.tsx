@@ -21,8 +21,6 @@ import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import HomeIcon from '../assets/navbar/homeIcon.png';
-import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
-import chatIcon from '../assets/navbar/chatIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
