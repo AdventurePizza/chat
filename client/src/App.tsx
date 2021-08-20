@@ -39,7 +39,8 @@ import {
 	IWaterfallChat,
 	IBoardHorse,
 	IMusicPlayer,
-	newPanelTypes
+	newPanelTypes,
+	IBoardRace
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -312,6 +313,7 @@ function App() {
 		playlist: []
 	});
 	const [raceId, setRaceId] = useState<string>('');
+	const [races, setRaces] = useState<IBoardRace[]>([]);
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
@@ -1038,6 +1040,17 @@ function App() {
 		},
 		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
 	);
+
+	const addRace = useCallback((id: string) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newRace: IBoardRace = {
+			top: y,
+			left: x,
+			key: uuidv4(),
+			id: id
+		};
+		setRaces((races) => races.concat(newRace));
+	}, []);
 
 	const getHorse = async (id: string) =>
 		await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
@@ -1788,6 +1801,14 @@ function App() {
 					value: raceId
 				});
 				break;
+			case 'add-race':
+				const race = args[0] as string;
+				addRace(race);
+				socket.emit('event', {
+					key: 'add-race',
+					value: race
+				});
+				break;
 			case 'whiteboard':
 				const strlineData = args[0] as string;
 				socket.emit('event', {
@@ -1952,7 +1973,7 @@ function App() {
 				socket.emit('event', {
 					key: 'marketplace'
 				});
-
+				
 				firebaseContext.pinRoomItem(room, {
 					name: background.name,
 					type: 'background',
@@ -2525,6 +2546,8 @@ function App() {
 			backgroundType = 'video';
 		} else if (background.name) {
 			backgroundType = 'image';
+		} else if (background.type) {
+			backgroundType = 'marketplace';
 		}
 
 		let backgroundName: string | undefined;
@@ -3147,6 +3170,8 @@ function App() {
 					pinTweet={pinTweet}
 					unpinTweet={unpinTweet}
 					raceId={raceId}
+					races={races}
+					updateRaces={setRaces}
 					horses={horses}
 					pinHorse={pinHorse}
 					unpinHorse={unpinHorse}

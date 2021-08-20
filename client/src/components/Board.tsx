@@ -21,7 +21,8 @@ import {
 	IBoardHorse,
 	IMusicPlayer,
 	PanelItemEnum,
-	newPanelTypes
+	newPanelTypes,
+	IBoardRace
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -107,6 +108,8 @@ interface IBoardProps {
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
 	waterfallChat: IWaterfallChat;
+	races: IBoardRace[];
+	updateRaces: (races: IBoardRace[]) => void;
 	raceId: string;
 	horses: IBoardHorse[];
 	pinHorse: (horseKey: string) => void;
@@ -171,6 +174,8 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
+	races,
+	updateRaces,
 	raceId,
 	horses,
 	pinHorse,
@@ -329,6 +334,42 @@ export const Board = ({
 				top={waterfallChat.top}
 				left={waterfallChat.left}
 			/>}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{races.map((race) => (
+						<CSSTransition
+							key={race.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!race.isPinned) {
+									const index = races.findIndex(
+										(_race) => _race.key === race.key
+									);
+									updateRaces([
+										...races.slice(0, index),
+										...races.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...race}
+								id={race.key}
+								type="race"
+								raceId={race.id}
+								onPin={() => {
+									
+								}}
+								onUnpin={() => {
+									
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
 
 			{musicPlayer.playlist.length !== 0 && (
 				<BoardObject

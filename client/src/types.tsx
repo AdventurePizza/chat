@@ -205,6 +205,14 @@ export interface IHorse{
 	win_rate: string;
 }
 
+export interface IBoardRace {
+	top: number;
+	left: number;
+	key: string;
+	isPinned?: boolean;
+	id: string;
+}
+
 export interface IBoardHorse {
 	top: number;
 	left: number;

@@ -287,6 +287,7 @@ const PanelContent = ({
 					onSuccess={onNFTSuccess}
 					//race
 					sendRace={(id) => onAction('send-race', id)}
+					addRace={(id) => onAction('add-race', id)}
 					//horse
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace

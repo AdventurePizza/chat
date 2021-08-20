@@ -59,6 +59,7 @@ interface BoardObjectProps {
 		| 'map'
 		| 'chat'
 		| 'musicPlayer'
+		| 'race'
 		| 'tweet';
 	data?: IGif;
 	imgSrc?: string;
@@ -86,6 +87,8 @@ interface BoardObjectProps {
 	chat?: IWaterfallMessage[];
 	horseData?: IHorse;
 	playlist?: IPlaylist[];
+
+	raceId?: string;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -109,7 +112,8 @@ export const BoardObject = (props: BoardObjectProps) => {
 		horseData,
 		playlist,
 		updateSelectedPanelItem,
-		setActivePanel
+		setActivePanel,
+		raceId
 	} = props;
 
 	const [isHovering, setIsHovering] = useState(false);
@@ -231,6 +235,17 @@ export const BoardObject = (props: BoardObjectProps) => {
 				{type === 'musicPlayer' && playlist && (
 					<div style={{ width: 400 }}>
 						<MusicPlayer playlist={playlist} />
+					</div>
+				)}
+				{type === 'race'  && (
+					<div style={{ width: 600, height: 350}}>
+						<iframe
+							src={`https://3d-racing.zed.run/live/${raceId}`}
+							width="100%"
+							height="100%"
+							title="zed racing"
+							style={{ pointerEvents: 'auto' }}
+						/>
 					</div>
 				)}
 			</Paper>
