@@ -21,8 +21,6 @@ import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import HomeIcon from '../assets/navbar/homeIcon.png';
-import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
-import chatIcon from '../assets/navbar/chatIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -123,14 +121,12 @@ const panelIconSrcMap: {
 	[key: string]: string;
 } = {
 	// sound: soundIcon,
-	chat: chatIcon,
 	//youtube: YouTubeIcon,
 	//emoji: emojiIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	// weather: weatherIcon,
 	// poem: poemIcon
-	musicPlayer: musicPlayerIcon
 };
 
 const panelIconComponentMap: {
@@ -138,7 +134,7 @@ const panelIconComponentMap: {
 } = {
 	'new-room': <NewRoomPanelButton />,
 	email: (
-		<div className="sixth-step">
+		<div className="fifth-step">
 			<EmailButton />
 		</div>
 	),
@@ -181,7 +177,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 			<div
 				className={
 					title === 'maps' || title === 'youtube'
-						? 'panel-icon-container fifth-step'
+						? 'panel-icon-container fourth-step'
 						: 'panel-icon-container'
 				}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
