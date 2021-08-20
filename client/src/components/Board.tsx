@@ -112,7 +112,6 @@ interface IBoardProps {
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
-	showOpensea: boolean;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 	setActivePanel: (panel: newPanelTypes) => void;
 }
@@ -178,7 +177,6 @@ export const Board = ({
 	unpinHorse,
 	updateHorses,
 	musicPlayer,
-	showOpensea,
 	updateSelectedPanelItem,
 	setActivePanel
 

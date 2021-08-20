@@ -90,7 +90,6 @@ interface IBackgroundPanelProps {
 	//horse
 	sendHorse: (id: string, type: 'horse') => void;
 	//marketplace
-	setShowOpensea: (value: boolean) => void;
 	pinMarketplace: () => void;
 	//chat
 	pinMessage: (message: string) => void;
@@ -211,7 +210,6 @@ const BackgroundPanel = ({
 	//horse
 	sendHorse,
 	//marketplace
-	setShowOpensea,
 	pinMarketplace,
 	//chat
 	sendMessage,
@@ -427,8 +425,8 @@ const BackgroundPanel = ({
 							disabled= {activePanel === panel.type ? true : false }
 							onClick={() => {setActivePanel(panel.type); 
 								if(panel.type === "marketplace"){
-									pinMarketplace()}
-								else{setShowOpensea(false);}
+									pinMarketplace()
+								}
 							}} 
 							key= {index}
 						>

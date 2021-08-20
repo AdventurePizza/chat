@@ -315,8 +315,6 @@ function App() {
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
-	const [showOpensea, setShowOpensea] = useState<boolean>(false);
-
 	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
@@ -3153,7 +3151,6 @@ function App() {
 					pinHorse={pinHorse}
 					unpinHorse={unpinHorse}
 					updateHorses={setHorses}
-					showOpensea={showOpensea}
 					updateSelectedPanelItem={setSelectedPanelItem}
 					setActivePanel= {setActivePanel}
 				/>
@@ -3273,15 +3270,13 @@ function App() {
 				updateShowWhiteboard={onShowMarker}
 				musicPlayer={musicPlayer}
 				setRaceId={setRaceId}
-				showOpensea={showOpensea}
-				setShowOpensea={setShowOpensea}
 				addVideo={addVideo}
 				setBottomPanelHeight={setBottomPanelHeight}
 				activePanel={activePanel}
 				setActivePanel={setActivePanel}
 			/>
 
-			{userProfile && !showOpensea && (
+			{userProfile && background.type !== "marketplace" && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}

@@ -48,8 +48,6 @@ export interface IBottomPanelProps {
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
-	showOpensea: boolean;
-	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
 	setBottomPanelHeight: (height: number) => void;
 	activePanel: newPanelTypes;
@@ -85,8 +83,6 @@ export interface IPanelContentProps {
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
 	setRaceId: (raceId: string) => void;
-	showOpensea: boolean;
-	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
 	setBottomPanelHeight: (height: number) => void;
 	activePanel: newPanelTypes;
@@ -131,8 +127,6 @@ export const BottomPanel = ({
 	updateShowWhiteboard,
 	musicPlayer,
 	setRaceId,
-	showOpensea,
-	setShowOpensea,
 	addVideo,
 	setBottomPanelHeight,	
 	activePanel,
@@ -183,8 +177,6 @@ export const BottomPanel = ({
 					updateShowWhiteboard={updateShowWhiteboard}
 					musicPlayer={musicPlayer}
 					setRaceId={setRaceId}
-					showOpensea={showOpensea}
-					setShowOpensea={setShowOpensea}
 					addVideo={addVideo}
 					setBottomPanelHeight={setBottomPanelHeight}
 					activePanel={activePanel}
@@ -224,8 +216,6 @@ const PanelContent = ({
 	updateShowWhiteboard,
 	musicPlayer,
 	setRaceId,
-	showOpensea,
-	setShowOpensea,
 	addVideo,
 	setBottomPanelHeight,
 	activePanel,
@@ -300,7 +290,6 @@ const PanelContent = ({
 					//horse
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace
-					setShowOpensea={setShowOpensea}
 					pinMarketplace={() => {onAction('marketplace')}}
 					//chat
 					sendMessage={(message) => {
