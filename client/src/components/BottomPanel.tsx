@@ -47,7 +47,6 @@ export interface IBottomPanelProps {
 	showWhiteboard: boolean;
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
-	setRaceId: (raceId: string) => void;
 	addVideo: (videoId: string | undefined) => void;
 	setBottomPanelHeight: (height: number) => void;
 	activePanel: newPanelTypes;
@@ -82,7 +81,6 @@ export interface IPanelContentProps {
 	showWhiteboard: boolean;
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
-	setRaceId: (raceId: string) => void;
 	addVideo: (videoId: string | undefined) => void;
 	setBottomPanelHeight: (height: number) => void;
 	activePanel: newPanelTypes;
@@ -126,7 +124,6 @@ export const BottomPanel = ({
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
-	setRaceId,
 	addVideo,
 	setBottomPanelHeight,	
 	activePanel,
@@ -176,7 +173,6 @@ export const BottomPanel = ({
 					showWhiteboard={showWhiteboard}
 					updateShowWhiteboard={updateShowWhiteboard}
 					musicPlayer={musicPlayer}
-					setRaceId={setRaceId}
 					addVideo={addVideo}
 					setBottomPanelHeight={setBottomPanelHeight}
 					activePanel={activePanel}
@@ -215,7 +211,6 @@ const PanelContent = ({
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
-	setRaceId,
 	addVideo,
 	setBottomPanelHeight,
 	activePanel,

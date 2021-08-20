@@ -110,13 +110,14 @@ interface IBoardProps {
 	waterfallChat: IWaterfallChat;
 	races: IBoardRace[];
 	updateRaces: (races: IBoardRace[]) => void;
-	raceId: string;
 	horses: IBoardHorse[];
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 	setActivePanel: (panel: newPanelTypes) => void;
+	pinRace: (raceKey: string) => void;
+	unpinRace: (raceKey: string) => void;
 }
 
 export const Board = ({
@@ -176,14 +177,15 @@ export const Board = ({
 	waterfallChat,
 	races,
 	updateRaces,
-	raceId,
 	horses,
 	pinHorse,
 	unpinHorse,
 	updateHorses,
 	musicPlayer,
 	updateSelectedPanelItem,
-	setActivePanel
+	setActivePanel,
+	pinRace,
+	unpinRace
 
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
@@ -290,9 +292,9 @@ export const Board = ({
 				)}
 			</div>
 
-			{raceId && (
+			{background.type === 'race' && (
 				<iframe
-					src={`https://3d-racing.zed.run/live/${raceId}`}
+					src={`https://3d-racing.zed.run/live/${background.raceId}`}
 					width="100%"
 					height="100%"
 					title="zed racing"
@@ -360,10 +362,10 @@ export const Board = ({
 								type="race"
 								raceId={race.id}
 								onPin={() => {
-									
+									pinRace(race.key);
 								}}
 								onUnpin={() => {
-									
+									unpinRace(race.key);
 								}}
 							/>
 						</CSSTransition>

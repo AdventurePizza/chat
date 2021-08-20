@@ -238,7 +238,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</div>
 				)}
 				{type === 'race'  && (
-					<div style={{ width: 600, height: 350}}>
+					<div style={{ width: 400, height: 225}}>
 						<iframe
 							src={`https://3d-racing.zed.run/live/${raceId}`}
 							width="100%"

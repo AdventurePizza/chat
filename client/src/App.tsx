@@ -312,7 +312,6 @@ function App() {
 		left: 200,
 		playlist: []
 	});
-	const [raceId, setRaceId] = useState<string>('');
 	const [races, setRaces] = useState<IBoardRace[]>([]);
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
@@ -1459,14 +1458,22 @@ function App() {
 						name: message.value,
 						isPinned: message.isPinned,
 						type: message.type,
-						mapData: message.mapData
+						mapData: message.mapData,
+						raceId: message.raceId
 					}));
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 				case 'send-race':
-					setRaceId(message.value);
+					setBackground({
+						name: background.name,
+						isPinned: false,
+						type: "race",
+						mapData: background.mapData,
+						videoId: background.videoId,
+						raceId: message.value
+					});
 					break;
 				case 'whiteboard':
 					if (message.value) {
@@ -1794,11 +1801,30 @@ function App() {
 				break;
 			case 'send-race':
 				const raceId = args[0] as string;
-				setRaceId(raceId);
-				pinRace(raceId);
+
 				socket.emit('event', {
 					key: 'send-race',
 					value: raceId
+				});
+
+				setBackground({
+					name: background.name,
+					isPinned: false,
+					type: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+
+				firebaseContext.pinRoomItem(roomId || 'default', {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
 				});
 				break;
 			case 'add-race':
@@ -2190,6 +2216,7 @@ function App() {
 				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
+				const pinnedRaces: IBoardRace[] = [];
 				const pinnedHorses: IBoardHorse[] = [];
 				const pinnedTweets: ITweet[] = [];
 
@@ -2197,7 +2224,8 @@ function App() {
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
 				let backgroundVideo: string | undefined;
-
+				let backgroundRace: string | undefined;
+				
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
 						pinnedGifs.push({
@@ -2240,8 +2268,16 @@ function App() {
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
 						backgroundVideo = item.videoId;
+						backgroundRace = item.raceId;
 					} else if (item.type === 'race') {
-						setRaceId(item.raceId);
+						pinnedRaces.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							id: item.id
+						});
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -2312,11 +2348,13 @@ function App() {
 					isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
 					mapData: backgroundMap,
 					type: backgroundType,
-					videoId: backgroundVideo
+					videoId: backgroundVideo,
+					raceId: backgroundRace
 				});
 				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
 				setHorses(pinnedHorses);
+				setRaces(pinnedRaces);
 			});
 		}
 	}, [
@@ -2526,14 +2564,60 @@ function App() {
 		}
 	}, [videoId, videos]);
 
-	const pinRace = async (raceId: string) => {
+	const pinRace = async (RaceKey: string) => {
+		const raceIndex = races.findIndex((race) => race.key === RaceKey);
+		const race = races[raceIndex];
 		const room = roomId || 'default';
-		await firebaseContext.pinRoomItem(room, {
-			raceId: raceId,
-			type: 'race',
-			top: 0,
-			left: 0
-		});
+
+		if (race && !race.isPinned) {
+
+			const result = await firebaseContext.pinRoomItem(room, {
+				...race,
+				type: 'race',
+				left: race.left / window.innerWidth,
+				top: race.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{ ...race, isPinned: true },
+					...races.slice(raceIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'race',
+					itemKey: RaceKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const unpinRace = async (raceKey: string) => {
+		const index = races.findIndex((race) => race.key === raceKey);
+		const race = races[index];
+		const room = roomId || 'default';
+
+		if (race && race.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				race.key
+			);
+			if (isSuccessful) {
+				setRaces([...races.slice(0, index), ...races.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'race',
+					itemKey: raceKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
 	};
 
 	const pinBackground = async () => {
@@ -2844,6 +2928,19 @@ function App() {
 					...tweets.slice(tweetIndex + 1)
 				]);
 			}
+		} else if (type === 'race') {
+			const raceIndex = races.findIndex((race) => race.key === id);
+			if (raceIndex !== -1) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{
+						...races[raceIndex],
+						top,
+						left
+					},
+					...races.slice(raceIndex + 1)
+				]);
+			}
 		} else if (type === 'horse') {
 			const horseIndex = horses.findIndex((horse) => horse.key === id);
 			if (horseIndex !== -1) {
@@ -2948,6 +3045,19 @@ function App() {
 								left
 							},
 							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+				} else if (type === 'race') {
+					const raceIndex = races.findIndex((race) => race.key === id);
+					if (raceIndex !== -1) {
+						setRaces([
+							...races.slice(0, raceIndex),
+							{
+								...races[raceIndex],
+								top,
+								left
+							},
+							...races.slice(raceIndex + 1)
 						]);
 					}
 				} else if (type === 'horse') {
@@ -3169,7 +3279,6 @@ function App() {
 					tweets={tweets}
 					pinTweet={pinTweet}
 					unpinTweet={unpinTweet}
-					raceId={raceId}
 					races={races}
 					updateRaces={setRaces}
 					horses={horses}
@@ -3178,6 +3287,8 @@ function App() {
 					updateHorses={setHorses}
 					updateSelectedPanelItem={setSelectedPanelItem}
 					setActivePanel= {setActivePanel}
+					pinRace={pinRace}
+					unpinRace={unpinRace}
 				/>
 			</Route>
 
@@ -3294,7 +3405,6 @@ function App() {
 				showWhiteboard={showWhiteboard}
 				updateShowWhiteboard={onShowMarker}
 				musicPlayer={musicPlayer}
-				setRaceId={setRaceId}
 				addVideo={addVideo}
 				setBottomPanelHeight={setBottomPanelHeight}
 				activePanel={activePanel}
