@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
-import { Image, MeetingRoom } from '@material-ui/icons';
+import { MeetingRoom } from '@material-ui/icons';
 //import { SportsEsports } from '@material-ui/icons';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -21,6 +21,7 @@ import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import HomeIcon from '../assets/navbar/homeIcon.png';
+import chatIcon from '../assets/navbar/chatIcon.png';
 
 interface IPanelProps {
 	isOpen: boolean;
@@ -127,6 +128,7 @@ const panelIconSrcMap: {
 	// background: cameraRollIcon,
 	// weather: weatherIcon,
 	// poem: poemIcon
+	background: chatIcon,
 };
 
 const panelIconComponentMap: {
@@ -138,7 +140,7 @@ const panelIconComponentMap: {
 			<EmailButton />
 		</div>
 	),
-	background: <Image style={{ fontSize: 32 }} />,
+	//background: <Image style={{ fontSize: 32 }} />,
 	//tower: <SportsEsports style={{ fontSize: 36 }} />,
 	roomDirectory: (
 		<div className="fourth-step">

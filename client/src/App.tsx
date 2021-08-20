@@ -1667,7 +1667,8 @@ function App() {
 		updateWaterfallChat,
 		addHorse,
 		handleChangePlaylist,
-		videos
+		videos,
+		background
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {

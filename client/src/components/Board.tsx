@@ -298,7 +298,7 @@ export const Board = ({
 					width="100%"
 					height="100%"
 					title="zed racing"
-					style={{ pointerEvents: 'none' }}
+					style={{ pointerEvents: 'auto' }}
 				/>
 			)}
 
