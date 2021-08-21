@@ -317,7 +317,7 @@ function App() {
 
 	const [showOpensea, setShowOpensea] = useState<boolean>(false);
 
-	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('home');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -482,6 +482,15 @@ function App() {
 		audio.current.currentTime = 0;
 		audio.current.play();
 	}, []);
+
+	const onNewRoom = () => {
+		setModalState('new-room');
+		setActivePanel('home');
+	};
+
+	const routeHome = () => {
+		history.push(`/`);
+	}
 
 	const onClickPanelItem = (key: string | undefined) => {
 		switch (key) {
@@ -3245,6 +3254,13 @@ function App() {
 				setBottomPanelHeight={setBottomPanelHeight}
 				activePanel={activePanel}
 				setActivePanel={setActivePanel}
+				onNewRoom={onNewRoom}
+				routeHome={routeHome}
+				avatar={
+					userProfile && !userProfile.avatar.startsWith("https")
+						? avatarMap[userProfile.avatar]
+						: userProfile.avatar
+				}
 			/>
 
 			{userProfile && !showOpensea && (

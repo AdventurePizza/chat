@@ -39,6 +39,10 @@ import { RacePanel } from './RacePanel';
 import { HorsePanel } from './HorsePanel';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
 import { Chat } from './Chat';
+import homeIcon from '../assets/buttons/home.png'
+import emailIcon from '../assets/buttons/email.png'
+import newroomIcon from '../assets/buttons/newroom.png'
+import { EmailPanel } from './EmailPanel';
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -104,6 +108,14 @@ interface IBackgroundPanelProps {
 	//musicplayer
 	changePlaylist: (url: string, name: string) => void;
 	musicPlayer: IMusicPlayer;
+	//email
+	sendEmail: (email: string, message: string) => void;
+	//new room
+	onNewRoom: () => void;
+	//route Home
+	routeHome: () => void;
+	//avatar
+	avatar?: string;
 }
 
 
@@ -162,6 +174,7 @@ export const getSearchedUnsplashImages = async (text: string) =>
 
 const panels: IPanel[] =
 	[
+		{type: 'home', icon: homeIcon},
 		{type: 'chat', icon: chatIcon},
 		{type: 'google', icon: googleIcon},
 		{type: 'unsplash', icon: unsplashIcon},
@@ -172,7 +185,9 @@ const panels: IPanel[] =
 		{type: 'race', icon: raceIcon}, 
 		{type: 'horse', icon: horseIcon}, 
 		{type: 'music', icon: musicIcon}, 
-		{type: '+NFT'} 
+		{type: 'email', icon: emailIcon}, 
+		{type: 'newroom', icon: newroomIcon}, 
+		{type: '+NFT'},
 	] 
 
 const BackgroundPanel = ({
@@ -180,6 +195,8 @@ const BackgroundPanel = ({
 	activePanel,
 	setActivePanel,
 	setBottomPanelHeight,
+	//home button
+	routeHome,
 	//google, unsplash, giphy
 	sendImage,
 	images,
@@ -223,7 +240,13 @@ const BackgroundPanel = ({
 	showChat,
 	//musicplayer
 	changePlaylist,
-	musicPlayer
+	musicPlayer,
+	//email
+	sendEmail,
+	//newroom
+	onNewRoom,
+	//avatar
+	avatar
 
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
@@ -408,8 +431,16 @@ const BackgroundPanel = ({
 					onSuccess={onSuccess}
 				/>
 			}
+
+			{activePanel === 'email' && 
+				<EmailPanel
+					sendEmail={sendEmail}
+				/>
+			}
+
+
 			<div className="background-search-settings">
-				
+
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
 					<div>
 						<FormControlLabel
@@ -419,13 +450,14 @@ const BackgroundPanel = ({
 							label="background"
 						/>
 					</div>
+
 					{panels.map((panel, index) => (
 						<IconButton
-							color= { "primary" }
+							color= { "inherit" }
 							disabled= {activePanel === panel.type ? true : false }
 							onClick={() => {setActivePanel(panel.type); 
-								if(panel.type === "marketplace"){setShowOpensea(true);}
-								else{setShowOpensea(false);}
+								if(panel.type === "newroom"){onNewRoom()}
+								else if(panel.type === "home"){routeHome()}
 							}} 
 							key= {index}
 						>
@@ -437,7 +469,7 @@ const BackgroundPanel = ({
 						</IconButton>
 					))}
 
-
+					
 					{(activePanel === 'unsplash' || activePanel === 'google' ||  activePanel === 'giphy') ? 
 						<div style={{ paddingInline: 20 }}> 
 							<InputBase

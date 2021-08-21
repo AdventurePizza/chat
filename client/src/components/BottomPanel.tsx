@@ -54,6 +54,9 @@ export interface IBottomPanelProps {
 	setBottomPanelHeight: (height: number) => void;
 	activePanel: newPanelTypes;
 	setActivePanel: (panel: newPanelTypes) => void;
+	onNewRoom: () => void;
+	routeHome: () => void;
+	avatar?: string;
 }
 
 export interface IPanelContentProps {
@@ -91,6 +94,9 @@ export interface IPanelContentProps {
 	setBottomPanelHeight: (height: number) => void;
 	activePanel: newPanelTypes;
 	setActivePanel: (panel: newPanelTypes) => void;
+	onNewRoom: () => void;
+	routeHome: () => void;
+	avatar?: string;
 }
 
 export interface ISoundPairs {
@@ -101,8 +107,7 @@ export interface ISoundPairs {
 
 const useStyles = makeStyles((theme) => ({
 	drawerRoot: {
-		width: 'calc(100vw - 85px)',
-		marginLeft: 85
+		width: '100%',
 	}
 }));
 
@@ -136,7 +141,10 @@ export const BottomPanel = ({
 	addVideo,
 	setBottomPanelHeight,	
 	activePanel,
-	setActivePanel
+	setActivePanel,
+	onNewRoom,
+	routeHome,
+	avatar
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -189,6 +197,9 @@ export const BottomPanel = ({
 					setBottomPanelHeight={setBottomPanelHeight}
 					activePanel={activePanel}
 					setActivePanel={setActivePanel}
+					onNewRoom={onNewRoom}
+					routeHome={routeHome}
+					avatar={avatar}
 				/>
 			</div>
 		</Drawer>
@@ -229,7 +240,10 @@ const PanelContent = ({
 	addVideo,
 	setBottomPanelHeight,
 	activePanel,
-	setActivePanel
+	setActivePanel,
+	onNewRoom,
+	routeHome,
+	avatar
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -327,6 +341,14 @@ const PanelContent = ({
 						})
 					}}
 					musicPlayer={musicPlayer}
+					//email
+					sendEmail={(email, message) => onAction('send-email', email, message)}
+					//new room
+					onNewRoom={onNewRoom}
+					//routehome
+					routeHome={routeHome}
+					//avatar
+					avatar={avatar}				
 				/>
 			);
 		case 'settings':

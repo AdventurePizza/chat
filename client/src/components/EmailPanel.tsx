@@ -9,14 +9,14 @@ const useStyles = makeStyles({
 		fontSize: 20
 	},
 	panelContainer: {
-		padding: 10,
 		'& > *': {
 			marginRight: 5
 		},
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
-		width: '100%'
+		width: '100%',
+		paddingTop: 10,
 	}
 });
 
@@ -50,7 +50,7 @@ export const EmailPanel = ({ sendEmail }: IEmailPanelProps) => {
 				onChange={(evt) => setMessage(evt.currentTarget.value)}
 				label="add message"
 			/>
-			<Button onClick={onClickSend} variant="contained">
+			<Button onClick={onClickSend} variant="contained" color="primary">
 				send
 			</Button>
 		</div>
