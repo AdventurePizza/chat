@@ -87,10 +87,11 @@ interface IBackgroundPanelProps {
 	roomData?: IChatRoom;
 	//race
 	sendRace: (id: string) => void;
+	addRace: (id: string) => void;
 	//horse
 	sendHorse: (id: string, type: 'horse') => void;
 	//marketplace
-	setShowOpensea: (value: boolean) => void;
+	pinMarketplace: () => void;
 	//chat
 	pinMessage: (message: string) => void;
 	sendMessage: (message: string) => void;
@@ -207,10 +208,11 @@ const BackgroundPanel = ({
 	roomData,
 	//race
 	sendRace,
+	addRace,
 	//horse
 	sendHorse,
 	//marketplace
-	setShowOpensea,
+	pinMarketplace,
 	//chat
 	sendMessage,
 	updateIsTyping,
@@ -282,7 +284,7 @@ const BackgroundPanel = ({
 	};
 
 	const checked = () => {
-		if(activePanel === "maps" || activePanel === "race" || activePanel === "marketplace" ){
+		if(activePanel === "maps" || activePanel === "marketplace" ){
 			return true;
 		}
 		else if(activePanel === "+NFT" || activePanel === "horse" ){
@@ -380,6 +382,8 @@ const BackgroundPanel = ({
 				<div  className="background-icon-list" >
 					<RacePanel 
 						sendRace={sendRace}
+						addRace={addRace}
+						isBackground={isSwitchChecked}
 						hideAllPins={hideAllPins}
 						setHideAllPins={setHideAllPins}
 					/>
@@ -424,8 +428,9 @@ const BackgroundPanel = ({
 							color= { "primary" }
 							disabled= {activePanel === panel.type ? true : false }
 							onClick={() => {setActivePanel(panel.type); 
-								if(panel.type === "marketplace"){setShowOpensea(true);}
-								else{setShowOpensea(false);}
+								if(panel.type === "marketplace"){
+									pinMarketplace()
+								}
 							}} 
 							key= {index}
 						>

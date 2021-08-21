@@ -21,7 +21,8 @@ import {
 	IBoardHorse,
 	IMusicPlayer,
 	PanelItemEnum,
-	newPanelTypes
+	newPanelTypes,
+	IBoardRace
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -107,14 +108,16 @@ interface IBoardProps {
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
 	waterfallChat: IWaterfallChat;
-	raceId: string;
+	races: IBoardRace[];
+	updateRaces: (races: IBoardRace[]) => void;
 	horses: IBoardHorse[];
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
-	showOpensea: boolean;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 	setActivePanel: (panel: newPanelTypes) => void;
+	pinRace: (raceKey: string) => void;
+	unpinRace: (raceKey: string) => void;
 }
 
 export const Board = ({
@@ -172,15 +175,17 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
-	raceId,
+	races,
+	updateRaces,
 	horses,
 	pinHorse,
 	unpinHorse,
 	updateHorses,
 	musicPlayer,
-	showOpensea,
 	updateSelectedPanelItem,
-	setActivePanel
+	setActivePanel,
+	pinRace,
+	unpinRace
 
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
@@ -287,17 +292,17 @@ export const Board = ({
 				)}
 			</div>
 
-			{raceId && (
+			{background.type === 'race' && (
 				<iframe
-					src={`https://3d-racing.zed.run/live/${raceId}`}
+					src={`https://3d-racing.zed.run/live/${background.raceId}`}
 					width="100%"
 					height="100%"
 					title="zed racing"
-					style={{ pointerEvents: 'none' }}
+					style={{ pointerEvents: 'auto' }}
 				/>
 			)}
 
-			{showOpensea && (
+			{background.type === 'marketplace' && (
 				<iframe
 					className="opensea-listings"
 					title="Opensea Listings"
@@ -331,6 +336,42 @@ export const Board = ({
 				top={waterfallChat.top}
 				left={waterfallChat.left}
 			/>}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{races.map((race) => (
+						<CSSTransition
+							key={race.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!race.isPinned) {
+									const index = races.findIndex(
+										(_race) => _race.key === race.key
+									);
+									updateRaces([
+										...races.slice(0, index),
+										...races.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...race}
+								id={race.key}
+								type="race"
+								raceId={race.id}
+								onPin={() => {
+									pinRace(race.key);
+								}}
+								onUnpin={() => {
+									unpinRace(race.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
 
 			{musicPlayer.playlist.length !== 0 && (
 				<BoardObject

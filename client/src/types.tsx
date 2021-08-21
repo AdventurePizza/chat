@@ -73,6 +73,7 @@ export interface IMessageEvent {
 		| 'unpin-item'
 		| 'poem'
 		| 'tweet'
+		| 'marketplace'
 		| 'change-playlist'
 		| 'clear-field';
 		
@@ -202,6 +203,14 @@ export interface IHorse{
 	tx: string;
 	tx_date: string;
 	win_rate: string;
+}
+
+export interface IBoardRace {
+	top: number;
+	left: number;
+	key: string;
+	isPinned?: boolean;
+	id: string;
 }
 
 export interface IBoardHorse {
