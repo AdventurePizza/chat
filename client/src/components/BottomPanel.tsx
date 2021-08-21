@@ -10,12 +10,12 @@ import {
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
 
-import BackgroundPanel from './BackgroundPanel';
+import BackgroundPanel from './ThePanel';
 import { Drawer } from '@material-ui/core';
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
 import { IGif } from '@giphy/js-types';
-import { IImagesState } from './BackgroundPanel';
+import { IImagesState } from './ThePanel';
 //import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
