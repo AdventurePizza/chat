@@ -19,7 +19,8 @@ const useStyles = makeStyles((theme) => ({
 		flexDirection: 'column',
 		maxHeight: 400,
 		overflowY: 'auto',
-		width: '100%'
+
+		paddingInline: 15
 	},
 	loadingNFTRoot: {
 		width: 300,

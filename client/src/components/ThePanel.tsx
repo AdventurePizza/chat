@@ -1,3 +1,5 @@
+//style
+import './Panel.css';
 //material ui
 import {
 	FormControlLabel,
@@ -301,7 +303,7 @@ const ThePanel = ({
 				/>
 			}
 			{activePanel === 'youtube' && 
-				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 150}} >
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}} >
 					<YouTubeMusicPanel
 						setVolume={setVolume}
 						setVideoId={setVideoId}
@@ -373,14 +375,7 @@ const ThePanel = ({
 			<div className="background-search-settings">
 			
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
-					<div>
-						<FormControlLabel
-							checked={checked()}
-							onChange={() => setisBackground(!isBackground)}
-							control={<Switch color="primary" />}
-							label="background"
-						/>
-					</div>
+
 
 					{//panel icon-buttons & special cases for newroom home & marketplace
 					panels.map((panel, index) => (
@@ -403,7 +398,16 @@ const ThePanel = ({
 							
 						</IconButton>
 					))}
-					
+
+					<div>
+						<FormControlLabel
+							checked={checked()}
+							onChange={() => setisBackground(!isBackground)}
+							control={<Switch color="primary" />}
+							label="background"
+						/>
+					</div>
+
 					{//input for image searchs
 					(activePanel === 'unsplash' || activePanel === 'google' ||  activePanel === 'giphy') ? 
 						<div style={{ paddingInline: 20 }}> 
@@ -427,7 +431,7 @@ const ThePanel = ({
 
 						</div> : <div style={{ width: 289 }}> </div> 
 					}
-					
+
 					{loading &&
 						<img
 							style={{
@@ -439,6 +443,7 @@ const ThePanel = ({
 							alt="three dots"
 						/>
 					}
+					
 
 				</div>
 

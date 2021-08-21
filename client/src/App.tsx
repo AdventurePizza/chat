@@ -316,7 +316,7 @@ function App() {
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
-	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('home');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -2156,8 +2156,7 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel =
-		selectedPanelItem === PanelItemEnum.background && activePanel === 'chat' && showWhiteboard;
+	const onWhiteboardPanel = activePanel === 'chat' && showWhiteboard;
 
 	const onCreateRoom = async (
 		roomName: string,
@@ -3359,19 +3358,6 @@ function App() {
 					</Tooltip>
 				)}
 			</div>
-			<Panel
-				onClick={onClickPanelItem}
-				isOpen={isPanelOpen}
-				onClose={() => {
-					setIsPanelOpen(false);
-				}}
-				selectedItem={selectedPanelItem}
-				avatar={
-					userProfile && !userProfile.avatar.startsWith("https")
-						? avatarMap[userProfile.avatar]
-						: userProfile.avatar
-				}
-			/>
 
 			<Tooltip
 				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
@@ -3396,7 +3382,7 @@ function App() {
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
-				isOpen={Boolean(selectedPanelItem)}
+				isOpen={true}
 				onAction={actionHandler}
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}

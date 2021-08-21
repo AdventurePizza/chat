@@ -204,8 +204,6 @@
 	display: flex;
 	overflow-x: auto;
 	display: 'flex'; 
-	justifyContent: 'center'; 
-	alignItems: 'center';
 }
 
 .sound-category-list {
