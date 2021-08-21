@@ -39,7 +39,8 @@ import {
 	IWaterfallChat,
 	IBoardHorse,
 	IMusicPlayer,
-	newPanelTypes
+	newPanelTypes,
+	IBoardRace
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -311,13 +312,11 @@ function App() {
 		left: 200,
 		playlist: []
 	});
-	const [raceId, setRaceId] = useState<string>('');
+	const [races, setRaces] = useState<IBoardRace[]>([]);
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
-	const [showOpensea, setShowOpensea] = useState<boolean>(false);
-
-	const [activePanel, setActivePanel] = useState<newPanelTypes>('home');
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -1050,6 +1049,17 @@ function App() {
 		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
 	);
 
+	const addRace = useCallback((id: string) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newRace: IBoardRace = {
+			top: y,
+			left: x,
+			key: uuidv4(),
+			id: id
+		};
+		setRaces((races) => races.concat(newRace));
+	}, []);
+
 	const getHorse = async (id: string) =>
 		await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
 
@@ -1457,14 +1467,22 @@ function App() {
 						name: message.value,
 						isPinned: message.isPinned,
 						type: message.type,
-						mapData: message.mapData
+						mapData: message.mapData,
+						raceId: message.raceId
 					}));
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 				case 'send-race':
-					setRaceId(message.value);
+					setBackground({
+						name: background.name,
+						isPinned: false,
+						type: "race",
+						mapData: background.mapData,
+						videoId: background.videoId,
+						raceId: message.value
+					});
 					break;
 				case 'whiteboard':
 					if (message.value) {
@@ -1580,6 +1598,15 @@ function App() {
 						addHorse(message.value, message.horseKey);
 					}
 					break;
+				case 'marketplace':
+					setBackground({
+						name: '',
+						isPinned: false,
+						type: 'marketplace',
+						mapData: undefined,
+						videoId: undefined
+					});
+					break;
 				case 'change-playlist':
 					handleChangePlaylist(message);
 					break;
@@ -1649,7 +1676,8 @@ function App() {
 		updateWaterfallChat,
 		addHorse,
 		handleChangePlaylist,
-		videos
+		videos,
+		background
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1783,11 +1811,38 @@ function App() {
 				break;
 			case 'send-race':
 				const raceId = args[0] as string;
-				setRaceId(raceId);
-				pinRace(raceId);
+
 				socket.emit('event', {
 					key: 'send-race',
 					value: raceId
+				});
+
+				setBackground({
+					name: background.name,
+					isPinned: false,
+					type: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+
+				firebaseContext.pinRoomItem(roomId || 'default', {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+				break;
+			case 'add-race':
+				const race = args[0] as string;
+				addRace(race);
+				socket.emit('event', {
+					key: 'add-race',
+					value: race
 				});
 				break;
 			case 'whiteboard':
@@ -1938,6 +1993,31 @@ function App() {
 				socket.emit('event', {
 					key: 'horse',
 					value: horseId
+				});
+				break;
+			case 'marketplace':
+				const room = roomId || 'default';
+
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: 'marketplace',
+					mapData: undefined,
+					videoId: undefined
+				});
+
+				socket.emit('event', {
+					key: 'marketplace'
+				});
+				
+				firebaseContext.pinRoomItem(room, {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "marketplace",
+					mapData: background.mapData,
+					videoId: background.videoId
 				});
 				break;
 			case 'change-playlist':
@@ -2146,6 +2226,7 @@ function App() {
 				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
+				const pinnedRaces: IBoardRace[] = [];
 				const pinnedHorses: IBoardHorse[] = [];
 				const pinnedTweets: ITweet[] = [];
 
@@ -2153,7 +2234,8 @@ function App() {
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
 				let backgroundVideo: string | undefined;
-
+				let backgroundRace: string | undefined;
+				
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
 						pinnedGifs.push({
@@ -2196,8 +2278,16 @@ function App() {
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
 						backgroundVideo = item.videoId;
+						backgroundRace = item.raceId;
 					} else if (item.type === 'race') {
-						setRaceId(item.raceId);
+						pinnedRaces.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							id: item.id
+						});
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -2268,11 +2358,13 @@ function App() {
 					isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
 					mapData: backgroundMap,
 					type: backgroundType,
-					videoId: backgroundVideo
+					videoId: backgroundVideo,
+					raceId: backgroundRace
 				});
 				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
 				setHorses(pinnedHorses);
+				setRaces(pinnedRaces);
 			});
 		}
 	}, [
@@ -2482,14 +2574,60 @@ function App() {
 		}
 	}, [videoId, videos]);
 
-	const pinRace = async (raceId: string) => {
+	const pinRace = async (RaceKey: string) => {
+		const raceIndex = races.findIndex((race) => race.key === RaceKey);
+		const race = races[raceIndex];
 		const room = roomId || 'default';
-		await firebaseContext.pinRoomItem(room, {
-			raceId: raceId,
-			type: 'race',
-			top: 0,
-			left: 0
-		});
+
+		if (race && !race.isPinned) {
+
+			const result = await firebaseContext.pinRoomItem(room, {
+				...race,
+				type: 'race',
+				left: race.left / window.innerWidth,
+				top: race.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{ ...race, isPinned: true },
+					...races.slice(raceIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'race',
+					itemKey: RaceKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const unpinRace = async (raceKey: string) => {
+		const index = races.findIndex((race) => race.key === raceKey);
+		const race = races[index];
+		const room = roomId || 'default';
+
+		if (race && race.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				race.key
+			);
+			if (isSuccessful) {
+				setRaces([...races.slice(0, index), ...races.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'race',
+					itemKey: raceKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
 	};
 
 	const pinBackground = async () => {
@@ -2502,6 +2640,8 @@ function App() {
 			backgroundType = 'video';
 		} else if (background.name) {
 			backgroundType = 'image';
+		} else if (background.type) {
+			backgroundType = 'marketplace';
 		}
 
 		let backgroundName: string | undefined;
@@ -2798,6 +2938,19 @@ function App() {
 					...tweets.slice(tweetIndex + 1)
 				]);
 			}
+		} else if (type === 'race') {
+			const raceIndex = races.findIndex((race) => race.key === id);
+			if (raceIndex !== -1) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{
+						...races[raceIndex],
+						top,
+						left
+					},
+					...races.slice(raceIndex + 1)
+				]);
+			}
 		} else if (type === 'horse') {
 			const horseIndex = horses.findIndex((horse) => horse.key === id);
 			if (horseIndex !== -1) {
@@ -2902,6 +3055,19 @@ function App() {
 								left
 							},
 							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+				} else if (type === 'race') {
+					const raceIndex = races.findIndex((race) => race.key === id);
+					if (raceIndex !== -1) {
+						setRaces([
+							...races.slice(0, raceIndex),
+							{
+								...races[raceIndex],
+								top,
+								left
+							},
+							...races.slice(raceIndex + 1)
 						]);
 					}
 				} else if (type === 'horse') {
@@ -3123,14 +3289,16 @@ function App() {
 					tweets={tweets}
 					pinTweet={pinTweet}
 					unpinTweet={unpinTweet}
-					raceId={raceId}
+					races={races}
+					updateRaces={setRaces}
 					horses={horses}
 					pinHorse={pinHorse}
 					unpinHorse={unpinHorse}
 					updateHorses={setHorses}
-					showOpensea={showOpensea}
 					updateSelectedPanelItem={setSelectedPanelItem}
 					setActivePanel= {setActivePanel}
+					pinRace={pinRace}
+					unpinRace={unpinRace}
 				/>
 			</Route>
 
@@ -3247,9 +3415,6 @@ function App() {
 				showWhiteboard={showWhiteboard}
 				updateShowWhiteboard={onShowMarker}
 				musicPlayer={musicPlayer}
-				setRaceId={setRaceId}
-				showOpensea={showOpensea}
-				setShowOpensea={setShowOpensea}
 				addVideo={addVideo}
 				setBottomPanelHeight={setBottomPanelHeight}
 				activePanel={activePanel}
@@ -3263,7 +3428,7 @@ function App() {
 				}
 			/>
 
-			{userProfile && !showOpensea && (
+			{userProfile && background.type !== "marketplace" && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}
