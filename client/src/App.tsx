@@ -299,8 +299,8 @@ function App() {
 	const [step, setStep] = useState(0);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 10,
-		left: 110,
+		top: 0,
+		left: 0,
 		messages: [],
 		show: true
 	});
@@ -308,8 +308,8 @@ function App() {
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
-		top: 600,
-		left: 200,
+		top: 360,
+		left: 0,
 		playlist: []
 	});
 	const [races, setRaces] = useState<IBoardRace[]>([]);
@@ -3205,7 +3205,8 @@ function App() {
 		<div
 			className="app"
 			style={{
-				height: window.innerHeight - bottomPanelHeight
+				//height: window.innerHeight - bottomPanelHeight
+				height: window.innerHeight
 			}}
 			onClick={onClickApp}
 		>
