@@ -79,7 +79,6 @@ import { FirebaseContext } from './contexts/FirebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
-import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
@@ -491,31 +490,9 @@ function App() {
 		history.push(`/`);
 	}
 
-	const onClickPanelItem = (key: string | undefined) => {
-		switch (key) {
-			case 'sound':
-			case 'emoji':
-			case 'tower':
-			case 'background':
-			case 'weather':
-			case 'roomDirectory':
-			case 'settings':
-			case 'poem':
-			case 'email':
-				setSelectedPanelItem(
-					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
-				);
-				break;
-			case 'new-room':
-				setModalState('new-room');
-				setSelectedPanelItem(
-					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
-				);
-				break;
-			case undefined:
-				setSelectedPanelItem(undefined);
-		}
-	};
+	const routeSettings = () => {
+		history.push('/settings');
+	}
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
@@ -3413,6 +3390,7 @@ function App() {
 						? avatarMap[userProfile.avatar]
 						: userProfile.avatar
 				}
+				routeSettings={routeSettings}
 			/>
 
 			{userProfile && background.type !== "marketplace" && (

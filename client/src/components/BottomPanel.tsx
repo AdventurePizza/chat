@@ -58,6 +58,7 @@ export interface IBottomPanelProps {
 	onNewRoom: () => void;
 	routeHome: () => void;
 	avatar?: string;
+	routeSettings: () => void;
 }
 
 
@@ -97,7 +98,8 @@ export const BottomPanel = ({
 	setActivePanel,
 	onNewRoom,
 	routeHome,
-	avatar
+	avatar,
+	routeSettings
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -185,8 +187,9 @@ export const BottomPanel = ({
 					onNewRoom={onNewRoom}
 					//routehome
 					routeHome={routeHome}
-					//avatar
-					avatar={avatar}				
+					//settings
+					avatar={avatar}		
+					routeSettings={routeSettings}		
 				/>
 			</div>
 		</Drawer>

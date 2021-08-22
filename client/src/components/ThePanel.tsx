@@ -100,8 +100,9 @@ interface IThePanelProps {
 	onNewRoom: () => void;
 	//route Home
 	routeHome: () => void;
-	//avatar
+	//settings
 	avatar?: string;
+	routeSettings: () => void;
 }
 
 interface IPanel {
@@ -137,6 +138,7 @@ export interface IImagesState {
 
 const panels: IPanel[] =
 	[
+		{type: 'settings'},
 		{type: 'home', icon: homeIcon},
 		{type: 'chat', icon: chatIcon},
 		{type: 'google', icon: googleIcon},
@@ -209,8 +211,9 @@ const ThePanel = ({
 	sendEmail,
 	//newroom
 	onNewRoom,
-	//avatar
-	avatar
+	//settings
+	avatar,
+	routeSettings
 
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
@@ -294,6 +297,7 @@ const ThePanel = ({
 					searchSubmit={searchSubmit}
 				/>
 			}
+
 			{activePanel === 'giphy' && 
 				<GiphyPanel
 					sendGif={sendGif} 
@@ -302,6 +306,7 @@ const ThePanel = ({
 					sendImage={sendImage} 
 				/>
 			}
+
 			{activePanel === 'youtube' && 
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}} >
 					<YouTubeMusicPanel
@@ -373,9 +378,7 @@ const ThePanel = ({
 			}
 
 			<div className="background-search-settings">
-			
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
-
 
 					{//panel icon-buttons & special cases for newroom home & marketplace
 					panels.map((panel, index) => (
@@ -388,12 +391,15 @@ const ThePanel = ({
 								else if(panel.type === "marketplace"){
 									pinMarketplace()
 								}
+								else if(panel.type === "settings"){
+									routeSettings();
+								}
 							}} 
 							key= {index}
 						>
 							{panel.icon ? 
 								<img className = {activePanel === panel.type ? "button-disabled" : "" } src={ panel.icon } alt= { panel.type }  width= "30" height= "30"/> 
-								: panel.type
+								: (panel.type === "settings" ? <img className = {activePanel === panel.type ? "button-disabled" : "" } src={ avatar } alt= { panel.type }  width= "30" height= "30"/> : panel.type) 
 							}
 							
 						</IconButton>
@@ -443,15 +449,11 @@ const ThePanel = ({
 							alt="three dots"
 						/>
 					}
-					
-
 				</div>
-
 			</div>
 		</div>
 	);
 };
-
 
 export const getSearchedUnsplashImages = async (text: string) =>
 	await axios.get('https://api.unsplash.com/search/photos?per_page=15', {

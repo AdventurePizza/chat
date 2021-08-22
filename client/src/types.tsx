@@ -376,4 +376,4 @@ export interface IMusicPlayer{
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
 
-export type newPanelTypes= 'avatar' | 'home' | 'chat' | 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT' | 'email' | 'newroom' ;
+export type newPanelTypes= 'settings' | 'home' | 'chat' | 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT' | 'email' | 'newroom' ;
