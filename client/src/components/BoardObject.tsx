@@ -111,7 +111,6 @@ export const BoardObject = (props: BoardObjectProps) => {
 		chat,
 		horseData,
 		playlist,
-		updateSelectedPanelItem,
 		setActivePanel,
 		raceId
 	} = props;
@@ -151,7 +150,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: isHovering || type === 'chat' ? 99999999 : 99999997
+				zIndex: (isHovering || type === 'chat') ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}
@@ -224,18 +223,17 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</div>
 				)}
 				{type === 'horse' && horseData && <Horse horse={horseData} />}
-				{type === 'chat' && chat && updateSelectedPanelItem && setActivePanel &&(
+				{type === 'chat' && chat && setActivePanel &&(
 					<WaterfallChat
-						updateSelectedPanelItem={updateSelectedPanelItem}
 						setActivePanel={setActivePanel}
 						chat={chat}
 					/>
 				)}
-				{type === 'musicPlayer' && playlist && (
-					<div style={{ width: 320 }}>
+				{type === 'musicPlayer' && playlist && setActivePanel &&
+					<div style={{ width: 320 }} onClick={(e)=>{e.stopPropagation(); setActivePanel('music');}} >
 						<MusicPlayer playlist={playlist} />
 					</div>
-				)}
+				}
 				{type === 'race'  && (
 					<div style={{ width: 400, height: 225}}>
 						<iframe

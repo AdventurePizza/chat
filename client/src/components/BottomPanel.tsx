@@ -4,7 +4,8 @@ import {
 	ITowerDefenseState,
 	PanelItemEnum,
 	IMusicPlayer,
-	newPanelTypes
+	newPanelTypes,
+	IMetadata
 } from '../types';
 import React, { useState } from 'react';
 import ThePanel from './ThePanel';
@@ -57,8 +58,20 @@ export interface IBottomPanelProps {
 	setActivePanel: (panel: newPanelTypes) => void;
 	onNewRoom: () => void;
 	routeHome: () => void;
+	//settings
 	avatar?: string;
-	routeSettings: () => void;
+	setStep: (step: number) => void;
+	onChangeName: (username: string) => void;
+	onSubmitUrl: (url: string) => void;
+	onChangeAvatar: (avatar: string) => void;
+	onSendLocation: (location: string) => void;
+	onSubmitEmail: (email: string) => void;
+	currentAvatar: string;
+	username: string;
+	email: string;
+	myLocation?: string;
+	music?: IMetadata;
+	clearField: (field: string) => void;
 }
 
 
@@ -98,8 +111,20 @@ export const BottomPanel = ({
 	setActivePanel,
 	onNewRoom,
 	routeHome,
+	//settings
 	avatar,
-	routeSettings
+	onChangeName,
+	onSubmitUrl,
+	onChangeAvatar,
+	onSendLocation,
+	onSubmitEmail,
+	currentAvatar,
+	setStep,
+	username,
+	email,
+	myLocation,
+	music,
+	clearField
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -189,7 +214,18 @@ export const BottomPanel = ({
 					routeHome={routeHome}
 					//settings
 					avatar={avatar}		
-					routeSettings={routeSettings}		
+					onChangeName={onChangeName}
+					onSubmitUrl={onSubmitUrl}
+					onChangeAvatar={onChangeAvatar}
+					onSendLocation={onSendLocation}
+					onSubmitEmail={onSubmitEmail}
+					currentAvatar={currentAvatar}
+					setStep={setStep}
+					username={username}
+					email={email}
+					myLocation={myLocation}
+					music={music}
+					clearField={clearField}
 				/>
 			</div>
 		</Drawer>

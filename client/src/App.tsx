@@ -1,7 +1,6 @@
 import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
-import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
 import axios from 'axios';
 import { CustomToken as NFT } from './typechain/CustomToken';
@@ -315,7 +314,7 @@ function App() {
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
-	const [activePanel, setActivePanel] = useState<newPanelTypes>('home');
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('empty');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -483,15 +482,11 @@ function App() {
 
 	const onNewRoom = () => {
 		setModalState('new-room');
-		setActivePanel('home');
+		setActivePanel('empty');
 	};
 
 	const routeHome = () => {
 		history.push(`/`);
-	}
-
-	const routeSettings = () => {
-		history.push('/settings');
 	}
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
@@ -3189,25 +3184,6 @@ function App() {
 		>
 			<MetamaskSection />
 
-			<Route path="/settings">
-				<SettingsPanel
-					setStep={setStep}
-					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
-					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) =>
-						actionHandler('settings', 'avatar', avatar)
-					}
-					onSendLocation={(location) => actionHandler('weather', location)}
-					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
-					currentAvatar={userProfile.avatar}
-					username={userProfile.name}
-					email={userProfile.email}
-					myLocation={userProfile.location}
-					music={userProfile.musicMetadata}
-					clearField={(field) => actionHandler('clear-field', field)}
-				/>
-			</Route>
-
 			<Route exact path={['/room/:roomId', '/']}>
 				<Board
 					videoId={videoId}
@@ -3385,12 +3361,27 @@ function App() {
 				setActivePanel={setActivePanel}
 				onNewRoom={onNewRoom}
 				routeHome={routeHome}
+				//settings
 				avatar={
 					userProfile && !userProfile.avatar.startsWith("https")
 						? avatarMap[userProfile.avatar]
 						: userProfile.avatar
 				}
-				routeSettings={routeSettings}
+				setStep={setStep}
+				onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
+				onChangeName={(name) => actionHandler('settings', 'name', name)}
+				onChangeAvatar={(avatar) =>
+					actionHandler('settings', 'avatar', avatar)
+				}
+				onSendLocation={(location) => actionHandler('weather', location)}
+				onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
+				currentAvatar={userProfile.avatar}
+				username={userProfile.name}
+				email={userProfile.email}
+				myLocation={userProfile.location}
+				music={userProfile.musicMetadata}
+				clearField={(field) => actionHandler('clear-field', field)}	
+
 			/>
 
 			{userProfile && background.type !== "marketplace" && (

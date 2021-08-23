@@ -39,9 +39,10 @@ import { Chat } from './Chat';
 import { EmailPanel } from './EmailPanel';
 import BackgroundPanel from './BackgroundPanel';
 import { GiphyPanel } from './GiphyPanel';
+import {SettingsPanel} from './SettingsPanel';
 //types
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom, newPanelTypes, IMusicPlayer } from '../types';
+import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata } from '../types';
 import { IGif } from '@giphy/js-types';
 
 interface IThePanelProps {
@@ -102,7 +103,18 @@ interface IThePanelProps {
 	routeHome: () => void;
 	//settings
 	avatar?: string;
-	routeSettings: () => void;
+	setStep: (step: number) => void;
+	onChangeName: (username: string) => void;
+	onSubmitUrl: (url: string) => void;
+	onChangeAvatar: (avatar: string) => void;
+	onSendLocation: (location: string) => void;
+	onSubmitEmail: (email: string) => void;
+	currentAvatar: string;
+	username: string;
+	email: string;
+	myLocation?: string;
+	music?: IMetadata;
+	clearField: (field: string) => void;
 }
 
 interface IPanel {
@@ -213,8 +225,18 @@ const ThePanel = ({
 	onNewRoom,
 	//settings
 	avatar,
-	routeSettings
-
+	onChangeName,
+	onSubmitUrl,
+	onChangeAvatar,
+	onSendLocation,
+	onSubmitEmail,
+	currentAvatar,
+	setStep,
+	username,
+	email,
+	myLocation,
+	music,
+	clearField
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
 	const [isBackground, setisBackground] = useState(false);
@@ -377,6 +399,24 @@ const ThePanel = ({
 				/>
 			}
 
+			{activePanel === 'settings' && 
+				<SettingsPanel
+					setStep={setStep}
+					onSubmitUrl={onSubmitUrl}
+					onChangeName={onChangeName}
+					onChangeAvatar={onChangeAvatar}
+					onSendLocation={onSendLocation}
+					onSubmitEmail={onSubmitEmail}
+					currentAvatar={currentAvatar}
+					username={username}
+					email={email}
+					myLocation={myLocation}
+					music={music}
+					clearField={clearField}
+					setActivePanel={setActivePanel}
+				/>
+			}
+			
 			<div className="background-search-settings">
 				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
 
@@ -391,9 +431,8 @@ const ThePanel = ({
 								else if(panel.type === "marketplace"){
 									pinMarketplace()
 								}
-								else if(panel.type === "settings"){
-									routeSettings();
-								}
+								if(panel.type === "settings"){setHideAllPins(true)}
+								else{setHideAllPins(false)}
 							}} 
 							key= {index}
 						>
