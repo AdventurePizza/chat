@@ -2644,20 +2644,32 @@ function App() {
 		
 
 		if(background.mapData){
+			
 			let configData = {
 				type: background.type,
 				name: background.name,
 				raceId: background.raceId,
 				videoId: background.videoId,
 				mapData: {
-					...background.mapData,
+					coordinates: background.mapData.coordinates,
+					zoom: background.mapData.zoom,
 					markers: background.mapData.markers.concat(coordinates)
 				}
 			}
-
+			//let clone = JSON.parse(JSON.stringify(configData));
+			//console.log(configData);
+			
 			const result = await firebaseContext.updateMap(room, configData);
 			if (result.isSuccessful) {
-				setBackground({...configData, activeBackground: "map"});
+				setBackground({type: background.type,
+					name: background.name,
+					raceId: background.raceId,
+					videoId: background.videoId,
+					mapData: {
+						coordinates: background.mapData.coordinates,
+						zoom: background.mapData.zoom,
+						markers: background.mapData.markers.concat(coordinates)
+					}, activeBackground: "map"});
 			}  else if (result.message) {
 				setModalErrorMessage(result.message);
 			}
@@ -3225,6 +3237,7 @@ function App() {
 			}}
 			onClick={onClickApp}
 		>
+			<button onClick={() => {console.log(background.mapData)}} style={{position: "absolute", left: "300px"}}>mapdata</button>
 			<MetamaskSection />
 
 			<Route path="/settings">
