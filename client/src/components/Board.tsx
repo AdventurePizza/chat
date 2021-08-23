@@ -20,7 +20,9 @@ import {
 	IWaterfallChat,
 	IBoardHorse,
 	IMusicPlayer,
-	PanelItemEnum
+	PanelItemEnum,
+	IMap,
+	BackgroundTypes
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -41,6 +43,9 @@ import { MapsContext } from '../contexts/MapsContext';
 import { Map } from './Maps';
 import YouTubeBackground from './YouTubeBackground';
 import { useEffect } from 'react';
+
+import backgroundIcon from "../assets/navbar/backgroundIcon.png";
+import mapIcon from "../assets/buttons/mapsIcon.png";
 
 interface IBoardProps {
 	videoId: string;
@@ -114,6 +119,11 @@ interface IBoardProps {
 	showOpensea: boolean;
 	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
+	setBackground: (data: IBackgroundState) => void;
+	updateMap: (data: IMap) => void;
+	removeBackground: (type: string) => void;
+	mapInputPosition: ({top: number; left: number;});
+	addNewMarker: (coordinates: {lat: number, lng: number}) => void;
 }
 
 export const Board = ({
@@ -179,7 +189,12 @@ export const Board = ({
 	musicPlayer,
 	showOpensea,
 	selectedPanelItem,
-	updateSelectedPanelItem
+	updateSelectedPanelItem,
+	setBackground,
+	updateMap,
+	removeBackground,
+	mapInputPosition,
+	addNewMarker
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -261,6 +276,14 @@ export const Board = ({
 		setIsPaused(false);
 	}, [videoId]);
 
+	const backgroundIconMap = {
+		image: <img src={backgroundIcon} alt="background icon" height={50} onClick={() => setBackground({...background, activeBackground: "image"})}/>,
+		map: <img src={mapIcon} alt="map icon" height={50} onClick={() => setBackground({...background, activeBackground: "map"})}/>,
+		race: null,
+		video: null,
+		marketplace: null
+	}
+
 	return (
 		<div
 			className="board-container"
@@ -272,18 +295,35 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			{(background.type === 'map' || isMapShowing) && <Map mapData={background.mapData} />}
+			
+			{background.activeBackground === "map" && background.mapData && <Map mapData={background.mapData} updateMap={updateMap} addNewMarker={addNewMarker}/>}
 
-			<div className="board-container-pin">
-				{background.name && (
-					<PinButton
-						isPinned={background.isPinned}
-						onPin={pinBackground}
-						onUnpin={unpinBackground}
-						placeholder="background"
-					/>
-				)}
-			</div>
+			{background.activeBackground === "map" && <BoardObject
+				id={'map-text-input'}
+				type="map"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				top={mapInputPosition.top}
+				left={mapInputPosition.left}
+				updateMap={updateMap}
+				mapData={background.mapData}
+			/>}
+
+			{Array.isArray(background.type) ? (
+				<div className="board-background-icons">
+					{background.type.map(type => {
+						if(type){
+							return (
+								<div className="background-icon-container">
+									<button className="remove-background-button" onClick={() => removeBackground(type)}>x</button>
+									{backgroundIconMap[type]}
+								</div>);
+						} else {
+							return null;
+						}
+					})}
+				</div>
+			) : null}
 
 			{raceId && (
 				<iframe
@@ -726,29 +766,6 @@ export const Board = ({
 				</CSSTransition>
 			)}
 			{/* </TransitionGroup> */}
-
-			<div className="board-container-pin">
-				{(videoId || isMapShowing || background.name || background.mapData) && (
-					<PinButton
-						isPinned={background.isPinned}
-						onPin={pinBackground}
-						onUnpin={unpinBackground}
-						placeholder="background"
-					/>
-				)}
-			</div>
-			<div className="board-container-pin">
-				{isMapShowing && background.type !== 'map' && (
-					<PinButton
-						isPinned={false}
-						onPin={pinBackground}
-						onUnpin={unpinBackground}
-						placeholder="background"
-					/>
-				)}
-			</div>
-
-			{isMapShowing ? <Map /> : null}
 
 			<UserCursors
 				userLocations={userLocations}

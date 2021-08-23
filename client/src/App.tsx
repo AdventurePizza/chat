@@ -1,5 +1,5 @@
-import './App.css';
 import * as ethers from 'ethers';
+import './App.css';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
@@ -38,7 +38,8 @@ import {
 	IMap,
 	IWaterfallChat,
 	IBoardHorse,
-	IMusicPlayer
+	IMusicPlayer,
+	BackgroundTypes
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -279,6 +280,15 @@ function App() {
 		temp: '',
 		condition: ''
 	});
+
+	const [mapInputPosition, setMapInputPosition] = useState({
+		top: 300,
+		left: 300
+	});
+
+	useEffect(() => {
+		console.log("App.tsx", background.mapData);
+	}, [background.mapData])
 
 	// YouTube function to keep track of timestamps
 	const updateLastTime = () => {
@@ -1757,7 +1767,7 @@ function App() {
 					key: 'background',
 					value: backgroundName
 				});
-				firebaseContext.unpinRoomItem(roomId || 'default', 'background');
+				addBackground("image", backgroundName);
 				break;
 			case 'image':
 				const image = args[0] as string;
@@ -2146,6 +2156,7 @@ function App() {
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
 				let backgroundVideo: string | undefined;
+				let backgroundArray: any;
 
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
@@ -2248,6 +2259,8 @@ function App() {
 								id: item.id
 							});
 						});
+					} else if (Array.isArray(item.type)) {
+						backgroundArray = item;
 					}
 				});
 
@@ -2256,13 +2269,17 @@ function App() {
 				setTweets(pinnedTweets);
 				setPinnedText(pinnedText);
 				setVideos(pinnedVideos);
-				setBackground({
-					name: backgroundImg,
-					isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
-					mapData: backgroundMap,
-					type: backgroundType,
-					videoId: backgroundVideo
-				});
+				if(backgroundArray){
+					setBackground(backgroundArray);
+				} else {
+					setBackground({
+						name: backgroundImg,
+						isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
+						mapData: backgroundMap,
+						type: backgroundType,
+						videoId: backgroundVideo
+					});
+				}
 				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
 				setHorses(pinnedHorses);
@@ -2484,6 +2501,168 @@ function App() {
 			left: 0
 		});
 	};
+	
+	const addBackground = async (type: BackgroundTypes, data: string | IMap) => {
+		const room = roomId || 'default';
+
+		let backgrounds: any[] = [];
+		if(Array.isArray(background.type)){
+			if(!background.type.includes(type)){
+				backgrounds = [...background.type].concat(type);
+			} else {
+				backgrounds = [...background.type];
+			}
+		} else if (typeof background.type === "string"){
+			if(background.type === type) {
+				backgrounds = [background.type];
+			} else {
+				backgrounds = [background.type, type];
+			}
+		} else {
+			backgrounds = [type]
+		}
+
+		let configData: any = {};
+		if(type === "map"){
+			configData = {
+				type: backgrounds,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: data
+			}
+		} else if (type === "video"){
+			configData = {
+				type: backgrounds,
+				videoId: data,
+				name: background.name,
+				raceId: background.raceId,
+				mapData: background.mapData
+			}
+		} else if (type === "race"){
+			configData = {
+				type: backgrounds,
+				raceId: data,
+				videoId: background.videoId,
+				name: background.name,
+				mapData: background.mapData
+			}
+		} else if (type === "image"){
+			configData = {
+				type: backgrounds,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				name: data,
+				mapData: background.mapData
+			}
+		}
+
+
+		const result = await firebaseContext.updateBackground(room, configData);
+
+		if (result.isSuccessful) {
+			setBackground((background) => ({...configData, activeBackground: type}));
+		}  else if (result.message) {
+			setModalErrorMessage(result.message);
+		}
+	}
+
+	const removeBackground = async (type: string) => {
+		const room = roomId || 'default';
+
+		let backgrounds: any[] = []
+		if(Array.isArray(background.type)){
+			backgrounds = background.type.filter(entry => entry !== type);
+		}
+
+		let configData: any = {};
+		if(type === "map"){
+			configData = {
+				type: backgrounds,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: undefined
+			}
+		} else if (type === "image"){
+			configData = {
+				type: backgrounds,
+				name: "",
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: undefined
+			}
+		} else if (type === "video"){
+			configData = {
+				type: backgrounds,
+				videoId: "",
+				name: background.name,
+				raceId: background.raceId,
+				mapData: background.mapData
+			}
+		} else if (type === "race"){
+			configData = {
+				type: backgrounds,
+				raceId: "",
+				videoId: background.videoId,
+				name: background.name,
+				mapData: background.mapData
+			}
+		}
+
+
+		const result = await firebaseContext.updateBackground(room, configData);
+
+		if (result.isSuccessful) {
+			setBackground((background) => ({...configData, activeBackground: backgrounds[0]}));
+		}  else if (result.message) {
+			setModalErrorMessage(result.message);
+		}
+	}
+
+	const updateMap = async (mapData: IMap) => {
+		const room = roomId || 'default';
+		let configData = {
+			type: background.type,
+			name: background.name,
+			raceId: background.raceId,
+			videoId: background.videoId,
+			mapData
+		}
+		console.log("configData", configData);
+		const result = await firebaseContext.updateMap(room, configData);
+
+		if (result.isSuccessful) {
+			setBackground({...configData, activeBackground: "map"});
+		}  else if (result.message) {
+			setModalErrorMessage(result.message);
+		}
+	}
+
+	const addNewMarker = async (coordinates: { lat: number, lng: number }) => {
+		const room = roomId || 'default';
+		
+
+		if(background.mapData){
+			let configData = {
+				type: background.type,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: {
+					...background.mapData,
+					markers: background.mapData.markers.concat(coordinates)
+				}
+			}
+
+			const result = await firebaseContext.updateMap(room, configData);
+			if (result.isSuccessful) {
+				setBackground({...configData, activeBackground: "map"});
+			}  else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	}
 
 	const pinBackground = async () => {
 		const room = roomId || 'default';
@@ -2558,7 +2737,7 @@ function App() {
 
 			if (isSuccessful) {
 				let oldBackgroundType = '';
-				if (background.type) {
+				if (typeof background.type === 'string') {
 					oldBackgroundType = background.type.valueOf();
 				}
 
@@ -2818,6 +2997,11 @@ function App() {
 				top: top,
 				left: left
 			}));
+		} else if (type === 'map'){
+			setMapInputPosition({
+				top: top,
+				left: left
+			});
 		} else {
 			const {
 				isSuccessful,
@@ -3128,6 +3312,11 @@ function App() {
 					showOpensea={showOpensea}
 					selectedPanelItem={selectedPanelItem}
 					updateSelectedPanelItem={setSelectedPanelItem}
+					setBackground={setBackground}
+					updateMap={updateMap}
+					removeBackground={removeBackground}
+					mapInputPosition={mapInputPosition}
+					addNewMarker={addNewMarker}
 				/>
 			</Route>
 
@@ -3248,6 +3437,7 @@ function App() {
 				showOpensea={showOpensea}
 				setShowOpensea={setShowOpensea}
 				addVideo={addVideo}
+				addBackground={addBackground}
 			/>
 
 			{userProfile && !showOpensea && (

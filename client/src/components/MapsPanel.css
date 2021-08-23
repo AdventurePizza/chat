@@ -16,15 +16,15 @@
     align-items: center;
 }
 
-.map-options-container {
-    width: 470px;
-}
+/* .map-options-container {
+} */
 
 .map-input-options {
     border-radius: 3px;
     font-size: 12px;
     overflow: visible;
     position: relative;
+    width: 470px;
 }
 
 .map-input-options::after {

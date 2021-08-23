@@ -250,3 +250,30 @@ a:active {
 	display: block;
 	margin-left: 15px;
 }
+
+.board-background-icons {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	color: white;
+	display: flex;
+	border-radius: 10px;
+	background-color: rgba(0, 0, 0, 0.5);
+	padding: 5px 10px;
+}
+
+.background-icon-container {
+	position: relative;
+}
+
+.background-icon-container:hover .remove-background-button {
+	display: block;
+}
+
+.remove-background-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: none;
+}

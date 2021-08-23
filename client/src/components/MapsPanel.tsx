@@ -9,8 +9,14 @@ import { MapsContext } from '../contexts/MapsContext';
 
 import { FormControlLabel, Switch } from '@material-ui/core';
 import { AppStateContext } from '../contexts/AppStateContext';
+import { IMap } from '../types';
 
-export const MapsPanel = () => {
+interface IMapsPanelProps {
+	updateMap?: (mapData: IMap) => void;
+	mapData?: IMap;
+}
+
+export const MapsPanel = ({updateMap, mapData} : IMapsPanelProps) => {
 	const [address, setAddress] = useState('');
 
 	const {
@@ -25,8 +31,17 @@ export const MapsPanel = () => {
 		const results = await geocodeByAddress(value);
 		const latLng = await getLatLng(results[0]);
 		setAddress(value);
-		updateCoordinates(latLng);
-		updateIsMapShowing(true);
+		/* updateCoordinates(latLng);
+		updateIsMapShowing(true); */
+		
+		if(updateMap){
+			updateMap({
+				coordinates: latLng,
+				markers: [],
+				zoom: 12}
+			)
+		}
+
 
 		addMarker({
 			lat: latLng.lat,
@@ -46,7 +61,7 @@ export const MapsPanel = () => {
 
 	return (
 		<div className="maps-panel-container">
-			<div style={{ display: 'flex' }}>
+			{/* <div style={{ display: 'flex' }}>
 				<FormControlLabel
 					checked={isMapShowing}
 					onChange={() => {
@@ -60,7 +75,7 @@ export const MapsPanel = () => {
 					control={<Switch color="primary" />}
 					label="show map"
 				/>
-			</div>
+			</div> */}
 
 			<PlacesAutocomplete
 				value={address}

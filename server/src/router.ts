@@ -461,7 +461,7 @@ export class Router {
 
         socket.to(roomId).emit("event", message);
         socket.emit("event", message);
-        removeImageAfter1Min(clientRooms[socket.id]);
+        //removeImageAfter1Min(clientRooms[socket.id]);
         break;
       case "send-race":
         socket.to(clientRooms[socket.id]).emit("event", message);

@@ -67,10 +67,12 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 };
 
 interface IMapProps {
-	mapData?: IMap;
+	mapData: IMap;
+	updateMap: (data: IMap) => void;
+	addNewMarker: (coordinates: {lat: number, lng: number}) => void;
 }
 
-export const Map = ({ mapData }: IMapProps) => {
+export const Map = ({ mapData, updateMap, addNewMarker }: IMapProps) => {
 	const {
 		coordinates,
 		updateCoordinates,
@@ -84,22 +86,47 @@ export const Map = ({ mapData }: IMapProps) => {
 	const onChangeCoordinates = (
 		newCoordinates: { lat: number; lng: number },
 		newZoom: number
-	) => {
-		updateCoordinates(newCoordinates);
+		) => {
+		/*updateCoordinates(newCoordinates);
 		updateZoom(newZoom);
 		socket.emit('event', {
 			key: 'map',
 			coordinates: newCoordinates,
 			zoom: newZoom
-		});
+		}); */
+		const newMapData = {
+			coordinates : newCoordinates,
+			markers : mapData.markers,
+			zoom: newZoom
+		}
+		updateMap(newMapData);
 	};
 
 	const apiIsLoaded = (map: any, maps: any) => {
 		map.addListener('dblclick', (event: any) => {
-			addMarker({
+			/* if(mapData){
+				//console.log('markers: ', mapData.markers);
+				let newMapData: IMap = {
+					coordinates : {
+						lat: mapData.coordinates.lat,
+						lng: mapData.coordinates.lng
+					},
+					markers : mapData.markers.concat({
+						lat: event.latLng.lat(),
+						lng: event.latLng.lng()
+					}),
+					zoom: mapData.zoom
+				}
+				//console.log('new markers: ', newMapData.markers);
+				if(updateMap){
+					updateMap(newMapData);
+				}
+			} */
+			addNewMarker({
 				lat: event.latLng.lat(),
 				lng: event.latLng.lng()
-			});
+			}); 
+			
 			socket.emit('event', {
 				key: 'map',
 				func: 'add',

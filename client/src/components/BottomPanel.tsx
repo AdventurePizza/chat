@@ -4,7 +4,9 @@ import {
 	IEmojiDict,
 	ITowerDefenseState,
 	PanelItemEnum,
-	IMusicPlayer
+	IMusicPlayer,
+	BackgroundTypes,
+	IMap
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
@@ -52,6 +54,7 @@ export interface IBottomPanelProps {
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
 export interface IPanelContentProps {
@@ -86,6 +89,7 @@ export interface IPanelContentProps {
 	showOpensea: boolean;
 	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
 export interface ISoundPairs {
@@ -128,7 +132,8 @@ export const BottomPanel = ({
 	setRaceId,
 	showOpensea,
 	setShowOpensea,
-	addVideo
+	addVideo,
+	addBackground,
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -178,6 +183,7 @@ export const BottomPanel = ({
 					showOpensea={showOpensea}
 					setShowOpensea={setShowOpensea}
 					addVideo={addVideo}
+					addBackground={addBackground}
 				/>
 			</div>
 		</Drawer>
@@ -215,7 +221,8 @@ const PanelContent = ({
 	setRaceId,
 	showOpensea,
 	setShowOpensea,
-	addVideo
+	addVideo,
+	addBackground,
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -304,6 +311,8 @@ const PanelContent = ({
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace
 					setShowOpensea={setShowOpensea}
+					//map
+					addBackground={addBackground}
 				/>
 			);
 		case 'settings':

@@ -2,9 +2,11 @@ import { IGif } from '@giphy/js-types';
 
 export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet'; 
 
+export type BackgroundTypes = 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 
 export interface IBackgroundState {
-	type?: 'image' | 'map' | 'race' | 'marketplace' | 'video';
+	type?: BackgroundTypes[] | BackgroundTypes;
+	activeBackground?: BackgroundTypes;
 	name?: string;
 	isPinned?: boolean;
 	mapData?: IMap;

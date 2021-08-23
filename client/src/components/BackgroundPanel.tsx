@@ -23,7 +23,7 @@ import loadingDots from '../assets/loading-dots.gif';
 import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom } from '../types';
+import { BackgroundTypes, IChatRoom, IMap } from '../types';
 import googleIcon from '../assets/buttons/google.png'
 import giphyIcon from '../assets/buttons/giphy.png'
 import unsplashIcon from '../assets/buttons/unsplash.png'
@@ -86,6 +86,8 @@ interface IBackgroundPanelProps {
 	sendHorse: (id: string, type: 'horse') => void;
 	//marketplace
 	setShowOpensea: (value: boolean) => void;
+	//map
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
 type PanelTypes= 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' |'+NFT';
@@ -171,7 +173,9 @@ const BackgroundPanel = ({
 	//horse
 	sendHorse,
 	//marketplace
-	setShowOpensea
+	setShowOpensea,
+	//map
+	addBackground,
 
 }: IBackgroundPanelProps) => {
 	const [text, setText] = useState('');
@@ -277,6 +281,16 @@ const BackgroundPanel = ({
 							onClick={() => {setActivePanel(panel.type); 
 								if(panel.type === "marketplace"){setShowOpensea(true);}
 								else{setShowOpensea(false);}
+								if(panel.type === "maps"){
+									addBackground("map", {
+										coordinates: {
+											lat: 33.91925555555555,
+											lng: -118.41655555555555
+										},
+										markers: [],
+										zoom: 12
+									});
+								}
 							}} 
 							key= {index}
 						>
