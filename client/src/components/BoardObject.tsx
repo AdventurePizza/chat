@@ -17,7 +17,6 @@ import {
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { Map } from './Maps';
 import { Tweet } from 'react-twitter-widgets';
 import { WaterfallChat } from './WaterfallChat';
 import { MusicPlayer } from './MusicPlayer';

@@ -35,6 +35,8 @@ import horseIcon from '../assets/buttons/horse.png'
 import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { HorsePanel } from './HorsePanel';
+import { AppStateContext } from '../contexts/AppStateContext';
+
 
 const API_KEY = 'lK7kcryXkXX2eV2kOUbVZUhaYRLlrWYh';
 const giphyfetch = new GiphyFetch(API_KEY)
@@ -196,6 +198,7 @@ const BackgroundPanel = ({
 			{type: 'horse', icon: horseIcon}, 
 			{type: '+NFT'} 
 		]); 
+	const { socket } = useContext(AppStateContext);
 
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
@@ -290,6 +293,10 @@ const BackgroundPanel = ({
 										markers: [],
 										zoom: 12
 									});
+									socket.emit('event',{
+										key: 'map',
+										func: 'add-map'
+									})
 								}
 							}} 
 							key= {index}

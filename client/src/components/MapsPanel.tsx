@@ -5,9 +5,6 @@ import PlacesAutocomplete, {
 } from 'react-places-autocomplete';
 import './MapsPanel.css';
 
-import { MapsContext } from '../contexts/MapsContext';
-
-import { FormControlLabel, Switch } from '@material-ui/core';
 import { AppStateContext } from '../contexts/AppStateContext';
 import { IMap } from '../types';
 
@@ -19,35 +16,23 @@ interface IMapsPanelProps {
 export const MapsPanel = ({updateMap, mapData} : IMapsPanelProps) => {
 	const [address, setAddress] = useState('');
 
-	const {
-		updateCoordinates,
-		isMapShowing,
-		updateIsMapShowing,
-		addMarker
-	} = useContext(MapsContext);
 	const { socket } = useContext(AppStateContext);
 
 	const handleSelect = async (value: string) => {
 		const results = await geocodeByAddress(value);
 		const latLng = await getLatLng(results[0]);
 		setAddress(value);
-		/* updateCoordinates(latLng);
-		updateIsMapShowing(true); */
 		
 		if(updateMap){
 			updateMap({
 				coordinates: latLng,
-				markers: [],
+				markers: [...mapData!.markers].concat({
+					...latLng,
+					text: value
+				}),
 				zoom: 12}
 			)
 		}
-
-
-		addMarker({
-			lat: latLng.lat,
-			lng: latLng.lng,
-			text: value
-		});
 		socket.emit('event', {
 			key: 'map',
 			func: 'add',
@@ -61,21 +46,6 @@ export const MapsPanel = ({updateMap, mapData} : IMapsPanelProps) => {
 
 	return (
 		<div className="maps-panel-container">
-			{/* <div style={{ display: 'flex' }}>
-				<FormControlLabel
-					checked={isMapShowing}
-					onChange={() => {
-						const newVal = !isMapShowing;
-						updateIsMapShowing(newVal);
-						socket.emit('event', {
-							key: 'map',
-							isMapShowing: newVal
-						});
-					}}
-					control={<Switch color="primary" />}
-					label="show map"
-				/>
-			</div> */}
 
 			<PlacesAutocomplete
 				value={address}

@@ -1365,7 +1365,7 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
-					if (message.isMapShowing !== undefined) {
+					/* if (message.isMapShowing !== undefined) {
 						updateIsMapShowing(message.isMapShowing);
 					}
 					if (message.zoom !== undefined) {
@@ -1386,6 +1386,69 @@ function App() {
 					}
 					if (message.func === 'update') {
 						updateMarkerText(message.index, message.text);
+					} */
+					switch(message.func){
+						case 'add-map' :
+							setBackground((background) => ({
+								...background,
+								type: Array.isArray(background.type) ? background.type.concat("map") : [background.type, "map"],
+								mapData: {
+									coordinates: {
+										lat: 33.91925555555555,
+										lng: -118.41655555555555
+									},
+									markers: [],
+									zoom: 12
+								}
+							}));
+							break;
+						case 'remove-map' :
+							setBackground((background) => ({
+								...background,
+								type: Array.isArray(background.type) ? background.type.filter(entry => entry !== "map") : background.type,
+								mapData: undefined
+							}));
+							break;
+						case 'update' :
+							setBackground((background) => ({
+								...background,
+								mapData: message.mapData
+							}));
+							break;
+						case 'add-marker' :
+							setBackground((background) => ({
+								...background,
+								mapData: {
+									coordinates: background.mapData!.coordinates,
+									markers: background.mapData!.markers.concat(message.marker),
+									zoom: background.mapData!.zoom
+								}
+							}));
+							break;
+						case 'remove-marker' :
+							setBackground((background) => ({
+								...background,
+								mapData: {
+									coordinates: background.mapData!.coordinates,
+									markers: [...background.mapData!.markers.slice(0, message.index), ...background.mapData!.markers.slice(message.index + 1)],
+									zoom: background.mapData!.zoom
+								}
+							}));
+							break;
+						case 'update-marker' :
+							setBackground((background) => ({
+								...background,
+								mapData: {
+									coordinates: background.mapData!.coordinates,
+									markers: [
+										...background.mapData!.markers.slice(0, message.index),
+										{ ...background.mapData!.markers[message.index], text: message.text },
+										...background.mapData!.markers.slice(message.index + 1)
+									],
+									zoom: background.mapData!.zoom
+								}
+							}));
+							break;
 					}
 					break;
 				case 'sound':
@@ -2639,12 +2702,10 @@ function App() {
 		}
 	}
 
-	const addNewMarker = async (coordinates: { lat: number, lng: number }) => {
+	const addNewMarker = async (coordinates: { lat: number; lng: number, text: string }) => {
 		const room = roomId || 'default';
-		
 
-		if(background.mapData){
-			
+		if (background.mapData) {
 			let configData = {
 				type: background.type,
 				name: background.name,
@@ -2655,26 +2716,92 @@ function App() {
 					zoom: background.mapData.zoom,
 					markers: background.mapData.markers.concat(coordinates)
 				}
-			}
-			//let clone = JSON.parse(JSON.stringify(configData));
-			//console.log(configData);
-			
+			};
+
 			const result = await firebaseContext.updateMap(room, configData);
 			if (result.isSuccessful) {
-				setBackground({type: background.type,
-					name: background.name,
-					raceId: background.raceId,
-					videoId: background.videoId,
+				setBackground((background) => ({
+					...background,
 					mapData: {
-						coordinates: background.mapData.coordinates,
-						zoom: background.mapData.zoom,
-						markers: background.mapData.markers.concat(coordinates)
-					}, activeBackground: "map"});
-			}  else if (result.message) {
+						...background.mapData!,
+						markers: background.mapData!.markers.concat(coordinates)
+					}
+				}));
+			} else if (result.message) {
 				setModalErrorMessage(result.message);
 			}
 		}
-	}
+	};
+
+	const removeMarker = async (index: number) => {
+		const room = roomId || 'default';
+
+		if (background.mapData) {
+			let configData = {
+				type: background.type,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: {
+					coordinates: background.mapData.coordinates,
+					zoom: background.mapData.zoom,
+					markers: [...background.mapData.markers.slice(0, index), ...background.mapData.markers.slice(index + 1)]
+				}
+			};
+
+			const result = await firebaseContext.updateMap(room, configData);
+			if (result.isSuccessful) {
+				setBackground((background) => ({
+					...background,
+					mapData: {
+						...background.mapData!,
+						markers: [...background.mapData!.markers.slice(0, index), ...background.mapData!.markers.slice(index + 1)]
+					}
+				}));
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const updateMarker = async (index: number, text: string) => {
+		const room = roomId || 'default';
+
+		if (background.mapData) {
+			let configData = {
+				type: background.type,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: {
+					coordinates: background.mapData.coordinates,
+					zoom: background.mapData.zoom,
+					markers: [
+						...background.mapData.markers.slice(0, index),
+						{ ...background.mapData.markers[index], text },
+						...background.mapData.markers.slice(index + 1)
+					]
+				}
+			};
+
+			const result = await firebaseContext.updateMap(room, configData);
+			if (result.isSuccessful) {
+				setBackground((background) => ({
+					...background,
+					mapData: {
+						...background.mapData!,
+						markers: [
+							...background.mapData!.markers.slice(0, index),
+							{ ...background.mapData!.markers[index], text },
+							...background.mapData!.markers.slice(index + 1)
+						]
+					}
+				}));
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
 
 	const pinBackground = async () => {
 		const room = roomId || 'default';
@@ -3330,6 +3457,8 @@ function App() {
 					removeBackground={removeBackground}
 					mapInputPosition={mapInputPosition}
 					addNewMarker={addNewMarker}
+					removeMarker={removeMarker}
+					updateMarker={updateMarker}
 				/>
 			</Route>
 

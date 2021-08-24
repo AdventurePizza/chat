@@ -22,14 +22,12 @@ import {
 	IMusicPlayer,
 	PanelItemEnum,
 	IMap,
-	BackgroundTypes
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
 import { XYCoord, useDrop } from 'react-dnd';
 
 import { BoardObject } from './BoardObject';
-import { PinButton } from './shared/PinButton';
 import React, { useState } from 'react';
 import { UserCursors } from './UserCursors';
 import { backgrounds } from './BackgroundImages';
@@ -46,6 +44,8 @@ import { useEffect } from 'react';
 
 import backgroundIcon from "../assets/navbar/backgroundIcon.png";
 import mapIcon from "../assets/buttons/mapsIcon.png";
+import { AppStateContext } from '../contexts/AppStateContext';
+
 
 interface IBoardProps {
 	videoId: string;
@@ -123,7 +123,9 @@ interface IBoardProps {
 	updateMap: (data: IMap) => void;
 	removeBackground: (type: string) => void;
 	mapInputPosition: ({top: number; left: number;});
-	addNewMarker: (coordinates: {lat: number, lng: number}) => void;
+	addNewMarker: (coordinates: {lat: number, lng: number, text: string}) => void;
+	removeMarker: (index: number) => void;
+	updateMarker: (index: number, text: string) => void;
 }
 
 export const Board = ({
@@ -194,7 +196,9 @@ export const Board = ({
 	updateMap,
 	removeBackground,
 	mapInputPosition,
-	addNewMarker
+	addNewMarker,
+	removeMarker,
+	updateMarker
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -276,6 +280,8 @@ export const Board = ({
 		setIsPaused(false);
 	}, [videoId]);
 
+	const { socket } = useContext(AppStateContext);
+
 	const backgroundIconMap = {
 		image: <img src={backgroundIcon} alt="background icon" height={50} onClick={() => setBackground({...background, activeBackground: "image"})}/>,
 		map: <img src={mapIcon} alt="map icon" height={50} onClick={() => setBackground({...background, activeBackground: "map"})}/>,
@@ -296,7 +302,13 @@ export const Board = ({
 			ref={drop}
 		>
 			
-			{background.activeBackground === "map" && background.mapData && <Map mapData={background.mapData} updateMap={updateMap} addNewMarker={addNewMarker}/>}
+			{background.activeBackground === "map" && background.mapData && <Map 
+				mapData={background.mapData} 
+				updateMap={updateMap} 
+				addNewMarker={addNewMarker} 
+				removeMarker={removeMarker}
+				updateMarker={updateMarker}
+				/>}
 
 			{background.activeBackground === "map" && <BoardObject
 				id={'map-text-input'}
@@ -315,7 +327,13 @@ export const Board = ({
 						if(type){
 							return (
 								<div className="background-icon-container">
-									<button className="remove-background-button" onClick={() => removeBackground(type)}>x</button>
+									<button className="remove-background-button" onClick={() => {
+										removeBackground(type);
+										socket.emit('event', {
+											key: 'map',
+											func: 'remove-map'
+										});
+									}}>x</button>
 									{backgroundIconMap[type]}
 								</div>);
 						} else {
