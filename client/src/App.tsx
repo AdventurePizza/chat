@@ -3,7 +3,7 @@ import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
 import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
-
+import axios from 'axios';
 import { CustomToken as NFT } from './typechain/CustomToken';
 
 import {
@@ -37,7 +37,11 @@ import {
 	ITweet,
 	IMap,
 	IWaterfallChat,
-	ICoin
+	ICoin,
+	IBoardHorse,
+	IMusicPlayer,
+	newPanelTypes,
+	IBoardRace
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -48,7 +52,7 @@ import React, {
 	useEffect,
 	useMemo,
 	useRef,
-	useState,
+	useState
 } from 'react';
 import {
 	Route,
@@ -66,7 +70,7 @@ import {
 } from './components/Animation';
 import { cymbalHit, sounds } from './components/Sounds';
 
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
 
 import { Board } from './components/Board';
 import { BottomPanel } from './components/BottomPanel';
@@ -104,9 +108,9 @@ const GIF_FETCH = new GiphyFetch(API_KEY);
 const GIF_PANEL_HEIGHT = 150;
 const BOTTOM_PANEL_MARGIN_RATIO = 1.5;
 
-const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
-	transports: ['websocket']
-});
+// const marketplaceSocket = io(config[configNetwork].marketplaceSocketURL, {
+// 	transports: ['websocket']
+// });
 
 function App() {
 	const { socket } = useContext(AppStateContext);
@@ -171,18 +175,20 @@ function App() {
 	const { roomId } = useParams<{ roomId?: string }>();
 	const history = useHistory();
 	useEffect(() => {
-		setUserProfile((profile) => ({...profile, currentRoom: roomId}));
+		setUserProfile((profile) => ({ ...profile, currentRoom: roomId }));
 		socket.emit('event', {
 			key: 'currentRoom',
 			value: roomId
-		})
+		});
 		return history.listen(() => {
 			resetMap();
 		});
 	}, [history, resetMap, roomId, socket]);
 
 	const [isInvalidRoom, setIsInvalidRoom] = useState<boolean | undefined>();
-	const [invalidRoomMessage, setInvalidRoomMessage] = useState<string | undefined>();
+	const [invalidRoomMessage, setInvalidRoomMessage] = useState<
+		string | undefined
+	>();
 	const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
 		null
 	);
@@ -215,6 +221,7 @@ function App() {
 
 	const [videos, setVideos] = useState<IBoardVideo[]>([]);
 	const [videoId, setVideoId] = useState<string>('');
+	const [pinnedVideoId, setPinnedVideoId] = useState<string>('');
 	const [isVidPinned, setIsVidPinned] = useState<boolean>(false);
 	const [lastVideoId, setLastVideoId] = useState<string>('');
 	const [lastTime, setLastTime] = useState<number>(0);
@@ -226,7 +233,7 @@ function App() {
 	const clearVideo = () => {
 		setVideoId('');
 		setLastVideoId('');
-	}
+	};
 
 	const bottomPanelRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -265,8 +272,10 @@ function App() {
 		weather: { temp: '', condition: '' },
 		soundType: '',
 		currentRoom: 'default',
-		email: ''
+		email: '',
+		location: ''
 	});
+
 	const userCursorRef = React.createRef<HTMLDivElement>();
 
 	const [weather, setWeather] = useState<IWeather>({
@@ -281,7 +290,7 @@ function App() {
 			// console.log('updating timestamp');
 			setLastTime(videoRef.current.getCurrentTime());
 		}
-	}
+	};
 
 	/* const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true); */
@@ -290,18 +299,28 @@ function App() {
 	const [isFirstVisit, setIsFirstVisit] = useState(false);
 	const [step, setStep] = useState(0);
 
-
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 400,
-		left: 800,
+		top: 10,
+		left: 110,
 		messages: [],
 		show: true
 	});
 
-	const [raceId, setRaceId] = useState<string>('');
+	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
+	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
+		top: 600,
+		left: 200,
+		playlist: []
+	});
+	const [races, setRaces] = useState<IBoardRace[]>([]);
+
+	const [horses, setHorses] = useState<IBoardHorse[]>([]);
+
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
+		console.log(roomId);
 	}, [roomId]);
 
 	const playEmoji = useCallback((dict: IEmojiDict) => {
@@ -353,17 +372,17 @@ function App() {
 
 	//FETCH USER DATA
 	useEffect(() => {
-		if(accountId && isLoggedIn){
-			firebaseContext.getUser(accountId)
+		if (accountId && isLoggedIn) {
+			firebaseContext
+				.getUser(accountId)
 				.then((res: any) => {
-					if(res.data.email){
-						setShowLoginModal(false);
-					}
-					if(userProfile.email){
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar }));
-					} else {
-						setUserProfile((profile) => ({ ...profile, name: res.data.screenName, avatar: res.data.avatar, email: res.data.email }));
-					}
+					setShowLoginModal(false);
+					setUserProfile((profile) => ({
+						...profile,
+						name: res.data.screenName,
+						avatar: res.data.avatar,
+						email: res.data.email
+					}));
 					socket.emit('event', {
 						key: 'avatar',
 						value: res.data.avatar
@@ -374,55 +393,64 @@ function App() {
 					});
 				})
 				.catch((err: any) => {
-					firebaseContext.createUser(accountId, userProfile.name, userProfile.avatar)
+					firebaseContext
+						.createUser(accountId, userProfile.name, userProfile.avatar)
 						.then(() => setIsFirstVisit(true))
-						.catch(err => console.log(err));
-					console.log(err)
+						.catch((err) => console.log(err));
+					console.log(err);
 				});
 		}
-	}, [accountId, isLoggedIn, userProfile.avatar, userProfile.name, userProfile.email, socket, firebaseContext])
+	}, [
+		accountId,
+		isLoggedIn,
+		userProfile.avatar,
+		userProfile.name,
+		userProfile.email,
+		socket,
+		firebaseContext
+	]);
 
-	useEffect(() => {
-		async function onAddOrder(order: IOrder) {
-			if (order.ownerAddress.toLowerCase() === accountId?.toLowerCase()) {
-				const { x, y } = generateRandomXY(true, true);
-				const { x: relativeX, y: relativeY } = getRelativePos(x, y, 0, 0);
-				const { isSuccessful, message } = await firebaseContext.pinRoomItem(
-					roomId || 'default',
-					{
-						type: 'NFT',
-						top: relativeY,
-						left: relativeX,
-						order
-					}
-				);
+	// useEffect(() => {
+	// 	async function onAddOrder(order: IOrder) {
+	// 		if (order.ownerAddress.toLowerCase() === accountId?.toLowerCase()) {
+	// 			const { x, y } = generateRandomXY(true, true);
+	// 			const { x: relativeX, y: relativeY } = getRelativePos(x, y, 0, 0);
+	// 			const { isSuccessful, message } = await firebaseContext.pinRoomItem(
+	// 				roomId || 'default',
+	// 				{
+	// 					type: 'NFT',
+	// 					top: relativeY,
+	// 					left: relativeX,
+	// 					order
+	// 				}
+	// 			);
 
-				if (isSuccessful) {
-					setNFTs((nfts) =>
-						nfts.concat({ ...order, top: y, left: x, type: 'NFT' })
-					);
+	// 			if (isSuccessful) {
+	// 				setNFTs((nfts) =>
+	// 					nfts.concat({ ...order, top: y, left: x, type: 'NFT' })
+	// 				);
 
-					socket.emit('event', {
-						key: 'pin-item',
-						type: 'NFT',
-						top: y,
-						left: x,
-						itemKey: (order as IOrder & IPinnedItem).key!,
-						isNew: true
-					});
-					setLoadingNFT(undefined);
-				} else if (message) {
-					setModalErrorMessage(message);
-				}
-			}
-		}
+	// 				socket.emit('event', {
+	// 					key: 'pin-item',
+	// 					type: 'NFT',
+	// 					top: y,
+	// 					left: x,
+	// 					itemKey: (order as IOrder & IPinnedItem).key!,
+	// 					isNew: true
+	// 				});
+	// 				setLoadingNFT(undefined);
+	// 			} else if (message) {
+	// 				setModalErrorMessage(message);
+	// 			}
+	// 		}
+	// 	}
 
-		marketplaceSocket.on('add-order', onAddOrder);
+	// 	// marketplaceSocket.on('add-order', onAddOrder);
 
-		return () => {
-			marketplaceSocket.off('add-order', onAddOrder);
-		};
-	}, [firebaseContext, accountId, roomId, socket]);
+	// 	// return () => {
+	// 	// 	marketplaceSocket.off('add-order', onAddOrder);
+	// 	// };
+	// }, [firebaseContext, accountId, roomId, socket]);
 
 	const onNFTSuccess = (submission: ISubmit) => {
 		setLoadingNFT(submission);
@@ -455,18 +483,13 @@ function App() {
 		audio.current.play();
 	}, []);
 
-	const onClickPanelItem = (key: string) => {
+	const onClickPanelItem = (key: string | undefined) => {
 		switch (key) {
 			case 'sound':
 			case 'emoji':
-			case 'chat':
-			case 'gifs':
 			case 'tower':
-			case 'animation':
 			case 'background':
-			case 'whiteboard':
 			case 'weather':
-			case 'maps':
 			case 'roomDirectory':
 			case 'settings':
 			case 'poem':
@@ -487,6 +510,8 @@ function App() {
 					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
 				);
 				break;
+			case undefined:
+				setSelectedPanelItem(undefined);
 		}
 	};
 
@@ -501,10 +526,56 @@ function App() {
 	const onShowChat = () => {
 		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, show: !waterfallChat.show }));
 	}
+
+	const onShowMarker = (show: boolean) => {
+		setShowWhiteboard(show);
+	};
+
 	const updateWaterfallChat = useCallback((message: IMessageEvent) => {
-		const { avatar, value } = message;
-		setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat({ "avatar": avatar , "message": value}) }));
+		const { avatar, value, name } = message;
+
+		setWaterfallChat((waterfallChat) => ({
+			...waterfallChat,
+			messages: waterfallChat.messages.concat({
+				avatar: avatar,
+				message: value,
+				name: name
+			})
+		}));
 	}, []);
+
+	const handleChangePlaylist = useCallback(
+		(message: IMessageEvent) => {
+			const url = message.value.url;
+			const name = message.value.name;
+			const index = parseInt(url);
+			//if it is number it means it is index should be removed
+			if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+				setMusicPlayer((musicPlayer) => ({
+					...musicPlayer,
+					playlist: [
+						...musicPlayer.playlist.slice(0, index),
+						...musicPlayer.playlist.slice(index + 1)
+					]
+				}));
+				if (musicPlayer.playlist.length === 0) {
+					setMusicPlayer((musicPlayer) => ({ ...musicPlayer, playlist: [] }));
+				}
+			}
+			//it is url and should be added
+			else {
+				setMusicPlayer((musicPlayer) => ({
+					...musicPlayer,
+					playlist: musicPlayer.playlist.concat({
+						timestamp: new Date().getTime().toString(),
+						url: url,
+						name: name
+					})
+				}));
+			}
+		},
+		[musicPlayer]
+	);
 
 	const drawLineEvent = useCallback((strLineData) => {
 		let lineData: ILineData = JSON.parse(strLineData);
@@ -546,7 +617,7 @@ function App() {
 		const newTweet: ITweet = {
 				top: y,
 				left: x,
-				id: tweetId,//tweetID is message.value and is an optional prop of IMessage event and should be used for the Tweet ID
+				id: tweetId,
 				isPinned: false,
 			};
 			setTweets((tweets) => tweets.concat(newTweet));
@@ -587,7 +658,7 @@ function App() {
 			url: `https://img.youtube.com/vi/${videoId}/default.jpg`
 		};
 		setVideos((videos) => videos.concat(newVideo));
-	}, [])
+	}, []);
 
 	const updateCursorPosition = useMemo(
 		() =>
@@ -648,12 +719,11 @@ function App() {
 				selectedPanelItem ? bottomPanelRef.current.offsetHeight : 0
 			);
 		}
-		if(selectedPanelItem === "settings"){
+		if (selectedPanelItem === 'settings') {
 			setStep(1);
-		} else if (selectedPanelItem === "roomDirectory"){
+		} // since we removed youtube panel I used random panel name 
+		else if (selectedPanelItem === 'email') {
 			setStep(4);
-		} else if (selectedPanelItem === "youtube"){
-			setStep(5);
 		}
 	}, [selectedPanelItem]);
 
@@ -917,7 +987,8 @@ function App() {
 							name: '',
 							isPinned: false,
 							type: undefined,
-							mapData: undefined
+							mapData: undefined,
+							videoId:  undefined
 						});
 					} else {
 						console.log(message);
@@ -925,7 +996,8 @@ function App() {
 							name: message.name,
 							isPinned: true,
 							type: message.subType,
-							mapData: message.mapData
+							mapData: message.mapData,
+							videoId:  message.videoId
 						});
 					}
 					break;
@@ -966,12 +1038,28 @@ function App() {
 						}
 					}
 					break;
-					case 'tweet':
-					console.log("pin item message tweet")
+				case 'horse':
+					const horseIndex = horses.findIndex((horse) => horse.key === itemKey);
+					const horse = horses[horseIndex];
+					if (horse) {
+						if (isUnpin) {
+							setHorses([
+								...horses.slice(0, horseIndex),
+								...horses.slice(horseIndex + 1)
+							]);
+						} else {
+							setHorses([
+								...horses.slice(0, horseIndex),
+								{ ...horse, isPinned: true },
+								...horses.slice(horseIndex + 1)
+							]);
+						}
+					}
+					break;
+				case 'tweet':
 					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
 					const tweet = tweets[tweetIndex];
 					if (tweet) {
-	
 						if (isUnpin) {
 							setTweets([
 								...tweets.slice(0, tweetIndex),
@@ -1008,8 +1096,62 @@ function App() {
 					break;
 			}
 		},
-		[gifs, images, videos, pinnedText, NFTs, tweets, coins]
+		[gifs, images, videos, pinnedText, NFTs, tweets, coins, horses]
 	);
+
+	const addRace = useCallback((id: string) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newRace: IBoardRace = {
+			top: y,
+			left: x,
+			key: uuidv4(),
+			id: id
+		};
+		setRaces((races) => races.concat(newRace));
+	}, []);
+
+	const getHorse = async (id: string) =>
+		await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
+
+	const addHorse = useCallback((id: string, horseKey?: string) => {
+		const { x, y } = generateRandomXY(true, true);
+
+		getHorse(id).then((res) => {
+			const newHorse: IBoardHorse = {
+				top: y,
+				left: x,
+				key: horseKey || uuidv4(),
+				horseData: {
+					bloodline: res.data.bloodline,
+					breed_type: res.data.breed_type,
+					breeding_counter: res.data.breeding_counter,
+					breeding_cycle_reset: res.data.breeding_cycle_reset,
+					class: res.data.class,
+					genotype: res.data.genotype,
+					color: res.data.hash_info.color,
+					hex_code: res.data.hash_info.hex_code,
+					name: res.data.hash_info.name,
+					horse_type: res.data.horse_type,
+					img_url: res.data.img_url,
+					is_approved_for_racing: res.data.is_approved_for_racing.toString(),
+					is_in_stud: res.data.is_in_stud.toString(),
+					is_on_racing_contract: res.data.is_on_racing_contract.toString(),
+					mating_price: res.data.mating_price,
+					number_of_races: res.data.number_of_races,
+					owner: res.data.owner,
+					owner_stable: res.data.owner_stable,
+					owner_stable_slug: res.data.owner_stable_slug,
+					rating: res.data.rating,
+					super_coat: res.data.super_coat.toString(),
+					tx: res.data.tx,
+					tx_date: res.data.tx_date,
+					win_rate: res.data.win_rate
+				},
+				id: id
+			};
+			setHorses((horses) => horses.concat(newHorse));
+		});
+	}, []);
 
 	const handleMoveItemMessage = useCallback(
 		(message: IMessageEvent) => {
@@ -1095,23 +1237,48 @@ function App() {
 					}
 					break;
 				case 'chat':
-					setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: relativeTop, left: relativeLeft}));
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						top: relativeTop,
+						left: relativeLeft
+					}));
+					break;
+				case 'horse':
+					const horseIndex = horses.findIndex((horse) => horse.key === itemKey);
+					if (horseIndex !== -1) {
+						setHorses([
+							...horses.slice(0, horseIndex),
+							{
+								...horses[horseIndex],
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...horses.slice(horseIndex + 1)
+						]);
+					}
 					break;
 				case 'tweet':
-						const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
-						const tweet = tweets[tweetIndex];
-						if (tweet) {
-							setTweets([
-								...tweets.slice(0, tweetIndex),
-								{
-									...tweet,
-									top: relativeTop,
-									left: relativeLeft
-								},
-								...tweets.slice(tweetIndex + 1)
-							]);
-						}
-						break;
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === itemKey);
+					const tweet = tweets[tweetIndex];
+					if (tweet) {
+						setTweets([
+							...tweets.slice(0, tweetIndex),
+							{
+								...tweet,
+								top: relativeTop,
+								left: relativeLeft
+							},
+							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+					break;
+				case 'musicPlayer':
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						top: relativeTop,
+						left: relativeLeft
+					}));
+					break;	
 				case 'coin':
 						const coinIndex = coins.findIndex((coin) => coin.name === itemKey);
 						const coin = coins[coinIndex];
@@ -1129,7 +1296,7 @@ function App() {
 						break;
 				
 				}},
-		[images,videos, NFTs, gifs, pinnedText, tweets, coins]);
+		[images,videos, NFTs, gifs, pinnedText, tweets, coins, horses]);
 
 	// const onBuy = async (orderId: string) => {
 	// 	if (!accountId) await signIn();
@@ -1305,8 +1472,28 @@ function App() {
 					}
 					break;
 				case 'youtube':
-					setVideoId(message.value);
-					setLastVideoId(message.value);
+					const currVideo = videos.filter(
+						(video) => video.key === message.value
+					)[0];
+
+					if (message.playBackground) {
+						setVideoId(message.value);
+						setLastVideoId(message.value);
+					}
+					if (message.pin) {
+						addVideo(message.value);
+					}
+					if (message.playPin) {
+						setPinnedVideoId(message.value);
+						if (currVideo) {
+							currVideo.isPlaying = true;
+						}
+					} else if (message.playPin === false) {
+						setPinnedVideoId(message.value);
+						if (currVideo) {
+							currVideo.isPlaying = false;
+						}
+					}
 					break;
 				case 'emoji':
 					if (message.value) {
@@ -1351,11 +1538,22 @@ function App() {
 						name: message.value,
 						isPinned: message.isPinned,
 						type: message.type,
-						mapData: message.mapData
+						mapData: message.mapData,
+						raceId: message.raceId
 					}));
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
+					break;
+				case 'send-race':
+					setBackground({
+						name: background.name,
+						isPinned: false,
+						type: "race",
+						mapData: background.mapData,
+						videoId: background.videoId,
+						raceId: message.value
+					});
 					break;
 				case 'whiteboard':
 					if (message.value) {
@@ -1389,9 +1587,12 @@ function App() {
 				case 'currentRoom':
 					setUserProfiles((profiles) => ({
 						...profiles,
-						[message.id]: { ...profiles[message.id], currentRoom: message.value }
+						[message.id]: {
+							...profiles[message.id],
+							currentRoom: message.value
+						}
 					}));
-				break;
+					break;
 				case 'weather':
 					if (message.toSelf) {
 						setUserProfile((profile) => ({
@@ -1404,7 +1605,6 @@ function App() {
 							[message.id]: { ...profiles[message.id], weather: message.value }
 						}));
 					}
-
 					break;
 				case 'settings-url':
 					if (message.value && message.isSelf) {
@@ -1430,6 +1630,56 @@ function App() {
 					break;
 				case 'move-item':
 					handleMoveItemMessage(message);
+					break;
+				case 'clear-field':
+					if (message.field === 'music') {
+						if (message.isSelf) {
+							setUserProfile((profile) => ({
+								...profile,
+								musicMetadata: undefined
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: {
+									...profiles[message.id],
+									musicMetadata: undefined
+								}
+							}));
+						}
+					} else if (message.field === 'weather') {
+						if (message.toSelf) {
+							setUserProfile((profile) => ({
+								...profile,
+								weather: { temp: '', condition: '' }
+							}));
+						} else {
+							setUserProfiles((profiles) => ({
+								...profiles,
+								[message.id]: {
+									...profiles[message.id],
+									weather: { temp: '', condition: '' }
+								}
+							}));
+						}
+					}
+					break;
+				case 'horse':
+					if (message.value) {
+						addHorse(message.value, message.horseKey);
+					}
+					break;
+				case 'marketplace':
+					setBackground({
+						name: '',
+						isPinned: false,
+						type: 'marketplace',
+						mapData: undefined,
+						videoId: undefined
+					});
+					break;
+				case 'change-playlist':
+					handleChangePlaylist(message);
 					break;
 			}
 		};
@@ -1479,6 +1729,7 @@ function App() {
 		playSound,
 		handleChatMessage,
 		addGif,
+		addVideo,
 		drawLineEvent,
 		onCursorMove,
 		audioNotification,
@@ -1494,23 +1745,43 @@ function App() {
 		addMarker,
 		deleteMarker,
 		updateMarkerText,
-		updateWaterfallChat
+		updateWaterfallChat,
+		addHorse,
+		handleChangePlaylist,
+		videos,
+		background
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
 		switch (key) {
 			case 'chat':
 				const chatValue = args[0] as string;
-				if(chatValue === ''){
+				if (chatValue === '') {
 					return;
 				}
 				socket.emit('event', {
 					key: 'chat',
 					value: chatValue,
-					avatar: userProfile.avatar
+					avatar: userProfile.avatar,
+					name: userProfile.name
 				});
 				setUserProfile((profile) => ({ ...profile, message: chatValue }));
-				setWaterfallChat((waterfallChat) => ({ ...waterfallChat, messages: waterfallChat.messages.concat( { "avatar": userProfile.avatar , "message": chatValue}) }));
+				const timestamp = new Date().getTime().toString();
+				firebaseContext.addtoChat(
+					roomId || 'default',
+					chatValue,
+					userProfile.avatar,
+					userProfile.name,
+					timestamp
+				);
+				setWaterfallChat((waterfallChat) => ({
+					...waterfallChat,
+					messages: waterfallChat.messages.concat({
+						avatar: userProfile.avatar,
+						message: chatValue,
+						name: userProfile.name
+					})
+				}));
 				break;
 			case 'chat-pin':
 				const chatPinValue = args[0] as string;
@@ -1523,7 +1794,6 @@ function App() {
 						isNew: true
 					});
 				}
-
 				break;
 			case 'emoji':
 				const emoji = args[0] as IEmojiDict;
@@ -1611,6 +1881,42 @@ function App() {
 					value: animationType
 				});
 				break;
+			case 'send-race':
+				const raceId = args[0] as string;
+
+				socket.emit('event', {
+					key: 'send-race',
+					value: raceId
+				});
+
+				setBackground({
+					name: background.name,
+					isPinned: false,
+					type: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+
+				firebaseContext.pinRoomItem(roomId || 'default', {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+				break;
+			case 'add-race':
+				const race = args[0] as string;
+				addRace(race);
+				socket.emit('event', {
+					key: 'add-race',
+					value: race
+				});
+				break;
 			case 'whiteboard':
 				const strlineData = args[0] as string;
 				socket.emit('event', {
@@ -1633,27 +1939,50 @@ function App() {
 						key: 'username',
 						value: settingsValue
 					});
-					if(accountId){
-						firebaseContext.updateScreenname(accountId, settingsValue)
-						.then(res => setUserProfile((profile) => ({ ...profile, name: settingsValue })))
-						.catch(err => console.log(err));
+					if (accountId) {
+						firebaseContext
+							.updateScreenname(accountId, settingsValue)
+							.then((res) =>
+								setUserProfile((profile) => ({
+									...profile,
+									name: settingsValue
+								}))
+							)
+							.catch((err) => console.log(err));
 					}
 				} else if (type === 'avatar') {
 					socket.emit('event', {
 						key: 'avatar',
 						value: settingsValue
 					});
-					if(accountId){
-						firebaseContext.updateAvatar(accountId, settingsValue)
-						.then(res => setUserProfile((profile) => ({ ...profile, avatar: settingsValue })))
-						.catch(err => console.log(err));
+					if (accountId) {
+						firebaseContext
+							.updateAvatar(accountId, settingsValue)
+							.then((res) =>
+								setUserProfile((profile) => ({
+									...profile,
+									avatar: settingsValue
+								}))
+							)
+							.catch((err) => console.log(err));
 					}
-				} else if (type === "email") {
-					setUserProfile((profile) => ({ ...profile, email: settingsValue }))
+				} else if (type === 'email') {
+					if (accountId) {
+						firebaseContext
+							.updateEmail(accountId, settingsValue)
+							.then(() =>
+								setUserProfile((profile) => ({
+									...profile,
+									email: settingsValue
+								}))
+							)
+							.catch((err) => console.log(err));
+					}
 				}
 				break;
 			case 'weather':
 				const location = args[0] as string;
+				setUserProfile((profile) => ({ ...profile, location: location }));
 
 				socket.emit('event', {
 					key: 'weather',
@@ -1697,19 +2026,27 @@ function App() {
 				const videoId = args[0] as string;
 				socket.emit('event', {
 					key: 'youtube',
-					value: videoId
+					value: videoId,
+					playBackground: true
 				});
+				setBackground((background) => ({
+					name: backgroundName,
+					isPinned: false,
+					type: "video",
+					mapData: undefined,
+					videoId: videoId
+				}))
 				break;
 			case 'coin':
-				const name = args[0] as string;
+				const named = args[0] as string;
 				const image = args[1] as string;
 				const current_price = args[2] as number;
 				const price_change_percentage_24h = args[3] as number;
-				console.log(`name: ${name}, image: ${image}, current_price: ${current_price}, priceChange: ${price_change_percentage_24h}`);
-				const { xcoord, ycoord } = addCoin(-1,-1,name,image,current_price,price_change_percentage_24h);
+				console.log(`name: ${named}, image: ${image}, current_price: ${current_price}, priceChange: ${price_change_percentage_24h}`);
+				const { xcoord, ycoord } = addCoin(-1,-1,named,image,current_price,price_change_percentage_24h);
 				socket.emit('event', {
 					key: 'coin',
-					value: name
+					value: named
 				});
 				/*
 				socket.emit('event', {
@@ -1723,7 +2060,108 @@ function App() {
 				});
 				*/
 				console.log('socket message sent');
-				pinCoin(name);
+				pinCoin(named);
+				break;
+			case 'clear-field':
+				const field = args[0] as string;
+
+				if (field === 'weather') {
+					setUserProfile((profile) => ({ ...profile, location: '' }));
+				}
+
+				if (field === 'email') {
+					if (accountId) {
+						firebaseContext
+							.updateEmail(accountId, '')
+							.then((res) =>
+								setUserProfile((profile) => ({ ...profile, email: '' }))
+							)
+							.catch((err) => console.log(err));
+					}
+				} else {
+					socket.emit('event', {
+						key: 'clear-field',
+						field
+					});
+				}
+				break;
+			case 'horse':
+				const horseId = args[0] as string;
+				socket.emit('event', {
+					key: 'horse',
+					value: horseId
+				});
+				break;
+			case 'marketplace':
+				const room = roomId || 'default';
+
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: 'marketplace',
+					mapData: undefined,
+					videoId: undefined
+				});
+
+				socket.emit('event', {
+					key: 'marketplace'
+				});
+				
+				firebaseContext.pinRoomItem(room, {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "marketplace",
+					mapData: background.mapData,
+					videoId: background.videoId
+				});
+				break;
+			case 'change-playlist':
+				const url = args[0].url as string;
+				const name = args[0].name as string;
+				const index = parseInt(url);
+				
+				//if it is number it means it is index should be removed
+				if (!isNaN(index) && musicPlayer.playlist.length !== 0) {
+					if (musicPlayer.playlist.length === 1) {
+						firebaseContext.removefromPlaylist(
+							roomId || 'default',
+							musicPlayer.playlist[index].timestamp
+						);
+						setMusicPlayer((musicPlayer) => ({ ...musicPlayer, playlist: [] }));
+					} else {
+						firebaseContext.removefromPlaylist(
+							roomId || 'default',
+							musicPlayer.playlist[index].timestamp
+						);
+						setMusicPlayer((musicPlayer) => ({
+							...musicPlayer,
+							playlist: [
+								...musicPlayer.playlist.slice(0, index),
+								...musicPlayer.playlist.slice(index + 1)
+							]
+						}));
+					}
+				}
+				//it is url and should be added
+				else {
+					const timestamp = new Date().getTime().toString();
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						playlist: musicPlayer.playlist.concat({
+							timestamp: timestamp,
+							url: url,
+							name: name
+						})
+					}));
+					firebaseContext.addtoPlaylist(roomId || 'default', url, name, timestamp);
+				}
+				socket.emit('event', {
+					key: 'change-playlist',
+					value: {url: url, name: name}
+				});
+
 				break;
 			default:
 		}
@@ -1815,18 +2253,25 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel = selectedPanelItem === PanelItemEnum.whiteboard;
+	const onWhiteboardPanel =
+		selectedPanelItem === PanelItemEnum.background && activePanel === 'chat' && showWhiteboard;
 
-	const onCreateRoom = async (roomName: string, isAccessLocked: boolean, contractAddress?: string) => {
-		const result = await firebaseContext.createRoom(roomName, isAccessLocked, contractAddress);
+	const onCreateRoom = async (
+		roomName: string,
+		isAccessLocked: boolean,
+		contractAddress?: string
+	) => {
+		const result = await firebaseContext.createRoom(
+			roomName,
+			isAccessLocked,
+			contractAddress
+		);
 		if (result.isSuccessful) {
 			setModalState(null);
 			history.push(`/room/${roomName}`);
 		}
 		return result;
 	};
-
-	const onBrowseNFTPanel = selectedPanelItem === PanelItemEnum.browseNFT;
 
 	useEffect(() => {
 		const room = roomId || 'default';
@@ -1854,6 +2299,22 @@ function App() {
 		if (!hasFetchedRoomPinnedItems) {
 			setHasFetchedRoomPinnedItems(true);
 
+			firebaseContext.getPlaylist(room).then((playlist) => {
+				if (playlist.data)
+					setMusicPlayer((musicPlayer) => ({
+						...musicPlayer,
+						playlist: playlist!.data!
+					}));
+			});
+
+			firebaseContext.getChat(room).then((messages) => {
+				if (messages.data)
+					setWaterfallChat((waterfallChat) => ({
+						...waterfallChat,
+						messages: messages!.data!
+					}));
+			});
+
 			firebaseContext.getRoomPinnedItems(room).then((pinnedItems) => {
 				if (!pinnedItems.data) return;
 
@@ -1864,11 +2325,15 @@ function App() {
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
 				const pinnedTweets: ITweet[] =[];
 				const pinnedCoins: ICoin[]=[];
+				const pinnedRaces: IBoardRace[] = [];
+				const pinnedHorses: IBoardHorse[] = [];
 
-				let backgroundType: 'image' | 'map' | undefined;
+				let backgroundType: 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
-
+				let backgroundVideo: string | undefined;
+				let backgroundRace: string | undefined;
+				
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
 						pinnedGifs.push({
@@ -1914,6 +2379,7 @@ function App() {
 							top: item.top! * window.innerHeight,
 							left: item.left! * window.innerWidth,
 							isPinned: true,
+							isPlaying: false,
 							key: item.key!,
 							url: item.url
 						});
@@ -1921,6 +2387,17 @@ function App() {
 						backgroundType = item.subType;
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
+						backgroundVideo = item.videoId;
+						backgroundRace = item.raceId;
+					} else if (item.type === 'race') {
+						pinnedRaces.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							id: item.id
+						});
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -1941,6 +2418,43 @@ function App() {
 								text: item.value
 							});
 						}
+					} else if (item.type === 'horse') {
+						getHorse(item.id).then((res) => {
+							pinnedHorses.push({
+								...item,
+								top: item.top! * window.innerHeight,
+								left: item.left! * window.innerWidth,
+								isPinned: true,
+								key: item.key!,
+								horseData: {
+									bloodline: res.data.bloodline,
+									breed_type: res.data.breed_type,
+									breeding_counter: res.data.breeding_counter,
+									breeding_cycle_reset: res.data.breeding_cycle_reset,
+									class: res.data.class,
+									genotype: res.data.genotype,
+									color: res.data.hash_info.color,
+									hex_code: res.data.hash_info.hex_code,
+									name: res.data.hash_info.name,
+									horse_type: res.data.horse_type,
+									img_url: res.data.img_url,
+									is_approved_for_racing: res.data.is_approved_for_racing.toString(),
+									is_in_stud: res.data.is_in_stud.toString(),
+									is_on_racing_contract: res.data.is_on_racing_contract.toString(),
+									mating_price: res.data.mating_price,
+									number_of_races: res.data.number_of_races,
+									owner: res.data.owner,
+									owner_stable: res.data.owner_stable,
+									owner_stable_slug: res.data.owner_stable_slug,
+									rating: res.data.rating,
+									super_coat: res.data.super_coat.toString(),
+									tx: res.data.tx,
+									tx_date: res.data.tx_date,
+									win_rate: res.data.win_rate
+								},
+								id: item.id
+							});
+						});
 					}
 				});
 
@@ -1951,11 +2465,16 @@ function App() {
 				setVideos(pinnedVideos);
 				setBackground({
 					name: backgroundImg,
-					isPinned: !!backgroundImg || !!backgroundMap,
+					isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
 					mapData: backgroundMap,
-					type: backgroundType
+					type: backgroundType,
+					videoId: backgroundVideo,
+					raceId: backgroundRace
 				});
+				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
+				setHorses(pinnedHorses);
+				setRaces(pinnedRaces);
 			});
 		}
 	}, [
@@ -2061,7 +2580,7 @@ function App() {
 		}
 
 		}
-		const pinTweet = async (tweetID: string) => {
+	const pinTweet = async (tweetID: string) => {
 		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
 		const tweet = tweets[tweetIndex];
 		const room = roomId || 'default';
@@ -2150,12 +2669,10 @@ function App() {
 					type: 'video',
 					itemKey: videoId
 				});
-
 			} else if (result.message) {
 				setModalErrorMessage(result.message);
 			}
 		}
-
 	};
 
 	const unpinVideo = async (videoId: string | undefined) => {
@@ -2169,7 +2686,10 @@ function App() {
 				video.key
 			);
 			if (isSuccessful) {
-				setVideos([...videos.slice(0, videoIndex), ...videos.slice(videoIndex + 1)]);
+				setVideos([
+					...videos.slice(0, videoIndex),
+					...videos.slice(videoIndex + 1)
+				]);
 
 				socket.emit('event', {
 					key: 'unpin-item',
@@ -2183,30 +2703,90 @@ function App() {
 	};
 
 	useEffect(() => {
-		const videoIndex = videos.findIndex((video: IBoardVideo) => video.key === videoId);
+		const videoIndex = videos.findIndex(
+			(video: IBoardVideo) => video.key === videoId
+		);
 		const video = videos[videoIndex];
 
-		if (videoId === "") {
+		if (videoId === '') {
 			setIsVideoShowing(false);
 			setHideAllPins(false);
-
-		} else if (video && videoId !== "" && video.isPinned) {
+		} else if (video && videoId !== '' && video.isPinned) {
 			setIsVidPinned(true);
-
 		} else {
 			setIsVidPinned(false);
 		}
 	}, [videoId, videos]);
 
+	const pinRace = async (RaceKey: string) => {
+		const raceIndex = races.findIndex((race) => race.key === RaceKey);
+		const race = races[raceIndex];
+		const room = roomId || 'default';
+
+		if (race && !race.isPinned) {
+
+			const result = await firebaseContext.pinRoomItem(room, {
+				...race,
+				type: 'race',
+				left: race.left / window.innerWidth,
+				top: race.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{ ...race, isPinned: true },
+					...races.slice(raceIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'race',
+					itemKey: RaceKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const unpinRace = async (raceKey: string) => {
+		const index = races.findIndex((race) => race.key === raceKey);
+		const race = races[index];
+		const room = roomId || 'default';
+
+		if (race && race.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				race.key
+			);
+			if (isSuccessful) {
+				setRaces([...races.slice(0, index), ...races.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'race',
+					itemKey: raceKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
+	};
+
 	const pinBackground = async () => {
 
 		const room = roomId || 'default';
 
-		let backgroundType: 'image' | 'map' | undefined;
+		let backgroundType: 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
 		if (isMapShowing) {
 			backgroundType = 'map';
+		} else if (isVideoShowing) {
+			backgroundType = 'video';
 		} else if (background.name) {
 			backgroundType = 'image';
+		} else if (background.type) {
+			backgroundType = 'marketplace';
 		}
 
 		let backgroundName: string | undefined;
@@ -2227,7 +2807,8 @@ function App() {
 			top: 0,
 			left: 0,
 			subType: backgroundType,
-			mapData: mapCoordinates
+			mapData: mapCoordinates,
+			videoId: videoId
 		});
 
 		if (result.isSuccessful) {
@@ -2235,7 +2816,8 @@ function App() {
 				name: backgroundName,
 				isPinned: true,
 				type: backgroundType,
-				mapData: mapCoordinates
+				mapData: mapCoordinates,
+				videoId: videoId
 			}));
 
 			socket.emit('event', {
@@ -2243,7 +2825,8 @@ function App() {
 				type: 'background',
 				name: backgroundName,
 				subType: backgroundType,
-				mapData: mapCoordinates
+				mapData: mapCoordinates,
+				videoId: videoId
 			});
 			updateIsMapShowing(false);
 			socket.emit('event', {
@@ -2266,8 +2849,8 @@ function App() {
 			);
 
 			if (isSuccessful) {
-				let oldBackgroundType = "";
-				if(background.type){
+				let oldBackgroundType = '';
+				if (background.type) {
 					oldBackgroundType = background.type.valueOf();
 				}
 
@@ -2275,14 +2858,16 @@ function App() {
 					name: '',
 					isPinned: false,
 					type: undefined,
-					mapData: undefined
+					mapData: undefined,
+					videoId: undefined
 				});
+				setVideoId('');
 				socket.emit('event', {
 					key: 'unpin-item',
 					type: 'background'
 				});
 
-				if(oldBackgroundType === "map"){
+				if (oldBackgroundType === 'map') {
 					updateIsMapShowing(true);
 					socket.emit('event', {
 						key: 'map',
@@ -2318,7 +2903,6 @@ function App() {
 			}
 		}
 	};
-	
 	const unpinTweet = async (tweetID: string) => {
 		const tweetIndex = tweets.findIndex((tweet) => tweet.id === tweetID);
 		const tweet = tweets[tweetIndex];
@@ -2534,20 +3118,55 @@ function App() {
 				]);
 			}
 		}
-		if (type === 'chat') {
-			setWaterfallChat((waterfallChat) => ({ ...waterfallChat, top: top, left: left}));
+		 else if (type === 'race') {
+			const raceIndex = races.findIndex((race) => race.key === id);
+			if (raceIndex !== -1) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{
+						...races[raceIndex],
+						top,
+						left
+					},
+					...races.slice(raceIndex + 1)
+				]);
+			}
+		} else if (type === 'horse') {
+			const horseIndex = horses.findIndex((horse) => horse.key === id);
+			if (horseIndex !== -1) {
+				setHorses([
+					...horses.slice(0, horseIndex),
+					{
+						...horses[horseIndex],
+						top,
+						left
+					},
+					...horses.slice(horseIndex + 1)
+				]);
+			}
 		}
-
-		else{
-			const { isSuccessful, message } = await firebaseContext.movePinnedRoomItem(
-				roomId || 'default',
-				{
-					type,
-					top: y,
-					left: x,
-					key: id
-				}
-			);
+		if (type === 'chat') {
+			setWaterfallChat((waterfallChat) => ({
+				...waterfallChat,
+				top: top,
+				left: left
+			}));
+		} else if (type === 'musicPlayer') {
+			setMusicPlayer((musicPlayer) => ({
+				...musicPlayer,
+				top: top,
+				left: left
+			}));
+		} else {
+			const {
+				isSuccessful,
+				message
+			} = await firebaseContext.movePinnedRoomItem(roomId || 'default', {
+				type,
+				top: y,
+				left: x,
+				key: id
+			});
 
 			//reverse the changes in client in case has no permission to edit
 			if (!isSuccessful) {
@@ -2604,7 +3223,47 @@ function App() {
 							...NFTs.slice(nftIndex + 1)
 						]);
 					}
+				} else if (type === 'tweet') {
+					const tweetIndex = tweets.findIndex((tweet) => tweet.id === id);
+					if (tweetIndex !== -1) {
+						setTweets([
+							...tweets.slice(0, tweetIndex),
+							{
+								...tweets[tweetIndex],
+								top,
+								left
+							},
+							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+				} else if (type === 'race') {
+					const raceIndex = races.findIndex((race) => race.key === id);
+					if (raceIndex !== -1) {
+						setRaces([
+							...races.slice(0, raceIndex),
+							{
+								...races[raceIndex],
+								top,
+								left
+							},
+							...races.slice(raceIndex + 1)
+						]);
+					}
+				} else if (type === 'horse') {
+					const horseIndex = horses.findIndex((horse) => horse.key === id);
+					if (horseIndex !== -1) {
+						setHorses([
+							...horses.slice(0, horseIndex),
+							{
+								...horses[horseIndex],
+								top,
+								left
+							},
+							...horses.slice(horseIndex + 1)
+						]);
+					}
 				}
+
 				return;
 			}
 		}
@@ -2615,6 +3274,61 @@ function App() {
 			left: x,
 			itemKey: id
 		});
+	};
+
+	const pinHorse = async (horseKey: string) => {
+		const horseIndex = horses.findIndex((horse) => horse.key === horseKey);
+		const horse = horses[horseIndex];
+		const room = roomId || 'default';
+
+		if (horse && !horse.isPinned) {
+			const result = await firebaseContext.pinRoomItem(room, {
+				...horse,
+				type: 'horse',
+				left: horse.left / window.innerWidth,
+				top: horse.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setHorses([
+					...horses.slice(0, horseIndex),
+					{ ...horse, isPinned: true },
+					...horses.slice(horseIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'horse',
+					itemKey: horseKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const unpinHorse = async (horseKey: string) => {
+		const index = horses.findIndex((horse) => horse.key === horseKey);
+		const horse = horses[index];
+		const room = roomId || 'default';
+
+		if (horse && horse.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				horse.key
+			);
+			if (isSuccessful) {
+				setHorses([...horses.slice(0, index), ...horses.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'horse',
+					itemKey: horseKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
 	};
 
 	const onClickPresent = async () => {
@@ -2636,31 +3350,36 @@ function App() {
 	};
 
 	if (isInvalidRoom) {
-		return <div>Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection /> </div>;
-
+		return (
+			<div>
+				Invalid room {roomId} : {invalidRoomMessage} <MetamaskSection />{' '}
+			</div>
+		);
 	}
 
 	const steps = [
 		{
-			selector: ".first-step",
-			content: "Click on the settings tab to customize your avatar and name"
-		},{
-			selector: ".second-step",
-			content: "Enter a screen name and press update"
-		},{
-			selector: ".third-step",
-			content: "Select an avatar and click go"
-		},{
-			selector: ".fourth-step",
-			content: "Create and enter rooms here"
-		},{
-			selector: ".fifth-step",
-			content: "You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner"
-		}, {
-			selector: ".sixth-step",
-			content: "Invite the homies and earn tokens"
-		}]
-
+			selector: '.first-step',
+			content: 'Click on the settings tab to customize your avatar and name'
+		},
+		{
+			selector: '.second-step',
+			content: 'Enter a screen name and press update'
+		},
+		{
+			selector: '.third-step',
+			content: 'Select an avatar and click go'
+		},
+		{
+			selector: '.fourth-step',
+			content:
+				'You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner'
+		},
+		{
+			selector: '.fifth-step',
+			content: 'Invite the homies and earn tokens'
+		}
+	];
 
 	return (
 		<div
@@ -2673,80 +3392,99 @@ function App() {
 			<MetamaskSection />
 
 			<Route path="/settings">
-				<SettingsPanel 
+				<SettingsPanel
+					setStep={setStep}
 					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
 					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) => actionHandler('settings', 'avatar', avatar)}
+					onChangeAvatar={(avatar) =>
+						actionHandler('settings', 'avatar', avatar)
+					}
 					onSendLocation={(location) => actionHandler('weather', location)}
+					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
 					currentAvatar={userProfile.avatar}
-					setStep={setStep}
+					username={userProfile.name}
+					email={userProfile.email}
+					myLocation={userProfile.location}
+					music={userProfile.musicMetadata}
+					clearField={(field) => actionHandler('clear-field', field)}
 				/>
 			</Route>
 
-			<Route exact path={["/room/:roomId", "/"]}>
-			<Board
-				videoId={videoId}
-				isVideoPinned={isVidPinned}
-				hideAllPins={hideAllPins}
-				videoRef={videoRef}
-				lastTime={lastTime}
-				volume={volume}
-				background={background}
-				musicNotes={musicNotes}
-				updateNotes={setMusicNotes}
-				emojis={emojis}
-				updateEmojis={setEmojis}
-				gifs={gifs}
-				updateGifs={setGifs}
-				images={images}
-				updateImages={setImages}
-				videos={videos}
-				updateVideos={setVideos}
-				addVideo={addVideo}
-				chatMessages={chatMessages}
-				updateChatMessages={setChatMessages}
-				userLocations={userLocations}
-				userProfiles={userProfiles}
-				setUserProfiles={setUserProfiles}
-				animations={animations}
-				updateAnimations={setAnimations}
-				avatarMessages={avatarMessages}
-				weather={weather}
-				updateWeather={setWeather}
-				pinGif={pinGif}
-				unpinGif={unpinGif}
-				pinImage={pinImage}
-				unpinImage={unpinImage}
-				pinVideo={pinVideo}
-				unpinVideo={unpinVideo}
-				pinBackground={pinBackground}
-				unpinBackground={unpinBackground}
-				pinnedText={pinnedText}
-				unpinText={unpinText}
-				moveItem={moveItem}
-				NFTs={NFTs}
-				updateNFTs={setNFTs}
-				pinNFT={pinNFT}
-				unpinNFT={unpinNFT}
-				addNewContract={addNewContract}
-				loadingNFT={loadingNFT}
-				onBuy={() => {}}
-				onCancel={() => {}}
-				onClickNewRoom={() => setModalState('new-room')}
-				onClickPresent={onClickPresent}
-				waterfallChat={waterfallChat}
-				tweets={tweets}
-				pinTweet={pinTweet}
-				unpinTweet={unpinTweet}
-				raceId={raceId}
-				pinCoin={pinCoin}
-				coins={coins}
-				unpinCoin={unpinCoin}
-
+			<Route exact path={['/room/:roomId', '/']}>
+				<Board
+					videoId={videoId}
+					isVideoPinned={isVidPinned}
+					pinnedVideoId={pinnedVideoId}
+					setPinnedVideoId={setPinnedVideoId}
+					hideAllPins={hideAllPins}
+					videoRef={videoRef}
+					lastTime={lastTime}
+					volume={volume}
+					background={background}
+					musicNotes={musicNotes}
+					updateNotes={setMusicNotes}
+					emojis={emojis}
+					updateEmojis={setEmojis}
+					gifs={gifs}
+					updateGifs={setGifs}
+					images={images}
+					updateImages={setImages}
+					videos={videos}
+					updateVideos={setVideos}
+					addVideo={addVideo}
+					chatMessages={chatMessages}
+					updateChatMessages={setChatMessages}
+					userLocations={userLocations}
+					userProfiles={userProfiles}
+					setUserProfiles={setUserProfiles}
+					animations={animations}
+					updateAnimations={setAnimations}
+					avatarMessages={avatarMessages}
+					weather={weather}
+					updateWeather={setWeather}
+					pinGif={pinGif}
+					unpinGif={unpinGif}
+					pinImage={pinImage}
+					unpinImage={unpinImage}
+					pinVideo={pinVideo}
+					unpinVideo={unpinVideo}
+					pinBackground={pinBackground}
+					unpinBackground={unpinBackground}
+					pinnedText={pinnedText}
+					unpinText={unpinText}
+					moveItem={moveItem}
+					NFTs={NFTs}
+					updateNFTs={setNFTs}
+					pinNFT={pinNFT}
+					unpinNFT={unpinNFT}
+					addNewContract={addNewContract}
+					loadingNFT={loadingNFT}
+					onBuy={() => {}}
+					onCancel={() => {}}
+					onClickNewRoom={() => setModalState('new-room')}
+					onClickPresent={onClickPresent}
+					waterfallChat={waterfallChat}
+					musicPlayer={musicPlayer}
+					tweets={tweets}
+					pinTweet={pinTweet}
+					unpinTweet={unpinTweet}
+					races={races}
+					updateRaces={setRaces}
+					horses={horses}
+					pinHorse={pinHorse}
+					unpinHorse={unpinHorse}
+					updateHorses={setHorses}
+					updateSelectedPanelItem={setSelectedPanelItem}
+					setActivePanel= {setActivePanel}
+					pinRace={pinRace}
+					unpinRace={unpinRace}
+					pinCoin={pinCoin}
+					coins={coins}
+					unpinCoin={unpinCoin}
 				/>
 			</Route>
 
-			<Tour 
+			<Tour
 				steps={steps}
 				isOpen={showTour}
 				onRequestClose={() => setShowTour(false)}
@@ -2756,16 +3494,15 @@ function App() {
 				lastStepNextButton={<CloseIcon />}
 				showCloseButton={false}
 			/>
-			
+
 			{showLoginModal ? (
-				<Login 
-					beginTour={setShowTour} 
+				<Login
+					beginTour={setShowTour}
 					showModal={setShowLoginModal}
 					isFirstVisit={isFirstVisit}
-					userEmail={userProfile.email}
 					setUserEmail={(email) => actionHandler('settings', 'email', email)}
 				/>
-			 ) : null }
+			) : null}
 
 			<TowerDefense
 				state={towerDefenseState}
@@ -2795,7 +3532,8 @@ function App() {
 								setIsPanelOpen(true);
 							}}
 							style={{
-								backgroundColor: videoId !== '' ? "rgb(211, 211, 211, 0.6)" : "none"
+								backgroundColor:
+									videoId !== '' ? 'rgb(211, 211, 211, 0.6)' : 'none'
 							}}
 						>
 							<ChevronRight />
@@ -2811,9 +3549,9 @@ function App() {
 				}}
 				selectedItem={selectedPanelItem}
 				avatar={
-					userProfile && userProfile.avatar
+					userProfile && !userProfile.avatar.startsWith("https")
 						? avatarMap[userProfile.avatar]
-						: undefined
+						: userProfile.avatar
 				}
 			/>
 
@@ -2827,7 +3565,7 @@ function App() {
 					rel="noreferrer"
 					className="adventure-logo"
 					style={{
-						visibility: isVideoShowing ? "hidden" : "visible"
+						visibility: isVideoShowing ? 'hidden' : 'visible'
 					}}
 				>
 					<div>adventure</div>
@@ -2856,11 +3594,16 @@ function App() {
 				isVideoShowing={isVideoShowing}
 				roomData={roomData}
 				updateShowChat = {onShowChat}
-				setRaceId={setRaceId}
+				showWhiteboard={showWhiteboard}
+				updateShowWhiteboard={onShowMarker}
+				musicPlayer={musicPlayer}
+				addVideo={addVideo}
+				setBottomPanelHeight={setBottomPanelHeight}
+				activePanel={activePanel}
+				setActivePanel={setActivePanel}
 			/>
 
-
-			{userProfile && !onBrowseNFTPanel && (
+			{userProfile && background.type !== "marketplace" && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}

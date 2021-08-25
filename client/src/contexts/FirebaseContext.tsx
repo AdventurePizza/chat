@@ -1,4 +1,4 @@
-import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext } from 'react';
@@ -53,6 +53,32 @@ export interface IFirebaseContext {
 	) => Promise<IFetchResponseBase>;
 	getImage:(query: string) => Promise<IFetchResponseBase>;
 
+	getChat:(
+		roomName: string
+	) => Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }>;
+
+	addtoChat:(
+		roomName: string,
+		text: string,
+		avatar: string,
+		name: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
+
+	//music player routes
+	getPlaylist:(
+		roomName: string
+	) => Promise<IFetchResponseBase & { data?: IPlaylist[] }>;
+	addtoPlaylist:(
+		roomName: string,
+		track: string,
+		name: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
+	removefromPlaylist:(
+		roomName: string,
+		timestamp: string
+	) => Promise<IFetchResponseBase>;
 	getRaces: () => Promise<IFetchResponseBase>;
 }
 
@@ -72,6 +98,11 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	getUser: () => Promise.resolve({ isSuccessful: false }),
 	getUserRooms: () => Promise.resolve({ isSuccessful: false }),
 	getImage: () => Promise.resolve({ isSuccessful: false }),
+	getChat: () => Promise.resolve({ isSuccessful: false }),
+	addtoChat: () => Promise.resolve({ isSuccessful: false }),
+	getPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	addtoPlaylist: () => Promise.resolve({ isSuccessful: false }),
+	removefromPlaylist: () => Promise.resolve({ isSuccessful: false }),
 	getRaces: () => Promise.resolve({ isSuccessful: false })
 });
 
@@ -415,6 +446,116 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 		[fetchAuthenticated]
 	);
 
+	//get chat
+	const getChat = useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase & { data?: IWaterfallMessage[] }> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getChat`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				const messages = (await fetchRes.json());
+				return { isSuccessful: true, data: messages };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//add message to Chat
+	const addtoChat = useCallback(
+		async (
+			roomName: string,
+			message: string,
+			avatar: string,
+			name: string,
+			timestamp: string
+		): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoChat`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ message, avatar, name, timestamp })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//get playlist
+	const getPlaylist = useCallback(
+		async (
+			roomName: string
+		): Promise<IFetchResponseBase & { data?: IPlaylist[] }> => {
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/getPlaylist`, {
+				method: 'GET'
+			});
+
+			if (fetchRes.ok) {
+				const playlist = (await fetchRes.json());
+				return { isSuccessful: true, data: playlist };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//add a track to playlist
+	const addtoPlaylist = useCallback(
+		async (
+			roomName: string,
+			track: string,
+			name: string,
+			timestamp: string
+		): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(`/room/${roomName}/addtoPlaylist`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ track, name, timestamp })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	const removefromPlaylist = useCallback(
+		async (roomName: string, timestamp: string): Promise<IFetchResponseBase> => {
+
+			const fetchRes = await fetchAuthenticated(
+				`/room/${roomName}/playlist/${timestamp}`,
+				{
+					method: 'DELETE'
+				}
+			);
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+
+		},
+		[fetchAuthenticated]
+	);
 
 
 	return (
@@ -435,6 +576,11 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				getUser,
 				getUserRooms,
 				getImage,
+				getChat,
+				addtoChat,
+				getPlaylist,
+				addtoPlaylist,
+				removefromPlaylist,
 				getRaces
 			}}
 		>

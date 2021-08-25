@@ -26,7 +26,7 @@ export interface IPinnedItem {
   [key: string]: any;
 }
 
-export type PinTypes = "gif" | "background" | "image" | "text" | "NFT";
+export type PinTypes = "gif" | 'race' | "background" | "image" | "text" | "NFT";
 
 export interface IChatRoom {
   name: string;

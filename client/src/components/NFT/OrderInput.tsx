@@ -22,7 +22,6 @@ const useStyles = makeStyles((theme) => ({
 		border: '1px solid #ccc',
 		display: 'flex',
 		flexDirection: 'column',
-		padding: 25,
 		width: '100%'
 	},
 	titleListings: {
@@ -34,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
 	inputOrderRoot: {
 		display: 'flex',
 		flexDirection: 'column',
-		padding: 20
+		
 	},
 	button: {
 		width: 150

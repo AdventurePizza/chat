@@ -23,14 +23,14 @@ const AnimationPanel = ({ sendAnimation }: IAnimationPanelProps) => {
 		return (
 			<div key={animationsKey} className="animation-icon">
 				<button onClick={() => sendAnimation('animation', animationsKey)}>
-					<img src={animationIcon} alt="animation" />
+					<img src={animationIcon} alt="animation"/>
 				</button>
 			</div>
 		);
 	});
 
 	return (
-		<div className="animation-container">
+		<div>
 			<div className="animation-icon-list">{displayIcons}</div>
 		</div>
 	);

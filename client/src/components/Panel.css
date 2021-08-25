@@ -206,9 +206,10 @@
 
 .background-icon-list {
 	display: flex;
-	overflow-x: scroll;
-	padding-left: 20%;
-	padding-right: 20%;
+	overflow-x: auto;
+	display: 'flex'; 
+	justifyContent: 'center'; 
+	alignItems: 'center';
 }
 
 .sound-category-list {
@@ -341,16 +342,6 @@
 	text-align: center;
 }
 
-.youtube-search {
-	display: block;
-	margin: auto;
-}
-
-.youtube-search .searchbar {
-	min-width: 160px;
-	width: 50%;
-}
-
 .youtube-container .youtube-list {
 	list-style-type: none;
 	padding: 0;
@@ -360,13 +351,17 @@
 
 .youtube-container li {
 	display: inline-block;
-	margin: 20px;
+	margin-inline: 10px;
+	margin-top: 2px;
+	margin-bottom: 6px;
 	padding: 0;
 	cursor: pointer;
 }
 
 .youtube-container .button-wrapper {
 	display: inline-block;
-	min-height: 100%;
-	vertical-align: middle;
+}
+
+.button-disabled{
+	opacity: 0.5;
 }

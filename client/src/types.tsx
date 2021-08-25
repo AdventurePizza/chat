@@ -1,12 +1,15 @@
 import { IGif } from '@giphy/js-types';
 
-export type PinTypes = 'gif' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet' |'coin';
+export type PinTypes = 'gif' | 'race' | 'background' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat'| 'horse' | 'musicPlayer' | 'tweet'| 'coin'; 
+
 
 export interface IBackgroundState {
-	type?: 'image' | 'map';
+	type?: 'image' | 'map' | 'race' | 'marketplace' | 'video';
 	name?: string;
 	isPinned?: boolean;
 	mapData?: IMap;
+	raceId?: string;
+	videoId?: string;
 }
 
 export interface IPinnedItem {
@@ -46,6 +49,7 @@ export interface ICoin {
 	left:number;
 	top:number;
 	isPinned?: boolean;
+	
 }
 export interface IAvatarChatMessages {
 	[userId: string]: string[];
@@ -53,6 +57,7 @@ export interface IAvatarChatMessages {
 
 export interface IMessageEvent {
 	key:
+		| 'horse'
 		| 'sound'
 		| 'youtube'
 		| 'emoji'
@@ -63,6 +68,7 @@ export interface IMessageEvent {
 		| 'tower defense'
 		| 'background'
 		| 'messages'
+		| 'send-race'
 		| 'whiteboard'
 		| 'animation'
 		| 'isTyping'
@@ -77,7 +83,10 @@ export interface IMessageEvent {
 		| 'unpin-item'
 		| 'poem'
 		| 'tweet'
-		| 'coin';
+		| 'coin'
+		| 'marketplace'
+		| 'change-playlist'
+		| 'clear-field';
 		
 	value?: any;
 	[key: string]: any;
@@ -181,6 +190,51 @@ export interface IBoardVideo {
 	key: string;
 	url: string;
 	isPinned?: boolean;
+	isPlaying?: boolean;
+}
+
+export interface IHorse{
+	bloodline: string;
+	breed_type: string;
+	breeding_counter: string;
+	breeding_cycle_reset: string;
+	class: string;
+	genotype: string;
+	color: string;
+	hex_code: string;
+	name: string;
+	horse_type: string;
+	img_url: string;
+	is_approved_for_racing: string;
+	is_in_stud: string;
+	is_on_racing_contract: string;
+	mating_price: string;
+	number_of_races: string;
+	owner: string;
+	owner_stable: string;
+	owner_stable_slug: string;
+	rating: string;
+	super_coat: string;
+	tx: string;
+	tx_date: string;
+	win_rate: string;
+}
+
+export interface IBoardRace {
+	top: number;
+	left: number;
+	key: string;
+	isPinned?: boolean;
+	id: string;
+}
+
+export interface IBoardHorse {
+	top: number;
+	left: number;
+	horseData: IHorse;
+	key: string;
+	isPinned?: boolean;
+	id: string;
 }
 
 export interface IGifs {
@@ -192,24 +246,19 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
-	'roomDirectory' = 'roomDirectory',
+	//'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	'gifs' = 'gifs',
-	'chat' = 'chat',
 	'background' = 'background',
 	'youtube' = 'youtube',
 	'animation' = 'animation',
 	'whiteboard' = 'whiteboard',
 	'weather' = 'weather',
 	'poem' = 'poem',
-	'zedrun' = 'zedrun',
 	'sound' = 'sound',
 	"maps" = "maps",
 	'twitter' = 'twitter',
 	'email' = 'email',
 	'new-room' = 'new-room',
-	'browseNFT' = 'browseNFT',
-	'NFT' = 'NFT',
 	'tower' = 'tower',
 	'emoji' = 'emoji',
 	'crypto' = 'crypto'
@@ -239,6 +288,7 @@ export interface IUserProfile {
 	musicMetadata?: IMetadata;
 	currentRoom?: string;
 	email: string;
+	location: string;
 }
 
 export interface IUserProfiles {
@@ -318,13 +368,14 @@ export interface INFTMetadata {
 export interface IWaterfallMessage{
 	avatar: string;
 	message: string;
+	name: string;
 }
 
 export interface IWaterfallChat{
 	top: number;
 	left: number;
 	messages: IWaterfallMessage[];
-	show?: boolean;
+	show: boolean;
 }
 
 export interface IChatroomData {
@@ -332,4 +383,18 @@ export interface IChatroomData {
 	background?: any;
 }
 
+export interface IPlaylist{
+	timestamp: string;
+	url: string;
+	name: string;
+}
+
+export interface IMusicPlayer{
+	top: number;
+	left: number;
+	playlist: IPlaylist[];
+}
+
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
+
+export type newPanelTypes= 'chat' | 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT';

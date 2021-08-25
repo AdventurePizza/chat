@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
-import { FirebaseContext } from '../contexts/FirebaseContext';
 import "./Login.css";
 import check from "../assets/check.png";
 import maticInput from '../assets/matic-input.png';
@@ -9,6 +8,8 @@ import { MetamaskButton } from './MetamaskButton';
 
 import IconButton from '@material-ui/core/IconButton';
 import KeyboardBackspaceIcon from '@material-ui/icons/KeyboardBackspace';
+import CloseIcon from '@material-ui/icons/Close';
+
 
 const Checkmark = () => {
     return(
@@ -22,22 +23,31 @@ interface ILoginProps {
     beginTour: (val: boolean) => void;
     showModal: (val: boolean) => void;
     isFirstVisit: boolean;
-    userEmail: string;
     setUserEmail: (email: string) => void;
 }
 
-export const Login = ({ beginTour, showModal, isFirstVisit, userEmail, setUserEmail } : ILoginProps) => {
+export const Login = ({ beginTour, showModal, isFirstVisit, setUserEmail } : ILoginProps) => {
+    const [email, setEmail] = useState("");
     const [showEmail, setShowEmail] = useState(false);
     const [showMetamask, setShowMetamask] = useState(false);
-    const { isLoggedIn, accountId } = useContext(AuthContext);
-    const firebaseContext = useContext(FirebaseContext);
+    const { isLoggedIn } = useContext(AuthContext);
 
     const onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setUserEmail(e.target.value);
+        setEmail(e.target.value);
+    }
+
+    const onModalClose = () => {
+        showModal(false);
+        beginTour(true);
     }
 
     return (
         <div className="login-modal-container">
+            <div className="login-modal-close-modal">
+                <IconButton onClick={onModalClose}>
+                    <CloseIcon />
+                </IconButton>
+            </div>
             <div>
                 <h1 className="login-header-primary">Actually,</h1>
                 <h2 className="login-header-secondary">join in.</h2>
@@ -45,7 +55,7 @@ export const Login = ({ beginTour, showModal, isFirstVisit, userEmail, setUserEm
             {!showEmail ? (
                 <div className="login-button-container">
                     <div className="login-button">
-                        {userEmail ?  <Checkmark /> : <button className="login-button-email" onClick={() => setShowEmail(true)}>Email</button>}
+                        {email ?  <Checkmark /> : <button className="login-button-email" onClick={() => setShowEmail(true)}>Email</button>}
                         <p>Lets get you tricked out</p>
                     </div>
                     <div className="login-button">
@@ -61,18 +71,14 @@ export const Login = ({ beginTour, showModal, isFirstVisit, userEmail, setUserEm
             ) : null}
             {showEmail ? (
                 <div className="login-email-input-container">
-                    <input type="email" placeholder="Email" onChange={e => onEmailChange(e)} value={userEmail} className="login-email-input"/>
+                    <input type="email" placeholder="Email" onChange={e => onEmailChange(e)} value={email} className="login-email-input"/>
                     <button className="login-button-email" onClick={() => setShowEmail(false)}>Trick me out!</button>
                 </div>
             ) : null}
-            {userEmail && isLoggedIn && !showEmail ? (
+            { isLoggedIn && !showEmail ? (
                 <button className="login-button-email" 
                     onClick={() => {
-                        if(accountId){
-                            firebaseContext.updateEmail(accountId, userEmail)
-                                .then(() => console.log("user email updated"))
-                                .catch(err => console.log(err));
-                        }
+                        setUserEmail(email);
                         showModal(false);
                         if(isFirstVisit){
                             beginTour(true);
@@ -121,8 +127,8 @@ const MetamaskTutorial = ({setShowMetamask}: IMetamaskTutorialProps) => {
                         <p>Step 6.  Set up password, store key phrase somewhere secure.</p>
                         <p className="metamask-step-7">Step 7.  Switch to matic mainnet or add matic.</p>
                         <p className="metamask-step-details">Network name:  polygon, customer rpc: https://rpc-mainnet.matic.network, chain id: 137, symbol: MATIC, block explorer url: polygonscan.com</p>
-                        <img src={maticInput} alt="matic inputs" id="step7hover" width={200}/>
-                        <img src={networks} alt="matic netowrks" id="detailshover" width={200}/>
+                        <img src={maticInput} alt="matic inputs" id="detailshover" width={200}/>
+                        <img src={networks} alt="matic netowrks" id="step7hover" width={200}/>
                     </>
                 )}
             </div>

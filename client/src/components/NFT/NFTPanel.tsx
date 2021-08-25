@@ -40,10 +40,6 @@ const useStyles = makeStyles((theme) => ({
 	}
 }));
 
-export const NFTIcon = () => {
-	return <div>+NFT</div>;
-};
-
 interface INFTPanelProps {
 	onError: (message: string) => void;
 	onSuccess: (submission: ISubmit) => void;

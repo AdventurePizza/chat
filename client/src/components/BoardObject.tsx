@@ -1,21 +1,30 @@
 import { MoveButton, PinButton } from './shared/PinButton';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 
 import { Gif } from '@giphy/react-components';
 import { IGif } from '@giphy/js-types';
-import { Paper} from '@material-ui/core';
+import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDrag } from 'react-dnd';
-import { IOrder, IWaterfallMessage } from '../types';
+import {
+	IOrder,
+	IWaterfallMessage,
+	IHorse,
+	IPlaylist,
+	PanelItemEnum,
+	newPanelTypes
+} from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { Map } from "./Maps";
-import { Tweet} from 'react-twitter-widgets';
-import { WaterfallChat } from "./WaterfallChat";
+import { Map } from './Maps';
+import { Tweet } from 'react-twitter-widgets';
+import { WaterfallChat } from './WaterfallChat';
+import { MusicPlayer } from './MusicPlayer';
 import ReactPlayer from 'react-player';
+import { AppStateContext } from '../contexts/AppStateContext';
+import { Horse } from './Horse';
 import CoinWidget from './CoinWidget';
-
 
 const useStyles = makeStyles({
 	container: {
@@ -41,17 +50,32 @@ const useStyles = makeStyles({
 
 interface BoardObjectProps {
 	id: string;
-	type: 'gif' | 'image' | 'video' | 'text' | 'NFT' | 'map' | 'chat' |'tweet' |'coin';
+	type:
+		| 'horse'
+		| 'gif'
+		| 'image'
+		| 'video'
+		| 'text'
+		| 'NFT'
+		| 'map'
+		| 'chat'
+		| 'musicPlayer'
+		| 'race'
+		| 'tweet'
+		| 'coin';
 	data?: IGif;
 	imgSrc?: string;
 	text?: string;
 
 	onPin: () => void;
 	onUnpin: () => void;
+	setPinnedVideoId?: (id: string) => void;
 
 	top: number;
 	left: number;
 
+	isPinnedPlaying?: boolean;
+	pinnedVideoId?: string;
 	isPinned?: boolean;
 	order?: IOrder;
 
@@ -60,12 +84,17 @@ interface BoardObjectProps {
 	onBuy?: (nftId: string) => void;
 	onCancel?: (nftId: string) => void;
 
+	setActivePanel?: (panel: newPanelTypes) => void;
+	updateSelectedPanelItem?: (panelItem: PanelItemEnum | undefined) => void;
 	chat?: IWaterfallMessage[];
-
 	name?: string,
     images?:string,
     currentPrice?: number,
     price_change_percentage_24h?: number,
+	horseData?: IHorse;
+	playlist?: IPlaylist[];
+
+	raceId?: string;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -75,6 +104,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 		data,
 		onPin,
 		onUnpin,
+		isPinnedPlaying,
 		isPinned,
 		type,
 		imgSrc,
@@ -89,10 +119,21 @@ export const BoardObject = (props: BoardObjectProps) => {
 		images,
 		currentPrice,
 		price_change_percentage_24h,
-
+		horseData,
+		playlist,
+		updateSelectedPanelItem,
+		setActivePanel,
+		raceId
 	} = props;
+
 	const [isHovering, setIsHovering] = useState(false);
 	const classes = useStyles();
+
+	const { socket } = useContext(AppStateContext);
+
+	// useEffect(() => {
+
+	// }, [isPinned ])
 
 	const [{ isDragging }, drag, preview] = useDrag({
 		item: { id, left, top, itemType: type, type: 'item' },
@@ -105,7 +146,14 @@ export const BoardObject = (props: BoardObjectProps) => {
 		return <div ref={preview} />;
 	}
 
-	const noLinkPrev = <div className={classes.text} style={{ width: 180 }}>{text}</div>;
+	const noLinkPrev = (
+		<div className={classes.text} style={{ width: 180 }}>
+			{text}
+		</div>
+	);
+
+	const shouldShowMoveButton =
+		isPinned || type === 'chat' || type === 'musicPlayer';
 
 	return (
 		<div
@@ -113,7 +161,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: isHovering ? 99999999 : 99999997
+				zIndex: isHovering || type === 'chat' ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}
@@ -132,7 +180,17 @@ export const BoardObject = (props: BoardObjectProps) => {
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 200 }}>
-						<div>{text && <LinkPreview url= {text!}fallback= {noLinkPrev} descriptionLength= {50} imageHeight= {100} showLoader= {false} />}</div>
+						<div>
+							{text && (
+								<LinkPreview
+									url={text!}
+									fallback={noLinkPrev}
+									descriptionLength={50}
+									imageHeight={100}
+									showLoader={false}
+								/>
+							)}
+						</div>
 					</div>
 				)}
 				{type === 'NFT' && order && (
@@ -154,21 +212,60 @@ export const BoardObject = (props: BoardObjectProps) => {
 					/>)}
 			
 				{type === 'video' && id && (
-				<div className="pinned-video-player"
-					style={{
-						height: "225px",
-						width: "400px"
-					}}
-				>
-					<ReactPlayer width="100%" height="100%"
-						url={`https://www.youtube.com/watch/${id}`}
-						controls={true}
-						playing={false}	// Autoplay video
+					<div
+						className="pinned-video-player"
+						style={{
+							height: '225px',
+							width: '400px'
+						}}
+					>
+						<ReactPlayer
+							width="100%"
+							height="100%"
+							url={`https://www.youtube.com/watch/${id}`}
+							controls={true}
+							playing={isPinnedPlaying}
+							onPlay={() => {
+								socket.emit('event', {
+									key: 'youtube',
+									value: id,
+									playPin: true
+								});
+							}}
+							onPause={() => {
+								socket.emit('event', {
+									key: 'youtube',
+									value: id,
+									playPin: false
+								});
+							}}
+						/>
+					</div>
+				)}
+				{type === 'horse' && horseData && <Horse horse={horseData} />}
+				{type === 'chat' && chat && updateSelectedPanelItem && setActivePanel &&(
+					<WaterfallChat
+						updateSelectedPanelItem={updateSelectedPanelItem}
+						setActivePanel={setActivePanel}
+						chat={chat}
 					/>
-				</div>
-					)
-				}
-				{type === 'chat' && chat && <WaterfallChat chat= {chat}/>}
+				)}
+				{type === 'musicPlayer' && playlist && (
+					<div style={{ width: 400 }}>
+						<MusicPlayer playlist={playlist} />
+					</div>
+				)}
+				{type === 'race'  && (
+					<div style={{ width: 400, height: 225}}>
+						<iframe
+							src={`https://3d-racing.zed.run/live/${raceId}`}
+							width="100%"
+							height="100%"
+							title="zed racing"
+							style={{ pointerEvents: 'auto' }}
+						/>
+					</div>
+				)}
 			</Paper>
 
 			{isHovering && (
@@ -179,12 +276,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{type !== 'chat' && <PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />}
+					{type !== 'chat' && type !== 'musicPlayer' && (
+						<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
+					)}
 					{/*@ts-ignore needs better typing for innerRef*/}
-					{(isPinned || type === 'chat') && <MoveButton innerRef={drag} />}
+					{shouldShowMoveButton && <MoveButton innerRef={drag} />}
 				</div>
 			)}
-
 		</div>
 	);
 };

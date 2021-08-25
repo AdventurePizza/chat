@@ -8,7 +8,8 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
 	root: {
-		padding: '2px 4px',
+		padding: '2px 5px',
+		height: 45,
 		display: 'flex',
 		alignItems: 'center',
 		width: 400,
@@ -18,7 +19,7 @@ const useStyles = makeStyles({
 		marginLeft: 10,
 		flex: 1,
 		fontFamily: 'Didact Gothic',
-		fontSize: 25
+		fontSize: 16
 	},
 	iconButton: {
 		padding: 10
@@ -33,9 +34,10 @@ interface IInputButtonProps {
 	placeholder?: string;
 	onClick: (value: string) => void;
 	buttonText: string;
-	inputWidth?: number;
+	inputWidth?: string | number;
 	updateValue?: (inputValue: string) => void;
 	setStep?: (step: number) => void;
+	onSubmit?: (val: boolean) => void;
 }
 
 export const InputButton = ({
@@ -44,7 +46,8 @@ export const InputButton = ({
 	buttonText,
 	inputWidth,
 	updateValue,
-	setStep
+	setStep,
+	onSubmit
 }: IInputButtonProps) => {
 	const classes = useStyles();
 	const [inputValue, setInputValue] = useState('');
@@ -54,6 +57,9 @@ export const InputButton = ({
 		onClick(inputValue);
 		if(setStep){
 			setStep(2);
+		}
+		if(onSubmit){
+			onSubmit(false);
 		}
 	};
 
@@ -79,14 +85,10 @@ export const InputButton = ({
 					value={inputValue}
 					onChange={onChangeInputValue}
 				/>
+
 				<Divider className={classes.divider} orientation="vertical" />
-				{/* <IconButton
-					color="primary"
-					className={classes.iconButton}
-					aria-label="directions"
-				> */}
+			
 				<StyledButton onClick={onClickSubmit}>{buttonText}</StyledButton>
-				{/* </IconButton> */}
 			</Paper>
 		</div>
 	);

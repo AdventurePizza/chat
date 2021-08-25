@@ -18,7 +18,12 @@ import {
 	ITweet,
 	PinTypes,
 	ICoin,
-	IWaterfallChat
+	IWaterfallChat,
+	IBoardHorse,
+	IMusicPlayer,
+	PanelItemEnum,
+	newPanelTypes,
+	IBoardRace
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -43,6 +48,8 @@ import { useEffect } from 'react';
 interface IBoardProps {
 	videoId: string;
 	hideAllPins: boolean;
+	setPinnedVideoId: React.Dispatch<React.SetStateAction<string>>;
+	pinnedVideoId: string;
 	lastTime: number;
 	videoRef: React.Ref<any>;
 	volume: number;
@@ -97,11 +104,21 @@ interface IBoardProps {
 	onCancel: (nftId: string) => void;
 	onClickNewRoom: () => void;
 	onClickPresent: () => void;
+	musicPlayer: IMusicPlayer;
 	tweets: ITweet[];
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
- 	waterfallChat: IWaterfallChat;
-	raceId: string;
+	waterfallChat: IWaterfallChat;
+	races: IBoardRace[];
+	updateRaces: (races: IBoardRace[]) => void;
+	horses: IBoardHorse[];
+	pinHorse: (horseKey: string) => void;
+	unpinHorse: (horseKey: string) => void;
+	updateHorses: (horses: IBoardHorse[]) => void;
+	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
+	setActivePanel: (panel: newPanelTypes) => void;
+	pinRace: (raceKey: string) => void;
+	unpinRace: (raceKey: string) => void;
 	pinCoin: (name: string) => void;
 	coins: ICoin[];
 	unpinCoin: (name: string)=>void;
@@ -110,6 +127,8 @@ interface IBoardProps {
 export const Board = ({
 	videoId,
 	hideAllPins,
+	setPinnedVideoId,
+	pinnedVideoId,
 	videoRef,
 	lastTime,
 	volume,
@@ -160,10 +179,21 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
-	raceId,
+	races,
+	updateRaces,
+	horses,
+	pinHorse,
+	unpinHorse,
+	updateHorses,
+	musicPlayer,
+	updateSelectedPanelItem,
+	setActivePanel,
+	pinRace,
+	unpinRace,
 	pinCoin,
 	coins,
 	unpinCoin
+
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -256,7 +286,8 @@ export const Board = ({
 			}}
 			ref={drop}
 		>
-			{background.type === 'map' && <Map mapData={background.mapData} />}
+			{(background.type === 'map' || isMapShowing) && <Map mapData={background.mapData} />}
+
 			<div className="board-container-pin">
 				{background.name && (
 					<PinButton
@@ -268,17 +299,27 @@ export const Board = ({
 				)}
 			</div>
 
-			{raceId && (
+			{background.type === 'race' && (
 				<iframe
-					src={`https://3d-racing.zed.run/live/${raceId}`}
+					src={`https://3d-racing.zed.run/live/${background.raceId}`}
 					width="100%"
 					height="100%"
 					title="zed racing"
-					style={{ pointerEvents: 'none' }}
+					style={{ pointerEvents: 'auto' }}
 				/>
 			)}
 
-			<YouTubeBackground
+			{background.type === 'marketplace' && (
+				<iframe
+					className="opensea-listings"
+					title="Opensea Listings"
+					src="https://opensea.io/assets?embed=true"
+					width="100%"
+					height="100%"
+				></iframe>
+			)}
+
+			{background.type === 'video' && <YouTubeBackground
 				isVideoPinned={isVideoPinned}
 				lastTime={lastTime}
 				videoId={videoId}
@@ -289,20 +330,103 @@ export const Board = ({
 				onPinVideo={addVideo}
 				unpinVideo={unpinVideo}
 				videoRef={videoRef}
-			/>
+			/>}
 
-			{background.type === 'map' && <Map mapData={background.mapData} />}
-			{waterfallChat.show && (
+			{waterfallChat.show &&<BoardObject
+				id={'chat'}
+				type="chat"
+				onPin={() => {}}
+				onUnpin={() => {}}
+				updateSelectedPanelItem={updateSelectedPanelItem}
+				setActivePanel={setActivePanel}
+				chat={waterfallChat.messages}
+				top={waterfallChat.top}
+				left={waterfallChat.left}
+			/>}
+
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{races.map((race) => (
+						<CSSTransition
+							key={race.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!race.isPinned) {
+									const index = races.findIndex(
+										(_race) => _race.key === race.key
+									);
+									updateRaces([
+										...races.slice(0, index),
+										...races.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...race}
+								id={race.key}
+								type="race"
+								raceId={race.id}
+								onPin={() => {
+									pinRace(race.key);
+								}}
+								onUnpin={() => {
+									unpinRace(race.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
+			{musicPlayer.playlist.length !== 0 && (
 				<BoardObject
-					id={'texteyId'}
-					type="chat"
+					id={'musicPlayer'}
+					type="musicPlayer"
 					onPin={() => {}}
 					onUnpin={() => {}}
-					chat={waterfallChat.messages}
-					top={waterfallChat.top}
-					left={waterfallChat.left}
+					playlist={musicPlayer.playlist}
+					top={musicPlayer.top}
+					left={musicPlayer.left}
 				/>
 			)}
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{horses.map((horse) => (
+						<CSSTransition
+							key={horse.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!horse.isPinned) {
+									const index = horses.findIndex(
+										(_horse) => _horse.key === horse.key
+									);
+									updateHorses([
+										...horses.slice(0, index),
+										...horses.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...horse}
+								id={horse.key}
+								type="horse"
+								horseData={horse.horseData}
+								onPin={() => {
+									pinHorse(horse.key);
+								}}
+								onUnpin={() => {
+									unpinHorse(horse.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
 			<TransitionGroup>
 				{emojis.map((emoji) => (
 					<CSSTransition
@@ -599,6 +723,9 @@ export const Board = ({
 						>
 							<BoardObject
 								type="video"
+								isPinnedPlaying={video.isPlaying}
+								setPinnedVideoId={setPinnedVideoId}
+								pinnedVideoId={pinnedVideoId}
 								id={video.key}
 								{...video}
 								onPin={() => {
@@ -679,7 +806,7 @@ export const Board = ({
 			{/* </TransitionGroup> */}
 
 			<div className="board-container-pin">
-				{(isMapShowing || background.name || background.mapData) && (
+				{(videoId || isMapShowing || background.name || background.mapData) && (
 					<PinButton
 						isPinned={background.isPinned}
 						onPin={pinBackground}

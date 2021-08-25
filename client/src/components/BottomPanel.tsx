@@ -3,32 +3,27 @@ import {
 	IChatRoom,
 	IEmojiDict,
 	ITowerDefenseState,
-	PanelItemEnum
+	PanelItemEnum,
+	IMusicPlayer,
+	newPanelTypes
 } from '../types';
 import React, { useState } from 'react';
 // import { Profile } from '../routes/Profile';
 
-import AnimationPanel from './AnimationPanel';
 import BackgroundPanel from './BackgroundPanel';
-import { Chat } from './Chat';
 import { Drawer } from '@material-ui/core';
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
-import { Gifs } from './Gifs';
 import { IGif } from '@giphy/js-types';
 import { IImagesState } from './BackgroundPanel';
-import { RoomDirectoryPanel } from './RoomDirectoryPanel';
+//import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import SoundPanel from './SoundPanel';
-import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
-import { MapsPanel } from './MapsPanel';
-import WhiteboardPanel from './WhiteboardPanel';
 import { Poem } from './Poem';
-import { NFTPanel } from './NFT/NFTPanel';
 import { ISubmit } from './NFT/OrderInput';
 import TweetPanel from './TweetPanel';
-import { ZedrunPanel } from './ZedrunPanel';
+//import { ZedrunPanel } from './ZedrunPanel';
 import CryptoPanel from './CryptoPanel';
 
 export interface IBottomPanelProps {
@@ -52,7 +47,13 @@ export interface IBottomPanelProps {
 	setVolume: (volume: number) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
-	setRaceId: (raceId: string) => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	musicPlayer: IMusicPlayer;
+	addVideo: (videoId: string | undefined) => void;
+	setBottomPanelHeight: (height: number) => void;
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
 export interface IPanelContentProps {
@@ -80,7 +81,13 @@ export interface IPanelContentProps {
 	onNFTSuccess: (submssion: ISubmit) => void;
 	roomData?: IChatRoom;
 	updateShowChat: () => void;
-	setRaceId: (raceId: string) => void;
+	showWhiteboard: boolean;
+	updateShowWhiteboard: (show: boolean) => void;
+	musicPlayer: IMusicPlayer;
+	addVideo: (videoId: string | undefined) => void;
+	setBottomPanelHeight: (height: number) => void;
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
 export interface ISoundPairs {
@@ -117,7 +124,13 @@ export const BottomPanel = ({
 	setHideAllPins,
 	roomData,
 	updateShowChat,
-	setRaceId
+	showWhiteboard,
+	updateShowWhiteboard,
+	musicPlayer,
+	addVideo,
+	setBottomPanelHeight,	
+	activePanel,
+	setActivePanel
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -160,7 +173,13 @@ export const BottomPanel = ({
 					onNFTSuccess={onNFTSuccess}
 					roomData={roomData}
 					updateShowChat={updateShowChat}
-					setRaceId={setRaceId}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					musicPlayer={musicPlayer}
+					addVideo={addVideo}
+					setBottomPanelHeight={setBottomPanelHeight}
+					activePanel={activePanel}
+					setActivePanel={setActivePanel}
 				/>
 			</div>
 		</Drawer>
@@ -192,7 +211,13 @@ const PanelContent = ({
 	onNFTSuccess,
 	roomData,
 	updateShowChat,
-	setRaceId
+	showWhiteboard,
+	updateShowWhiteboard,
+	musicPlayer,
+	addVideo,
+	setBottomPanelHeight,
+	activePanel,
+	setActivePanel
 }: IPanelContentProps) => {
 	switch (type) {
 		case 'emoji':
@@ -203,30 +228,9 @@ const PanelContent = ({
 					}}
 				/>
 			);
-		case 'chat':
-			return (
-				<Chat
-					sendMessage={(message) => {
-						onAction('chat', message);
-					}}
-					pinMessage={(message) => {
-						onAction('chat-pin', message);
-					}}
-					updateIsTyping={updateIsTyping}
-					showChat={updateShowChat}
-				/>
-			);
 		case 'sound':
 			return <SoundPanel sendSound={onAction} />;
 
-		case 'gifs':
-			return (
-				<Gifs
-					sendGif={(gif: IGif) => {
-						onAction('gif', gif.id);
-					}}
-				/>
-			);
 		case 'tower':
 			return (
 				<TowerDefensePanel
@@ -250,62 +254,16 @@ const PanelContent = ({
 		case 'background':
 			return (
 				<BackgroundPanel
+					//update bottom panel size so board background can renders correct
+					setBottomPanelHeight={setBottomPanelHeight}
+					//giphy unsplash google
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
-				/>
-			);
-		case 'animation':
-			return <AnimationPanel sendAnimation={onAction} />;
-		case 'whiteboard':
-			return <WhiteboardPanel setBrushColor={setBrushColor} />;
-		case 'settings':
-			return null;
-		case 'weather':
-			return (
-				<Weather sendLocation={(location) => onAction('weather', location)} />
-			);
-		case 'maps':
-			return (
-				<MapsPanel />
-			);
-		case 'poem':
-			return (
-				<Poem
-					sendMessage={(message) => {
-						onAction('chat', message);
+					sendGif={(gif: IGif) => {
+						onAction('gif', gif.id);
 					}}
-					pinMessage={(message) => {
-						onAction('chat-pin', message);
-					}}
-					updateIsTyping={updateIsTyping}
-				/>
-			);
-		case 'roomDirectory':
-			return (
-				<RoomDirectoryPanel
-					sendRoomDirectory={onAction}
-					onClickNewRoom={() => onAction('new-room')}
-				/>
-			);
-		case 'email':
-			return (
-				<EmailPanel
-					sendEmail={(email, message) => onAction('send-email', email, message)}
-				/>
-			);
-
-		case 'NFT':
-			return (
-				<NFTPanel
-					roomData={roomData}
-					onError={onNFTError}
-					onSuccess={onNFTSuccess}
-				/>
-			);
-		case 'youtube':
-			return (
-				<YouTubeMusicPanel
+					//youtube
 					setVolume={setVolume}
 					setVideoId={setVideoId}
 					sendVideo={(id) => onAction('youtube', id)}
@@ -320,18 +278,78 @@ const PanelContent = ({
 					updateLastTime={updateLastTime}
 					hideAllPins={hideAllPins}
 					setHideAllPins={setHideAllPins}
+					addVideo={addVideo}
+					//+NFT
+					roomData={roomData}
+					onError={onNFTError}
+					onSuccess={onNFTSuccess}
+					//race
+					sendRace={(id) => onAction('send-race', id)}
+					addRace={(id) => onAction('add-race', id)}
+					//horse
+					sendHorse={(id) => {onAction('horse', id)}}
+					//marketplace
+					pinMarketplace={() => {onAction('marketplace')}}
+					//chat
+					sendMessage={(message) => {
+						onAction('chat', message);
+					}}
+					pinMessage={(message) => {
+						onAction('chat-pin', message);
+					}}
+					pinTweet={(id)=>{
+						onAction('tweet', id);
+					}}
+					updateIsTyping={updateIsTyping}
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					setBrushColor={setBrushColor}
+					sendAnimation={onAction}
+					showChat={updateShowChat}
+					activePanel={activePanel}
+					setActivePanel={setActivePanel}
+					//musicplayer
+					changePlaylist={(url, name) => {
+						onAction('change-playlist', {
+							url: url,
+							name: name
+						})
+					}}
+					musicPlayer={musicPlayer}
 				/>
 			);
-		case 'browseNFT':
+		case 'settings':
+			return null;
+		case 'weather':
 			return (
-				<iframe className="opensea-listings"
-					title="Opensea Listings" src='https://opensea.io/assets?embed=true'
-					width='100%'
-					height='100vh'
-					frameBorder='0'
-					allowFullScreen>
-				</iframe>
+				<Weather sendLocation={(location) => onAction('weather', location)} />
 			);
+		case 'poem':
+			return (
+				<Poem
+					sendMessage={(message) => {
+						onAction('chat', message);
+					}}
+					pinMessage={(message) => {
+						onAction('chat-pin', message);
+					}}
+					updateIsTyping={updateIsTyping}
+				/>
+			);
+		/* case 'roomDirectory':
+			return (
+				<RoomDirectoryPanel
+					sendRoomDirectory={onAction}
+					onClickNewRoom={() => onAction('new-room')}
+				/>
+			); */
+		case 'email':
+			return (
+				<EmailPanel
+					sendEmail={(email, message) => onAction('send-email', email, message)}
+				/>
+			);
+
 		case 'twitter':
 			return (<TweetPanel 
 			pinTweet={(id: string)=>{
@@ -339,13 +357,14 @@ const PanelContent = ({
 			}}
 			updateIsTyping={updateIsTyping}/>
 			);
-		case 'zedrun':
-			return <ZedrunPanel setRaceId={setRaceId} />;
+		// case 'zedrun':
+		// 	return <ZedrunPanel setRaceId={setRaceId} />;
 		case 'crypto':
 			return (<CryptoPanel pinCoin = {(name: string, image: string, price: number, priceChange: number) => {
 				onAction('coin',name, image,price, priceChange );
 			}}/>);		
 			default:
+
 			return null;
 	}
 };

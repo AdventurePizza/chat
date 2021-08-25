@@ -297,7 +297,7 @@ const UserCursorContent = ({
 						style={{ width: 30, height: 30, marginBottom: '5px' }}
 					/>
 				)}
-				<img src={avatarMap[avatar]} alt="avatar" />
+				<img src={avatar.startsWith("https") ? avatar : avatarMap[avatar]} alt="avatar" />
 				<div
 					style={{
 						textDecoration: 'bold',
@@ -351,7 +351,7 @@ interface IMusicLinkProps {
 	musicMetadata: IMetadata;
 }
 
-const MusicLink = ({ musicMetadata: data }: IMusicLinkProps) => {
+export const MusicLink = ({ musicMetadata: data }: IMusicLinkProps) => {
 	const classes = useStyles();
 
 	return (

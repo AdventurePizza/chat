@@ -1,4 +1,3 @@
-import { InputButton } from './shared/InputButton';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../contexts/AuthProvider';
 import { FirebaseContext } from '../contexts/FirebaseContext';
@@ -7,6 +6,7 @@ import './SettingsPanel.css';
 import Button from '@material-ui/core/Button';
 import { useHistory } from 'react-router-dom';
 import { Map } from './Maps';
+import { EditField } from './shared/EditField';
 
 import dollar from '../assets/dollar.png';
 
@@ -24,16 +24,27 @@ import mario from '../assets/mario.gif';
 import nyancat from '../assets/nyancat_big.gif';
 import redghost from '../assets/red_ghost.gif';
 import yoshi from '../assets/yoshi.gif';
-/* import { _fetchData } from 'ethers/lib/utils'; */
 import placeholder from '../assets/default-placeholder.png';
+import { IMetadata } from '../types';
+import { InputButton } from './shared/InputButton';
+import { Opensea } from './Opensea';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+
 
 interface ISettingsPanelProps {
+	setStep: (step: number) => void;
 	onChangeName: (username: string) => void;
 	onSubmitUrl: (url: string) => void;
 	onChangeAvatar: (avatar: string) => void;
 	onSendLocation: (location: string) => void;
+	onSubmitEmail: (email: string) => void;
 	currentAvatar: string;
-	setStep: (step: number) => void;
+	username: string;
+	email: string;
+	myLocation?: string;
+	music?: IMetadata;
+	clearField: (field: string) => void;
 }
 
 interface IWalletItem {
@@ -74,19 +85,35 @@ interface IWalletItem {
 	type?: string;
 }
 
+interface IWalletItem {
+	contract_name?: string;
+	balance?: string;
+	contract_decimals?: number;
+	type?: string;
+}
+
 export const SettingsPanel = ({
 	onChangeName,
 	onSubmitUrl,
 	onChangeAvatar,
 	onSendLocation,
+	onSubmitEmail,
 	currentAvatar,
-	setStep
+	setStep,
+	username,
+	email,
+	myLocation,
+	music,
+	clearField
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
 	const [isWalletLoaded, setIsWalletLoaded] = useState(false);
 	const { isLoggedIn, accountId } = useContext(AuthContext);
 	const [rooms, setRooms] = useState<IRoomData[]>([]);
+	const [showNftModal, setShowNftModal] = useState(false);
+	const [showImageUrlModal, setShowImageUrlModal] = useState(false);
+
 	const firebaseContext = useContext(FirebaseContext);
 
 	const [activeAvatar, setActiveAvatar] = useState(currentAvatar);
@@ -185,31 +212,50 @@ export const SettingsPanel = ({
 
 	return (
 		<div className="settings-panel-container">
-			<div className="settings-input-container">
-				<div className="second-step">
-					<InputButton
-						buttonText="update"
-						placeholder="enter name"
-						onClick={onChangeName}
-						inputWidth={300}
-						setStep={setStep}
-					/>
-					{/* <input type="text" placeholder="add text"/> */}
-				</div>
-				<InputButton
-					buttonText="add"
-					placeholder="enter location"
-					onClick={onSendLocation}
-					inputWidth={300}
+			{showNftModal ? (
+				<Opensea 
+					onChangeAvatar={onChangeAvatar}
+					setShowNftModal={setShowNftModal}
+					setActiveAvatar={setActiveAvatar}
 				/>
-				<InputButton
-					buttonText="add"
-					placeholder="enter music url"
+			 ) : null}
+			{showImageUrlModal ? (
+				<ImageUrlModal 
+					onChangeAvatar={onChangeAvatar}
+					setShowImageUrlModal={setShowImageUrlModal}
+				/>
+			) : null}
+			<div className="settings-input-container">
+				<EditField
+					prefix="SCREEN NAME"
+					placeholder={username}
+					onClick={onChangeName}
+					setStep={setStep}
+					containsRemove={false}
+				/>
+				<EditField
+					prefix="EMAIL"
+					placeholder={email ? email : 'add email'}
+					onClick={onSubmitEmail}
+					containsRemove={true}
+					clearField={() => clearField('email')}
+				/>
+				<EditField
+					prefix="LOCATION"
+					placeholder={myLocation ? myLocation : 'add location'}
+					onClick={onSendLocation}
+					containsRemove={true}
+					clearField={() => clearField('weather')}
+				/>
+				<EditField
+					prefix="MUSIC"
+					placeholder={music ? music.title : 'add song url'}
 					onClick={onSubmitUrl}
-					inputWidth={300}
+					containsRemove={true}
+					clearField={() => clearField('music')}
 				/>
 			</div>
-			<h2>AVATAR</h2>
+			<h2 className="settings-header">AVATAR</h2>
 			<div className="settings-avatar third-step">
 				{avatars.map((avatar, index) => {
 					let classes = 'settings-avatar-container';
@@ -221,7 +267,7 @@ export const SettingsPanel = ({
 						<div className={classes} key={index}>
 							<img
 								src={avatar.data}
-								height={100}
+								height={80}
 								onClick={() => setActiveAvatar(avatar.name)}
 								alt="user avatar"
 							/>
@@ -239,8 +285,25 @@ export const SettingsPanel = ({
 				>
 					GO!
 				</Button>
+				<Button
+					className="settings-avatar-button"
+					onClick={() => setShowNftModal(true)}
+					variant="contained"
+					color="primary"
+				>
+					Choose from your Ethereum NFT's
+				</Button>
+				<Button
+					className="settings-avatar-button"
+					onClick={() => setShowImageUrlModal(true)}
+					variant="contained"
+					color="primary"
+				>
+					Add Image Url
+				</Button>
+				
 			</div>
-			<h2>ROOMS</h2>
+			<h2 className="settings-header">ROOMS</h2>
 			{rooms ? (
 				<div className="settings-rooms">
 					{rooms.map((room, index) => (
@@ -265,7 +328,7 @@ export const SettingsPanel = ({
 					))}
 				</div>
 			) : null}
-			<h2>TOKENS</h2>
+			<h2 className="settings-header">TOKENS</h2>
 			{isWalletLoaded ? (
 				<div className="settings-wallet">
 					{items.map((item, index) => {
@@ -309,3 +372,29 @@ export const SettingsPanel = ({
 		</div>
 	);
 };
+
+interface IImageUrlModalProps {
+	onChangeAvatar: (imageUrl: string) => void;
+	setShowImageUrlModal: (val: boolean) => void;
+}
+
+const ImageUrlModal = ({
+	onChangeAvatar,
+	setShowImageUrlModal
+}: IImageUrlModalProps) => {
+	return(
+		<div className="image-url-modal-container">
+			<div className="image-url-modal-close">
+                <IconButton onClick={() => setShowImageUrlModal(false)} color="primary">
+                    <CloseIcon />
+                </IconButton>
+            </div>
+			<InputButton 
+					placeholder="image url"
+					onClick={onChangeAvatar}
+					buttonText="set"
+					onSubmit={setShowImageUrlModal}
+				/>
+		</div>
+	)
+}

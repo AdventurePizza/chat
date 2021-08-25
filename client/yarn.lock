@@ -12081,6 +12081,11 @@
     "loose-envify" "^1.4.0"
     "prop-types" "^15.6.2"
 
+"react-tweet-embed@^1.2.2":
+  "integrity" "sha512-Y932BlSaJsDUsKDucC2opzzd+uhc0YNhrlTa/4Beb2be1od+AjLGo6Fhuo2wPT0D+fF4VTXOyoZyA8Yc88RdYA=="
+  "resolved" "https://registry.npmjs.org/react-tweet-embed/-/react-tweet-embed-1.2.2.tgz"
+  "version" "1.2.2"
+
 "react-twitter-widgets@^1.10.0":
   "integrity" "sha512-K7MAREhkKJxrhoiNWricKs1O++NyElnVpcplLzZ67gDrmeIsD3E4TUzlt0/nTZAHPOPPc86V4kEd4KIg4de7cQ=="
   "resolved" "https://registry.npmjs.org/react-twitter-widgets/-/react-twitter-widgets-1.10.0.tgz"
@@ -12114,6 +12119,7 @@
     "tslib" "^2.0.0"
 
 "react@*", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0", "react@^15.3.0 || ^16.0.0 || ^17.0.0", "react@^15.6.1 || ^16.0.0 || ^17.0.0", "react@^16.0.0 || ^17.0.0", "react@^16.10.2", "react@^16.13.1", "react@^16.3.0 || ^17.0.0-0", "react@^16.8", "react@^16.8.0", "react@^16.8.0 || ^17", "react@^16.8.0 || ^17.0.0", "react@^17.0.1", "react@>= 16.8.0", "react@>= 16.9.0", "react@>=0.14.7", "react@>=15", "react@>=16.3.0", "react@>=16.6.0", "react@>=16.8.0", "react@>=16.8.1", "react@17.0.1":
+"react@*", "react@^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0", "react@^15.3.0 || ^16.0.0 || ^17.0.0", "react@^15.6.1 || ^16.0.0 || ^17.0.0", "react@^16.0.0 || ^17.0.0", "react@^16.10.2", "react@^16.13.1", "react@^16.3.0 || ^17.0.0-0", "react@^16.8", "react@^16.8.0", "react@^16.8.0 || ^17", "react@^16.8.0 || ^17.0.0", "react@^17.0.1", "react@>= 16.8.0", "react@>= 16.9.0", "react@>=0.14.7", "react@>=15", "react@>=16.3.0", "react@>=16.6.0", "react@>=16.8.0", "react@>=16.8.1", "react@>0.14.0", "react@17.0.1":
   "integrity" "sha512-lG9c9UuMHdcAexXtigOZLX8exLWkW0Ku29qPRU8uhF2R9BN96dLCt0psvzPLlHc5OWkgymP3qwTRgbnw5BKx3w=="
   "resolved" "https://registry.npmjs.org/react/-/react-17.0.1.tgz"
   "version" "17.0.1"
