@@ -25,7 +25,7 @@ import nyancat from '../assets/nyancat_big.gif';
 import redghost from '../assets/red_ghost.gif';
 import yoshi from '../assets/yoshi.gif';
 import placeholder from '../assets/default-placeholder.png';
-import { IMetadata } from '../types';
+import { IMetadata, newPanelTypes } from '../types';
 import { InputButton } from './shared/InputButton';
 import { Opensea } from './Opensea';
 import IconButton from '@material-ui/core/IconButton';
@@ -45,6 +45,7 @@ interface ISettingsPanelProps {
 	myLocation?: string;
 	music?: IMetadata;
 	clearField: (field: string) => void;
+	setActivePanel: (panel: newPanelTypes) => void;
 }
 
 interface IWalletItem {
@@ -104,7 +105,8 @@ export const SettingsPanel = ({
 	email,
 	myLocation,
 	music,
-	clearField
+	clearField,
+	setActivePanel
 }: ISettingsPanelProps) => {
 	let walletItems: IWalletItem[] = [];
 	const [items, setItems] = useState(walletItems);
@@ -208,6 +210,7 @@ export const SettingsPanel = ({
 	const onRoomClick = (roomId: string) => {
 		let urlRoomId = roomId.split(' ').join('%20');
 		history.push(`/room/${urlRoomId}`);
+		setActivePanel('empty');
 	};
 
 	return (

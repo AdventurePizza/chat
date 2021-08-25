@@ -278,6 +278,7 @@ export const Board = ({
 				backgroundSize: 'cover'
 			}}
 			ref={drop}
+			onClick={()=>{setActivePanel("empty")}}
 		>
 			{(background.type === 'map' || isMapShowing) && <Map mapData={background.mapData} />}
 
@@ -325,7 +326,7 @@ export const Board = ({
 				videoRef={videoRef}
 			/>}
 
-			{waterfallChat.show &&<BoardObject
+			{!hideAllPins && waterfallChat.show &&<BoardObject
 				id={'chat'}
 				type="chat"
 				onPin={() => {}}
@@ -373,7 +374,7 @@ export const Board = ({
 				</TransitionGroup>
 			) : null}
 
-			{musicPlayer.playlist.length !== 0 && (
+			{!hideAllPins && musicPlayer.playlist.length !== 0 && (
 				<BoardObject
 					id={'musicPlayer'}
 					type="musicPlayer"
@@ -382,6 +383,7 @@ export const Board = ({
 					playlist={musicPlayer.playlist}
 					top={musicPlayer.top}
 					left={musicPlayer.left}
+					setActivePanel={setActivePanel}
 				/>
 			)}
 			{!hideAllPins ? (

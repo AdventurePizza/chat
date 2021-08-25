@@ -1,7 +1,6 @@
 import './App.css';
 import * as ethers from 'ethers';
 import abiNFT from './abis/NFT.abi.json';
-import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
 import axios from 'axios';
 import { CustomToken as NFT } from './typechain/CustomToken';
@@ -79,7 +78,6 @@ import { FirebaseContext } from './contexts/FirebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
-import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
@@ -299,8 +297,8 @@ function App() {
 	const [step, setStep] = useState(0);
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 10,
-		left: 110,
+		top: 0,
+		left: 0,
 		messages: [],
 		show: true
 	});
@@ -308,15 +306,15 @@ function App() {
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
-		top: 600,
-		left: 200,
+		top: 360,
+		left: 0,
 		playlist: []
 	});
 	const [races, setRaces] = useState<IBoardRace[]>([]);
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
-	const [activePanel, setActivePanel] = useState<newPanelTypes>('unsplash');
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('empty');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -482,31 +480,14 @@ function App() {
 		audio.current.play();
 	}, []);
 
-	const onClickPanelItem = (key: string | undefined) => {
-		switch (key) {
-			case 'sound':
-			case 'emoji':
-			case 'tower':
-			case 'background':
-			case 'weather':
-			case 'roomDirectory':
-			case 'settings':
-			case 'poem':
-			case 'email':
-				setSelectedPanelItem(
-					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
-				);
-				break;
-			case 'new-room':
-				setModalState('new-room');
-				setSelectedPanelItem(
-					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
-				);
-				break;
-			case undefined:
-				setSelectedPanelItem(undefined);
-		}
+	const onNewRoom = () => {
+		setModalState('new-room');
+		setActivePanel('empty');
 	};
+
+	const routeHome = () => {
+		history.push(`/`);
+	}
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
@@ -2147,8 +2128,7 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel =
-		selectedPanelItem === PanelItemEnum.background && activePanel === 'chat' && showWhiteboard;
+	const onWhiteboardPanel = activePanel === 'chat' && showWhiteboard;
 
 	const onCreateRoom = async (
 		roomName: string,
@@ -3197,30 +3177,12 @@ function App() {
 		<div
 			className="app"
 			style={{
-				height: window.innerHeight - bottomPanelHeight
+				//height: window.innerHeight - bottomPanelHeight
+				height: window.innerHeight
 			}}
 			onClick={onClickApp}
 		>
 			<MetamaskSection />
-
-			<Route path="/settings">
-				<SettingsPanel
-					setStep={setStep}
-					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
-					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) =>
-						actionHandler('settings', 'avatar', avatar)
-					}
-					onSendLocation={(location) => actionHandler('weather', location)}
-					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
-					currentAvatar={userProfile.avatar}
-					username={userProfile.name}
-					email={userProfile.email}
-					myLocation={userProfile.location}
-					music={userProfile.musicMetadata}
-					clearField={(field) => actionHandler('clear-field', field)}
-				/>
-			</Route>
 
 			<Route exact path={['/room/:roomId', '/']}>
 				<Board
@@ -3350,19 +3312,6 @@ function App() {
 					</Tooltip>
 				)}
 			</div>
-			<Panel
-				onClick={onClickPanelItem}
-				isOpen={isPanelOpen}
-				onClose={() => {
-					setIsPanelOpen(false);
-				}}
-				selectedItem={selectedPanelItem}
-				avatar={
-					userProfile && !userProfile.avatar.startsWith("https")
-						? avatarMap[userProfile.avatar]
-						: userProfile.avatar
-				}
-			/>
 
 			<Tooltip
 				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
@@ -3387,7 +3336,7 @@ function App() {
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
-				isOpen={Boolean(selectedPanelItem)}
+				isOpen={true}
 				onAction={actionHandler}
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}
@@ -3410,6 +3359,29 @@ function App() {
 				setBottomPanelHeight={setBottomPanelHeight}
 				activePanel={activePanel}
 				setActivePanel={setActivePanel}
+				onNewRoom={onNewRoom}
+				routeHome={routeHome}
+				//settings
+				avatar={
+					userProfile && !userProfile.avatar.startsWith("https")
+						? avatarMap[userProfile.avatar]
+						: userProfile.avatar
+				}
+				setStep={setStep}
+				onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
+				onChangeName={(name) => actionHandler('settings', 'name', name)}
+				onChangeAvatar={(avatar) =>
+					actionHandler('settings', 'avatar', avatar)
+				}
+				onSendLocation={(location) => actionHandler('weather', location)}
+				onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
+				currentAvatar={userProfile.avatar}
+				username={userProfile.name}
+				email={userProfile.email}
+				myLocation={userProfile.location}
+				music={userProfile.musicMetadata}
+				clearField={(field) => actionHandler('clear-field', field)}	
+
 			/>
 
 			{userProfile && background.type !== "marketplace" && (

@@ -33,7 +33,7 @@ const useStyles = makeStyles({
 		display: 'flex'
 	},
 	paper: {
-		padding: 5
+		padding: 0,
 	},
 	buttonList: {
 		display: 'flex',
@@ -111,7 +111,6 @@ export const BoardObject = (props: BoardObjectProps) => {
 		chat,
 		horseData,
 		playlist,
-		updateSelectedPanelItem,
 		setActivePanel,
 		raceId
 	} = props;
@@ -151,14 +150,13 @@ export const BoardObject = (props: BoardObjectProps) => {
 				top,
 				left,
 				/* zIndex: isHovering ? 99999999 : 'auto' */
-				zIndex: isHovering || type === 'chat' ? 99999999 : 99999997
+				zIndex: (isHovering || type === 'chat') ? 99999999 : 99999997
 			}}
 			className={classes.container}
 			ref={preview}
 		>
 			<Paper
-				elevation={5}
-				className={classes.paper}
+				elevation={0}
 				onMouseEnter={() => setIsHovering(true)}
 				onMouseLeave={() => setIsHovering(false)}
 				onTouchStart={() => setIsHovering(true)}
@@ -166,7 +164,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 			>
 				{type === 'gif' && data && <Gif gif={data} width={180} noLink={true} />}
 				{type === 'image' && imgSrc && (
-					<img alt="user-selected-img" src={imgSrc} style={{ width: 180 }} />
+					<img alt="user-selected-img" src={imgSrc} style={{ width: 180, height: '100%' }} />
 				)}
 				{type === 'text' && text && (
 					<div className={classes.text} style={{ width: 200 }}>
@@ -225,18 +223,17 @@ export const BoardObject = (props: BoardObjectProps) => {
 					</div>
 				)}
 				{type === 'horse' && horseData && <Horse horse={horseData} />}
-				{type === 'chat' && chat && updateSelectedPanelItem && setActivePanel &&(
+				{type === 'chat' && chat && setActivePanel &&(
 					<WaterfallChat
-						updateSelectedPanelItem={updateSelectedPanelItem}
 						setActivePanel={setActivePanel}
 						chat={chat}
 					/>
 				)}
-				{type === 'musicPlayer' && playlist && (
-					<div style={{ width: 400 }}>
+				{type === 'musicPlayer' && playlist && setActivePanel &&
+					<div style={{ width: 320 }} onClick={(e)=>{e.stopPropagation(); setActivePanel('music');}} >
 						<MusicPlayer playlist={playlist} />
 					</div>
-				)}
+				}
 				{type === 'race'  && (
 					<div style={{ width: 400, height: 225}}>
 						<iframe
