@@ -261,10 +261,12 @@ a:active {
 	border-radius: 10px;
 	background-color: rgba(0, 0, 0, 0.5);
 	padding: 5px 10px;
+	z-index: 20;
 }
 
 .background-icon-container {
 	position: relative;
+	margin: 0 5px;
 }
 
 .background-icon-container:hover .remove-background-button {
@@ -276,4 +278,16 @@ a:active {
 	top: 0;
 	right: 0;
 	display: none;
+}
+
+.opensea-listings,
+.race-background,
+.youtube-background {
+	display: none;
+}
+
+.opensea-listings-active,
+.race-background-active,
+.youtube-background-active {
+	display: block;
 }

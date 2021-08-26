@@ -37,13 +37,15 @@ import { CustomToken as NFT } from '../typechain/CustomToken';
 // import introShark from '../assets/intro/leftshark.gif';
 // import present from '../assets/intro/present.gif';
 import { useContext } from 'react';
-import { MapsContext } from '../contexts/MapsContext';
 import { Map } from './Maps';
 import YouTubeBackground from './YouTubeBackground';
 import { useEffect } from 'react';
 
 import backgroundIcon from "../assets/navbar/backgroundIcon.png";
 import mapIcon from "../assets/buttons/mapsIcon.png";
+import videoIcon from "../assets/buttons/youtube-white.png";
+import marketplaceIcon from "../assets/buttons/marketplace-white.png";
+import raceIcon from "../assets/buttons/binoculars-white.png";
 import { AppStateContext } from '../contexts/AppStateContext';
 
 
@@ -240,9 +242,7 @@ export const Board = ({
 	// };
 
 	const pausePlayVideo = () => {
-		if (isYouTubeShowing) {
-			setIsPaused(!isPaused);
-		}
+		setIsPaused(!isPaused);
 	};
 
 	const backgroundImg = background.name?.startsWith('http')
@@ -261,20 +261,8 @@ export const Board = ({
 		}
 	});
 
-	const { isMapShowing } = useContext(MapsContext);
-	const [isYouTubeShowing, setIsYouTubeShowing] = useState<boolean>(
-		videoId !== ''
-	);
 	const [isPaused, setIsPaused] = useState<boolean>(true);
 	// const [ volume, setVolume ] = useState<number>(0.4);
-
-	useEffect(() => {
-		if (isMapShowing) {
-			setIsYouTubeShowing(false);
-		} else {
-			setIsYouTubeShowing(true);
-		}
-	}, [isMapShowing]);
 
 	useEffect(() => {
 		setIsPaused(false);
@@ -285,9 +273,9 @@ export const Board = ({
 	const backgroundIconMap = {
 		image: <img src={backgroundIcon} alt="background icon" height={50} onClick={() => setBackground({...background, activeBackground: "image"})}/>,
 		map: <img src={mapIcon} alt="map icon" height={50} onClick={() => setBackground({...background, activeBackground: "map"})}/>,
-		race: null,
-		video: null,
-		marketplace: null
+		race: <img src={raceIcon} alt="race icon" height={50} onClick={() => setBackground({...background, activeBackground: "race"})}/>,
+		video: <img src={videoIcon} alt="youtube icon" height={50} onClick={() => setBackground({...background, activeBackground: "video"})}/>,
+		marketplace: <img src={marketplaceIcon} alt="marketplace icon" height={50} onClick={() => setBackground({...background, activeBackground: "marketplace"})}/>
 	}
 
 	return (
@@ -302,12 +290,37 @@ export const Board = ({
 			ref={drop}
 		>
 			
-			{background.activeBackground === "map" && background.mapData && <Map 
+
+			{Array.isArray(background.type) ? (
+				<div className="board-background-icons">
+					{background.type.map(type => {
+						if(type){
+							return (
+								<div className="background-icon-container">
+									<button className="remove-background-button" onClick={() => {
+										removeBackground(type);
+										socket.emit('event', {
+											key: "background",
+											type,
+											func: 'remove'
+										});
+									}}>x</button>
+									{backgroundIconMap[type]}
+								</div>);
+						} else {
+							return null;
+						}
+					})}
+				</div>
+			) : null}
+
+			{background.mapData && <Map 
 				mapData={background.mapData} 
 				updateMap={updateMap} 
 				addNewMarker={addNewMarker} 
 				removeMarker={removeMarker}
 				updateMarker={updateMarker}
+				showMap={background.activeBackground === "map"}
 				/>}
 
 			{background.activeBackground === "map" && <BoardObject
@@ -321,59 +334,35 @@ export const Board = ({
 				mapData={background.mapData}
 			/>}
 
-			{Array.isArray(background.type) ? (
-				<div className="board-background-icons">
-					{background.type.map(type => {
-						if(type){
-							return (
-								<div className="background-icon-container">
-									<button className="remove-background-button" onClick={() => {
-										removeBackground(type);
-										socket.emit('event', {
-											key: 'map',
-											func: 'remove-map'
-										});
-									}}>x</button>
-									{backgroundIconMap[type]}
-								</div>);
-						} else {
-							return null;
-						}
-					})}
-				</div>
-			) : null}
-
-			{raceId && (
+			{/* {background.activeBackground === "race" && ( */}
 				<iframe
+					className={background.activeBackground === "race" ? "race-background-active" : "race-background"}
 					src={`https://3d-racing.zed.run/live/${raceId}`}
 					width="100%"
 					height="100%"
 					title="zed racing"
 					style={{ pointerEvents: 'none' }}
 				/>
-			)}
+			
 
-			{showOpensea && (
+			{/* {background.activeBackground === "marketplace" && ( */}
 				<iframe
-					className="opensea-listings"
+					className={background.activeBackground === "marketplace" ? "opensea-listings-active" : "opensea-listings"}
 					title="Opensea Listings"
 					src="https://opensea.io/assets?embed=true"
 					width="100%"
 					height="100%"
 				></iframe>
-			)}
+			{/* )} */}
 
-			{background.type === 'video' && <YouTubeBackground
-				isVideoPinned={isVideoPinned}
+			{videoId && <YouTubeBackground
 				lastTime={lastTime}
 				videoId={videoId}
 				isPaused={isPaused}
 				volume={volume}
-				isYouTubeShowing={isYouTubeShowing}
 				pausePlayVideo={pausePlayVideo}
-				onPinVideo={addVideo}
-				unpinVideo={unpinVideo}
 				videoRef={videoRef}
+				showYoutube={background.activeBackground === 'video'}
 			/>}
 
 			{waterfallChat.show &&<BoardObject

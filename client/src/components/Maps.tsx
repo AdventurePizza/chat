@@ -72,6 +72,7 @@ interface IMapProps {
 	addNewMarker: (coordinates: {lat: number, lng: number, text: string}) => void;
 	removeMarker: (index: number) => void;
 	updateMarker: (index: number, text: string) => void;
+	showMap: boolean;
 }
 
 export const Map = ({ 
@@ -79,7 +80,8 @@ export const Map = ({
 	updateMap, 
 	addNewMarker,
 	removeMarker,
-	updateMarker
+	updateMarker,
+	showMap
 	}: IMapProps) => {
 	const { socket } = useContext(AppStateContext);
 
@@ -128,7 +130,8 @@ export const Map = ({
 				height: '100%',
 				position: 'relative',
 				top: '0',
-				left: '0'
+				left: '0',
+				display: showMap ? 'block' : 'none'
 			}}
 		>
 			<GoogleMapReact

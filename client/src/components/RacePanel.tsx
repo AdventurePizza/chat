@@ -4,6 +4,8 @@ import { FirebaseContext } from '../contexts/FirebaseContext';
 import watchIcon from '../assets/buttons/watch.png'
 import closeIcon from '../assets/buttons/close.png'
 import hide from '../assets/buttons/hide.png'
+import { BackgroundTypes, IMap } from '../types';
+import { AppStateContext } from '../contexts/AppStateContext';
 
 const useStyles = makeStyles({
 	container: {
@@ -29,6 +31,7 @@ interface IRacePanel {
 	sendRace: (id: string) => void;
 	hideAllPins: boolean;
 	setHideAllPins: (value: boolean) => void;
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
 interface IRace {
@@ -43,10 +46,11 @@ interface INode {
 	};
 }
 
-export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins }: IRacePanel) => {
+export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins, addBackground }: IRacePanel) => {
 	const classes = useStyles();
 	const [inputRace, setinputRace] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
+	const { socket } = useContext(AppStateContext);
 	const [races, setRaces] = useState<IRace[]>([]);
 
 	const roomId = useMemo(() => {
@@ -122,7 +126,14 @@ export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins }: IRacePanel)
 								<Button
 									variant="contained" color="primary"
 									onClick={() => {
-										sendRace(race.id);
+										//sendRace(race.id);
+										addBackground("race", race.id);
+										socket.emit('event',{
+											key: 'background',
+											type: "video",
+											func: 'add',
+											raceId: race.id
+										});
 									}}
 								>
 									{race.name}

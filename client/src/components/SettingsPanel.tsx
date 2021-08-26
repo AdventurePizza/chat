@@ -317,7 +317,14 @@ export const SettingsPanel = ({
 									<img src={room.background.name} alt="room background" />
 								) : null}
 								{room.background && room.background.subType === 'map' ? (
-									<Map mapData={room.background.mapData} addNewMarker={() => {}} updateMap={() => {}} removeMarker={() => {}} updateMarker={() => {}}/>
+									<Map 
+										mapData={room.background.mapData} 
+										addNewMarker={() => {}} 
+										updateMap={() => {}} 
+										removeMarker={() => {}} 
+										updateMarker={() => {}}
+										showMap={true}
+										/>
 								) : null}
 								{!room.background ? (
 									<img src={placeholder} alt="room background" />

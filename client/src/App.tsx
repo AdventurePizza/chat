@@ -306,6 +306,10 @@ function App() {
 	const [isFirstVisit, setIsFirstVisit] = useState(false);
 	const [step, setStep] = useState(0);
 
+	useEffect(() => {
+		console.log(background.videoId);
+	}, [background.videoId])
+
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 10,
 		left: 110,
@@ -1365,50 +1369,7 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
-					/* if (message.isMapShowing !== undefined) {
-						updateIsMapShowing(message.isMapShowing);
-					}
-					if (message.zoom !== undefined) {
-						updateZoom(message.zoom);
-					}
-					if (message.coordinates) {
-						const newCoordinates = {
-							lat: message.coordinates.lat,
-							lng: message.coordinates.lng
-						};
-						updateCoordinates(newCoordinates);
-					}
-					if (message.func === 'add') {
-						addMarker(message.marker);
-					}
-					if (message.func === 'delete') {
-						deleteMarker(message.index);
-					}
-					if (message.func === 'update') {
-						updateMarkerText(message.index, message.text);
-					} */
 					switch(message.func){
-						case 'add-map' :
-							setBackground((background) => ({
-								...background,
-								type: Array.isArray(background.type) ? background.type.concat("map") : [background.type, "map"],
-								mapData: {
-									coordinates: {
-										lat: 33.91925555555555,
-										lng: -118.41655555555555
-									},
-									markers: [],
-									zoom: 12
-								}
-							}));
-							break;
-						case 'remove-map' :
-							setBackground((background) => ({
-								...background,
-								type: Array.isArray(background.type) ? background.type.filter(entry => entry !== "map") : background.type,
-								mapData: undefined
-							}));
-							break;
 						case 'update' :
 							setBackground((background) => ({
 								...background,
@@ -1517,14 +1478,58 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					setVideoId('');
-					setBackground((background) => ({
-						...background,
-						name: message.value,
-						isPinned: message.isPinned,
-						type: message.type,
-						mapData: message.mapData
-					}));
+					switch(message.type){
+						case("video"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("video") : [background.type, "video"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "video") : background.type),
+								videoId: message.func === "add" ? message.videoId : ""
+							}));
+							break;
+						case("marketplace"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("marketplace") : [background.type, "marketplace"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "marketplace") : background.type),
+							}));
+							break;
+						case("map"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("map") : [background.type, "map"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "map") : background.type),
+								mapData: message.func === "add" ? {
+									coordinates: {
+										lat: 33.91925555555555,
+										lng: -118.41655555555555
+									},
+									markers: [],
+									zoom: 12
+								} : undefined
+							}));
+							break;
+						case("race"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("race") : [background.type, "race"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "race") : background.type),
+								raceId: message.func === "add" ? message.raceId : ""
+							}));
+							break;
+						case("image"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("image") : [background.type, "image"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "image") : background.type),
+								name: message.func === "add" ? message.name : ""
+							}));
+					}
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
@@ -2618,6 +2623,11 @@ function App() {
 				name: data,
 				mapData: background.mapData
 			}
+		} else if (type === "marketplace"){
+			configData = {
+				...background,
+				type: backgrounds
+			}
 		}
 
 
@@ -2667,6 +2677,14 @@ function App() {
 			configData = {
 				type: backgrounds,
 				raceId: "",
+				videoId: background.videoId,
+				name: background.name,
+				mapData: background.mapData
+			}
+		} else if (type === "marketplace"){
+			configData = {
+				type: backgrounds,
+				raceId: background.raceId,
 				videoId: background.videoId,
 				name: background.name,
 				mapData: background.mapData
@@ -3364,7 +3382,6 @@ function App() {
 			}}
 			onClick={onClickApp}
 		>
-			<button onClick={() => {console.log(background.mapData)}} style={{position: "absolute", left: "300px"}}>mapdata</button>
 			<MetamaskSection />
 
 			<Route path="/settings">
@@ -3388,7 +3405,7 @@ function App() {
 
 			<Route exact path={['/room/:roomId', '/']}>
 				<Board
-					videoId={videoId}
+					videoId={background.videoId!}
 					isVideoPinned={isVidPinned}
 					pinnedVideoId={pinnedVideoId}
 					setPinnedVideoId={setPinnedVideoId}
@@ -3444,7 +3461,7 @@ function App() {
 					tweets={tweets}
 					pinTweet={pinTweet}
 					unpinTweet={unpinTweet}
-					raceId={raceId}
+					raceId={background.raceId!}
 					horses={horses}
 					pinHorse={pinHorse}
 					unpinHorse={unpinHorse}

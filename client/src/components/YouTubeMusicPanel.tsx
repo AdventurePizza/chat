@@ -16,6 +16,7 @@ import Slider from '@material-ui/core/Slider';
 import VolumeDown from '@material-ui/icons/VolumeDown';
 import VolumeUp from '@material-ui/icons/VolumeUp';
 import { AppStateContext } from '../contexts/AppStateContext';
+import { BackgroundTypes, IMap } from '../types';
 
 interface IYouTubePanelProps {
 	sendVideo: (id: string) => void; // Sends video id to socket event to be set as background and played
@@ -36,6 +37,7 @@ interface IYouTubePanelProps {
 	setQueriedVideos: (queriedVideos: Array<any>) => void; // modifies BottomPanel state so last queried videos can persist
 	updateLastTime: () => void;
 	addVideo: (videoId: string | undefined) => void;
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
 function YouTubeMusicPanel({
@@ -54,7 +56,8 @@ function YouTubeMusicPanel({
 	hideAllPins,
 	setHideAllPins,
 	isBackground,
-	addVideo
+	addVideo,
+	addBackground
 }: IYouTubePanelProps) {
 	// Displays 5 of the 15 videos at a time
 	const [selectedVideos, setSelectedVideos] = useState<Array<any>>(
@@ -187,10 +190,17 @@ function YouTubeMusicPanel({
 									onClick={() => {
 										const videoId = video.id.videoId;
 										if(isBackground){
-											sendVideo(videoId);
+											//sendVideo(videoId);
 											setVideoId(videoId);
 											setLastVideoId(videoId);
 											setIsVideoShowing(true);
+											addBackground("video", videoId);
+											socket.emit('event',{
+												key: 'background',
+												type: "video",
+												func: 'add',
+												videoId
+											});
 										}
 										else{
 											addVideo(videoId);

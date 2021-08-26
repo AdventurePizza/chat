@@ -126,7 +126,8 @@ export interface IImagesState {
 }
 
 export interface IIconsProps {
-	sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
+	//sendImage: (name: string, type: 'background' | 'gif' | 'image') => void;
+	addBackground: (type: BackgroundTypes, data: IMap | string) => void;
 	isSwitchChecked: boolean;
 }
 
@@ -282,8 +283,14 @@ const BackgroundPanel = ({
 							color= { "primary" }
 							disabled= {activePanel === panel.type ? true : false }
 							onClick={() => {setActivePanel(panel.type); 
-								if(panel.type === "marketplace"){setShowOpensea(true);}
-								else{setShowOpensea(false);}
+								if(panel.type === "marketplace"){
+									addBackground("marketplace", "");
+									socket.emit('event', {
+										key: 'background',
+										type: "marketplace",
+										func: 'add'
+									})
+								}
 								if(panel.type === "maps"){
 									addBackground("map", {
 										coordinates: {
@@ -293,9 +300,10 @@ const BackgroundPanel = ({
 										markers: [],
 										zoom: 12
 									});
-									socket.emit('event',{
-										key: 'map',
-										func: 'add-map'
+									socket.emit('event', {
+										key: 'background',
+										type: "map",
+										func: 'add'
 									})
 								}
 							}} 
@@ -352,12 +360,14 @@ const BackgroundPanel = ({
 				<div className="background-icon-list" >
 					{isImagesEmpty ? (
 						<DefaultIcons
-							sendImage={sendImage}
+							//sendImage={sendImage}
+							addBackground={addBackground}
 							isSwitchChecked={isSwitchChecked}
 						/>
 					) : (
 						<UnsplashIcons
-							sendImage={sendImage}
+							//sendImage={sendImage}
+							addBackground={addBackground}
 							images={images}
 							isSwitchChecked={isSwitchChecked}
 						/>
@@ -389,6 +399,7 @@ const BackgroundPanel = ({
 						setHideAllPins={setHideAllPins}
 						isBackground={isSwitchChecked}
 						addVideo={addVideo}
+						addBackground={addBackground}
 					/>
 				</div>
 			}
@@ -419,6 +430,7 @@ const BackgroundPanel = ({
 						sendRace={sendRace}
 						hideAllPins={hideAllPins}
 						setHideAllPins={setHideAllPins}
+						addBackground={addBackground}
 					/>
 				</div>
 			}
@@ -432,15 +444,24 @@ const BackgroundPanel = ({
 	);
 };
 
-const DefaultIcons = ({ sendImage, isSwitchChecked }: IIconsProps) => {
+const DefaultIcons = ({ addBackground, isSwitchChecked }: IIconsProps) => {
 	const classes = useStyles();
+	const { socket } = useContext(AppStateContext);
 	const defaultIcons = Object.keys(backgroundIcons).map((backgroundName) => {
 		const backgroundIcon = backgroundIcons[backgroundName];
+
 		return (
 			<IconButton
 				key={backgroundName}
 				onClick={() => {
-					sendImage(backgroundName, isSwitchChecked ? 'background' : 'image');
+					//sendImage(backgroundName, isSwitchChecked ? 'background' : 'image');
+					addBackground("image", backgroundName);
+					socket.emit('event', {
+						key: 'background',
+						type: "image",
+						func: 'add',
+						name: backgroundName
+					})
 				}}
 			>
 				<Avatar
@@ -457,17 +478,25 @@ const DefaultIcons = ({ sendImage, isSwitchChecked }: IIconsProps) => {
 };
 
 const UnsplashIcons = ({
-	sendImage,
+	addBackground,
 	images,
 	isSwitchChecked
 }: unsplashIconsProps) => {
 	const classes = useStyles();
+	const { socket } = useContext(AppStateContext);
 	const unsplashIcons = images.map(({ alt, thumbnailLink, imageLink, id }) => (
 		<IconButton
 			key={id}
-			onClick={() =>
-				sendImage(imageLink, isSwitchChecked ? 'background' : 'image')
-			}
+			onClick={() => {
+				//sendImage(imageLink, isSwitchChecked ? 'background' : 'image')
+				addBackground("image", imageLink);
+				socket.emit('event', {
+					key: 'background',
+					type: "image",
+					func: 'add',
+					name: imageLink
+				})
+			}}
 		>
 			<Avatar variant="rounded" src={thumbnailLink} alt={alt} className={classes.size} />
 		</IconButton>
