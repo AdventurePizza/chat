@@ -19,7 +19,8 @@ const useStyles = makeStyles((theme) => ({
 		flexDirection: 'column',
 		maxHeight: 400,
 		overflowY: 'auto',
-		width: '100%'
+
+		paddingInline: 15
 	},
 	loadingNFTRoot: {
 		width: 300,
@@ -212,7 +213,7 @@ export const NFTPanel = ({ onError, onSuccess, roomData }: INFTPanelProps) => {
 		accountId?.toLowerCase() !== roomData.lockedOwnerAddress.toLowerCase();
 
 	return (
-		<div style={{height: 150}} className={classes.nftPanelRoot}>
+		<div className={classes.nftPanelRoot}>
 			<OrderInput
 				disabledMessage={
 					isAddOrderDisabled

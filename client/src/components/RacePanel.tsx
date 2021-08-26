@@ -29,6 +29,8 @@ const baseURLRace = 'https://3d-racing.zed.run/';
 
 interface IRacePanel {
 	sendRace: (id: string) => void;
+	addRace: (id: string) => void;
+	isBackground: boolean;
 	hideAllPins: boolean;
 	setHideAllPins: (value: boolean) => void;
 	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
@@ -46,14 +48,14 @@ interface INode {
 	};
 }
 
-export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins, addBackground }: IRacePanel) => {
+export const RacePanel = ({ sendRace, addRace, isBackground, hideAllPins, setHideAllPins, addBackground }: IRacePanel) => {
 	const classes = useStyles();
 	const [inputRace, setinputRace] = useState('');
 	const firebaseContext = useContext(FirebaseContext);
 	const { socket } = useContext(AppStateContext);
 	const [races, setRaces] = useState<IRace[]>([]);
 
-	const roomId = useMemo(() => {
+	const raceId = useMemo(() => {
 		if (inputRace.includes(baseURLRace)) {
 			let textIndex = inputRace.indexOf('replay');
 
@@ -107,7 +109,11 @@ export const RacePanel = ({ sendRace, hideAllPins, setHideAllPins, addBackground
 
 				<IconButton 
 					onClick={() => { 
-						sendRace(roomId!);
+						if(isBackground){
+							sendRace(raceId!);
+						}else{
+							addRace(raceId!);
+						}
 					}}>
 					<img src={watchIcon} alt="watch" width= "30" height= "30"/>
 				</IconButton>

@@ -1,7 +1,6 @@
 import * as ethers from 'ethers';
 import './App.css';
 import abiNFT from './abis/NFT.abi.json';
-import { SettingsPanel } from './components/SettingsPanel';
 import Tour from 'reactour';
 import axios from 'axios';
 import { CustomToken as NFT } from './typechain/CustomToken';
@@ -39,7 +38,9 @@ import {
 	IWaterfallChat,
 	IBoardHorse,
 	IMusicPlayer,
-	BackgroundTypes
+	BackgroundTypes,
+	newPanelTypes,
+	IBoardRace
 } from './types';
 import { ILineData, Whiteboard, drawLine } from './components/Whiteboard';
 import { IconButton, Modal, Tooltip } from '@material-ui/core';
@@ -78,7 +79,6 @@ import { FirebaseContext } from './contexts/FirebaseContext';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { IMusicNoteProps } from './components/MusicNote';
 import { NewChatroom } from './components/NewChatroom';
-import { Panel } from './components/Panel';
 import { TowerDefense } from './components/TowerDefense';
 import _ from 'underscore';
 import { backgrounds } from './components/BackgroundImages';
@@ -311,8 +311,8 @@ function App() {
 	}, [background.videoId])
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
-		top: 10,
-		left: 110,
+		top: 0,
+		left: 0,
 		messages: [],
 		show: true
 	});
@@ -320,16 +320,15 @@ function App() {
 	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
 
 	const [musicPlayer, setMusicPlayer] = useState<IMusicPlayer>({
-		top: 600,
-		left: 200,
+		top: 360,
+		left: 0,
 		playlist: []
 	});
-	const [raceId, setRaceId] = useState<string>('');
+	const [races, setRaces] = useState<IBoardRace[]>([]);
 
 	const [horses, setHorses] = useState<IBoardHorse[]>([]);
 
-	const [showOpensea, setShowOpensea] = useState<boolean>(false);
-
+	const [activePanel, setActivePanel] = useState<newPanelTypes>('empty');
 	useEffect(() => {
 		setHasFetchedRoomPinnedItems(false);
 		console.log(roomId);
@@ -495,33 +494,14 @@ function App() {
 		audio.current.play();
 	}, []);
 
-	const onClickPanelItem = (key: string | undefined) => {
-		switch (key) {
-			case 'sound':
-			case 'emoji':
-			case 'chat':
-			case 'tower':
-			case 'background':
-			case 'weather':
-			case 'roomDirectory':
-			case 'settings':
-			case 'poem':
-			case 'email':
-			case 'musicPlayer':
-				setSelectedPanelItem(
-					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
-				);
-				break;
-			case 'new-room':
-				setModalState('new-room');
-				setSelectedPanelItem(
-					selectedPanelItem === key ? undefined : (key as PanelItemEnum)
-				);
-				break;
-			case undefined:
-				setSelectedPanelItem(undefined);
-		}
+	const onNewRoom = () => {
+		setModalState('new-room');
+		setActivePanel('empty');
 	};
+
+	const routeHome = () => {
+		history.push(`/`);
+	}
 
 	const handleChatMessage = useCallback((message: IMessageEvent) => {
 		const { userId, value } = message;
@@ -698,11 +678,9 @@ function App() {
 		}
 		if (selectedPanelItem === 'settings') {
 			setStep(1);
-		} else if (selectedPanelItem === 'roomDirectory') {
-			setStep(4);
 		} // since we removed youtube panel I used random panel name 
 		else if (selectedPanelItem === 'email') {
-			setStep(5);
+			setStep(4);
 		}
 	}, [selectedPanelItem]);
 
@@ -1056,6 +1034,17 @@ function App() {
 		},
 		[gifs, images, videos, pinnedText, NFTs, horses, tweets]
 	);
+
+	const addRace = useCallback((id: string) => {
+		const { x, y } = generateRandomXY(true, true);
+		const newRace: IBoardRace = {
+			top: y,
+			left: x,
+			key: uuidv4(),
+			id: id
+		};
+		setRaces((races) => races.concat(newRace));
+	}, []);
 
 	const getHorse = async (id: string) =>
 		await axios.get('https://api.zed.run/api/v1/horses/get/' + id);
@@ -1535,7 +1524,14 @@ function App() {
 					setAvatarMessages(message.value as IAvatarChatMessages);
 					break;
 				case 'send-race':
-					setRaceId(message.value);
+					setBackground({
+						name: background.name,
+						isPinned: false,
+						type: "race",
+						mapData: background.mapData,
+						videoId: background.videoId,
+						raceId: message.value
+					});
 					break;
 				case 'whiteboard':
 					if (message.value) {
@@ -1651,6 +1647,15 @@ function App() {
 						addHorse(message.value, message.horseKey);
 					}
 					break;
+				case 'marketplace':
+					setBackground({
+						name: '',
+						isPinned: false,
+						type: 'marketplace',
+						mapData: undefined,
+						videoId: undefined
+					});
+					break;
 				case 'change-playlist':
 					handleChangePlaylist(message);
 					break;
@@ -1720,7 +1725,8 @@ function App() {
 		updateWaterfallChat,
 		addHorse,
 		handleChangePlaylist,
-		videos
+		videos,
+		background
 	]);
 
 	const actionHandler = (key: string, ...args: any[]) => {
@@ -1854,11 +1860,38 @@ function App() {
 				break;
 			case 'send-race':
 				const raceId = args[0] as string;
-				setRaceId(raceId);
-				pinRace(raceId);
+
 				socket.emit('event', {
 					key: 'send-race',
 					value: raceId
+				});
+
+				setBackground({
+					name: background.name,
+					isPinned: false,
+					type: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+
+				firebaseContext.pinRoomItem(roomId || 'default', {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "race",
+					mapData: background.mapData,
+					videoId: background.videoId,
+					raceId: raceId
+				});
+				break;
+			case 'add-race':
+				const race = args[0] as string;
+				addRace(race);
+				socket.emit('event', {
+					key: 'add-race',
+					value: race
 				});
 				break;
 			case 'whiteboard':
@@ -2011,6 +2044,31 @@ function App() {
 					value: horseId
 				});
 				break;
+			case 'marketplace':
+				const room = roomId || 'default';
+
+				setBackground({
+					name: '',
+					isPinned: false,
+					type: 'marketplace',
+					mapData: undefined,
+					videoId: undefined
+				});
+
+				socket.emit('event', {
+					key: 'marketplace'
+				});
+				
+				firebaseContext.pinRoomItem(room, {
+					name: background.name,
+					type: 'background',
+					top: 0,
+					left: 0,
+					subType: "marketplace",
+					mapData: background.mapData,
+					videoId: background.videoId
+				});
+				break;
 			case 'change-playlist':
 				const url = args[0].url as string;
 				const name = args[0].name as string;
@@ -2147,8 +2205,7 @@ function App() {
 		[movingBoardItem, firebaseContext, roomId, socket]
 	);
 
-	const onWhiteboardPanel =
-		selectedPanelItem === PanelItemEnum.chat && showWhiteboard;
+	const onWhiteboardPanel = activePanel === 'chat' && showWhiteboard;
 
 	const onCreateRoom = async (
 		roomName: string,
@@ -2217,6 +2274,7 @@ function App() {
 				const pinnedVideos: IBoardVideo[] = [];
 				const pinnedText: { [key: string]: IPinnedItem } = {};
 				const pinnedNFTs: Array<IOrder & IPinnedItem> = [];
+				const pinnedRaces: IBoardRace[] = [];
 				const pinnedHorses: IBoardHorse[] = [];
 				const pinnedTweets: ITweet[] = [];
 
@@ -2225,7 +2283,7 @@ function App() {
 				let backgroundMap: IMap | undefined;
 				let backgroundVideo: string | undefined;
 				let backgroundArray: any;
-
+				
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
 						pinnedGifs.push({
@@ -2269,7 +2327,14 @@ function App() {
 						backgroundMap = item.mapData;
 						backgroundVideo = item.videoId;
 					} else if (item.type === 'race') {
-						setRaceId(item.raceId);
+						pinnedRaces.push({
+							...item,
+							top: item.top! * window.innerHeight,
+							left: item.left! * window.innerWidth,
+							isPinned: true,
+							key: item.key!,
+							id: item.id
+						});
 					} else if (item.type === 'text') {
 						pinnedText[item.key!] = {
 							...item,
@@ -2351,6 +2416,7 @@ function App() {
 				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
 				setHorses(pinnedHorses);
+				setRaces(pinnedRaces);
 			});
 		}
 	}, [
@@ -2560,14 +2626,60 @@ function App() {
 		}
 	}, [videoId, videos]);
 
-	const pinRace = async (raceId: string) => {
+	const pinRace = async (RaceKey: string) => {
+		const raceIndex = races.findIndex((race) => race.key === RaceKey);
+		const race = races[raceIndex];
 		const room = roomId || 'default';
-		await firebaseContext.pinRoomItem(room, {
-			raceId: raceId,
-			type: 'race',
-			top: 0,
-			left: 0
-		});
+
+		if (race && !race.isPinned) {
+
+			const result = await firebaseContext.pinRoomItem(room, {
+				...race,
+				type: 'race',
+				left: race.left / window.innerWidth,
+				top: race.top / window.innerHeight
+			});
+
+			if (result.isSuccessful) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{ ...race, isPinned: true },
+					...races.slice(raceIndex + 1)
+				]);
+
+				socket.emit('event', {
+					key: 'pin-item',
+					type: 'race',
+					itemKey: RaceKey
+				});
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const unpinRace = async (raceKey: string) => {
+		const index = races.findIndex((race) => race.key === raceKey);
+		const race = races[index];
+		const room = roomId || 'default';
+
+		if (race && race.isPinned) {
+			const { isSuccessful, message } = await firebaseContext.unpinRoomItem(
+				room,
+				race.key
+			);
+			if (isSuccessful) {
+				setRaces([...races.slice(0, index), ...races.slice(index + 1)]);
+
+				socket.emit('event', {
+					key: 'unpin-item',
+					type: 'race',
+					itemKey: raceKey
+				});
+			} else if (message) {
+				setModalErrorMessage(message);
+			}
+		}
 	};
 	
 	const addBackground = async (type: BackgroundTypes, data: string | IMap) => {
@@ -2831,6 +2943,8 @@ function App() {
 			backgroundType = 'video';
 		} else if (background.name) {
 			backgroundType = 'image';
+		} else if (background.type) {
+			backgroundType = 'marketplace';
 		}
 
 		let backgroundName: string | undefined;
@@ -3127,6 +3241,19 @@ function App() {
 					...tweets.slice(tweetIndex + 1)
 				]);
 			}
+		} else if (type === 'race') {
+			const raceIndex = races.findIndex((race) => race.key === id);
+			if (raceIndex !== -1) {
+				setRaces([
+					...races.slice(0, raceIndex),
+					{
+						...races[raceIndex],
+						top,
+						left
+					},
+					...races.slice(raceIndex + 1)
+				]);
+			}
 		} else if (type === 'horse') {
 			const horseIndex = horses.findIndex((horse) => horse.key === id);
 			if (horseIndex !== -1) {
@@ -3236,6 +3363,19 @@ function App() {
 								left
 							},
 							...tweets.slice(tweetIndex + 1)
+						]);
+					}
+				} else if (type === 'race') {
+					const raceIndex = races.findIndex((race) => race.key === id);
+					if (raceIndex !== -1) {
+						setRaces([
+							...races.slice(0, raceIndex),
+							{
+								...races[raceIndex],
+								top,
+								left
+							},
+							...races.slice(raceIndex + 1)
 						]);
 					}
 				} else if (type === 'horse') {
@@ -3361,15 +3501,11 @@ function App() {
 		},
 		{
 			selector: '.fourth-step',
-			content: 'Create and enter rooms here'
-		},
-		{
-			selector: '.fifth-step',
 			content:
 				'You can use interactive backgrounds like youtube, maps and opensea by pinning them in the top right corner'
 		},
 		{
-			selector: '.sixth-step',
+			selector: '.fifth-step',
 			content: 'Invite the homies and earn tokens'
 		}
 	];
@@ -3378,30 +3514,12 @@ function App() {
 		<div
 			className="app"
 			style={{
-				height: window.innerHeight - bottomPanelHeight
+				//height: window.innerHeight - bottomPanelHeight
+				height: window.innerHeight
 			}}
 			onClick={onClickApp}
 		>
 			<MetamaskSection />
-
-			<Route path="/settings">
-				<SettingsPanel
-					setStep={setStep}
-					onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
-					onChangeName={(name) => actionHandler('settings', 'name', name)}
-					onChangeAvatar={(avatar) =>
-						actionHandler('settings', 'avatar', avatar)
-					}
-					onSendLocation={(location) => actionHandler('weather', location)}
-					onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
-					currentAvatar={userProfile.avatar}
-					username={userProfile.name}
-					email={userProfile.email}
-					myLocation={userProfile.location}
-					music={userProfile.musicMetadata}
-					clearField={(field) => actionHandler('clear-field', field)}
-				/>
-			</Route>
 
 			<Route exact path={['/room/:roomId', '/']}>
 				<Board
@@ -3462,12 +3580,12 @@ function App() {
 					pinTweet={pinTweet}
 					unpinTweet={unpinTweet}
 					raceId={background.raceId!}
+					races={races}
+					updateRaces={setRaces}
 					horses={horses}
 					pinHorse={pinHorse}
 					unpinHorse={unpinHorse}
 					updateHorses={setHorses}
-					showOpensea={showOpensea}
-					selectedPanelItem={selectedPanelItem}
 					updateSelectedPanelItem={setSelectedPanelItem}
 					setBackground={setBackground}
 					updateMap={updateMap}
@@ -3476,6 +3594,9 @@ function App() {
 					addNewMarker={addNewMarker}
 					removeMarker={removeMarker}
 					updateMarker={updateMarker}
+					setActivePanel= {setActivePanel}
+					pinRace={pinRace}
+					unpinRace={unpinRace}
 				/>
 			</Route>
 
@@ -3536,19 +3657,6 @@ function App() {
 					</Tooltip>
 				)}
 			</div>
-			<Panel
-				onClick={onClickPanelItem}
-				isOpen={isPanelOpen}
-				onClose={() => {
-					setIsPanelOpen(false);
-				}}
-				selectedItem={selectedPanelItem}
-				avatar={
-					userProfile && !userProfile.avatar.startsWith("https")
-						? avatarMap[userProfile.avatar]
-						: userProfile.avatar
-				}
-			/>
 
 			<Tooltip
 				title={`version: ${process.env.REACT_APP_VERSION}. production: leo, mike, yinbai, krishang, tony, grant, andrew, sokchetra, allen, ishaan, kelly, taner, eric, anthony, maria`}
@@ -3573,7 +3681,7 @@ function App() {
 				towerDefenseState={towerDefenseState}
 				setBrushColor={(color: string) => setBrushColor(color)}
 				type={selectedPanelItem}
-				isOpen={Boolean(selectedPanelItem)}
+				isOpen={true}
 				onAction={actionHandler}
 				updateIsTyping={onIsTyping}
 				onNFTError={setModalErrorMessage}
@@ -3592,14 +3700,37 @@ function App() {
 				showWhiteboard={showWhiteboard}
 				updateShowWhiteboard={onShowMarker}
 				musicPlayer={musicPlayer}
-				setRaceId={setRaceId}
-				showOpensea={showOpensea}
-				setShowOpensea={setShowOpensea}
 				addVideo={addVideo}
 				addBackground={addBackground}
+				setBottomPanelHeight={setBottomPanelHeight}
+				activePanel={activePanel}
+				setActivePanel={setActivePanel}
+				onNewRoom={onNewRoom}
+				routeHome={routeHome}
+				//settings
+				avatar={
+					userProfile && !userProfile.avatar.startsWith("https")
+						? avatarMap[userProfile.avatar]
+						: userProfile.avatar
+				}
+				setStep={setStep}
+				onSubmitUrl={(url) => actionHandler('settings', 'url', url)}
+				onChangeName={(name) => actionHandler('settings', 'name', name)}
+				onChangeAvatar={(avatar) =>
+					actionHandler('settings', 'avatar', avatar)
+				}
+				onSendLocation={(location) => actionHandler('weather', location)}
+				onSubmitEmail={(email) => actionHandler('settings', 'email', email)}
+				currentAvatar={userProfile.avatar}
+				username={userProfile.name}
+				email={userProfile.email}
+				myLocation={userProfile.location}
+				music={userProfile.musicMetadata}
+				clearField={(field) => actionHandler('clear-field', field)}	
+
 			/>
 
-			{userProfile && !showOpensea && (
+			{userProfile && background.type !== "marketplace" && (
 				<UserCursor
 					ref={userCursorRef}
 					{...userProfile}

@@ -110,6 +110,7 @@ interface IMessageEvent {
     | "send-email"
     | "unpin-item"
     | "clear-field"
+    | "marketplace"
     | "change-playlist";
   value?: any;
   [key: string]: any;
@@ -553,6 +554,9 @@ export class Router {
         };
         socket.to(room).emit("event", newHorseMessage);
         socket.emit("event", newHorseMessage);
+      case "marketplace":
+        socket.to(room).broadcast.emit("event", message);
+        break;
       case "change-playlist":
         socket.to(room).broadcast.emit("event", message);
         break;

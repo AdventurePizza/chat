@@ -1,30 +1,34 @@
 import { makeStyles } from '@material-ui/core';
 import {
 	IChatRoom,
-	IEmojiDict,
 	ITowerDefenseState,
 	PanelItemEnum,
 	IMusicPlayer,
 	BackgroundTypes,
-	IMap
+	IMap,
+	newPanelTypes,
+	IMetadata
 } from '../types';
 import React, { useState } from 'react';
-// import { Profile } from '../routes/Profile';
-
-import BackgroundPanel from './BackgroundPanel';
-import { Chat } from './Chat';
+import ThePanel from './ThePanel';
 import { Drawer } from '@material-ui/core';
+import { IGif } from '@giphy/js-types';
+import { IImagesState } from './ThePanel';
+import { ISubmit } from './NFT/OrderInput';
+
+/* old commented imports
 import { EmailPanel } from './EmailPanel';
 import EmojiPanel from './EmojiPanel';
-import { IGif } from '@giphy/js-types';
-import { IImagesState } from './BackgroundPanel';
-import { RoomDirectoryPanel } from './RoomDirectoryPanel';
+//import { RoomDirectoryPanel } from './RoomDirectoryPanel';
 import SoundPanel from './SoundPanel';
 import { TowerDefensePanel } from './TowerDefensePanel';
 import { Weather } from './Weather';
 import { Poem } from './Poem';
-import { ISubmit } from './NFT/OrderInput';
-import { MusicPlayerPanel } from './MusicPlayerPanel';
+import { Profile } from '../routes/Profile';
+import {
+	IEmojiDict
+} from '../types';
+*/
 
 export interface IBottomPanelProps {
 	bottomPanelRef: React.RefObject<HTMLDivElement>;
@@ -50,58 +54,32 @@ export interface IBottomPanelProps {
 	showWhiteboard: boolean;
 	updateShowWhiteboard: (show: boolean) => void;
 	musicPlayer: IMusicPlayer;
-	setRaceId: (raceId: string) => void;
-	showOpensea: boolean;
-	setShowOpensea: (value: boolean) => void;
 	addVideo: (videoId: string | undefined) => void;
+	setBottomPanelHeight: (height: number) => void;
+	activePanel: newPanelTypes;
+	setActivePanel: (panel: newPanelTypes) => void;
+	onNewRoom: () => void;
+	routeHome: () => void;
+	//settings
+	avatar?: string;
+	setStep: (step: number) => void;
+	onChangeName: (username: string) => void;
+	onSubmitUrl: (url: string) => void;
+	onChangeAvatar: (avatar: string) => void;
+	onSendLocation: (location: string) => void;
+	onSubmitEmail: (email: string) => void;
+	currentAvatar: string;
+	username: string;
+	email: string;
+	myLocation?: string;
+	music?: IMetadata;
+	clearField: (field: string) => void;
 	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
-export interface IPanelContentProps {
-	type?: PanelItemEnum;
-	setBrushColor: (color: string) => void;
-	onAction: (key: string, ...args: any[]) => void;
-	towerDefenseState: ITowerDefenseState;
-	updateIsTyping: (isTyping: boolean) => void;
-	images: IImagesState[];
-	queriedVideos: Array<any>;
-	lastQuery: string;
-	hideAllPins: boolean;
-	isVideoShowing: boolean;
-	lastVideoId: string;
-	setImages: React.Dispatch<React.SetStateAction<IImagesState[]>>;
-	setQueriedVideos: React.Dispatch<React.SetStateAction<Array<any>>>;
-	setLastQuery: React.Dispatch<React.SetStateAction<string>>;
-	setVideoId: (id: string) => void;
-	setLastVideoId: (id: string) => void;
-	setIsVideoShowing: (value: boolean) => void;
-	setHideAllPins: (value: boolean) => void;
-	updateLastTime: () => void;
-	setVolume: (volume: number) => void;
-	onNFTError: (message: string) => void;
-	onNFTSuccess: (submssion: ISubmit) => void;
-	roomData?: IChatRoom;
-	updateShowChat: () => void;
-	showWhiteboard: boolean;
-	updateShowWhiteboard: (show: boolean) => void;
-	musicPlayer: IMusicPlayer;
-	setRaceId: (raceId: string) => void;
-	showOpensea: boolean;
-	setShowOpensea: (value: boolean) => void;
-	addVideo: (videoId: string | undefined) => void;
-	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
-}
-
-export interface ISoundPairs {
-	icon: string;
-	type: string;
-	category: string;
-}
-
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
 	drawerRoot: {
-		width: 'calc(100vw - 85px)',
-		marginLeft: 85
+		width: '100%',
 	}
 }));
 
@@ -129,11 +107,27 @@ export const BottomPanel = ({
 	showWhiteboard,
 	updateShowWhiteboard,
 	musicPlayer,
-	setRaceId,
-	showOpensea,
-	setShowOpensea,
 	addVideo,
-	addBackground,
+	setBottomPanelHeight,	
+	activePanel,
+	setActivePanel,
+	onNewRoom,
+	routeHome,
+	//settings
+	avatar,
+	onChangeName,
+	onSubmitUrl,
+	onChangeAvatar,
+	onSendLocation,
+	onSubmitEmail,
+	currentAvatar,
+	setStep,
+	username,
+	email,
+	myLocation,
+	music,
+	clearField,
+	addBackground
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -151,134 +145,11 @@ export const BottomPanel = ({
 			}}
 		>
 			<div ref={bottomPanelRef} className="bottom-panel-container">
-				<PanelContent
-					type={type}
-					setBrushColor={setBrushColor}
-					onAction={onAction}
-					towerDefenseState={towerDefenseState}
-					updateIsTyping={updateIsTyping}
-					images={images}
-					queriedVideos={videos}
-					lastVideoId={lastVideoId}
-					lastQuery={lastQuery}
-					isVideoShowing={isVideoShowing}
-					setImages={setImages}
-					setVideoId={setVideoId}
-					setLastVideoId={setLastVideoId}
-					setIsVideoShowing={setIsVideoShowing}
-					updateLastTime={updateLastTime}
-					setVolume={setVolume}
-					setQueriedVideos={setQueriedVideos}
-					setLastQuery={setLastQuery}
-					hideAllPins={hideAllPins}
-					setHideAllPins={setHideAllPins}
-					onNFTError={onNFTError}
-					onNFTSuccess={onNFTSuccess}
-					roomData={roomData}
-					updateShowChat={updateShowChat}
-					showWhiteboard={showWhiteboard}
-					updateShowWhiteboard={updateShowWhiteboard}
-					musicPlayer={musicPlayer}
-					setRaceId={setRaceId}
-					showOpensea={showOpensea}
-					setShowOpensea={setShowOpensea}
-					addVideo={addVideo}
-					addBackground={addBackground}
-				/>
-			</div>
-		</Drawer>
-	);
-};
 
-const PanelContent = ({
-	type,
-	setBrushColor,
-	onAction,
-	towerDefenseState,
-	updateIsTyping,
-	images,
-	queriedVideos,
-	lastQuery,
-	setImages,
-	setVideoId,
-	lastVideoId,
-	setLastVideoId,
-	setIsVideoShowing,
-	isVideoShowing,
-	updateLastTime,
-	hideAllPins,
-	setHideAllPins,
-	setVolume,
-	setQueriedVideos,
-	setLastQuery,
-	onNFTError,
-	onNFTSuccess,
-	roomData,
-	updateShowChat,
-	showWhiteboard,
-	updateShowWhiteboard,
-	musicPlayer,
-	setRaceId,
-	showOpensea,
-	setShowOpensea,
-	addVideo,
-	addBackground,
-}: IPanelContentProps) => {
-	switch (type) {
-		case 'emoji':
-			return (
-				<EmojiPanel
-					onClick={(data: IEmojiDict) => {
-						onAction('emoji', data);
-					}}
-				/>
-			);
-		case 'chat':
-			return (
-				<Chat
-					sendMessage={(message) => {
-						onAction('chat', message);
-					}}
-					pinMessage={(message) => {
-						onAction('chat-pin', message);
-					}}
-					pinTweet={(id)=>{
-						onAction('tweet', id);
-					}}
-					updateIsTyping={updateIsTyping}
-					showWhiteboard={showWhiteboard}
-					updateShowWhiteboard={updateShowWhiteboard}
-					setBrushColor={setBrushColor}
-					sendAnimation={onAction}
-					showChat={updateShowChat}
-				/>
-			);
-		case 'sound':
-			return <SoundPanel sendSound={onAction} />;
-
-		case 'tower':
-			return (
-				<TowerDefensePanel
-					isStarted={towerDefenseState.isPlaying}
-					gold={towerDefenseState.gold}
-					onStart={() =>
-						onAction('tower defense', {
-							key: 'tower defense',
-							value: 'start'
-						})
-					}
-					onSelectTower={(towerValue: string) =>
-						onAction('tower defense', {
-							key: 'tower defense',
-							value: 'select tower',
-							tower: towerValue
-						})
-					}
-				/>
-			);
-		case 'background':
-			return (
-				<BackgroundPanel
+			<ThePanel
+					//update bottom panel size so board background can renders correct
+					setBottomPanelHeight={setBottomPanelHeight}
+					//giphy unsplash google
 					sendImage={(name, type) => onAction(type, name)}
 					setImages={setImages}
 					images={images}
@@ -289,7 +160,7 @@ const PanelContent = ({
 					setVolume={setVolume}
 					setVideoId={setVideoId}
 					sendVideo={(id) => onAction('youtube', id)}
-					queriedVideos={queriedVideos}
+					queriedVideos={videos}
 					setQueriedVideos={setQueriedVideos}
 					lastQuery={lastQuery}
 					setLastQuery={setLastQuery}
@@ -307,48 +178,30 @@ const PanelContent = ({
 					onSuccess={onNFTSuccess}
 					//race
 					sendRace={(id) => onAction('send-race', id)}
+					addRace={(id) => onAction('add-race', id)}
 					//horse
 					sendHorse={(id) => {onAction('horse', id)}}
 					//marketplace
-					setShowOpensea={setShowOpensea}
-					//map
-					addBackground={addBackground}
-				/>
-			);
-		case 'settings':
-			return null;
-		case 'weather':
-			return (
-				<Weather sendLocation={(location) => onAction('weather', location)} />
-			);
-		case 'poem':
-			return (
-				<Poem
+					pinMarketplace={() => {onAction('marketplace')}}
+					//chat
 					sendMessage={(message) => {
 						onAction('chat', message);
 					}}
 					pinMessage={(message) => {
 						onAction('chat-pin', message);
 					}}
+					pinTweet={(id)=>{
+						onAction('tweet', id);
+					}}
 					updateIsTyping={updateIsTyping}
-				/>
-			);
-		case 'roomDirectory':
-			return (
-				<RoomDirectoryPanel
-					sendRoomDirectory={onAction}
-					onClickNewRoom={() => onAction('new-room')}
-				/>
-			);
-		case 'email':
-			return (
-				<EmailPanel
-					sendEmail={(email, message) => onAction('send-email', email, message)}
-				/>
-			);
-		case 'musicPlayer':
-			return (
-				<MusicPlayerPanel
+					showWhiteboard={showWhiteboard}
+					updateShowWhiteboard={updateShowWhiteboard}
+					setBrushColor={setBrushColor}
+					sendAnimation={onAction}
+					showChat={updateShowChat}
+					activePanel={activePanel}
+					setActivePanel={setActivePanel}
+					//musicplayer
 					changePlaylist={(url, name) => {
 						onAction('change-playlist', {
 							url: url,
@@ -356,9 +209,29 @@ const PanelContent = ({
 						})
 					}}
 					musicPlayer={musicPlayer}
+					//email
+					sendEmail={(email, message) => onAction('send-email', email, message)}
+					//new room
+					onNewRoom={onNewRoom}
+					//routehome
+					routeHome={routeHome}
+					//settings
+					avatar={avatar}		
+					onChangeName={onChangeName}
+					onSubmitUrl={onSubmitUrl}
+					onChangeAvatar={onChangeAvatar}
+					onSendLocation={onSendLocation}
+					onSubmitEmail={onSubmitEmail}
+					currentAvatar={currentAvatar}
+					setStep={setStep}
+					username={username}
+					email={email}
+					myLocation={myLocation}
+					music={music}
+					clearField={clearField}
+					addBackground={addBackground}
 				/>
-			);
-		default:
-			return null;
-	}
+			</div>
+		</Drawer>
+	);
 };

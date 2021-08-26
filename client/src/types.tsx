@@ -75,6 +75,7 @@ export interface IMessageEvent {
 		| 'unpin-item'
 		| 'poem'
 		| 'tweet'
+		| 'marketplace'
 		| 'change-playlist'
 		| 'clear-field';
 		
@@ -206,6 +207,14 @@ export interface IHorse{
 	win_rate: string;
 }
 
+export interface IBoardRace {
+	top: number;
+	left: number;
+	key: string;
+	isPinned?: boolean;
+	id: string;
+}
+
 export interface IBoardHorse {
 	top: number;
 	left: number;
@@ -224,9 +233,8 @@ export interface IGifs {
 }
 
 export enum PanelItemEnum {
-	'roomDirectory' = 'roomDirectory',
+	//'roomDirectory' = 'roomDirectory',
 	'settings' = 'settings',
-	'chat' = 'chat',
 	'background' = 'background',
 	'weather' = 'weather',
 	'poem' = 'poem',
@@ -235,7 +243,6 @@ export enum PanelItemEnum {
 	'new-room' = 'new-room',
 	'tower' = 'tower',
 	'emoji' = 'emoji',
-	'musicPlayer' = 'musicPlayer'
 }
 
 export interface IUserLocations {
@@ -370,3 +377,5 @@ export interface IMusicPlayer{
 }
 
 export type OrderWithMetadata = IOrder & { metadata?: INFTMetadata };
+
+export type newPanelTypes= 'empty' | 'settings' | 'home' | 'chat' | 'google' | 'unsplash' | 'giphy' | 'youtube' | 'maps' | 'marketplace' | 'race' | 'horse' | 'music' |'+NFT' | 'email' | 'newroom' ;

@@ -22,6 +22,8 @@ import {
 	IMusicPlayer,
 	PanelItemEnum,
 	IMap,
+	newPanelTypes,
+	IBoardRace
 } from '../types';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { IMusicNoteProps, MusicNote } from './MusicNote';
@@ -113,13 +115,12 @@ interface IBoardProps {
 	pinTweet: (tweetID: string) => void;
 	unpinTweet: (tweetID: string) => void;
 	waterfallChat: IWaterfallChat;
-	raceId: string;
+	races: IBoardRace[];
+	updateRaces: (races: IBoardRace[]) => void;
 	horses: IBoardHorse[];
 	pinHorse: (horseKey: string) => void;
 	unpinHorse: (horseKey: string) => void;
 	updateHorses: (horses: IBoardHorse[]) => void;
-	showOpensea: boolean;
-	selectedPanelItem: PanelItemEnum | undefined;
 	updateSelectedPanelItem: (panelItem: PanelItemEnum | undefined) => void;
 	setBackground: (data: IBackgroundState) => void;
 	updateMap: (data: IMap) => void;
@@ -128,6 +129,10 @@ interface IBoardProps {
 	addNewMarker: (coordinates: {lat: number, lng: number, text: string}) => void;
 	removeMarker: (index: number) => void;
 	updateMarker: (index: number, text: string) => void;
+	setActivePanel: (panel: newPanelTypes) => void;
+	pinRace: (raceKey: string) => void;
+	unpinRace: (raceKey: string) => void;
+	raceId: string;
 }
 
 export const Board = ({
@@ -185,14 +190,13 @@ export const Board = ({
 	tweets,
 	pinTweet,
 	waterfallChat,
-	raceId,
+	races,
+	updateRaces,
 	horses,
 	pinHorse,
 	unpinHorse,
 	updateHorses,
 	musicPlayer,
-	showOpensea,
-	selectedPanelItem,
 	updateSelectedPanelItem,
 	setBackground,
 	updateMap,
@@ -200,7 +204,12 @@ export const Board = ({
 	mapInputPosition,
 	addNewMarker,
 	removeMarker,
-	updateMarker
+	updateMarker,
+	setActivePanel,
+	pinRace,
+	unpinRace,
+	raceId
+
 }: IBoardProps) => {
 	// const [introState, setIntroState] = useState<'begin' | 'appear' | 'end'>(
 	// 	'begin'
@@ -288,6 +297,7 @@ export const Board = ({
 				backgroundSize: 'cover'
 			}}
 			ref={drop}
+			onClick={()=>{setActivePanel("empty")}}
 		>
 			
 
@@ -334,26 +344,25 @@ export const Board = ({
 				mapData={background.mapData}
 			/>}
 
-			{/* {background.activeBackground === "race" && ( */}
-				<iframe
-					className={background.activeBackground === "race" ? "race-background-active" : "race-background"}
-					src={`https://3d-racing.zed.run/live/${raceId}`}
-					width="100%"
-					height="100%"
-					title="zed racing"
-					style={{ pointerEvents: 'none' }}
-				/>
-			
+			<iframe
+				className={background.activeBackground === "race" ? "race-background-active" : "race-background"}
+				src={`https://3d-racing.zed.run/live/${raceId}`}
+				width="100%"
+				height="100%"
+				title="zed racing"
+				style={{ pointerEvents: 'auto' }}
+			/>
+		
 
-			{/* {background.activeBackground === "marketplace" && ( */}
-				<iframe
-					className={background.activeBackground === "marketplace" ? "opensea-listings-active" : "opensea-listings"}
-					title="Opensea Listings"
-					src="https://opensea.io/assets?embed=true"
-					width="100%"
-					height="100%"
-				></iframe>
-			{/* )} */}
+		
+			<iframe
+				className={background.activeBackground === "marketplace" ? "opensea-listings-active" : "opensea-listings"}
+				title="Opensea Listings"
+				src="https://opensea.io/assets?embed=true"
+				width="100%"
+				height="100%"
+			></iframe>
+			
 
 			{videoId && <YouTubeBackground
 				lastTime={lastTime}
@@ -365,19 +374,55 @@ export const Board = ({
 				showYoutube={background.activeBackground === 'video'}
 			/>}
 
-			{waterfallChat.show &&<BoardObject
+			{!hideAllPins && waterfallChat.show &&<BoardObject
 				id={'chat'}
 				type="chat"
 				onPin={() => {}}
 				onUnpin={() => {}}
-				selectedPanelItem={selectedPanelItem}
 				updateSelectedPanelItem={updateSelectedPanelItem}
+				setActivePanel={setActivePanel}
 				chat={waterfallChat.messages}
 				top={waterfallChat.top}
 				left={waterfallChat.left}
 			/>}
 
-			{musicPlayer.playlist.length !== 0 && (
+			{!hideAllPins ? (
+				<TransitionGroup>
+					{races.map((race) => (
+						<CSSTransition
+							key={race.key}
+							timeout={5000}
+							classNames="gif-transition"
+							onEntered={() => {
+								if (!race.isPinned) {
+									const index = races.findIndex(
+										(_race) => _race.key === race.key
+									);
+									updateRaces([
+										...races.slice(0, index),
+										...races.slice(index + 1)
+									]);
+								}
+							}}
+						>
+							<BoardObject
+								{...race}
+								id={race.key}
+								type="race"
+								raceId={race.id}
+								onPin={() => {
+									pinRace(race.key);
+								}}
+								onUnpin={() => {
+									unpinRace(race.key);
+								}}
+							/>
+						</CSSTransition>
+					))}
+				</TransitionGroup>
+			) : null}
+
+			{!hideAllPins && musicPlayer.playlist.length !== 0 && (
 				<BoardObject
 					id={'musicPlayer'}
 					type="musicPlayer"
@@ -386,6 +431,7 @@ export const Board = ({
 					playlist={musicPlayer.playlist}
 					top={musicPlayer.top}
 					left={musicPlayer.left}
+					setActivePanel={setActivePanel}
 				/>
 			)}
 			{!hideAllPins ? (

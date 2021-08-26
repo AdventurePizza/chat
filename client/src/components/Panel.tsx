@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 import { NewRoomPanelButton } from './NewChatroom';
 import { PanelItemEnum } from '../types';
-import { Image, MeetingRoom } from '@material-ui/icons';
+import { MeetingRoom } from '@material-ui/icons';
 //import { SportsEsports } from '@material-ui/icons';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -21,7 +21,6 @@ import backArrowIcon from '../assets/navbar/backArrowIcon.png';
 // import weatherIcon from '../assets/navbar/weatherIcon.png';
 // import poemIcon from '../assets/navbar/poemIcon.png';
 import HomeIcon from '../assets/navbar/homeIcon.png';
-import musicPlayerIcon from '../assets/navbar/musicPlayerIcon.png';
 import chatIcon from '../assets/navbar/chatIcon.png';
 
 interface IPanelProps {
@@ -123,14 +122,13 @@ const panelIconSrcMap: {
 	[key: string]: string;
 } = {
 	// sound: soundIcon,
-	chat: chatIcon,
 	//youtube: YouTubeIcon,
 	//emoji: emojiIcon,
 	// tower: towerIcon,
 	// background: cameraRollIcon,
 	// weather: weatherIcon,
 	// poem: poemIcon
-	musicPlayer: musicPlayerIcon
+	background: chatIcon,
 };
 
 const panelIconComponentMap: {
@@ -138,11 +136,11 @@ const panelIconComponentMap: {
 } = {
 	'new-room': <NewRoomPanelButton />,
 	email: (
-		<div className="sixth-step">
+		<div className="fifth-step">
 			<EmailButton />
 		</div>
 	),
-	background: <Image style={{ fontSize: 32 }} />,
+	//background: <Image style={{ fontSize: 32 }} />,
 	//tower: <SportsEsports style={{ fontSize: 36 }} />,
 	roomDirectory: (
 		<div className="fourth-step">
@@ -181,7 +179,7 @@ const PanelItem = ({ title, onClick, isSelected }: IPanelItemProps) => {
 			<div
 				className={
 					title === 'maps' || title === 'youtube'
-						? 'panel-icon-container fifth-step'
+						? 'panel-icon-container fourth-step'
 						: 'panel-icon-container'
 				}
 				style={{ backgroundColor: isSelected ? '#87D3F3' : undefined }}
