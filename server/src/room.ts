@@ -8,16 +8,13 @@ import axios from 'axios';
 
 const collection = db.collection("chatrooms");
 const roomRouter = express.Router();
-//NFT
+
 const nftRooms = db.collection("nft-rooms");
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-
 const web3 = require( 'web3');
 const MNEMONIC = process.env.MNEMONIC;
-const NODE_API_KEY = process.env.INFURA_KEY;
 const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
 const OWNER_ADDRESS = process.env.OWNER_ADDRESS;
-const COLLECTION = process.env.COLLECTION;
 
 
 const NFT_ABI = [
@@ -107,7 +104,7 @@ roomRouter.post("/:roomId", async (req, res) => {
   const tokenCount = await nftRooms.doc("token-count").get();
   if (tokenCount.exists) {
     const tokenId = parseInt(tokenCount.data()!.count) + 1;
-    console.log(tokenId);
+    console.log("next token Id: " + tokenId);
 
     await nftRooms
       .doc(tokenId.toString())
@@ -119,29 +116,31 @@ roomRouter.post("/:roomId", async (req, res) => {
      
   }
   
-  console.log("M1 ");
-  const network = "rinkeby";
-
-  const provider = new HDWalletProvider(MNEMONIC, "https://" + network + ".infura.io/v3/" + NODE_API_KEY);
+  const provider = new HDWalletProvider(MNEMONIC, "https://rpc-mainnet.maticvigil.com/v1/41b386d43bd3cfdf37a0fdef86b801ef9836fa7b");
   const web3Instance = new web3(provider);
-  console.log("M2 ");
 
   if (NFT_CONTRACT_ADDRESS) {
     const nftContract = new web3Instance.eth.Contract(
       NFT_ABI,
       NFT_CONTRACT_ADDRESS,
-      { gasLimit: "10000000" }
+      { gasLimit: "1000000",
+        gasPrice: 15000000000 
+      }
     );
-    console.log("M3 ");
 
     const reciever = address ? address : OWNER_ADDRESS;
-
-    const result = await nftContract.methods
-      .mintTo(reciever)
-      .send({ from: OWNER_ADDRESS });
-    console.log("Minted creature. Transaction: " + result.transactionHash);
-    console.log(JSON.stringify(result, null, 4));
-
+    try {
+      const result = await nftContract.methods
+        .mintTo(reciever)
+        .send({ from: OWNER_ADDRESS });
+      console.log("Minted room. Transaction: " + result.transactionHash);
+      console.log(JSON.stringify(result, null, 4));
+    } catch (e) {
+      await nftRooms
+      .doc("token-count")
+      .set({ count: parseInt(tokenCount.data()!.count) - 1 });
+      console.log(e);
+    }
   } else {
     console.error(
       "Add NFT_CONTRACT_ADDRESS or FACTORY_CONTRACT_ADDRESS to the environment variables"
@@ -351,35 +350,6 @@ roomRouter.delete("/:roomId/playlist/:timestamp", async (req, res) => {
   res.status(200).end();
 });
 
-
-const lockedRooms: { [roomId: string]: { ownerAddress: string } } = {};
-
-const getLockedOwnerAddress = async (
-  roomId: string
-): Promise<string | null> => {
-  if (lockedRooms[roomId]) {
-    return lockedRooms[roomId].ownerAddress;
-  }
-
-  const doc = await collection.doc(roomId).get();
-
-  if (!doc.exists) {
-    return null;
-  }
-
-  const docData = doc.data() as IChatRoom;
-
-  if(docData.lockedOwnerAddress === "dynamic"){
-    return docData.lockedOwnerAddress;
-  }
-  else if (docData.lockedOwnerAddress && docData.isLocked) {
-    lockedRooms[roomId] = { ownerAddress: docData.lockedOwnerAddress };
-    return docData.lockedOwnerAddress;
-  }
-
-  return null;
-};
-
 export default roomRouter;
 
 const verifyLockedOwner = async (
@@ -388,47 +358,42 @@ const verifyLockedOwner = async (
   roomId: string
 ): Promise<boolean> => {
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
-  let lockedOwnerAddress = await getLockedOwnerAddress(roomId);
 
-  if(lockedOwnerAddress === "dynamic"){
+  const doc = await collection.doc(roomId).get();
+  if (!doc.exists) {
+    return false;
+  }
+  const docData = doc.data() as IChatRoom;
+
+  if(docData.isLocked){
     if(!address){
       error(res, "unauthorized user for locked room");
       return false;
     }
-    await axios.get('https://rinkeby-api.opensea.io/api/v1/assets?owner=' + address + '&order_direction=desc&offset=0&limit=50').then( async (result) => {
-      let permission = false;
-      
-      for(let i = 0; i < result.data.assets.length; i++){
-        //check token id from database, 1-) is colelction same then is tokens name equals room ıd ?
-        /*console.log("hav: " + roomId + "hav: " + result.data.assets[i].name + "dhav: " + COLLECTION + "hav: " + result.data.assets[i].collection.slug);
-        if(roomId === result.data.assets[i].name && COLLECTION === result.data.assets[i].collection.slug){
-          permission = true;
-        }
-        */
-        if(COLLECTION === result.data.assets[i].collection.slug){
-          const doc = await nftRooms.doc(result.data.assets[i].token_id).get();
-          const name = await doc.get("name");
-          //console.log("1: " + roomId + " 2: " + name + " 3: " + COLLECTION + " 4: " + result.data.assets[i].collection.slug);
-          if(name === roomId){
-            permission = true;
-          }
-        }
-      }
-      if(permission){
-        return true;
-      } 
-      else{
-        error(res, "unauthorized user for locked room");
-        return false;
-      }
+
+    await axios.get('https://api.covalenthq.com/v1/137/address/' + address + '/balances_v2/?nft=true&key=ckey_c35e2c388e1b4efea8490fb8c83').then( async (result) => {
+     let permission = false;
+     for(let i = 0; i < result.data.data.items.length; i++){
+      if(NFT_CONTRACT_ADDRESS!.toLowerCase() === result.data.data.items[i].contract_address.toLowerCase()){
+         if(result.data.data.items[i].nft_data){
+           for(let j = 0; j < result.data.data.items[i].nft_data.length; j++){
+             const doc = await nftRooms.doc(result.data.data.items[i].nft_data[j].token_id).get();
+             const name = await doc.get("name");
+             if(name === roomId){
+               permission = true;
+             }
+           }
+         }
+       }
+     }
+     if(permission){
+       return true;
+     } 
+     else{
+       error(res, "unauthorized user for locked room");
+       return false;
+     }
     });
-
   }
-
-  else if (lockedOwnerAddress && lockedOwnerAddress !== address.toLowerCase()) {
-    error(res, "unauthorized user for locked room");
-    return false;
-  }
-
   return true;
 };
