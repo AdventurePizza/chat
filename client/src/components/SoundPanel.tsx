@@ -1,7 +1,6 @@
 import { PlayArrowRounded, PublishRounded } from '@material-ui/icons';
 import React, { useState } from 'react';
 
-import { ISoundPairs } from './BottomPanel';
 import IconButton from '@material-ui/core/IconButton';
 import ahhhIcon from '../assets/funny/ahhh.png';
 import airIcon from '../assets/funny/air.png';
@@ -29,6 +28,12 @@ import sealionIcon from '../assets/nature/sealion.png';
 import stop_itIcon from '../assets/funny/stop_it.png';
 import trumpet from '../assets/instruments/trumpet.png';
 import waterIcon from '../assets/nature/water.png';
+
+export interface ISoundPairs {
+	icon: string;
+	type: string;
+	category: string;
+}
 
 const soundList: ISoundPairs[] = [
 	// Instruments

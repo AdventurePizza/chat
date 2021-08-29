@@ -43,10 +43,8 @@
 
 .bottom-panel-container {
 	display: flex;
-	justify-content: center;
 	/* padding: 10px 0; */
-	display: flex;
-	justify-content: center;
+	justify-content: left;
 	width: '100%';
 	overflow-y: hidden;
 }
@@ -82,9 +80,7 @@
 }
 
 .background-container {
-	width: 100vw;
-	padding-left: 10px;
-	padding-right: 10px;
+	width: 100%;
 }
 
 .sound-icon img {
@@ -208,8 +204,6 @@
 	display: flex;
 	overflow-x: auto;
 	display: 'flex'; 
-	justifyContent: 'center'; 
-	alignItems: 'center';
 }
 
 .sound-category-list {

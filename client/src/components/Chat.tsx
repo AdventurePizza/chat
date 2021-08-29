@@ -14,7 +14,7 @@ const useStyles = makeStyles({
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		padding: 10,
+		paddingTop: 10,
 		width: '100%',
 		'& > *': {
 			marginRight: 10
