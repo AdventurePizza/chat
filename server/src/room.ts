@@ -4,9 +4,38 @@ import db from "./firebase";
 import { twitterClient } from "./twitter";
 import * as ethers from "ethers";
 import erc20abi from "./erc20abi.json";
-const collection = db.collection("chatrooms");
+import axios from 'axios';
 
+const collection = db.collection("chatrooms");
 const roomRouter = express.Router();
+//NFT
+const nftRooms = db.collection("nft-rooms");
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+
+const web3 = require( 'web3');
+const MNEMONIC = process.env.MNEMONIC;
+const NODE_API_KEY = process.env.INFURA_KEY;
+const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
+const OWNER_ADDRESS = process.env.OWNER_ADDRESS;
+const COLLECTION = process.env.COLLECTION;
+
+
+const NFT_ABI = [
+  {
+    constant: false,
+    inputs: [
+      {
+        name: "_to",
+        type: "address",
+      },
+    ],
+    name: "mintTo",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
@@ -72,8 +101,52 @@ roomRouter.post("/:roomId", async (req, res) => {
 
   await collection
     .doc(roomId)
-    .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined , contractAddress: contractAddress ?? undefined});
+    .set({ name: roomId, isLocked, lockedOwnerAddress: "dynamic" , contractAddress: contractAddress ?? undefined});
 
+  // get token count then add new metadata to database using it 
+  const tokenCount = await nftRooms.doc("token-count").get();
+  if (tokenCount.exists) {
+    const tokenId = parseInt(tokenCount.data()!.count) + 1;
+    console.log(tokenId);
+
+    await nftRooms
+      .doc(tokenId.toString())
+      .set({ name: roomId });
+     
+      await nftRooms
+      .doc("token-count")
+      .set({ count: tokenId});
+     
+  }
+  
+  console.log("M1 ");
+  const network = "rinkeby";
+
+  const provider = new HDWalletProvider(MNEMONIC, "https://" + network + ".infura.io/v3/" + NODE_API_KEY);
+  const web3Instance = new web3(provider);
+  console.log("M2 ");
+
+  if (NFT_CONTRACT_ADDRESS) {
+    const nftContract = new web3Instance.eth.Contract(
+      NFT_ABI,
+      NFT_CONTRACT_ADDRESS,
+      { gasLimit: "10000000" }
+    );
+    console.log("M3 ");
+
+    const reciever = address ? address : OWNER_ADDRESS;
+
+    const result = await nftContract.methods
+      .mintTo(reciever)
+      .send({ from: OWNER_ADDRESS });
+    console.log("Minted creature. Transaction: " + result.transactionHash);
+    console.log(JSON.stringify(result, null, 4));
+
+  } else {
+    console.error(
+      "Add NFT_CONTRACT_ADDRESS or FACTORY_CONTRACT_ADDRESS to the environment variables"
+    );
+  }
 
   twitterClient.post(
     "statuses/update",
@@ -296,7 +369,10 @@ const getLockedOwnerAddress = async (
 
   const docData = doc.data() as IChatRoom;
 
-  if (docData.lockedOwnerAddress && docData.isLocked) {
+  if(docData.lockedOwnerAddress === "dynamic"){
+    return docData.lockedOwnerAddress;
+  }
+  else if (docData.lockedOwnerAddress && docData.isLocked) {
     lockedRooms[roomId] = { ownerAddress: docData.lockedOwnerAddress };
     return docData.lockedOwnerAddress;
   }
@@ -312,10 +388,44 @@ const verifyLockedOwner = async (
   roomId: string
 ): Promise<boolean> => {
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
+  let lockedOwnerAddress = await getLockedOwnerAddress(roomId);
 
-  const lockedOwnerAddress = await getLockedOwnerAddress(roomId);
+  if(lockedOwnerAddress === "dynamic"){
+    if(!address){
+      error(res, "unauthorized user for locked room");
+      return false;
+    }
+    await axios.get('https://rinkeby-api.opensea.io/api/v1/assets?owner=' + address + '&order_direction=desc&offset=0&limit=50').then( async (result) => {
+      let permission = false;
+      
+      for(let i = 0; i < result.data.assets.length; i++){
+        //check token id from database, 1-) is colelction same then is tokens name equals room ıd ?
+        /*console.log("hav: " + roomId + "hav: " + result.data.assets[i].name + "dhav: " + COLLECTION + "hav: " + result.data.assets[i].collection.slug);
+        if(roomId === result.data.assets[i].name && COLLECTION === result.data.assets[i].collection.slug){
+          permission = true;
+        }
+        */
+        if(COLLECTION === result.data.assets[i].collection.slug){
+          const doc = await nftRooms.doc(result.data.assets[i].token_id).get();
+          const name = await doc.get("name");
+          //console.log("1: " + roomId + " 2: " + name + " 3: " + COLLECTION + " 4: " + result.data.assets[i].collection.slug);
+          if(name === roomId){
+            permission = true;
+          }
+        }
+      }
+      if(permission){
+        return true;
+      } 
+      else{
+        error(res, "unauthorized user for locked room");
+        return false;
+      }
+    });
 
-  if (lockedOwnerAddress && lockedOwnerAddress !== address.toLowerCase()) {
+  }
+
+  else if (lockedOwnerAddress && lockedOwnerAddress !== address.toLowerCase()) {
     error(res, "unauthorized user for locked room");
     return false;
   }
