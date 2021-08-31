@@ -302,7 +302,7 @@ function App() {
 	/* const [showTour, setShowTour] = useState(false);
 	const [showLoginModal, setShowLoginModal] = useState(true); */
 	const [showTour, setShowTour] = useState(false);
-	const [showLoginModal, setShowLoginModal] = useState(true);
+	const [showLoginModal, setShowLoginModal] = useState(false);
 	const [isFirstVisit, setIsFirstVisit] = useState(false);
 	const [step, setStep] = useState(0);
 

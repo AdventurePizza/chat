@@ -4,9 +4,35 @@ import db from "./firebase";
 import { twitterClient } from "./twitter";
 import * as ethers from "ethers";
 import erc20abi from "./erc20abi.json";
-const collection = db.collection("chatrooms");
+import axios from 'axios';
 
+const collection = db.collection("chatrooms");
 const roomRouter = express.Router();
+
+const nftRooms = db.collection("nft-rooms");
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+const web3 = require( 'web3');
+const MNEMONIC = process.env.MNEMONIC;
+const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
+const OWNER_ADDRESS = process.env.OWNER_ADDRESS;
+
+
+const NFT_ABI = [
+  {
+    constant: false,
+    inputs: [
+      {
+        name: "_to",
+        type: "address",
+      },
+    ],
+    name: "mintTo",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 // get room
 roomRouter.get("/:roomId", async (req, res) => {
@@ -72,8 +98,54 @@ roomRouter.post("/:roomId", async (req, res) => {
 
   await collection
     .doc(roomId)
-    .set({ name: roomId, isLocked, lockedOwnerAddress: address ?? undefined , contractAddress: contractAddress ?? undefined});
+    .set({ name: roomId, isLocked, lockedOwnerAddress: "dynamic" , contractAddress: contractAddress ?? undefined});
 
+  // get token count then add new metadata to database using it 
+  const tokenCount = await nftRooms.doc("token-count").get();
+  if (tokenCount.exists) {
+    const tokenId = parseInt(tokenCount.data()!.count) + 1;
+    console.log("next token Id: " + tokenId);
+
+    await nftRooms
+      .doc(tokenId.toString())
+      .set({ name: roomId });
+     
+      await nftRooms
+      .doc("token-count")
+      .set({ count: tokenId});
+     
+  }
+  
+  const provider = new HDWalletProvider(MNEMONIC, "https://rpc-mainnet.maticvigil.com/v1/41b386d43bd3cfdf37a0fdef86b801ef9836fa7b");
+  const web3Instance = new web3(provider);
+
+  if (NFT_CONTRACT_ADDRESS) {
+    const nftContract = new web3Instance.eth.Contract(
+      NFT_ABI,
+      NFT_CONTRACT_ADDRESS,
+      { gasLimit: "1000000",
+        gasPrice: 15000000000 
+      }
+    );
+
+    const reciever = address ? address : OWNER_ADDRESS;
+    try {
+      const result = await nftContract.methods
+        .mintTo(reciever)
+        .send({ from: OWNER_ADDRESS });
+      console.log("Minted room. Transaction: " + result.transactionHash);
+      console.log(JSON.stringify(result, null, 4));
+    } catch (e) {
+      await nftRooms
+      .doc("token-count")
+      .set({ count: parseInt(tokenCount.data()!.count) - 1 });
+      console.log(e);
+    }
+  } else {
+    console.error(
+      "Add NFT_CONTRACT_ADDRESS or FACTORY_CONTRACT_ADDRESS to the environment variables"
+    );
+  }
 
   twitterClient.post(
     "statuses/update",
@@ -337,32 +409,6 @@ roomRouter.delete("/:roomId/playlist/:timestamp", async (req, res) => {
   res.status(200).end();
 });
 
-
-const lockedRooms: { [roomId: string]: { ownerAddress: string } } = {};
-
-const getLockedOwnerAddress = async (
-  roomId: string
-): Promise<string | null> => {
-  if (lockedRooms[roomId]) {
-    return lockedRooms[roomId].ownerAddress;
-  }
-
-  const doc = await collection.doc(roomId).get();
-
-  if (!doc.exists) {
-    return null;
-  }
-
-  const docData = doc.data() as IChatRoom;
-
-  if (docData.lockedOwnerAddress && docData.isLocked) {
-    lockedRooms[roomId] = { ownerAddress: docData.lockedOwnerAddress };
-    return docData.lockedOwnerAddress;
-  }
-
-  return null;
-};
-
 export default roomRouter;
 
 const verifyLockedOwner = async (
@@ -372,12 +418,41 @@ const verifyLockedOwner = async (
 ): Promise<boolean> => {
   const address = req.user ? req.user.payload.publicAddress.toLowerCase() : "";
 
-  const lockedOwnerAddress = await getLockedOwnerAddress(roomId);
-
-  if (lockedOwnerAddress && lockedOwnerAddress !== address.toLowerCase()) {
-    error(res, "unauthorized user for locked room");
+  const doc = await collection.doc(roomId).get();
+  if (!doc.exists) {
     return false;
   }
+  const docData = doc.data() as IChatRoom;
 
+  if(docData.isLocked){
+    if(!address){
+      error(res, "unauthorized user for locked room");
+      return false;
+    }
+
+    await axios.get('https://api.covalenthq.com/v1/137/address/' + address + '/balances_v2/?nft=true&key=ckey_c35e2c388e1b4efea8490fb8c83').then( async (result) => {
+     let permission = false;
+     for(let i = 0; i < result.data.data.items.length; i++){
+      if(NFT_CONTRACT_ADDRESS!.toLowerCase() === result.data.data.items[i].contract_address.toLowerCase()){
+         if(result.data.data.items[i].nft_data){
+           for(let j = 0; j < result.data.data.items[i].nft_data.length; j++){
+             const doc = await nftRooms.doc(result.data.data.items[i].nft_data[j].token_id).get();
+             const name = await doc.get("name");
+             if(name === roomId){
+               permission = true;
+             }
+           }
+         }
+       }
+     }
+     if(permission){
+       return true;
+     } 
+     else{
+       error(res, "unauthorized user for locked room");
+       return false;
+     }
+    });
+  }
   return true;
 };
