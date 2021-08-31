@@ -1,4 +1,4 @@
-import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage } from '../types';
+import { IChatRoom, IFetchResponseBase, IOrder, IPinnedItem, IUserProfile, IPlaylist, IWaterfallMessage, IMap, BackgroundTypes } from '../types';
 import { IRoomData } from '../components/SettingsPanel';
 
 import React, { useCallback, useContext } from 'react';
@@ -14,6 +14,21 @@ export interface IFirebaseContext {
 		roomName: string
 	) => Promise<IFetchResponseBase & { data?: IChatRoom }>;
 	pinRoomItem: (room: string, item: IPinnedItem) => Promise<IFetchResponseBase>;
+	updateBackground: (room: string, configData: {
+		type: BackgroundTypes[];
+		name?: string;
+		mapData?: IMap;
+		raceId?: string;
+		videoId?: string;
+	}) => Promise<IFetchResponseBase>;
+	updateMap: (room: string, configData: {
+		type: BackgroundTypes[] | BackgroundTypes;
+		name?: string;
+		mapData?: IMap;
+		raceId?: string;
+		videoId?: string;
+	}) => Promise<IFetchResponseBase>;
+
 	unpinRoomItem: (room: string, itemKey: string) => Promise<IFetchResponseBase>;
 	getRoomPinnedItems: (
 		room: string
@@ -86,6 +101,8 @@ export const FirebaseContext = React.createContext<IFirebaseContext>({
 	createRoom: () => Promise.resolve({ isSuccessful: false }),
 	getRoom: () => Promise.resolve({ isSuccessful: false }),
 	pinRoomItem: () => Promise.resolve({ isSuccessful: false }),
+	updateBackground: () => Promise.resolve({ isSuccessful: false }),
+	updateMap: () => Promise.resolve({ isSuccessful: false }),
 	unpinRoomItem: () => Promise.resolve({ isSuccessful: false }),
 	getRoomPinnedItems: () => Promise.resolve({ isSuccessful: false }),
 	getAllRooms: () => Promise.resolve({ isSuccessful: false }),
@@ -216,6 +233,64 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ item })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//add background to background.type array or update background data
+	const updateBackground = useCallback(
+		async (
+			room: string,
+			configData: {
+				type: BackgroundTypes[];
+				name?: string;
+				mapData?: IMap;
+				raceId?: string;
+				videoId?: string;
+			}
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/room/${room}/update-background`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ configData })
+			});
+
+			if (fetchRes.ok) {
+				return { isSuccessful: true };
+			}
+
+			return { isSuccessful: false, message: fetchRes.statusText };
+		},
+		[fetchAuthenticated]
+	);
+
+	//update Map
+	const updateMap = useCallback(
+		async (
+			room: string,
+			configData: {
+				type: BackgroundTypes[] | BackgroundTypes;
+				name?: string;
+				mapData?: IMap;
+				raceId?: string;
+				videoId?: string;
+			}
+		): Promise<IFetchResponseBase> => {
+			const fetchRes = await fetchAuthenticated(`/room/${room}/update-map`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ configData })
 			});
 
 			if (fetchRes.ok) {
@@ -564,6 +639,8 @@ export const FirebaseProvider: React.FC = ({ children }) => {
 				createRoom,
 				getRoom,
 				pinRoomItem,
+				updateBackground,
+				updateMap,
 				getRoomPinnedItems,
 				unpinRoomItem,
 				getAllRooms,

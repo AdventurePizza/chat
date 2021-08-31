@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { IChatRoom, IPinnedItem, error } from "./types";
+import { IChatRoom, IPinnedItem, error, IMap } from "./types";
 import db from "./firebase";
 import { twitterClient } from "./twitter";
 import * as ethers from "ethers";
@@ -117,6 +117,65 @@ roomRouter.post("/:roomId/pin", async (req, res) => {
     return error(res, "room does not exist");
   }
 });
+
+//add background or update background
+roomRouter.post("/:roomId/update-background", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+
+  type BackgroundTypes = 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
+
+  const { configData } = req.body as { type: string, configData: {
+    type: BackgroundTypes[];
+    name?: string;
+	  mapData?: IMap;
+	  raceId?: string;
+	  videoId?: string;
+  }};
+
+  const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
+
+  if (!isVerifiedOwner) return;
+
+  const docRef = await collection.doc(roomId);
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+    await docRef.collection("pinnedItems").doc("background").set(configData);
+    res.status(200).end();
+  } else {
+    return error(res, "room does not exist");
+  }
+});
+
+//update map background
+roomRouter.post("/:roomId/update-map", async (req, res) => {
+  const { roomId } = req.params as { roomId: string };
+
+  type BackgroundTypes = 'image' | 'map' | 'race' | 'marketplace' | 'video' | undefined;
+
+  const { configData } = req.body as { type: string, configData: {
+    type: BackgroundTypes[] | BackgroundTypes;
+    name?: string;
+	  mapData?: IMap;
+	  raceId?: string;
+	  videoId?: string;
+  }};
+
+  const isVerifiedOwner = await verifyLockedOwner(req, res, roomId);
+
+  if (!isVerifiedOwner) return;
+
+  const docRef = await collection.doc(roomId);
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+    await docRef.collection("pinnedItems").doc("background").set(configData);
+    res.status(200).end();
+  } else {
+    return error(res, "room does not exist");
+  }
+});
+
 
 // delete pinned item
 roomRouter.delete("/:roomId/pin/:itemId", async (req, res) => {

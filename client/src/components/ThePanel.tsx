@@ -31,7 +31,6 @@ import newroomIcon from '../assets/buttons/newroom.png'
 //panels
 import YouTubeMusicPanel from './YouTubeMusicPanel';
 import { NFTPanel } from './NFT/NFTPanel';
-import { MapsPanel } from './MapsPanel';
 import { RacePanel } from './RacePanel';
 import { HorsePanel } from './HorsePanel';
 import { MusicPlayerPanel } from './MusicPlayerPanel';
@@ -42,8 +41,9 @@ import { GiphyPanel } from './GiphyPanel';
 import {SettingsPanel} from './SettingsPanel';
 //types
 import { ISubmit } from './NFT/OrderInput';
-import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata } from '../types';
+import { IChatRoom, newPanelTypes, IMusicPlayer, IMetadata, BackgroundTypes, IMap } from '../types';
 import { IGif } from '@giphy/js-types';
+import { AppStateContext } from '../contexts/AppStateContext';
 
 interface IThePanelProps {
 	//panel
@@ -115,6 +115,7 @@ interface IThePanelProps {
 	myLocation?: string;
 	music?: IMetadata;
 	clearField: (field: string) => void;
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
 
 interface IPanel {
@@ -236,7 +237,8 @@ const ThePanel = ({
 	email,
 	myLocation,
 	music,
-	clearField
+	clearField,
+	addBackground
 }: IThePanelProps) => {
 	const [text, setText] = useState('');
 	const [isBackground, setisBackground] = useState(false);
@@ -244,6 +246,7 @@ const ThePanel = ({
 	const firebaseContext = useContext(FirebaseContext);
 	const [loading, setLoading] = useState(false);
 	const panelRef = useRef<HTMLDivElement>(null);
+	const { socket } = useContext(AppStateContext);
 
 	const googleSearch = async (textToSearch: string) => {
 		setLoading(true);
@@ -310,7 +313,7 @@ const ThePanel = ({
 
 			{(activePanel === 'google' || activePanel === 'unsplash') && 
 				<BackgroundPanel
-					sendImage={sendImage}
+					addBackground={addBackground}
 					images={images}
 					setImages={setImages}
 					searchValue={text}
@@ -348,13 +351,8 @@ const ThePanel = ({
 						setHideAllPins={setHideAllPins}
 						isBackground={isBackground}
 						addVideo={addVideo}
+						addBackground={addBackground}
 					/>
-				</div>
-			}
-
-			{activePanel === 'maps' && 
-				<div  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="background-icon-list" >
-					<MapsPanel />
 				</div>
 			}
 
@@ -366,6 +364,7 @@ const ThePanel = ({
 						isBackground={isBackground}
 						hideAllPins={hideAllPins}
 						setHideAllPins={setHideAllPins}
+						addBackground={addBackground}
 					/>
 				</div>
 			}
@@ -429,7 +428,27 @@ const ThePanel = ({
 								if(panel.type === "newroom"){onNewRoom()}
 								else if(panel.type === "home"){routeHome()}
 								else if(panel.type === "marketplace"){
-									pinMarketplace()
+									addBackground("marketplace", "");
+									socket.emit('event', {
+										key: 'background',
+										type: "marketplace",
+										func: 'add'
+									})
+								}
+								else if(panel.type === "maps"){
+									addBackground("map", {
+										coordinates: {
+											lat: 33.91925555555555,
+											lng: -118.41655555555555
+										},
+										markers: [],
+										zoom: 12
+									});
+									socket.emit('event', {
+										key: 'background',
+										type: "map",
+										func: 'add'
+									})
 								}
 								if(panel.type === "settings"){setHideAllPins(true)}
 								else{setHideAllPins(false)}

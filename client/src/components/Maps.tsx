@@ -1,7 +1,6 @@
 import GoogleMapReact from 'google-map-react';
 import React from 'react';
 import { useContext, useState } from 'react';
-import { MapsContext } from '../contexts/MapsContext';
 import { AppStateContext } from '../contexts/AppStateContext';
 import './Marker.css';
 import { IMap } from '../types';
@@ -11,30 +10,31 @@ interface IMarkerProps {
 	lng: number;
 	text?: string;
 	index: number;
+	removeMarker: (index: number) => void;
+	updateMarker: (index: number, text: string) => void;
 }
 
-const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
+const Marker = ({ lat, lng, text, index, removeMarker, updateMarker }: IMarkerProps) => {
 	const [inputVal, setInputVal] = useState('');
-	const { deleteMarker, updateMarkerText } = useContext(MapsContext);
 	const { socket } = useContext(AppStateContext);
 	const [keepOpen, setKeepOpen] = useState(false);
 
 	const onUpdateName = () => {
-		updateMarkerText(index, inputVal);
+		updateMarker(index, inputVal);
 		setInputVal('');
 		socket.emit('event', {
 			key: 'map',
-			func: 'update',
+			func: 'update-marker',
 			index,
 			text: inputVal
 		})
 	};
 
 	const onMarkerDelete = () => {
-		deleteMarker(index);
+		removeMarker(index);
 		socket.emit('event', {
 			key: 'map',
-			func: 'delete',
+			func: 'remove-marker',
 			index
 		})
 	};
@@ -67,45 +67,57 @@ const Marker = ({ lat, lng, text, index }: IMarkerProps) => {
 };
 
 interface IMapProps {
-	mapData?: IMap;
+	mapData: IMap;
+	updateMap: (data: IMap) => void;
+	addNewMarker: (coordinates: {lat: number, lng: number, text: string}) => void;
+	removeMarker: (index: number) => void;
+	updateMarker: (index: number, text: string) => void;
+	showMap: boolean;
 }
 
-export const Map = ({ mapData }: IMapProps) => {
-	const {
-		coordinates,
-		updateCoordinates,
-		zoom,
-		updateZoom,
-		addMarker,
-		markers
-	} = useContext(MapsContext);
+export const Map = ({ 
+	mapData, 
+	updateMap, 
+	addNewMarker,
+	removeMarker,
+	updateMarker,
+	showMap
+	}: IMapProps) => {
 	const { socket } = useContext(AppStateContext);
 
 	const onChangeCoordinates = (
 		newCoordinates: { lat: number; lng: number },
 		newZoom: number
-	) => {
-		updateCoordinates(newCoordinates);
-		updateZoom(newZoom);
-		socket.emit('event', {
-			key: 'map',
-			coordinates: newCoordinates,
-			zoom: newZoom
-		});
+		) => {
+			const newMapData = {
+				coordinates : newCoordinates,
+				markers : mapData.markers,
+				zoom: newZoom
+			}
+			updateMap(newMapData);
+			
+			socket.emit('event', {
+				key: 'map',
+				func: 'update',
+				mapData: newMapData
+			});
 	};
 
 	const apiIsLoaded = (map: any, maps: any) => {
 		map.addListener('dblclick', (event: any) => {
-			addMarker({
+			addNewMarker({
 				lat: event.latLng.lat(),
-				lng: event.latLng.lng()
-			});
+				lng: event.latLng.lng(),
+				text: ""
+			}); 
+			
 			socket.emit('event', {
 				key: 'map',
-				func: 'add',
+				func: 'add-marker',
 				marker: {
 					lat: event.latLng.lat(),
-					lng: event.latLng.lng()
+					lng: event.latLng.lng(),
+					text: ""
 				}
 			})
 		});
@@ -118,13 +130,14 @@ export const Map = ({ mapData }: IMapProps) => {
 				height: '100%',
 				position: 'relative',
 				top: '0',
-				left: '0'
+				left: '0',
+				display: showMap ? 'block' : 'none'
 			}}
 		>
 			<GoogleMapReact
 				bootstrapURLKeys={{ key: 'AIzaSyArAlGMMvreircH6LgluU4xHTBDJR7KBzs' }}
-				center={!mapData ? coordinates : mapData.coordinates}
-				zoom={!mapData ? zoom : mapData.zoom}
+				center={mapData.coordinates}
+				zoom={mapData.zoom}
 				onChange={({ center, zoom, bounds, marginBounds }) => {
 					onChangeCoordinates(center, zoom);
 				}}
@@ -134,23 +147,15 @@ export const Map = ({ mapData }: IMapProps) => {
 					disableDoubleClickZoom: true
 				}}
 			>
-				{!mapData
-					? markers.map((marker, index) => (
+				{mapData.markers.map((marker, index) => (
 							<Marker
 								lat={marker.lat}
 								lng={marker.lng}
 								key={index}
 								text={marker.text}
 								index={index}
-							/>
-					  ))
-					: mapData.markers.map((marker, index) => (
-							<Marker
-								lat={marker.lat}
-								lng={marker.lng}
-								key={index}
-								text={marker.text}
-								index={index}
+								removeMarker={removeMarker}
+								updateMarker={updateMarker}
 							/>
 					  ))}
 			</GoogleMapReact>

@@ -1,5 +1,5 @@
-import './App.css';
 import * as ethers from 'ethers';
+import './App.css';
 import abiNFT from './abis/NFT.abi.json';
 import Tour from 'reactour';
 import axios from 'axios';
@@ -38,6 +38,7 @@ import {
 	IWaterfallChat,
 	IBoardHorse,
 	IMusicPlayer,
+	BackgroundTypes,
 	newPanelTypes,
 	IBoardRace
 } from './types';
@@ -280,6 +281,15 @@ function App() {
 		condition: ''
 	});
 
+	const [mapInputPosition, setMapInputPosition] = useState({
+		top: 300,
+		left: 300
+	});
+
+	useEffect(() => {
+		console.log("App.tsx", background.mapData);
+	}, [background.mapData])
+
 	// YouTube function to keep track of timestamps
 	const updateLastTime = () => {
 		if (videoRef.current !== null) {
@@ -295,6 +305,10 @@ function App() {
 	const [showLoginModal, setShowLoginModal] = useState(true);
 	const [isFirstVisit, setIsFirstVisit] = useState(false);
 	const [step, setStep] = useState(0);
+
+	useEffect(() => {
+		console.log(background.videoId);
+	}, [background.videoId])
 
 	const [waterfallChat, setWaterfallChat] = useState<IWaterfallChat>({
 		top: 0,
@@ -1344,27 +1358,47 @@ function App() {
 		const onMessageEvent = (message: IMessageEvent) => {
 			switch (message.key) {
 				case 'map':
-					if (message.isMapShowing !== undefined) {
-						updateIsMapShowing(message.isMapShowing);
-					}
-					if (message.zoom !== undefined) {
-						updateZoom(message.zoom);
-					}
-					if (message.coordinates) {
-						const newCoordinates = {
-							lat: message.coordinates.lat,
-							lng: message.coordinates.lng
-						};
-						updateCoordinates(newCoordinates);
-					}
-					if (message.func === 'add') {
-						addMarker(message.marker);
-					}
-					if (message.func === 'delete') {
-						deleteMarker(message.index);
-					}
-					if (message.func === 'update') {
-						updateMarkerText(message.index, message.text);
+					switch(message.func){
+						case 'update' :
+							setBackground((background) => ({
+								...background,
+								mapData: message.mapData
+							}));
+							break;
+						case 'add-marker' :
+							setBackground((background) => ({
+								...background,
+								mapData: {
+									coordinates: background.mapData!.coordinates,
+									markers: background.mapData!.markers.concat(message.marker),
+									zoom: background.mapData!.zoom
+								}
+							}));
+							break;
+						case 'remove-marker' :
+							setBackground((background) => ({
+								...background,
+								mapData: {
+									coordinates: background.mapData!.coordinates,
+									markers: [...background.mapData!.markers.slice(0, message.index), ...background.mapData!.markers.slice(message.index + 1)],
+									zoom: background.mapData!.zoom
+								}
+							}));
+							break;
+						case 'update-marker' :
+							setBackground((background) => ({
+								...background,
+								mapData: {
+									coordinates: background.mapData!.coordinates,
+									markers: [
+										...background.mapData!.markers.slice(0, message.index),
+										{ ...background.mapData!.markers[message.index], text: message.text },
+										...background.mapData!.markers.slice(message.index + 1)
+									],
+									zoom: background.mapData!.zoom
+								}
+							}));
+							break;
 					}
 					break;
 				case 'sound':
@@ -1433,15 +1467,58 @@ function App() {
 					handleTowerDefenseEvents(message);
 					break;
 				case 'background':
-					setVideoId('');
-					setBackground((background) => ({
-						...background,
-						name: message.value,
-						isPinned: message.isPinned,
-						type: message.type,
-						mapData: message.mapData,
-						raceId: message.raceId
-					}));
+					switch(message.type){
+						case("video"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("video") : [background.type, "video"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "video") : background.type),
+								videoId: message.func === "add" ? message.videoId : ""
+							}));
+							break;
+						case("marketplace"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("marketplace") : [background.type, "marketplace"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "marketplace") : background.type),
+							}));
+							break;
+						case("map"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("map") : [background.type, "map"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "map") : background.type),
+								mapData: message.func === "add" ? {
+									coordinates: {
+										lat: 33.91925555555555,
+										lng: -118.41655555555555
+									},
+									markers: [],
+									zoom: 12
+								} : undefined
+							}));
+							break;
+						case("race"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("race") : [background.type, "race"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "race") : background.type),
+								raceId: message.func === "add" ? message.raceId : ""
+							}));
+							break;
+						case("image"):
+							setBackground((background) => ({
+								...background,
+								type: message.func === "add" ? (
+									Array.isArray(background.type) ? background.type.concat("image") : [background.type, "image"]) : (
+										Array.isArray(background.type) ? background.type.filter(entry => entry !== "image") : background.type),
+								name: message.func === "add" ? message.name : ""
+							}));
+					}
 					break;
 				case 'messages':
 					setAvatarMessages(message.value as IAvatarChatMessages);
@@ -1764,7 +1841,7 @@ function App() {
 					key: 'background',
 					value: backgroundName
 				});
-				firebaseContext.unpinRoomItem(roomId || 'default', 'background');
+				addBackground("image", backgroundName);
 				break;
 			case 'image':
 				const image = args[0] as string;
@@ -2205,7 +2282,7 @@ function App() {
 				let backgroundImg: string | undefined;
 				let backgroundMap: IMap | undefined;
 				let backgroundVideo: string | undefined;
-				let backgroundRace: string | undefined;
+				let backgroundArray: any;
 				
 				pinnedItems.data.forEach((item) => {
 					if (item.type === 'gif') {
@@ -2249,7 +2326,6 @@ function App() {
 						backgroundImg = item.name;
 						backgroundMap = item.mapData;
 						backgroundVideo = item.videoId;
-						backgroundRace = item.raceId;
 					} else if (item.type === 'race') {
 						pinnedRaces.push({
 							...item,
@@ -2316,6 +2392,8 @@ function App() {
 								id: item.id
 							});
 						});
+					} else if (Array.isArray(item.type)) {
+						backgroundArray = item;
 					}
 				});
 
@@ -2324,14 +2402,17 @@ function App() {
 				setTweets(pinnedTweets);
 				setPinnedText(pinnedText);
 				setVideos(pinnedVideos);
-				setBackground({
-					name: backgroundImg,
-					isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
-					mapData: backgroundMap,
-					type: backgroundType,
-					videoId: backgroundVideo,
-					raceId: backgroundRace
-				});
+				if(backgroundArray){
+					setBackground(backgroundArray);
+				} else {
+					setBackground({
+						name: backgroundImg,
+						isPinned: !!backgroundImg || !!backgroundMap || !!backgroundVideo,
+						mapData: backgroundMap,
+						type: backgroundType,
+						videoId: backgroundVideo
+					});
+				}
 				setVideoId(backgroundVideo ? backgroundVideo : "");
 				setNFTs(pinnedNFTs);
 				setHorses(pinnedHorses);
@@ -2600,6 +2681,257 @@ function App() {
 			}
 		}
 	};
+	
+	const addBackground = async (type: BackgroundTypes, data: string | IMap) => {
+		const room = roomId || 'default';
+
+		let backgrounds: any[] = [];
+		if(Array.isArray(background.type)){
+			if(!background.type.includes(type)){
+				backgrounds = [...background.type].concat(type);
+			} else {
+				backgrounds = [...background.type];
+			}
+		} else if (typeof background.type === "string"){
+			if(background.type === type) {
+				backgrounds = [background.type];
+			} else {
+				backgrounds = [background.type, type];
+			}
+		} else {
+			backgrounds = [type]
+		}
+
+		let configData: any = {};
+		if(type === "map"){
+			configData = {
+				type: backgrounds,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: data
+			}
+		} else if (type === "video"){
+			configData = {
+				type: backgrounds,
+				videoId: data,
+				name: background.name,
+				raceId: background.raceId,
+				mapData: background.mapData
+			}
+		} else if (type === "race"){
+			configData = {
+				type: backgrounds,
+				raceId: data,
+				videoId: background.videoId,
+				name: background.name,
+				mapData: background.mapData
+			}
+		} else if (type === "image"){
+			configData = {
+				type: backgrounds,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				name: data,
+				mapData: background.mapData
+			}
+		} else if (type === "marketplace"){
+			configData = {
+				...background,
+				type: backgrounds
+			}
+		}
+
+
+		const result = await firebaseContext.updateBackground(room, configData);
+
+		if (result.isSuccessful) {
+			setBackground((background) => ({...configData, activeBackground: type}));
+		}  else if (result.message) {
+			setModalErrorMessage(result.message);
+		}
+	}
+
+	const removeBackground = async (type: string) => {
+		const room = roomId || 'default';
+
+		let backgrounds: any[] = []
+		if(Array.isArray(background.type)){
+			backgrounds = background.type.filter(entry => entry !== type);
+		}
+
+		let configData: any = {};
+		if(type === "map"){
+			configData = {
+				type: backgrounds,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: undefined
+			}
+		} else if (type === "image"){
+			configData = {
+				type: backgrounds,
+				name: "",
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: undefined
+			}
+		} else if (type === "video"){
+			configData = {
+				type: backgrounds,
+				videoId: "",
+				name: background.name,
+				raceId: background.raceId,
+				mapData: background.mapData
+			}
+		} else if (type === "race"){
+			configData = {
+				type: backgrounds,
+				raceId: "",
+				videoId: background.videoId,
+				name: background.name,
+				mapData: background.mapData
+			}
+		} else if (type === "marketplace"){
+			configData = {
+				type: backgrounds,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				name: background.name,
+				mapData: background.mapData
+			}
+		}
+
+
+		const result = await firebaseContext.updateBackground(room, configData);
+
+		if (result.isSuccessful) {
+			setBackground((background) => ({...configData, activeBackground: backgrounds[0]}));
+		}  else if (result.message) {
+			setModalErrorMessage(result.message);
+		}
+	}
+
+	const updateMap = async (mapData: IMap) => {
+		const room = roomId || 'default';
+		let configData = {
+			type: background.type,
+			name: background.name,
+			raceId: background.raceId,
+			videoId: background.videoId,
+			mapData
+		}
+		console.log("configData", configData);
+		const result = await firebaseContext.updateMap(room, configData);
+
+		if (result.isSuccessful) {
+			setBackground({...configData, activeBackground: "map"});
+		}  else if (result.message) {
+			setModalErrorMessage(result.message);
+		}
+	}
+
+	const addNewMarker = async (coordinates: { lat: number; lng: number, text: string }) => {
+		const room = roomId || 'default';
+
+		if (background.mapData) {
+			let configData = {
+				type: background.type,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: {
+					coordinates: background.mapData.coordinates,
+					zoom: background.mapData.zoom,
+					markers: background.mapData.markers.concat(coordinates)
+				}
+			};
+
+			const result = await firebaseContext.updateMap(room, configData);
+			if (result.isSuccessful) {
+				setBackground((background) => ({
+					...background,
+					mapData: {
+						...background.mapData!,
+						markers: background.mapData!.markers.concat(coordinates)
+					}
+				}));
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const removeMarker = async (index: number) => {
+		const room = roomId || 'default';
+
+		if (background.mapData) {
+			let configData = {
+				type: background.type,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: {
+					coordinates: background.mapData.coordinates,
+					zoom: background.mapData.zoom,
+					markers: [...background.mapData.markers.slice(0, index), ...background.mapData.markers.slice(index + 1)]
+				}
+			};
+
+			const result = await firebaseContext.updateMap(room, configData);
+			if (result.isSuccessful) {
+				setBackground((background) => ({
+					...background,
+					mapData: {
+						...background.mapData!,
+						markers: [...background.mapData!.markers.slice(0, index), ...background.mapData!.markers.slice(index + 1)]
+					}
+				}));
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
+
+	const updateMarker = async (index: number, text: string) => {
+		const room = roomId || 'default';
+
+		if (background.mapData) {
+			let configData = {
+				type: background.type,
+				name: background.name,
+				raceId: background.raceId,
+				videoId: background.videoId,
+				mapData: {
+					coordinates: background.mapData.coordinates,
+					zoom: background.mapData.zoom,
+					markers: [
+						...background.mapData.markers.slice(0, index),
+						{ ...background.mapData.markers[index], text },
+						...background.mapData.markers.slice(index + 1)
+					]
+				}
+			};
+
+			const result = await firebaseContext.updateMap(room, configData);
+			if (result.isSuccessful) {
+				setBackground((background) => ({
+					...background,
+					mapData: {
+						...background.mapData!,
+						markers: [
+							...background.mapData!.markers.slice(0, index),
+							{ ...background.mapData!.markers[index], text },
+							...background.mapData!.markers.slice(index + 1)
+						]
+					}
+				}));
+			} else if (result.message) {
+				setModalErrorMessage(result.message);
+			}
+		}
+	};
 
 	const pinBackground = async () => {
 		const room = roomId || 'default';
@@ -2676,7 +3008,7 @@ function App() {
 
 			if (isSuccessful) {
 				let oldBackgroundType = '';
-				if (background.type) {
+				if (typeof background.type === 'string') {
 					oldBackgroundType = background.type.valueOf();
 				}
 
@@ -2949,6 +3281,11 @@ function App() {
 				top: top,
 				left: left
 			}));
+		} else if (type === 'map'){
+			setMapInputPosition({
+				top: top,
+				left: left
+			});
 		} else {
 			const {
 				isSuccessful,
@@ -3186,7 +3523,7 @@ function App() {
 
 			<Route exact path={['/room/:roomId', '/']}>
 				<Board
-					videoId={videoId}
+					videoId={background.videoId!}
 					isVideoPinned={isVidPinned}
 					pinnedVideoId={pinnedVideoId}
 					setPinnedVideoId={setPinnedVideoId}
@@ -3242,6 +3579,7 @@ function App() {
 					tweets={tweets}
 					pinTweet={pinTweet}
 					unpinTweet={unpinTweet}
+					raceId={background.raceId!}
 					races={races}
 					updateRaces={setRaces}
 					horses={horses}
@@ -3249,6 +3587,13 @@ function App() {
 					unpinHorse={unpinHorse}
 					updateHorses={setHorses}
 					updateSelectedPanelItem={setSelectedPanelItem}
+					setBackground={setBackground}
+					updateMap={updateMap}
+					removeBackground={removeBackground}
+					mapInputPosition={mapInputPosition}
+					addNewMarker={addNewMarker}
+					removeMarker={removeMarker}
+					updateMarker={updateMarker}
 					setActivePanel= {setActivePanel}
 					pinRace={pinRace}
 					unpinRace={unpinRace}
@@ -3356,6 +3701,7 @@ function App() {
 				updateShowWhiteboard={onShowMarker}
 				musicPlayer={musicPlayer}
 				addVideo={addVideo}
+				addBackground={addBackground}
 				setBottomPanelHeight={setBottomPanelHeight}
 				activePanel={activePanel}
 				setActivePanel={setActivePanel}

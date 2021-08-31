@@ -4,6 +4,8 @@ import {
 	ITowerDefenseState,
 	PanelItemEnum,
 	IMusicPlayer,
+	BackgroundTypes,
+	IMap,
 	newPanelTypes,
 	IMetadata
 } from '../types';
@@ -72,8 +74,8 @@ export interface IBottomPanelProps {
 	myLocation?: string;
 	music?: IMetadata;
 	clearField: (field: string) => void;
+	addBackground: (type: BackgroundTypes, data: string | IMap) => void;
 }
-
 
 const useStyles = makeStyles(() => ({
 	drawerRoot: {
@@ -124,7 +126,8 @@ export const BottomPanel = ({
 	email,
 	myLocation,
 	music,
-	clearField
+	clearField,
+	addBackground
 }: IBottomPanelProps) => {
 	const [images, setImages] = useState<IImagesState[]>([]);
 	const [videos, setQueriedVideos] = useState<Array<any>>([]);
@@ -226,6 +229,7 @@ export const BottomPanel = ({
 					myLocation={myLocation}
 					music={music}
 					clearField={clearField}
+					addBackground={addBackground}
 				/>
 			</div>
 		</Drawer>

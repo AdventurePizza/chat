@@ -12,18 +12,19 @@ import {
 	IHorse,
 	IPlaylist,
 	PanelItemEnum,
+	IMap,
 	newPanelTypes
 } from '../types';
 import { Order } from './NFT/Order';
 import { CustomToken as NFT } from '../typechain/CustomToken';
 import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { Map } from './Maps';
 import { Tweet } from 'react-twitter-widgets';
 import { WaterfallChat } from './WaterfallChat';
 import { MusicPlayer } from './MusicPlayer';
 import ReactPlayer from 'react-player';
 import { AppStateContext } from '../contexts/AppStateContext';
 import { Horse } from './Horse';
+import { MapsPanel } from './MapsPanel';
 
 const useStyles = makeStyles({
 	container: {
@@ -89,6 +90,8 @@ interface BoardObjectProps {
 	playlist?: IPlaylist[];
 
 	raceId?: string;
+	mapData?: IMap;
+	updateMap?: (mapData: IMap) => void;
 }
 
 export const BoardObject = (props: BoardObjectProps) => {
@@ -112,7 +115,9 @@ export const BoardObject = (props: BoardObjectProps) => {
 		horseData,
 		playlist,
 		setActivePanel,
-		raceId
+		raceId,
+		updateMap,
+		mapData
 	} = props;
 
 	const [isHovering, setIsHovering] = useState(false);
@@ -142,7 +147,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 	);
 
 	const shouldShowMoveButton =
-		isPinned || type === 'chat' || type === 'musicPlayer';
+		isPinned || type === 'chat' || type === 'musicPlayer' || type === 'map';
 
 	return (
 		<div
@@ -189,7 +194,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 						order={order}
 					/>
 				)}
-				{type === 'map' && data && <Map />}
+				{type === 'map' && <MapsPanel updateMap={updateMap} mapData={mapData}/>}
 				{type === 'tweet' && id && <Tweet tweetId={id} />}
 				{type === 'video' && id && (
 					<div
@@ -255,7 +260,7 @@ export const BoardObject = (props: BoardObjectProps) => {
 					onTouchStart={() => setIsHovering(true)}
 					onTouchEnd={() => setIsHovering(false)}
 				>
-					{type !== 'chat' && type !== 'musicPlayer' && (
+					{type !== 'chat' && type !== 'musicPlayer' && type !== 'map' && (
 						<PinButton isPinned={isPinned} onPin={onPin} onUnpin={onUnpin} />
 					)}
 					{/*@ts-ignore needs better typing for innerRef*/}
